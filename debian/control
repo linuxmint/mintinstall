@@ -1,0 +1,12 @@
+Source: mintinstall
+Section: admin
+Priority: optional
+Maintainer: clem <root@linuxmint.com>
+Build-Depends: debhelper (>= 5)
+Standards-Version: 3.7.2
+
+Package: mintinstall
+Architecture: all
+Depends: python (>= 2.4), python (<< 3), python-gtk2, python-glade2, mintsystem (>=5.4), zenity, libnotify-bin
+Description: Software Manager
+ A software manager to easily install new applications.

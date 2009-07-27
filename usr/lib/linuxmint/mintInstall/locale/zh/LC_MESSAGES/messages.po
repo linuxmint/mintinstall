@@ -1,0 +1,398 @@
+# Same as in version 5.0
+msgid "Backing up your APT sources"
+msgstr "备份您的APT源"
+
+msgid "Please wait, this can take some time"
+msgstr "请稍后，这将花费一些时间"
+
+msgid "Installation is complete"
+msgstr "安装完成"
+
+msgid "Restoring your APT sources"
+msgstr "还原您的APT源"
+
+msgid "Finished"
+msgstr "完成"
+
+msgid "not installed"
+msgstr "未安装"
+
+msgid "installed"
+msgstr "已安装"
+
+msgid "Success"
+msgstr "成功"
+
+msgid "Failure"
+msgstr "失败"
+
+msgid "Install"
+msgstr "安装 "
+
+msgid "Are you sure you want to install %s?"
+msgstr "您确定要安装 %s?"
+
+msgid "Upgrade"
+msgstr "更新 "
+
+msgid "Are you sure you want to upgrade %s?"
+msgstr "您确定要更新 %s?"
+
+msgid "Default repositories"
+msgstr "默认源"
+
+msgid "Your APT sources were corrupted."
+msgstr "您的APT源已被损坏。"
+
+msgid "Your APT sources were not correctly restored after you last ran mintInstall. They now have been restored."
+msgstr "在您最后一次运行mintInstall时，APT源无法正常存储,现已修复。"
+
+msgid "Description:"
+msgstr "说明："
+
+msgid "Repositories:"
+msgstr "软件源："
+
+msgid "Packages:"
+msgstr "软件包："
+
+msgid "Status:"
+msgstr "状态："
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "Install new Software"
+msgstr "安装新的软件"
+
+msgid "Install applications with one click of the mouse"
+msgstr "一键安装应用软件"
+
+msgid "Go to the Linux Mint Software Portal"
+msgstr "进入Linux Mint官方仓库"
+
+msgid "Go to the Linux Mint repository"
+msgstr "进入Linux Mint仓库"
+
+msgid "Go to the Ubuntu repository"
+msgstr "进入Ubuntu仓库"
+
+msgid "Go to the GetDeb Portal"
+msgstr "进入GetDeb官方仓库"
+
+msgid "Search for a .mint application"
+msgstr "搜索格式为.mint 的软件"
+
+msgid "Search for a .deb package"
+msgstr "搜索格式为.deb 的软件包"
+
+msgid "Search"
+msgstr "查找"
+
+msgid "Show"
+msgstr "显示"
+
+msgid "reviews"
+msgstr "回复"
+
+msgid "MB"
+msgstr "M "
+
+msgid "The screenshot for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "这个程序的预览图下载失败。点击刷新按钮来解决这个问题。"
+
+msgid "The mint file for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "这个程序的mint文件下载失败。点击刷新按钮来解决这个问题。"
+
+msgid "%d applications listed"
+msgstr "%d 已列出的程序"
+
+msgid "Category"
+msgstr "分类"
+
+msgid "Application"
+msgstr "程序"
+
+msgid "Average rating"
+msgstr "平均下载速度"
+
+msgid "Reviews"
+msgstr "回复"
+
+msgid "Views"
+msgstr "查看"
+
+msgid "Added"
+msgstr "发表于"
+
+msgid "Score"
+msgstr "得分"
+
+msgid "Reviewer"
+msgstr "查看人"
+
+msgid "Rating"
+msgstr "评价"
+
+msgid "Review"
+msgstr "回复"
+
+msgid "Software manager for Linux Mint"
+msgstr "Linux Mint 软件管理程序"
+
+msgid "_Help"
+msgstr "帮助(_H)"
+
+msgid "About"
+msgstr "关于"
+
+msgid "_File"
+msgstr "文件(_F)"
+
+msgid "Quit"
+msgstr "退出"
+
+msgid "The data used by mintInstall is corrupted or out of date. Click on refresh to fix the problem :"
+msgstr "mintInstall的数据已失效或过期。请刷新来解决这个问题 :"
+
+msgid "Downloading data for %s from %s"
+msgstr "正在下载 %s ，来自 %s"
+
+msgid "%d categories loaded"
+msgstr "%d 分类已装载"
+
+msgid "%d applications loaded"
+msgstr "%d 程序已装载"
+
+msgid "%d screenshots loaded"
+msgstr "%d 预览图已装载"
+
+msgid "%d reviews loaded"
+msgstr "%d 回复已装载"
+
+msgid "All applications"
+msgstr "全部程序"
+
+msgid "Visit"
+msgstr "访问"
+
+msgid "Search:"
+msgstr "查找:"
+
+msgid "Added:"
+msgstr "发表于:"
+
+msgid "License:"
+msgstr "许可证:"
+
+msgid "Size:"
+msgstr "大小 :"
+
+msgid "Views:"
+msgstr "查看 :"
+
+msgid "Average rating:"
+msgstr "平均下载速度 :"
+
+msgid "Refreshing mintInstall"
+msgstr "刷新 mintInstall"
+
+msgid "Please wait, this operation can take a while"
+msgstr "请稍候，正在处理"
+
+# Introduced in version 5.1
+msgid "Versions"
+msgstr "版本"
+
+msgid "Please refresh mintInstall by clicking on the Refresh button"
+msgstr "请点击“刷新”按钮来刷新。"
+
+msgid "Repository"
+msgstr "软件仓库"
+
+msgid "Package"
+msgstr "软件包"
+
+msgid "Installed version"
+msgstr "已安装版本"
+
+msgid "Available version"
+msgstr "可用的版本"
+
+#Introduced in version 5.2
+msgid "Please enter your password"
+msgstr "请输入密码"
+
+msgid "Games"
+msgstr "游戏"
+
+msgid "Internet"
+msgstr "互联网"
+
+msgid "Accessories"
+msgstr "附件"
+
+msgid "Sound & Video"
+msgstr "影音"
+
+msgid "Office"
+msgstr "办公"
+
+msgid "Graphics"
+msgstr "图像"
+
+msgid "Programming"
+msgstr "编程"
+
+msgid "Education"
+msgstr "教育"
+
+msgid "System Tools"
+msgstr "系统工具"
+
+msgid "First person shooters"
+msgstr "第一人称射击"
+
+msgid "Turn-based strategy"
+msgstr "回合制策略"
+
+msgid "Real time strategy"
+msgstr "即时策略"
+
+msgid "Emulators"
+msgstr "模拟器"
+
+msgid "Simulation & racing"
+msgstr "模拟赛车"
+
+msgid "Email"
+msgstr "电子邮件"
+
+msgid "Web browsers"
+msgstr "网页浏览"
+
+msgid "Instant messengers"
+msgstr "即时通信"
+
+msgid "Internet Relay Chat"
+msgstr "IRC网络聊天"
+
+msgid "FTP"
+msgstr "FTP"
+
+msgid "P2P and torrent"
+msgstr "P2P（点对点） 和 torrent"
+
+msgid "Firewall"
+msgstr "防火墙"
+
+msgid "Text editors"
+msgstr "文本编辑器"
+
+msgid "Audio players"
+msgstr "音频播放器"
+
+msgid "Video players"
+msgstr "视频播放器"
+
+msgid "Burning tools"
+msgstr "刻录工具"
+
+msgid "Office suites"
+msgstr "办公软件"
+
+msgid "Collection managers"
+msgstr "收藏管理"
+
+msgid "Document viewers"
+msgstr "文档查看器"
+
+msgid "Finance"
+msgstr "金融理财"
+
+msgid "Word processors"
+msgstr "文字处理"
+
+msgid "Spreadsheets"
+msgstr "电子表格"
+
+msgid "Publishing"
+msgstr "出版"
+
+msgid "Graph and flowcharts"
+msgstr "图像和图表"
+
+msgid "Databases"
+msgstr "数据库"
+
+msgid "Mind mapping"
+msgstr "心智导图"
+
+msgid "2D"
+msgstr "2 维"
+
+msgid "Image viewers"
+msgstr "图片查看器"
+
+msgid "Photo"
+msgstr "照片"
+
+msgid "Scanning tools"
+msgstr "扫描工具"
+
+msgid "Tools"
+msgstr "工具"
+
+msgid "Desktop components"
+msgstr "桌面组件"
+
+msgid "Package management"
+msgstr "软件包管理"
+
+#Introduced in version 5.3
+msgid "Installed"
+msgstr "已安装"
+
+msgid "Description"
+msgstr "说明"
+
+msgid "No results"
+msgstr "没有找到"
+
+#Introduced in version 5.4
+msgid "Could not find package: %s"
+msgstr "找不到软件包: %s"
+
+#Introduced in version 5.5
+msgid "Featured applications"
+msgstr "常用软件"
+
+msgid "These popular applications can be installed on your system:"
+msgstr "可以安装这些常用软件 :"
+
+msgid "Icon"
+msgstr "图标"
+
+msgid "Size"
+msgstr "大小"
+
+msgid "B"
+msgstr " 字节"
+
+msgid "KB"
+msgstr "K "
+
+msgid "GB"
+msgstr "G "
+
+msgid "More info"
+msgstr "更多内容"
+
+msgid "Website"
+msgstr "网址"
+
+msgid "Downloading data"
+msgstr "正在下载数据"
+
+msgid "Please wait, a screenshot is being downloaded for this application."
+msgstr "请稍后，正在下载这个程序的预览图"

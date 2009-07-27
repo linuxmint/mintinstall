@@ -1,0 +1,399 @@
+# Same as in version 5.0
+
+msgid "Backing up your APT sources"
+msgstr "A fazer o backup das fontes APT"
+
+msgid "Please wait, this can take some time"
+msgstr "Por Favor aguarde, pode demorar algum tempo"
+
+msgid "Installation is complete"
+msgstr "Instalação Terminada"
+
+msgid "Restoring your APT sources"
+msgstr "Restaurando as fontes APT"
+
+msgid "Finished"
+msgstr "Terminou"
+
+msgid "not installed"
+msgstr "não instalado"
+
+msgid "installed"
+msgstr "instalado"
+
+msgid "Success"
+msgstr "Sucesso"
+
+msgid "Failure"
+msgstr "Erro"
+
+msgid "Install"
+msgstr "Instalar"
+
+msgid "Are you sure you want to install %s?"
+msgstr "Tem a certeza que quer instalar %s ?"
+
+msgid "Upgrade"
+msgstr "Upgrade"
+
+msgid "Are you sure you want to upgrade %s?"
+msgstr "Tem a certeza que deseja fazer o upgrade %s ?"
+
+msgid "Default repositories"
+msgstr "Repositórios por defeito"
+
+msgid "Your APT sources were corrupted."
+msgstr "As fontes APT foram corrompidas."
+
+msgid "Your APT sources were not correctly restored after you last ran mintInstall. They now have been restored."
+msgstr "As fontes APT não foram correctamente restauradas após a última utilização do mintInstall. Agora foram restaurandas ."
+
+msgid "Description:"
+msgstr "Descrição:"
+
+msgid "Repositories:"
+msgstr "Repositórios :"
+
+msgid "Packages:"
+msgstr "Pacotes:"
+
+msgid "Status:"
+msgstr "Estado:"
+
+msgid "Close"
+msgstr "Fechado"
+
+msgid "Install new Software"
+msgstr "Instalar novo Software"
+
+msgid "Install applications with one click of the mouse"
+msgstr "Instala programas com um clique no rato"
+
+msgid "Go to the Linux Mint Software Portal"
+msgstr "Ir para o Portal de Software do Linux Mint"
+
+msgid "Go to the Linux Mint repository"
+msgstr "Ir para o Repositório do Linux Mint"
+
+msgid "Go to the Ubuntu repository"
+msgstr "Ir para o Repositório do Ubuntu"
+
+msgid "Go to the GetDeb Portal"
+msgstr "Ir para o Portal do Getdeb"
+
+msgid "Search for a .mint application"
+msgstr "Procurar um programa .mint"
+
+msgid "Search for a .deb package"
+msgstr "Procuara um pacote .deb"
+
+msgid "Search"
+msgstr "Procurar"
+
+msgid "Show"
+msgstr "Mostrar"
+
+msgid "reviews"
+msgstr "Críticas"
+
+msgid "MB"
+msgstr "Mb"
+
+msgid "The screenshot for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "A captura de tela para esta aplicação não foi baixado com êxito. Clique sobre a actualização para corrigir o problema."
+
+msgid "The mint file for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "O ficheiro mint para esta aplicação não foi baixado com êxito. Clique sobre a atualização para corrigir o problema."
+
+msgid "%d applications listed"
+msgstr "%d aplicações listadas"
+
+msgid "Category"
+msgstr "Categoria"
+
+msgid "Application"
+msgstr "Programa"
+
+msgid "Average rating"
+msgstr "Votação média"
+
+msgid "Reviews"
+msgstr "Críticas"
+
+msgid "Views"
+msgstr "Visitas"
+
+msgid "Added"
+msgstr "Adicionado"
+
+msgid "Score"
+msgstr "Pontuação"
+
+msgid "Reviewer"
+msgstr "Autor"
+
+msgid "Rating"
+msgstr "Avaliação"
+
+msgid "Review"
+msgstr "Critica"
+
+msgid "Software manager for Linux Mint"
+msgstr "Gestor de programas para Linux Mint"
+
+msgid "_Help"
+msgstr "_Ajuda"
+
+msgid "About"
+msgstr "Sobre"
+
+msgid "_File"
+msgstr "_Ficheiro"
+
+msgid "Quit"
+msgstr "Sair"
+
+msgid "The data used by mintInstall is corrupted or out of date. Click on refresh to fix the problem :"
+msgstr "Os dados utilizados pelo mintInstall estão corrompidos ou desactualizados. Clique sobre actualizar para corrigir o problema :"
+
+msgid "Downloading data for %s from %s"
+msgstr "A fazer o download dos dados %s a partir de %s"
+
+msgid "%d categories loaded"
+msgstr "%d categorias carregadas"
+
+msgid "%d applications loaded"
+msgstr "%d Aplicações Carregadas"
+
+msgid "%d screenshots loaded"
+msgstr "%d Capturas de tela carregadas"
+
+msgid "%d reviews loaded"
+msgstr "%d Críticas carregadas"
+
+msgid "All applications"
+msgstr "Toutes les applications"
+
+msgid "Visit"
+msgstr "Visitar"
+
+msgid "Search:"
+msgstr "Procurar :"
+
+msgid "Added:"
+msgstr "Adicionadas :"
+
+msgid "License:"
+msgstr "Licenças :"
+
+msgid "Size:"
+msgstr "Tamanho :"
+
+msgid "Views:"
+msgstr "Visualizações :"
+
+msgid "Average rating:"
+msgstr "Classificação média :"
+
+msgid "Refreshing mintInstall"
+msgstr "Actualização do mintInstall"
+
+msgid "Please wait, this operation can take a while"
+msgstr "Aguarde, esta operação pode demorar um pouco"
+
+# Introduced in version 5.1
+msgid "Versions"
+msgstr "Versões"
+
+msgid "Please refresh mintInstall by clicking on the Refresh button"
+msgstr "Prima Actualização do mintInstall para actualizar"
+
+msgid "Repository"
+msgstr "Repositórios"
+
+msgid "Package"
+msgstr "Pacotes"
+
+msgid "Installed version"
+msgstr "Versão instalada"
+
+msgid "Available version"
+msgstr "Versão disponível"
+
+#Introduced in version 5.2
+msgid "Please enter your password"
+msgstr "Digite a sua password"
+
+msgid "Games"
+msgstr "Jogos"
+
+msgid "Internet"
+msgstr "Internet"
+
+msgid "Accessories"
+msgstr "Acessórios"
+
+msgid "Sound & Video"
+msgstr "Multimédia"
+
+msgid "Office"
+msgstr "Produtividade"
+
+msgid "Graphics"
+msgstr "Gráficos"
+
+msgid "Programming"
+msgstr "Programação"
+
+msgid "Education"
+msgstr "Educação"
+
+msgid "System Tools"
+msgstr "Ferramentas"
+
+msgid "First person shooters"
+msgstr "First person shooters"
+
+msgid "Turn-based strategy"
+msgstr "Estratégia"
+
+msgid "Real time strategy"
+msgstr "Estratégia em tempo real"
+
+msgid "Emulators"
+msgstr "Emuladores"
+
+msgid "Simulation & racing"
+msgstr "Simulação e corridas"
+
+msgid "Email"
+msgstr "Correio Electrónico"
+
+msgid "Web browsers"
+msgstr "Navigadores web"
+
+msgid "Instant messengers"
+msgstr "Mensagens instantâneas"
+
+msgid "Internet Relay Chat"
+msgstr "IRC"
+
+msgid "FTP"
+msgstr "FTP"
+
+msgid "P2P and torrent"
+msgstr "P2P e Torrents"
+
+msgid "Firewall"
+msgstr "Firewall"
+
+msgid "Text editors"
+msgstr "Editores de texto"
+
+msgid "Audio players"
+msgstr "Reprodutor de audio"
+
+msgid "Video players"
+msgstr "Reprodutores de vídeo"
+
+msgid "Burning tools"
+msgstr "Ferramentas de gravação"
+
+msgid "Office suites"
+msgstr "Ferramentas de Office"
+
+msgid "Collection managers"
+msgstr "Gestores de colecções"
+
+msgid "Document viewers"
+msgstr "Visualizadores de documentos"
+
+msgid "Finance"
+msgstr "Finanças"
+
+msgid "Word processors"
+msgstr "Processadores de Texto"
+
+msgid "Spreadsheets"
+msgstr "Folhas de cálculo"
+
+msgid "Publishing"
+msgstr "Edição"
+
+msgid "Graph and flowcharts"
+msgstr "Diagramas"
+
+msgid "Databases"
+msgstr "Bases de dados"
+
+msgid "Mind mapping"
+msgstr "Gestor de informações"
+
+msgid "2D"
+msgstr "2D"
+
+msgid "Image viewers"
+msgstr "Visualizadores de imagens"
+
+msgid "Photo"
+msgstr "Fotografia"
+
+msgid "Scanning tools"
+msgstr "Ferramentas de scan"
+
+msgid "Tools"
+msgstr "Ferramentas"
+
+msgid "Desktop components"
+msgstr "Programas de escritório"
+
+msgid "Package management"
+msgstr "Gestores de pacotes"
+
+#Introduced in version 5.3
+msgid "Installed"
+msgstr "Instalados"
+
+msgid "Description"
+msgstr "Descrição"
+
+msgid "No results"
+msgstr "Sem resultados"
+
+#Introduced in version 5.4
+msgid "Could not find package: %s"
+msgstr "Não foi possível encontrar o pacote: %s"
+
+#Introduced in version 5.5
+msgid "Featured applications"
+msgstr "Aplicações aconselhadas"
+
+msgid "These popular applications can be installed on your system:"
+msgstr "Estas aplicações populares podem ser instaladas no seu sistema :"
+
+msgid "Icon"
+msgstr "Icone"
+
+msgid "Size"
+msgstr "Tamanho"
+
+msgid "B"
+msgstr " Bytes"
+
+msgid "KB"
+msgstr "Kb"
+
+msgid "GB"
+msgstr "Gb"
+
+msgid "More info"
+msgstr "Mais informação"
+
+msgid "Website"
+msgstr "Website"
+
+msgid "Downloading data"
+msgstr "Download em curso"
+
+msgid "Please wait, a screenshot is being downloaded for this application."
+msgstr "Por favor aguarde, uma imagem da aplicação está a ser transferido."

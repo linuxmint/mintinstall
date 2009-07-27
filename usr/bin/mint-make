@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+
+import sys
+import os
+import commands
+
+name = raw_input("name: ")
+raw_name = str.replace(name, " ", "")
+raw_name = raw_name.lower()
+description = raw_input("description: ")
+repository = raw_input("need repository? (y or n): ")
+
+directory = raw_name
+
+os.mkdir(directory)
+os.chdir(directory)
+os.system("echo " + name + " > name")
+os.system("echo " + description + " > description")
+os.mkdir("steps")
+os.chdir("steps")
+if (repository == "y"):
+	os.system("echo \"TITLE Adding 3rd Party Repository\" > 1")
+	os.system("echo \"SOURCE deb specify_repository_here\" >> 1")
+
+	os.system("echo \"TITLE Installing " + name + "\" > 2")
+	os.system("echo \"INSTALL " + raw_name + "\" >> 2")
+else:
+	os.system("echo \"TITLE Installing " + name + "\" > 1")
+	os.system("echo \"INSTALL " + raw_name + "\" >> 1")
+
+
+

@@ -1,0 +1,399 @@
+# Same as in version 5.0
+
+msgid "Backing up your APT sources"
+msgstr "Az APT források biztonsági mentése"
+
+msgid "Please wait, this can take some time"
+msgstr "Kis türelmet, ez eltarthat egy ideig"
+
+msgid "Installation is complete"
+msgstr "A telepítés befejeződött"
+
+msgid "Restoring your APT sources"
+msgstr "Az APT források helyreállítása"
+
+msgid "Finished"
+msgstr "Kész"
+
+msgid "not installed"
+msgstr "nincs telepítve"
+
+msgid "installed"
+msgstr "telepítve"
+
+msgid "Success"
+msgstr "Sikeres"
+
+msgid "Failure"
+msgstr "Sikertelen"
+
+msgid "Install"
+msgstr "Telepítés"
+
+msgid "Are you sure you want to install %s?"
+msgstr "Valóban telepíteni szeretné a(z) %s alkalmazást?"
+
+msgid "Upgrade"
+msgstr "Frissítés"
+
+msgid "Are you sure you want to upgrade %s?"
+msgstr "Valóban frissíteni szeretné a(z) %s alkalmazást?"
+
+msgid "Default repositories"
+msgstr "Alapértelmezett csomagtárolók"
+
+msgid "Your APT sources were corrupted."
+msgstr "Az APT források megsérültek."
+
+msgid "Your APT sources were not correctly restored after you last ran mintInstall. They now have been restored."
+msgstr "Az APT források nem lettek helyreállítva a mintInstall előző futtatásakor. Most már helyre vannak állítva."
+
+msgid "Description:"
+msgstr "Leírás:"
+
+msgid "Repositories:"
+msgstr "Csomagtárolók:"
+
+msgid "Packages:"
+msgstr "Csomagok:"
+
+msgid "Status:"
+msgstr "Státusz:"
+
+msgid "Close"
+msgstr "Bezárás"
+
+msgid "Install new Software"
+msgstr "Új szoftver telepítése"
+
+msgid "Install applications with one click of the mouse"
+msgstr "Alkalmazások telepítése egy egérkattintással"
+
+msgid "Go to the Linux Mint Software Portal"
+msgstr "Ugrás a Linux Mint Szoftverportálra"
+
+msgid "Go to the Linux Mint repository"
+msgstr "Ugrás a Linux Mint csomagtárolójához"
+
+msgid "Go to the Ubuntu repository"
+msgstr "Ugrás az Ubuntu csomagtárolójához"
+
+msgid "Go to the GetDeb Portal"
+msgstr "Ugrás a GetDeb portálra"
+
+msgid "Search for a .mint application"
+msgstr ".mint alkalmazás keresése"
+
+msgid "Search for a .deb package"
+msgstr ".deb csomag keresése"
+
+msgid "Search"
+msgstr "Keresés"
+
+msgid "Show"
+msgstr "Mutat"
+
+msgid "reviews"
+msgstr "vélemény"
+
+msgid "MB"
+msgstr "MB"
+
+msgid "The screenshot for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "Az alkalmazás képernyőképét nem sikerült letölteni. A probléma megoldásához kattintson a frissítésre."
+
+msgid "The mint file for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "Az alkalmazás mint fájlját nem sikerült letölteni. A probléma megoldásához kattintson a frissítésre."
+
+msgid "%d applications listed"
+msgstr "%d alkalmazás listázva"
+
+msgid "Category"
+msgstr "Kategória"
+
+msgid "Application"
+msgstr "Alkalmazás"
+
+msgid "Average rating"
+msgstr "Átlagos értékelés"
+
+msgid "Reviews"
+msgstr "Vélemények"
+
+msgid "Views"
+msgstr "Megtekintések"
+
+msgid "Added"
+msgstr "Hozzáadva"
+
+msgid "Score"
+msgstr "Pontszám"
+
+msgid "Reviewer"
+msgstr "Értékelő"
+
+msgid "Rating"
+msgstr "Értékelés"
+
+msgid "Review"
+msgstr "Vélemény"
+
+msgid "Software manager for Linux Mint"
+msgstr "Szoftverkezelő a Linux Mint-hez"
+
+msgid "_Help"
+msgstr "_Súgó"
+
+msgid "About"
+msgstr "Névjegy"
+
+msgid "_File"
+msgstr "_Fájl"
+
+msgid "Quit"
+msgstr "Kilépés"
+
+msgid "The data used by mintInstall is corrupted or out of date. Click on refresh to fix the problem :"
+msgstr "A mintInstall által használt adatok megsérültek vagy elavultak. Kattintson a frissítésre a következő probléma megoldásához :"
+
+msgid "Downloading data for %s from %s"
+msgstr "Adatok letöltése a(z) %s számára a %s helyről"
+
+msgid "%d categories loaded"
+msgstr "%d kategória beolvasva"
+
+msgid "%d applications loaded"
+msgstr "%d alkalmazás beolvasva"
+
+msgid "%d screenshots loaded"
+msgstr "%d képernyőkép beolvasva"
+
+msgid "%d reviews loaded"
+msgstr "%d vélemény beolvasva"
+
+msgid "All applications"
+msgstr "Minden alkalmazás"
+
+msgid "Visit"
+msgstr "Szoftverportál"
+
+msgid "Search:"
+msgstr "Keresés:"
+
+msgid "Added:"
+msgstr "Hozzáadva:"
+
+msgid "License:"
+msgstr "Licensz:"
+
+msgid "Size:"
+msgstr "Méret:"
+
+msgid "Views:"
+msgstr "Megtekintések:"
+
+msgid "Average rating:"
+msgstr "Átlagos értékelés:"
+
+msgid "Refreshing mintInstall"
+msgstr "A mintInstall frissítése"
+
+msgid "Please wait, this operation can take a while"
+msgstr "Kis türelmet, ez a művelet eltarthat egy ideig"
+
+# Introduced in version 5.1
+msgid "Versions"
+msgstr "Verzió"
+
+msgid "Please refresh mintInstall by clicking on the Refresh button"
+msgstr "Kérem, kattintson a Frissítés gombra a mintInstall frissítéséhez"
+
+msgid "Repository"
+msgstr "Csomagtároló"
+
+msgid "Package"
+msgstr "Csomag"
+
+msgid "Installed version"
+msgstr "Telepített verzió"
+
+msgid "Available version"
+msgstr "Elérhető verzió"
+
+#Introduced in version 5.2
+msgid "Please enter your password"
+msgstr "Kérem, adja meg a jelszavát"
+
+msgid "Games"
+msgstr "Játékok"
+
+msgid "Internet"
+msgstr "Internet"
+
+msgid "Accessories"
+msgstr "Kellékek"
+
+msgid "Sound & Video"
+msgstr "Hang és videó"
+
+msgid "Office"
+msgstr "Iroda"
+
+msgid "Graphics"
+msgstr "Grafika"
+
+msgid "Programming"
+msgstr "Fejlesztés"
+
+msgid "Education"
+msgstr "Oktatás"
+
+msgid "System Tools"
+msgstr "Rendszereszközök"
+
+msgid "First person shooters"
+msgstr "Belső nézetű lövöldözős (FPS)"
+
+msgid "Turn-based strategy"
+msgstr "Idő alapú stratégia (TBS)"
+
+msgid "Real time strategy"
+msgstr "Valós idejű stratégia (RTS)"
+
+msgid "Emulators"
+msgstr "Emulátorok"
+
+msgid "Simulation & racing"
+msgstr "Szimuláció és versenyzés"
+
+msgid "Email"
+msgstr "Elektronikus levelezés"
+
+msgid "Web browsers"
+msgstr "Webböngészők"
+
+msgid "Instant messengers"
+msgstr "Azonnali üzenetküldők"
+
+msgid "Internet Relay Chat"
+msgstr "IRC"
+
+msgid "FTP"
+msgstr "FTP"
+
+msgid "P2P and torrent"
+msgstr "P2P és torrent"
+
+msgid "Firewall"
+msgstr "Tűzfal"
+
+msgid "Text editors"
+msgstr "Szövegszerkesztők"
+
+msgid "Audio players"
+msgstr "Audió lejátszók"
+
+msgid "Video players"
+msgstr "Videó lejátszók"
+
+msgid "Burning tools"
+msgstr "CD/DVD írók"
+
+msgid "Office suites"
+msgstr "Irodai programcsomagok"
+
+msgid "Collection managers"
+msgstr "Gyűjteménykezelők"
+
+msgid "Document viewers"
+msgstr "Dokumentumkezelők"
+
+msgid "Finance"
+msgstr "Pénzügy"
+
+msgid "Word processors"
+msgstr "Szövegszerkesztők"
+
+msgid "Spreadsheets"
+msgstr "Táblázatkezelők"
+
+msgid "Publishing"
+msgstr "Kiadványszerkesztők"
+
+msgid "Graph and flowcharts"
+msgstr "Grafikonok és folyamatábrák"
+
+msgid "Databases"
+msgstr "Adatbázisok"
+
+msgid "Mind mapping"
+msgstr "Gondolati térképek"
+
+msgid "2D"
+msgstr "2D"
+
+msgid "Image viewers"
+msgstr "Képnézegetők"
+
+msgid "Photo"
+msgstr "Fényképkezelők"
+
+msgid "Scanning tools"
+msgstr "Szkenner programok"
+
+msgid "Tools"
+msgstr "Eszközök"
+
+msgid "Desktop components"
+msgstr "Asztali kiegészítők"
+
+msgid "Package management"
+msgstr "Csomagkezelés"
+
+#Introduced in version 5.3
+msgid "Installed"
+msgstr "Telepített"
+
+msgid "Description"
+msgstr "Leírás"
+
+msgid "No results"
+msgstr "Nincs találat"
+
+#Introduced in version 5.4
+msgid "Could not find package: %s"
+msgstr "Nem található a következő csomag: %s"
+
+#Introduced in version 5.5
+msgid "Featured applications"
+msgstr "Kiemelt alkalmazások"
+
+msgid "These popular applications can be installed on your system:"
+msgstr "A következő népszerű alkalmazások telepíthetőek a rendszerére:"
+
+msgid "Icon"
+msgstr "Ikon"
+
+msgid "Size"
+msgstr "Méret"
+
+msgid "B"
+msgstr "B"
+
+msgid "KB"
+msgstr "KB"
+
+msgid "GB"
+msgstr "GB"
+
+msgid "More info"
+msgstr "További információ"
+
+msgid "Website"
+msgstr "Weboldal"
+
+msgid "Downloading data"
+msgstr "Adatok letöltése"
+
+msgid "Please wait, a screenshot is being downloaded for this application."
+msgstr "Kis türelmet, egy képernyőkép töltődik le ehhez az alkalmazáshoz."

@@ -1,0 +1,399 @@
+# Same as in version 5.0
+
+msgid "Backing up your APT sources"
+msgstr "Zálohujú sa APT zdroje"
+
+msgid "Please wait, this can take some time"
+msgstr "Počkajte, prosím, táto operácia môže chvíľu trvať"
+
+msgid "Installation is complete"
+msgstr "Inštalácia je kompletná"
+
+msgid "Restoring your APT sources"
+msgstr "Obnovovanie APT zdrojov"
+
+msgid "Finished"
+msgstr "Dokončené"
+
+msgid "not installed"
+msgstr "nenainštalované"
+
+msgid "installed"
+msgstr "nainštalované"
+
+msgid "Success"
+msgstr "Úspech"
+
+msgid "Failure"
+msgstr "Zlyhanie"
+
+msgid "Install"
+msgstr "Nainštalovať"
+
+msgid "Are you sure you want to install %s?"
+msgstr "Ste si istý, že chcete nainštalovať %s?"
+
+msgid "Upgrade"
+msgstr "Aktualizácia"
+
+msgid "Are you sure you want to upgrade %s?"
+msgstr "Ste si istý, že chcete aktualizovať %s?"
+
+msgid "Default repositories"
+msgstr "Predvolené repozitáre"
+
+msgid "Your APT sources were corrupted."
+msgstr "APT zdroje boli poškodené."
+
+msgid "Your APT sources were not correctly restored after you last ran mintInstall. They now have been restored."
+msgstr "APT zdroje neboli korektne obnovené po poslednom spustení mintInstall, a preto boli obnovené."
+
+msgid "Description:"
+msgstr "Popis:"
+
+msgid "Repositories:"
+msgstr "Repozitáre:"
+
+msgid "Packages:"
+msgstr "Balíčky:"
+
+msgid "Status:"
+msgstr "Stav:"
+
+msgid "Close"
+msgstr "Zavrieť"
+
+msgid "Install new Software"
+msgstr "Nainštalovať nový softvér"
+
+msgid "Install applications with one click of the mouse"
+msgstr "Nainštalovať aplikácie jedným kliknutím"
+
+msgid "Go to the Linux Mint Software Portal"
+msgstr "Prejsť na Linux Mint Software Portal"
+
+msgid "Go to the Linux Mint repository"
+msgstr "Prejsť na Linux Mint repozitár"
+
+msgid "Go to the Ubuntu repository"
+msgstr "Prejsť na Ubuntu repozitár"
+
+msgid "Go to the GetDeb Portal"
+msgstr "Prejsť na GetDeb Portal"
+
+msgid "Search for a .mint application"
+msgstr "Hľadať .mint aplikácie"
+
+msgid "Search for a .deb package"
+msgstr "Hľadať .deb balíčky"
+
+msgid "Search"
+msgstr "Hľadať"
+
+msgid "Show"
+msgstr "Zobraziť"
+
+msgid "reviews"
+msgstr "recenzie"
+
+msgid "MB"
+msgstr "MB"
+
+msgid "The screenshot for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "Snímok tejto aplikácie nebol úspešne stiahnutý. Kliknite na obnovenie, aby sa vyriešil problém."
+
+msgid "The mint file for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "Mint súbor tejto aplikácie nebol úspešne stiahnutý. Kliknite na obnovenie, aby sa vyriešil problém."
+
+msgid "%d applications listed"
+msgstr "%d aplikácií v zozname"
+
+msgid "Category"
+msgstr "Kategória"
+
+msgid "Application"
+msgstr "Aplikácia"
+
+msgid "Average rating"
+msgstr "Priemerné hodnotenie"
+
+msgid "Reviews"
+msgstr "Recenzie"
+
+msgid "Views"
+msgstr "Zobrazenia"
+
+msgid "Added"
+msgstr "Pridané"
+
+msgid "Score"
+msgstr "Skóre"
+
+msgid "Reviewer"
+msgstr "Recenzent"
+
+msgid "Rating"
+msgstr "Hodnotenie"
+
+msgid "Review"
+msgstr "Recenzia"
+
+msgid "Software manager for Linux Mint"
+msgstr "Správca softvéru pre Linux Mint"
+
+msgid "_Help"
+msgstr "_Pomoc"
+
+msgid "About"
+msgstr "O programe"
+
+msgid "_File"
+msgstr "_Súbor"
+
+msgid "Quit"
+msgstr "Ukončiť"
+
+msgid "The data used by mintInstall is corrupted or out of date. Click on refresh to fix the problem :"
+msgstr "Dáta používané mintInstall sú poškodené alebo neaktuálne. Kliknite na obnovenie, aby sa vyriešil problém:"
+
+msgid "Downloading data for %s from %s"
+msgstr "Sťahujú sa dáta pre %s z %s"
+
+msgid "%d categories loaded"
+msgstr "Načítaných %d kategórií"
+
+msgid "%d applications loaded"
+msgstr "Načítaných %d aplikácií"
+
+msgid "%d screenshots loaded"
+msgstr "Načítaných %d snímkov obrazovky"
+
+msgid "%d reviews loaded"
+msgstr "Načítaných %d recenzií"
+
+msgid "All applications"
+msgstr "Všetky aplikácie"
+
+msgid "Visit"
+msgstr "Navštíviť"
+
+msgid "Search:"
+msgstr "Hľadať:"
+
+msgid "Added:"
+msgstr "Pridané:"
+
+msgid "License:"
+msgstr "Licencia:"
+
+msgid "Size:"
+msgstr "Veľkosť:"
+
+msgid "Views:"
+msgstr "Zobrazení:"
+
+msgid "Average rating:"
+msgstr "Priemerné hodnotenie:"
+
+msgid "Refreshing mintInstall"
+msgstr "Obnovuje sa mintInstall"
+
+msgid "Please wait, this operation can take a while"
+msgstr "Prosím počkajte, táto operácia môže chvíľu trvať"
+
+# Introduced in version 5.1
+msgid "Versions"
+msgstr "Verzie"
+
+msgid "Please refresh mintInstall by clicking on the Refresh button"
+msgstr "Prosím obnovte mintInstall kliknutím na tlačidlo Obnoviť"
+
+msgid "Repository"
+msgstr "Repozitár"
+
+msgid "Package"
+msgstr "Balíček"
+
+msgid "Installed version"
+msgstr "Nainštalovaná verzia"
+
+msgid "Available version"
+msgstr "Dostupná verzia"
+
+#Introduced in version 5.2
+msgid "Please enter your password"
+msgstr "Prosím, vložte svoje heslo"
+
+msgid "Games"
+msgstr "Hry"
+
+msgid "Internet"
+msgstr "Internet"
+
+msgid "Accessories"
+msgstr "Príslušenstvo"
+
+msgid "Sound & Video"
+msgstr "Zvuk a video"
+
+msgid "Office"
+msgstr "Kancelária"
+
+msgid "Graphics"
+msgstr "Grafika"
+
+msgid "Programming"
+msgstr "Programovanie"
+
+msgid "Education"
+msgstr "Vzdelávanie"
+
+msgid "System Tools"
+msgstr "Systémové nástroje"
+
+msgid "First person shooters"
+msgstr "First person strieľačky"
+
+msgid "Turn-based strategy"
+msgstr "Turn-based stratégie"
+
+msgid "Real time strategy"
+msgstr "Real-time stratégie"
+
+msgid "Emulators"
+msgstr "Emulátory"
+
+msgid "Simulation & racing"
+msgstr "Simulácie a preteky"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Web browsers"
+msgstr "Internetové prehliadače"
+
+msgid "Instant messengers"
+msgstr "Internetové komunikátory"
+
+msgid "Internet Relay Chat"
+msgstr "IRC"
+
+msgid "FTP"
+msgstr "FTP klienti"
+
+msgid "P2P and torrent"
+msgstr "P2P a torrent klienti"
+
+msgid "Firewall"
+msgstr "Firewall"
+
+msgid "Text editors"
+msgstr "Textové editory"
+
+msgid "Audio players"
+msgstr "Audio prehrávače"
+
+msgid "Video players"
+msgstr "Video prehrávače"
+
+msgid "Burning tools"
+msgstr "Napaľovacie nástroje"
+
+msgid "Office suites"
+msgstr "Kancelárske balíky"
+
+msgid "Collection managers"
+msgstr "Manažéri zbierok"
+
+msgid "Document viewers"
+msgstr "Prehliadače dokumentov"
+
+msgid "Finance"
+msgstr "Financie"
+
+msgid "Word processors"
+msgstr "Textové procesory"
+
+msgid "Spreadsheets"
+msgstr "Tabuľkové procesory"
+
+msgid "Publishing"
+msgstr "Publikovanie"
+
+msgid "Graph and flowcharts"
+msgstr "Grafy a štatistiky"
+
+msgid "Databases"
+msgstr "Databázy"
+
+msgid "Mind mapping"
+msgstr "Mapovanie mysle"
+
+msgid "2D"
+msgstr "2D"
+
+msgid "Image viewers"
+msgstr "Obrázkové prehliadače"
+
+msgid "Photo"
+msgstr "Foto"
+
+msgid "Scanning tools"
+msgstr "Nástroje na skenovanie"
+
+msgid "Tools"
+msgstr "Nástroje"
+
+msgid "Desktop components"
+msgstr "Komponenty prostredia"
+
+msgid "Package management"
+msgstr "Správa balíčkov"
+
+#Introduced in version 5.3
+msgid "Installed"
+msgstr "Nainštalované"
+
+msgid "Description"
+msgstr "Popis"
+
+msgid "No results"
+msgstr "Žiadne výsledky"
+
+#Introduced in version 5.4
+msgid "Could not find package: %s"
+msgstr "Nie je možné nájsť balíček: %s"
+
+#Introduced in version 5.5
+msgid "Featured applications"
+msgstr "Populárne aplikácie"
+
+msgid "These popular applications can be installed on your system:"
+msgstr "Tieto populárne aplikácie môžu byť nainštalované na váš systém:"
+
+msgid "Icon"
+msgstr "Ikona"
+
+msgid "Size"
+msgstr "Veľkosť"
+
+msgid "B"
+msgstr "B"
+
+msgid "KB"
+msgstr "KB"
+
+msgid "GB"
+msgstr "GB"
+
+msgid "More info"
+msgstr "Viac informácií"
+
+msgid "Website"
+msgstr "Webová stránka"
+
+msgid "Downloading data"
+msgstr "Sťahujem dáta"
+
+msgid "Please wait, a screenshot is being downloaded for this application."
+msgstr "Prosím, počkajte, snímok tejto aplikácie sa sťahuje."

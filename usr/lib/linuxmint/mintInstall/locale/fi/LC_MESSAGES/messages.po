@@ -1,0 +1,399 @@
+# Same as in version 5.0
+
+msgid "Backing up your APT sources"
+msgstr "Varmuuskopioidaan APT-lähteitäsi"
+
+msgid "Please wait, this can take some time"
+msgstr "Ole hyvä ja odota, tämä saattaa kestää"
+
+msgid "Installation is complete"
+msgstr "Asennus on valmis"
+
+msgid "Restoring your APT sources"
+msgstr "Palautetaan APT-lähteitäsi"
+
+msgid "Finished"
+msgstr "Valmis"
+
+msgid "not installed"
+msgstr "ei asennettu"
+
+msgid "installed"
+msgstr "asennettu"
+
+msgid "Success"
+msgstr "Onnistui"
+
+msgid "Failure"
+msgstr "Epäonnistui"
+
+msgid "Install"
+msgstr "Asenna"
+
+msgid "Are you sure you want to install %s?"
+msgstr "Haluatko varmasti asentaa sovelluksen %s?"
+
+msgid "Upgrade"
+msgstr "Päivitä"
+
+msgid "Are you sure you want to upgrade %s?"
+msgstr "Haluatko varmasti päivittää sovelluksen %s?"
+
+msgid "Default repositories"
+msgstr "Oletusohjelmalähteet"
+
+msgid "Your APT sources were corrupted."
+msgstr "APT-lähteesi ovat korruptoituneita."
+
+msgid "Your APT sources were not correctly restored after you last ran mintInstall. They now have been restored."
+msgstr "APT-lähteitäsi ei palautettu oikein sen jälkeen, kun viimeksi käytit mintInstallia. Ne palautettiin nyt."
+
+msgid "Description:"
+msgstr "Kuvaus:"
+
+msgid "Repositories:"
+msgstr "Ohjelmalähteet:"
+
+msgid "Packages:"
+msgstr "Paketit:"
+
+msgid "Status:"
+msgstr "Tila:"
+
+msgid "Close"
+msgstr "Sulje"
+
+msgid "Install new Software"
+msgstr "Asenna uudet sovellukset"
+
+msgid "Install applications with one click of the mouse"
+msgstr "Asenna sovelluksia yhdellä hiiren klikkauksella"
+
+msgid "Go to the Linux Mint Software Portal"
+msgstr "Siirry Linux Mint -ohjelmistoportaaliin"
+
+msgid "Go to the Linux Mint repository"
+msgstr "Siirry Linux Mintin ohjelmalähteeseen"
+
+msgid "Go to the Ubuntu repository"
+msgstr "Siirry Ubuntun ohjelmalähteeseen"
+
+msgid "Go to the GetDeb Portal"
+msgstr "Siirry Getdeb-portaaliin"
+
+msgid "Search for a .mint application"
+msgstr "Etsi .mint-sovellusta"
+
+msgid "Search for a .deb package"
+msgstr "Etsi .deb-pakettia"
+
+msgid "Search"
+msgstr "Hae"
+
+msgid "Show"
+msgstr "Näytä"
+
+msgid "reviews"
+msgstr "arvostelua"
+
+msgid "MB"
+msgstr "Mt"
+
+msgid "The screenshot for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "Tämän sovelluksen kuvakaappausta ei onnistuttu lataamaan. Klikkaa 'Päivitä' korjataksesi ongelman."
+
+msgid "The mint file for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "Tämän sovelluksen .mint-tiedostoa ei onnistuttu lataamaan. Klikkaa 'Päivitä' korjataksesi ongelman."
+
+msgid "%d applications listed"
+msgstr "%d sovellusta listattu"
+
+msgid "Category"
+msgstr "Sovellusryhmä"
+
+msgid "Application"
+msgstr "Sovellus"
+
+msgid "Average rating"
+msgstr "Arvioiden keskiarvo"
+
+msgid "Reviews"
+msgstr "Arvosteluja"
+
+msgid "Views"
+msgstr "Katsottu"
+
+msgid "Added"
+msgstr "Lisätty"
+
+msgid "Score"
+msgstr "Pisteet"
+
+msgid "Reviewer"
+msgstr "Arvostelija"
+
+msgid "Rating"
+msgstr "Arvio"
+
+msgid "Review"
+msgstr "Arvostelu"
+
+msgid "Software manager for Linux Mint"
+msgstr "Linux Mintin sovellustenhallinta"
+
+msgid "_Help"
+msgstr "_Ohje"
+
+msgid "About"
+msgstr "Tietoja"
+
+msgid "_File"
+msgstr "_Tiedosto"
+
+msgid "Quit"
+msgstr "Lopeta"
+
+msgid "The data used by mintInstall is corrupted or out of date. Click on refresh to fix the problem :"
+msgstr "mintInstallin käyttämä tieto on korruptoitunutta tai vanhentunutta. Klikkaa 'Päivitä' korjataksesi ongelman :"
+
+msgid "Downloading data for %s from %s"
+msgstr "Ladataan tietoja sovelluksesta %s kohteesta %s"
+
+msgid "%d categories loaded"
+msgstr "%d sovellusryhmää ladattu"
+
+msgid "%d applications loaded"
+msgstr "%d sovellusta ladattu"
+
+msgid "%d screenshots loaded"
+msgstr "%d kuvakaappausta ladattu"
+
+msgid "%d reviews loaded"
+msgstr "%d arvostelua ladattu"
+
+msgid "All applications"
+msgstr "Kaikki sovellukset"
+
+msgid "Visit"
+msgstr "Verkkosivu"
+
+msgid "Search:"
+msgstr "Hae:"
+
+msgid "Added:"
+msgstr "Lisätty:"
+
+msgid "License:"
+msgstr "Lisenssi:"
+
+msgid "Size:"
+msgstr "Koko:"
+
+msgid "Views:"
+msgstr "Katsottu:"
+
+msgid "Average rating:"
+msgstr "Arvioiden keskiarvo:"
+
+msgid "Refreshing mintInstall"
+msgstr "Päivitetään mintInstallia"
+
+msgid "Please wait, this operation can take a while"
+msgstr "Ole hyvä ja odota, tämä saattaa kestää"
+
+# Introduced in version 5.1
+msgid "Versions"
+msgstr "Versiot"
+
+msgid "Please refresh mintInstall by clicking on the Refresh button"
+msgstr "Ole hyvä ja päivitä mintInstall klikkaamalla 'Päivitä'"
+
+msgid "Repository"
+msgstr "Ohjelmalähde"
+
+msgid "Package"
+msgstr "Paketti"
+
+msgid "Installed version"
+msgstr "Asennettu versio"
+
+msgid "Available version"
+msgstr "Saatavilla oleva versio"
+
+#Introduced in version 5.2
+msgid "Please enter your password"
+msgstr "Ole hyvä ja anna salasanasi"
+
+msgid "Games"
+msgstr "Pelit"
+
+msgid "Internet"
+msgstr "Internet"
+
+msgid "Accessories"
+msgstr "Apuohjelmat"
+
+msgid "Sound & Video"
+msgstr "Ääni & video"
+
+msgid "Office"
+msgstr "Toimisto"
+
+msgid "Graphics"
+msgstr "Grafiikka"
+
+msgid "Programming"
+msgstr "Ohjelmointi"
+
+msgid "Education"
+msgstr "Opetus"
+
+msgid "System Tools"
+msgstr "Järjestelmätyökalut"
+
+msgid "First person shooters"
+msgstr "FPS-ammuskelut"
+
+msgid "Turn-based strategy"
+msgstr "Vuoropohjaiset strategiat"
+
+msgid "Real time strategy"
+msgstr "Reaaliaikaiset strategiat"
+
+msgid "Emulators"
+msgstr "Emulaattorit"
+
+msgid "Simulation & racing"
+msgstr "Simulaattorit & rallit "
+
+msgid "Email"
+msgstr "Sähköposti"
+
+msgid "Web browsers"
+msgstr "Internet-selaimet"
+
+msgid "Instant messengers"
+msgstr "Pikaviestimet"
+
+msgid "Internet Relay Chat"
+msgstr "IRC"
+
+msgid "FTP"
+msgstr "FTP"
+
+msgid "P2P and torrent"
+msgstr "Vertaisverkot ja torrent"
+
+msgid "Firewall"
+msgstr "Palomuurit"
+
+msgid "Text editors"
+msgstr "Tekstieditorit"
+
+msgid "Audio players"
+msgstr "Musiikkisoittimet"
+
+msgid "Video players"
+msgstr "Videosoittimet"
+
+msgid "Burning tools"
+msgstr "CD- ja DVD-levyjen luonti"
+
+msgid "Office suites"
+msgstr "Toimistosovellukset"
+
+msgid "Collection managers"
+msgstr "Kokoelmanhallinta"
+
+msgid "Document viewers"
+msgstr "Asiakirjankatselimet"
+
+msgid "Finance"
+msgstr "Talous"
+
+msgid "Word processors"
+msgstr "Tekstinkäsittely"
+
+msgid "Spreadsheets"
+msgstr "Taulukkolaskenta"
+
+msgid "Publishing"
+msgstr "Julkaisu"
+
+msgid "Graph and flowcharts"
+msgstr "Grafiikka ja kaaviot"
+
+msgid "Databases"
+msgstr "Tietokannat"
+
+msgid "Mind mapping"
+msgstr "Miellekartat"
+
+msgid "2D"
+msgstr "Kaksiulotteiset"
+
+msgid "Image viewers"
+msgstr "Kuvien katselu"
+
+msgid "Photo"
+msgstr "Valokuvat"
+
+msgid "Scanning tools"
+msgstr "Skannaustyökalut"
+
+msgid "Tools"
+msgstr "Työkalut"
+
+msgid "Desktop components"
+msgstr "Työpöydän osat"
+
+msgid "Package management"
+msgstr "Pakettienhallinta"
+
+#Introduced in version 5.3
+msgid "Installed"
+msgstr "Asennettu"
+
+msgid "Description"
+msgstr "Kuvaus"
+
+msgid "No results"
+msgstr "Ei tuloksia"
+
+#Introduced in version 5.4
+msgid "Could not find package: %s"
+msgstr "Pakettia %s ei löytynyt"
+
+#Introduced in version 5.5
+msgid "Featured applications"
+msgstr "Sisällytetyt sovellukset"
+
+msgid "These popular applications can be installed on your system:"
+msgstr "Voit asentaa nämä suositut sovellukset:"
+
+msgid "Icon"
+msgstr "Kuvake"
+
+msgid "Size"
+msgstr "Koko"
+
+msgid "B"
+msgstr "t"
+
+msgid "KB"
+msgstr "kt"
+
+msgid "GB"
+msgstr "Gt"
+
+msgid "More info"
+msgstr "Lisätietoja"
+
+msgid "Website"
+msgstr "Verkkosivu"
+
+msgid "Downloading data"
+msgstr "Ladataan tietoja"
+
+msgid "Please wait, a screenshot is being downloaded for this application."
+msgstr "Ole hyvä ja odota, sovelluksen kuvaa ladataan"

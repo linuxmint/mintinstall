@@ -1,0 +1,399 @@
+# Same as in version 5.0
+
+msgid "Backing up your APT sources"
+msgstr "Прави се backup ваших APT извора"
+
+msgid "Please wait, this can take some time"
+msgstr "Причекајте, ово може потрајати"
+
+msgid "Installation is complete"
+msgstr "Инсталација је завршена"
+
+msgid "Restoring your APT sources"
+msgstr "Поново се успостављају ваши APT извори"
+
+msgid "Finished"
+msgstr "Завршено"
+
+msgid "not installed"
+msgstr "није инсталирано"
+
+msgid "installed"
+msgstr "инсталирано"
+
+msgid "Success"
+msgstr "Успешно"
+
+msgid "Failure"
+msgstr "Неуспешно"
+
+msgid "Install"
+msgstr "Инсталација"
+
+msgid "Are you sure you want to install %s?"
+msgstr "Сигурни сте да желите да инсталирате %s ?"
+
+msgid "Upgrade"
+msgstr "Надогради"
+
+msgid "Are you sure you want to upgrade %s?"
+msgstr "Сигурни сте да желите да надоградите %s?"
+
+msgid "Default repositories"
+msgstr "Стандардни репозиторијуми"
+
+msgid "Your APT sources were corrupted."
+msgstr "Ваши APT извори нису исправни."
+
+msgid "Your APT sources were not correctly restored after you last ran mintInstall. They now have been restored."
+msgstr "Ваши APT извори нису испрано повраћени након што сте последњи пут покретали mintInstall. Сада су успеспешно повраћени."
+
+msgid "Description:"
+msgstr "Опис :"
+
+msgid "Repositories:"
+msgstr "Репозиторијуми:"
+
+msgid "Packages:"
+msgstr "Пакети:"
+
+msgid "Status:"
+msgstr "Стање:"
+
+msgid "Close"
+msgstr "Затвори"
+
+msgid "Install new Software"
+msgstr "Инсталирај нове програме"
+
+msgid "Install applications with one click of the mouse"
+msgstr "Инсталирај програме са једним кликом миша"
+
+msgid "Go to the Linux Mint Software Portal"
+msgstr "Иди на Linux Mint Софтверски Портал"
+
+msgid "Go to the Linux Mint repository"
+msgstr "Иди на Linux Mint репозаторијум"
+
+msgid "Go to the Ubuntu repository"
+msgstr "Иди на Ubuntu репозаторијум"
+
+msgid "Go to the GetDeb Portal"
+msgstr "Иди на GetDeb Портал"
+
+msgid "Search for a .mint application"
+msgstr "Тражи .mint програм"
+
+msgid "Search for a .deb package"
+msgstr "Тражи .deb пакете"
+
+msgid "Search"
+msgstr "Тражи"
+
+msgid "Show"
+msgstr "Покажи"
+
+msgid "reviews"
+msgstr "критике"
+
+msgid "MB"
+msgstr "MB"
+
+msgid "The screenshot for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "Слика за овај програм није успешно преузета. Кликни на освежи да поправиш проблем."
+
+msgid "The mint file for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "Mint датотека за овај програм није успешно преузета. Кликни на освежи да поправиш проблем. "
+
+msgid "%d applications listed"
+msgstr "%d програма излистано"
+
+msgid "Category"
+msgstr "Категорије"
+
+msgid "Application"
+msgstr "Програми"
+
+msgid "Average rating"
+msgstr "Просечна оцена"
+
+msgid "Reviews"
+msgstr "Критике"
+
+msgid "Views"
+msgstr "Прегледа"
+
+msgid "Added"
+msgstr "Додато"
+
+msgid "Score"
+msgstr "Оцена"
+
+msgid "Reviewer"
+msgstr "Аутор критике"
+
+msgid "Rating"
+msgstr "Оцена"
+
+msgid "Review"
+msgstr "Критика"
+
+msgid "Software manager for Linux Mint"
+msgstr "Менаџер програма за Linux Mint"
+
+msgid "_Help"
+msgstr "_Помоћ"
+
+msgid "About"
+msgstr "О програму"
+
+msgid "_File"
+msgstr "_Датотека"
+
+msgid "Quit"
+msgstr "Изађи"
+
+msgid "The data used by mintInstall is corrupted or out of date. Click on refresh to fix the problem :"
+msgstr "Датотека коју користи mintInstall је покварена или застарела. Кликни на освежи да поправиш проблем :"
+
+msgid "Downloading data for %s from %s"
+msgstr "Преузимање датотека за %s са %s"
+
+msgid "%d categories loaded"
+msgstr "%d категорије учитане"
+
+msgid "%d applications loaded"
+msgstr "%d програма учитано"
+
+msgid "%d screenshots loaded"
+msgstr "%d slike programa učitane"
+
+msgid "%d reviews loaded"
+msgstr "%d критика учитано"
+
+msgid "All applications"
+msgstr "Сви програми"
+
+msgid "Visit"
+msgstr "Посети"
+
+msgid "Search:"
+msgstr "Претрага :"
+
+msgid "Added:"
+msgstr "Додато :"
+
+msgid "License:"
+msgstr "Лиценца :"
+
+msgid "Size:"
+msgstr "Величина :"
+
+msgid "Views:"
+msgstr "Прегледано:"
+
+msgid "Average rating:"
+msgstr "Просечна оцена:"
+
+msgid "Refreshing mintInstall"
+msgstr "Освежавање mintInstall-а"
+
+msgid "Please wait, this operation can take a while"
+msgstr "Причекајте, ова операција може мало потрајати"
+
+# Introduced in version 5.1
+msgid "Versions"
+msgstr "Верзија"
+
+msgid "Please refresh mintInstall by clicking on the Refresh button"
+msgstr "Освежите mintInstall притиском на Освежи дугме"
+
+msgid "Repository"
+msgstr "Репозиторијум"
+
+msgid "Package"
+msgstr "Пакет"
+
+msgid "Installed version"
+msgstr "Инсталирана верзија"
+
+msgid "Available version"
+msgstr "Доступна верзија"
+
+#Introduced in version 5.2
+msgid "Please enter your password"
+msgstr "Унесите вашу лозинку"
+
+msgid "Games"
+msgstr "Игре"
+
+msgid "Internet"
+msgstr "Интернет"
+
+msgid "Accessories"
+msgstr "Алатке"
+
+msgid "Sound & Video"
+msgstr "Звук и Видео"
+
+msgid "Office"
+msgstr "Канцеларија"
+
+msgid "Graphics"
+msgstr "Графика"
+
+msgid "Programming"
+msgstr "Програмирање"
+
+msgid "Education"
+msgstr "Образовање"
+
+msgid "System Tools"
+msgstr "Системски Алати"
+
+msgid "First person shooters"
+msgstr "Пуцачине из првог лица"
+
+msgid "Turn-based strategy"
+msgstr "Turn-based стратегије"
+
+msgid "Real time strategy"
+msgstr "Real time стратегије"
+
+msgid "Emulators"
+msgstr "Емулатори"
+
+msgid "Simulation & racing"
+msgstr "Симулације и трке"
+
+msgid "Email"
+msgstr "E-пошта"
+
+msgid "Web browsers"
+msgstr "Интернет претраживачи"
+
+msgid "Instant messengers"
+msgstr "Месенџери"
+
+msgid "Internet Relay Chat"
+msgstr "IRC"
+
+msgid "FTP"
+msgstr "FTP"
+
+msgid "P2P and torrent"
+msgstr "P2P и торенти"
+
+msgid "Firewall"
+msgstr "Ватрени зид"
+
+msgid "Text editors"
+msgstr "Програми за уређивње текста"
+
+msgid "Audio players"
+msgstr "Програми за слушање музике"
+
+msgid "Video players"
+msgstr "Програми за гледање видеа"
+
+msgid "Burning tools"
+msgstr "Програми за нарезивање"
+
+msgid "Office suites"
+msgstr "Канцеларијски пакети"
+
+msgid "Collection managers"
+msgstr "Менаџери за колекције"
+
+msgid "Document viewers"
+msgstr "Документ прегледници"
+
+msgid "Finance"
+msgstr "Финансије"
+
+msgid "Word processors"
+msgstr "Word процесори"
+
+msgid "Spreadsheets"
+msgstr "Прорачунске таблице"
+
+msgid "Publishing"
+msgstr "Издавалаштво"
+
+msgid "Graph and flowcharts"
+msgstr "Графови и дијаграми"
+
+msgid "Databases"
+msgstr "Базе података"
+
+msgid "Mind mapping"
+msgstr "Картографија"
+
+msgid "2D"
+msgstr "2D"
+
+msgid "Image viewers"
+msgstr "Прегледници слика"
+
+msgid "Photo"
+msgstr "Фотографија"
+
+msgid "Scanning tools"
+msgstr "Алати за скенирање"
+
+msgid "Tools"
+msgstr "Алати"
+
+msgid "Desktop components"
+msgstr "Компоненте радне површине"
+
+msgid "Package management"
+msgstr "Управљање пакетима"
+
+#Introduced in version 5.3
+msgid "Installed"
+msgstr "Инсталирано"
+
+msgid "Description"
+msgstr "Опис"
+
+msgid "No results"
+msgstr "Без резултата"
+
+#Introduced in version 5.4
+msgid "Could not find package: %s"
+msgstr "Није могуће наћи пакет: %s"
+
+#Introduced in version 5.5
+msgid "Featured applications"
+msgstr "Популарни програми"
+
+msgid "These popular applications can be installed on your system:"
+msgstr "Ови популарни програми могу бити инсталирани на вашем систему :"
+
+msgid "Icon"
+msgstr "Икона"
+
+msgid "Size"
+msgstr "Величина"
+
+msgid "B"
+msgstr "B"
+
+msgid "KB"
+msgstr "KB"
+
+msgid "GB"
+msgstr "GB"
+
+msgid "More info"
+msgstr "Информације"
+
+msgid "Website"
+msgstr "Интернет страница"
+
+msgid "Downloading data"
+msgstr "Преузимање датотека"
+
+msgid "Please wait, a screenshot is being downloaded for this application."
+msgstr "Причекајте, слика за овај програм се скида."

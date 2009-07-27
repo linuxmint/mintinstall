@@ -1,0 +1,397 @@
+msgid "Backing up your APT sources"
+msgstr "Säkerhetskopierar dina APT förråd"
+
+msgid "Please wait, this can take some time"
+msgstr "Vänta, den här åtgärden kan ta en stund"
+
+msgid "Installation is complete"
+msgstr "Installationen är klar"
+
+msgid "Restoring your APT sources"
+msgstr "Återställer dina APT förråd"
+
+msgid "Finished"
+msgstr "Färdig"
+
+msgid "not installed"
+msgstr "inte installerat"
+
+msgid "installed"
+msgstr "installerat"
+
+msgid "Success"
+msgstr "lyckades"
+
+msgid "Failure"
+msgstr "Misslyckades"
+
+msgid "Install"
+msgstr "Installera"
+
+msgid "Are you sure you want to install %s?"
+msgstr "Vill du installera %s ?"
+
+msgid "Upgrade"
+msgstr "Uppgradera"
+
+msgid "Are you sure you want to upgrade %s?"
+msgstr "Vill du uppgradera %s ?"
+
+msgid "Default repositories"
+msgstr "Förvalda förråd"
+
+msgid "Your APT sources were corrupted."
+msgstr "Dina APT förråd skadades."
+
+msgid "Your APT sources were not correctly restored after you last ran mintInstall. They now have been restored."
+msgstr "Dina APT förråd återställdes inte korrekt efter den senaste körning av mintInstall. De har nu återskapats"
+
+msgid "Description:"
+msgstr "Beskrivning :"
+
+msgid "Repositories:"
+msgstr "Förråd :"
+
+msgid "Packages:"
+msgstr "Paket :"
+
+msgid "Status:"
+msgstr "Status :"
+
+msgid "Close"
+msgstr "Stäng"
+
+msgid "Install new Software"
+msgstr "Installera ny programvara"
+
+msgid "Install applications with one click of the mouse"
+msgstr "Installera program med ett musklick"
+
+msgid "Go to the Linux Mint Software Portal"
+msgstr "Besök Linux Mints programvaruportal"
+
+msgid "Go to the Linux Mint repository"
+msgstr "Besök Linux Mints förråd "
+
+msgid "Go to the Ubuntu repository"
+msgstr "Besök Ubuntus förråd"
+
+msgid "Go to the GetDeb Portal"
+msgstr "Besök GetDebs programportal"
+
+msgid "Search for a .mint application"
+msgstr "Sök efter ett .mint-program"
+
+msgid "Search for a .deb package"
+msgstr "Sök efter ett .deb-paket"
+
+msgid "Search"
+msgstr "Sök"
+
+msgid "Show"
+msgstr "Visa"
+
+msgid "reviews"
+msgstr "recension"
+
+msgid "MB"
+msgstr "MB"
+
+msgid "The screenshot for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "Nerladdningen av det här programmets skärmdump misslyckades. Klicka på uppdatera för att lösa problemet."
+
+msgid "The mint file for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "Nerladdningen av det här programmets .mint-fil misslyckades. Klicka på uppdatera för att lösa problemet."
+
+msgid "%d applications listed"
+msgstr "%d program listade"
+
+msgid "Category"
+msgstr "Kategori"
+
+msgid "Application"
+msgstr "Program"
+
+msgid "Average rating"
+msgstr "Genomsnittligt betyg"
+
+msgid "Reviews"
+msgstr "recension"
+
+msgid "Views"
+msgstr "Visningar"
+
+msgid "Added"
+msgstr "Tillagd"
+
+msgid "Score"
+msgstr "Poäng"
+
+msgid "Reviewer"
+msgstr "Recensent"
+
+msgid "Rating"
+msgstr "Betyg"
+
+msgid "Review"
+msgstr "Recension"
+
+msgid "Software manager for Linux Mint"
+msgstr "Linux Mints mjukvaruhanterare "
+
+msgid "_Help"
+msgstr "_Hjälp"
+
+msgid "About"
+msgstr "Om"
+
+msgid "_File"
+msgstr "_Fil"
+
+msgid "Quit"
+msgstr "Avsluta"
+
+msgid "The data used by mintInstall is corrupted or out of date. Click on refresh to fix the problem :"
+msgstr "Informationen som mintInstall använder är skadad eller för gammal. Klicka på uppdatera för att lösa problemet :"
+
+msgid "Downloading data for %s from %s"
+msgstr "Laddar ner information för %s från %s"
+
+msgid "%d categories loaded"
+msgstr "%d kategorier inlästa"
+
+msgid "%d applications loaded"
+msgstr "%d program inlästa"
+
+msgid "%d screenshots loaded"
+msgstr "%d skärmdumpar inlästa"
+
+msgid "%d reviews loaded"
+msgstr "%d recensioner inlästa"
+
+msgid "All applications"
+msgstr "Alla program"
+
+msgid "Visit"
+msgstr "Besök"
+
+msgid "Search:"
+msgstr "Sök :"
+
+msgid "Added:"
+msgstr "Tillagd :"
+
+msgid "License:"
+msgstr "Licens :"
+
+msgid "Size:"
+msgstr "Storlek :"
+
+msgid "Views:"
+msgstr "Besök :"
+
+msgid "Average rating:"
+msgstr "Genomsnittligt betyg :"
+
+msgid "Refreshing mintInstall"
+msgstr "Uppdaterar mintInstall"
+
+msgid "Please wait, this operation can take a while"
+msgstr "Vänta, den här åtgärden kan ta en stund"
+
+# Introduced in version 5.1
+msgid "Versions"
+msgstr "Versioner"
+
+msgid "Please refresh mintInstall by clicking on the Refresh button"
+msgstr "Uppdatera mintInstall genom att klicka på knappen uppdatera"
+
+msgid "Repository"
+msgstr "Förråd"
+
+msgid "Package"
+msgstr "Paket"
+
+msgid "Installed version"
+msgstr "Installerad version"
+
+msgid "Available version"
+msgstr "Tillgänglig version"
+
+#Introduced in version 5.2
+msgid "Please enter your password"
+msgstr "Ange ditt lösenord"
+
+msgid "Games"
+msgstr "Spel"
+
+msgid "Internet"
+msgstr "Internet"
+
+msgid "Accessories"
+msgstr "Tillbehör"
+
+msgid "Sound & Video"
+msgstr "Multimedia"
+
+msgid "Office"
+msgstr "Kontor"
+
+msgid "Graphics"
+msgstr "Bildprogram"
+
+msgid "Programming"
+msgstr "Programmering"
+
+msgid "Education"
+msgstr "Utbildning"
+
+msgid "System Tools"
+msgstr "Systemverktyg"
+
+msgid "First person shooters"
+msgstr "Spring & skjut-spel (FPS)"
+
+msgid "Turn-based strategy"
+msgstr "Turbaserade strategispel"
+
+msgid "Real time strategy"
+msgstr "Realtidsstrategi (RTS)"
+
+msgid "Emulators"
+msgstr "Emulatorer"
+
+msgid "Simulation & racing"
+msgstr "Simulatorer & racing-spel"
+
+msgid "Email"
+msgstr "E-Post"
+
+msgid "Web browsers"
+msgstr "Webbläsare"
+
+msgid "Instant messengers"
+msgstr "Snabbmeddelande"
+
+msgid "Internet Relay Chat"
+msgstr "IRC"
+
+msgid "FTP"
+msgstr "FTP"
+
+msgid "P2P and torrent"
+msgstr "P2P och torrent"
+
+msgid "Firewall"
+msgstr "Brandvägg"
+
+msgid "Text editors"
+msgstr "Textredigerare"
+
+msgid "Audio players"
+msgstr "Musikspelare"
+
+msgid "Video players"
+msgstr "Filmuppspelare"
+
+msgid "Burning tools"
+msgstr "Brännarprogram"
+
+msgid "Office suites"
+msgstr "Kontorssviter"
+
+msgid "Collection managers"
+msgstr "Samlingshanterare"
+
+msgid "Document viewers"
+msgstr "Dokumentvisare"
+
+msgid "Finance"
+msgstr "Finans"
+
+msgid "Word processors"
+msgstr "Ordbehandlare"
+
+msgid "Spreadsheets"
+msgstr "Kalkylblad"
+
+msgid "Publishing"
+msgstr "Publicering"
+
+msgid "Graph and flowcharts"
+msgstr "Diagram och flödesscheman "
+
+msgid "Databases"
+msgstr "Databaser"
+
+msgid "Mind mapping"
+msgstr "Mind mapping"
+
+msgid "2D"
+msgstr "2D"
+
+msgid "Image viewers"
+msgstr "Bildvisare"
+
+msgid "Photo"
+msgstr "Foto"
+
+msgid "Scanning tools"
+msgstr "Scannerverktyg"
+
+msgid "Tools"
+msgstr "Verktyg"
+
+msgid "Desktop components"
+msgstr "Skrivbordskomponenter"
+
+msgid "Package management"
+msgstr "Pakethantering"
+
+#Introduced in version 5.3
+msgid "Installed"
+msgstr "Installerad"
+
+msgid "Description"
+msgstr "Beskrivning"
+
+msgid "No results"
+msgstr "Inga resultat"
+
+#Introduced in version 5.4
+msgid "Could not find package: %s"
+msgstr "Hittade inte: %s"
+
+#Introduced in version 5.5
+msgid "Featured applications"
+msgstr "Populära program"
+
+msgid "These popular applications can be installed on your system:"
+msgstr "Dessa populära program kan installeras på ditt system:"
+
+msgid "Icon"
+msgstr "Ikon"
+
+msgid "Size"
+msgstr "Storlek"
+
+msgid "B"
+msgstr "B"
+
+msgid "KB"
+msgstr "KB"
+
+msgid "GB"
+msgstr "GB"
+
+msgid "More info"
+msgstr "Mer information"
+
+msgid "Website"
+msgstr "Webbsida"
+
+msgid "Downloading data"
+msgstr "Laddar ner information"
+
+msgid "Please wait, a screenshot is being downloaded for this application."
+msgstr "Vänta, en skärmdump laddas ner för detta program"

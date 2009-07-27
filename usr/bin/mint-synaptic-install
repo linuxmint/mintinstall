@@ -1,0 +1,29 @@
+#!/usr/bin/python
+import sys
+import tempfile
+import gettext
+from subprocess import Popen, PIPE
+
+window_id = sys.argv[1]
+packages = sys.argv[2:]
+
+gettext.install("messages", "/usr/lib/linuxmint/mintInstall/locale")
+
+cmd = ["sudo", "/usr/sbin/synaptic", "--hide-main-window", "--non-interactive", "--parent-window-id", window_id]
+cmd.append("--progress-str")
+cmd.append("\"" + _("Please wait, this can take some time") + "\"")
+cmd.append("--finish-str")
+cmd.append("\"" + _("Installation is complete") + "\"")
+f = tempfile.NamedTemporaryFile()
+
+for package in packages:
+	f.write("%s\tinstall\n" % package)
+
+cmd.append("--set-selections-file")
+cmd.append("%s" % f.name)
+f.flush()
+comnd = Popen(' '.join(cmd), shell=True)
+returnCode = comnd.wait()
+f.close()
+
+

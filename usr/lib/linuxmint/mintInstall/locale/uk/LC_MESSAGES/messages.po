@@ -1,0 +1,399 @@
+# Same as in version 5.0
+
+msgid "Backing up your APT sources"
+msgstr "Резервне збереження сховищ APT"
+
+msgid "Please wait, this can take some time"
+msgstr "Будь-ласка зачекайте"
+
+msgid "Installation is complete"
+msgstr "Встановлення завершено"
+
+msgid "Restoring your APT sources"
+msgstr "Відновлення сховищ APT"
+
+msgid "Finished"
+msgstr "Завершено"
+
+msgid "not installed"
+msgstr "не встановлено"
+
+msgid "installed"
+msgstr "встановлено"
+
+msgid "Success"
+msgstr "Успішно"
+
+msgid "Failure"
+msgstr "Невдало"
+
+msgid "Install"
+msgstr "Встановити"
+
+msgid "Are you sure you want to install %s?"
+msgstr "Ви дійсно хочете встановити %s?"
+
+msgid "Upgrade"
+msgstr "Оновити"
+
+msgid "Are you sure you want to upgrade %s?"
+msgstr "Ви дійсно хочете оновити %s?"
+
+msgid "Default repositories"
+msgstr "Типові сховища"
+
+msgid "Your APT sources were corrupted."
+msgstr "Ваші сховища APT пошкоджені."
+
+msgid "Your APT sources were not correctly restored after you last ran mintInstall. They now have been restored."
+msgstr "Ваші сховища APT не було коректно відновлено після останнього запуску mintInstall. Вони мають бути відновлені зараз."
+
+msgid "Description:"
+msgstr "Опис:"
+
+msgid "Repositories:"
+msgstr "Сховища:"
+
+msgid "Packages:"
+msgstr "Пакунки:"
+
+msgid "Status:"
+msgstr "Статус:"
+
+msgid "Close"
+msgstr "Закрити"
+
+msgid "Install new Software"
+msgstr "Встановити нове програмне забезпечення"
+
+msgid "Install applications with one click of the mouse"
+msgstr "Встановити програми одним кліком мишки"
+
+msgid "Go to the Linux Mint Software Portal"
+msgstr "Відкрити портал програмного забезпечення Linux Mint"
+
+msgid "Go to the Linux Mint repository"
+msgstr "Відкрити сховище Linux Mint"
+
+msgid "Go to the Ubuntu repository"
+msgstr "Відкрити сховище Ubuntu"
+
+msgid "Go to the GetDeb Portal"
+msgstr "Відкрити портал GetDeb.net"
+
+msgid "Search for a .mint application"
+msgstr "Пошук .mint"
+
+msgid "Search for a .deb package"
+msgstr "Пошук пакунку .deb"
+
+msgid "Search"
+msgstr "Пошук"
+
+msgid "Show"
+msgstr "Показати"
+
+msgid "reviews"
+msgstr "огляди"
+
+msgid "MB"
+msgstr "МБ"
+
+msgid "The screenshot for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "Скріншот для даної програми не було успішно завантажено. Натисніть Оновити для розв'язання проблеми."
+
+msgid "The mint file for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "Файл .mint для даної програми не було завантажено. Натисніть Оновити для розв'язання проблеми."
+
+msgid "%d applications listed"
+msgstr "%d програм у переліку"
+
+msgid "Category"
+msgstr "Категорія"
+
+msgid "Application"
+msgstr "Програма"
+
+msgid "Average rating"
+msgstr "Середній рейтинг"
+
+msgid "Reviews"
+msgstr "Огляди"
+
+msgid "Views"
+msgstr "Переглядів"
+
+msgid "Added"
+msgstr "Додано"
+
+msgid "Score"
+msgstr "Оцінка"
+
+msgid "Reviewer"
+msgstr "Оглядач"
+
+msgid "Rating"
+msgstr "Рейтинг"
+
+msgid "Review"
+msgstr "Огляд"
+
+msgid "Software manager for Linux Mint"
+msgstr "Менеджер програм для Linux Mint"
+
+msgid "_Help"
+msgstr "_Допомога"
+
+msgid "About"
+msgstr "Про програму"
+
+msgid "_File"
+msgstr "_Файл"
+
+msgid "Quit"
+msgstr "Вихід"
+
+msgid "The data used by mintInstall is corrupted or out of date. Click on refresh to fix the problem :"
+msgstr "Дані, які використовує mintInstall пошкоджені або застарілі. Натисніть Оновити для розв'язання проблеми:"
+
+msgid "Downloading data for %s from %s"
+msgstr "Завантаження даних для %s з %s"
+
+msgid "%d categories loaded"
+msgstr "%d категорій завантажено"
+
+msgid "%d applications loaded"
+msgstr "%d програм завантажено"
+
+msgid "%d screenshots loaded"
+msgstr "%d скріншотів завантажено"
+
+msgid "%d reviews loaded"
+msgstr "%d оглядів завантажено"
+
+msgid "All applications"
+msgstr "Всі програми"
+
+msgid "Visit"
+msgstr "Відвідати"
+
+msgid "Search:"
+msgstr "Пошук:"
+
+msgid "Added:"
+msgstr "Додано :"
+
+msgid "License:"
+msgstr "Ліцензія:"
+
+msgid "Size:"
+msgstr "Розмір:"
+
+msgid "Views:"
+msgstr "Оглядів:"
+
+msgid "Average rating:"
+msgstr "Середній рейтинг:"
+
+msgid "Refreshing mintInstall"
+msgstr "Оновлення mintInstall"
+
+msgid "Please wait, this operation can take a while"
+msgstr "Будь-ласка зачекайте"
+
+# Introduced in version 5.1
+msgid "Versions"
+msgstr "Версії"
+
+msgid "Please refresh mintInstall by clicking on the Refresh button"
+msgstr "Будь-ласка оновіть mintInstall натиснувши кнопку Оновити"
+
+msgid "Repository"
+msgstr "Сховище"
+
+msgid "Package"
+msgstr "Пакунок"
+
+msgid "Installed version"
+msgstr "Встановлена версія"
+
+msgid "Available version"
+msgstr "Доступна версія"
+
+#Introduced in version 5.2
+msgid "Please enter your password"
+msgstr "Будь-ласка свій введіть пароль"
+
+msgid "Games"
+msgstr "Ігри"
+
+msgid "Internet"
+msgstr "Інтернет"
+
+msgid "Accessories"
+msgstr "Стандартні"
+
+msgid "Sound & Video"
+msgstr "Звук та відео"
+
+msgid "Office"
+msgstr "Офіс"
+
+msgid "Graphics"
+msgstr "Графіка"
+
+msgid "Programming"
+msgstr "Програмування"
+
+msgid "Education"
+msgstr "Освіта"
+
+msgid "System Tools"
+msgstr "Системні утиліти"
+
+msgid "First person shooters"
+msgstr "Шутери від першої особи"
+
+msgid "Turn-based strategy"
+msgstr "Покрокові стратегії"
+
+msgid "Real time strategy"
+msgstr "Стратегії реального часу"
+
+msgid "Emulators"
+msgstr "Емулятори"
+
+msgid "Simulation & racing"
+msgstr "Симулятори та перегони"
+
+msgid "Email"
+msgstr "Електронна пошта"
+
+msgid "Web browsers"
+msgstr "Веб-браузери"
+
+msgid "Instant messengers"
+msgstr "Месенджери"
+
+msgid "Internet Relay Chat"
+msgstr "Чат"
+
+msgid "FTP"
+msgstr "FTP"
+
+msgid "P2P and torrent"
+msgstr "P2P та торенти"
+
+msgid "Firewall"
+msgstr "Файрвол"
+
+msgid "Text editors"
+msgstr "Текстові редактори"
+
+msgid "Audio players"
+msgstr "Аудіоплеєри"
+
+msgid "Video players"
+msgstr "Переглядачі відео"
+
+msgid "Burning tools"
+msgstr "Запис дисків"
+
+msgid "Office suites"
+msgstr "Офісні пакети"
+
+msgid "Collection managers"
+msgstr "Менеджери колекцій"
+
+msgid "Document viewers"
+msgstr "Переглядачі документів"
+
+msgid "Finance"
+msgstr "Фінанси"
+
+msgid "Word processors"
+msgstr "Текстові процесори"
+
+msgid "Spreadsheets"
+msgstr "Електронні таблиці"
+
+msgid "Publishing"
+msgstr "Публікації"
+
+msgid "Graph and flowcharts"
+msgstr "Графіки та діаграми"
+
+msgid "Databases"
+msgstr "Бази даних"
+
+msgid "Mind mapping"
+msgstr "Карти думок"
+
+msgid "2D"
+msgstr "2D"
+
+msgid "Image viewers"
+msgstr "Переглядачі зображень"
+
+msgid "Photo"
+msgstr "Фотографія"
+
+msgid "Scanning tools"
+msgstr "Сканування"
+
+msgid "Tools"
+msgstr "Утиліти"
+
+msgid "Desktop components"
+msgstr "Десктопні компоненти"
+
+msgid "Package management"
+msgstr "Керування пакунками"
+
+#Introduced in version 5.3
+msgid "Installed"
+msgstr "Встановлено"
+
+msgid "Description"
+msgstr "Опис"
+
+msgid "No results"
+msgstr "Немає результатів"
+
+#Introduced in version 5.4
+msgid "Could not find package: %s"
+msgstr "Не можу знайтии пакунок: %s"
+
+#Introduced in version 5.5
+msgid "Featured applications"
+msgstr "Популярні програми"
+
+msgid "These popular applications can be installed on your system:"
+msgstr "Дані популярні програми може бути встановлено у вашу систему:"
+
+msgid "Icon"
+msgstr "Піктограма"
+
+msgid "Size"
+msgstr "Розмір"
+
+msgid "B"
+msgstr "Б"
+
+msgid "KB"
+msgstr "КБ"
+
+msgid "GB"
+msgstr "ГБ"
+
+msgid "More info"
+msgstr "Додатково"
+
+msgid "Website"
+msgstr "Веб-сайт"
+
+msgid "Downloading data"
+msgstr "Завантаження даних"
+
+msgid "Please wait, a screenshot is being downloaded for this application."
+msgstr "Будь-ласка зачекайте."

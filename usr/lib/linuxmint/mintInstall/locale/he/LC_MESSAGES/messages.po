@@ -1,0 +1,399 @@
+# Same as in version 5.0
+
+msgid "Backing up your APT sources"
+msgstr "APT-גיבוי של מקורות ה"
+
+msgid "Please wait, this can take some time"
+msgstr "התאזרי בסבלנות, פעולה זו עשויה להמשך זמן מה"
+
+msgid "Installation is complete"
+msgstr "התקנה הושלמה"
+
+msgid "Restoring your APT sources"
+msgstr "APT-השבה של מקורות ה"
+
+msgid "Finished"
+msgstr "נסתיים"
+
+msgid "not installed"
+msgstr "לא מותקן"
+
+msgid "installed"
+msgstr "מותקן"
+
+msgid "Success"
+msgstr "הצלחה"
+
+msgid "Failure"
+msgstr "כשלון"
+
+msgid "Install"
+msgstr "התקנה"
+
+msgid "Are you sure you want to install %s?"
+msgstr "?%s האם את בטוחה שברצונך להתקין את"
+
+msgid "Upgrade"
+msgstr "עדכון"
+
+msgid "Are you sure you want to upgrade %s?"
+msgstr "?%s האם את בטוחה שברצונך לעדכן את"
+
+msgid "Default repositories"
+msgstr "מאגרי תוכנה מקוריים"
+
+msgid "Your APT sources were corrupted."
+msgstr ".נפגמו APT-מקורות ה"
+
+msgid "Your APT sources were not correctly restored after you last ran mintInstall. They now have been restored."
+msgstr ".הורץ. הבעיה תוקנה כעת mintInstall-לא הושבו כראוי לאחר הפעם האחרונה ש APT-מקורות ה"
+
+msgid "Description:"
+msgstr ":תיאור"
+
+msgid "Repositories:"
+msgstr ":מאגרי תוכנה"
+
+msgid "Packages:"
+msgstr ":חבילות"
+
+msgid "Status:"
+msgstr ":סטאטוס"
+
+msgid "Close"
+msgstr "סגירה"
+
+msgid "Install new Software"
+msgstr "התקנת תוכנה חדשה"
+
+msgid "Install applications with one click of the mouse"
+msgstr "התקנת אפילקציות בלחיצת עכבר בודדה"
+
+msgid "Go to the Linux Mint Software Portal"
+msgstr "Linux Mint גישה לפורטל התוכנה של"
+
+msgid "Go to the Linux Mint repository"
+msgstr "Linux Mint גישה למאגר החבילות של"
+
+msgid "Go to the Ubuntu repository"
+msgstr "גישה למאגר החבילות של אובונטו"
+
+msgid "Go to the GetDeb Portal"
+msgstr "GetDeb גישה לפורטל"
+
+msgid "Search for a .mint application"
+msgstr ".mint חיפוש אחר אפליקצית"
+
+msgid "Search for a .deb package"
+msgstr ".deb חיפוש אחר חבילת"
+
+msgid "Search"
+msgstr "חיפוש"
+
+msgid "Show"
+msgstr "הצגה"
+
+msgid "reviews"
+msgstr "ביקורות"
+
+msgid "MB"
+msgstr "MB"
+
+msgid "The screenshot for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr ".תמונת המסך של אפילקציה זו לא ירדה בהצלחה. לחצי על 'עדכון' בכדי לתקן את הבעיה"
+
+msgid "The mint file for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr ".של אפילקציה זו לא ירד בהצלחה. לחצי על 'עדכון' בכדי לתקן את הבעיה .mint-קובץ ה"
+
+msgid "%d applications listed"
+msgstr "אפליקציות מוצגות %d"
+
+msgid "Category"
+msgstr "קטיגוריה"
+
+msgid "Application"
+msgstr "אפליקציה"
+
+msgid "Average rating"
+msgstr "דירוג ממוצע"
+
+msgid "Reviews"
+msgstr "ביקורות"
+
+msgid "Views"
+msgstr "צפיות"
+
+msgid "Added"
+msgstr "נוסף"
+
+msgid "Score"
+msgstr "ציון"
+
+msgid "Reviewer"
+msgstr "מבקר"
+
+msgid "Rating"
+msgstr "דירוג"
+
+msgid "Review"
+msgstr "ביקורת"
+
+msgid "Software manager for Linux Mint"
+msgstr "Linux Mint מנהל התוכנה של"
+
+msgid "_Help"
+msgstr "_עזרה"
+
+msgid "About"
+msgstr "אודות"
+
+msgid "_File"
+msgstr "_קובץ"
+
+msgid "Quit"
+msgstr "יציאה"
+
+msgid "The data used by mintInstall is corrupted or out of date. Click on refresh to fix the problem :"
+msgstr ".פגום או לא מעודכן. לחצי על 'עדכון' בכדי לתקן את הבעיה mintInstall המידע בשימוש"
+
+msgid "Downloading data for %s from %s"
+msgstr "%s-ל %s-מידע יורד מ"
+
+msgid "%d categories loaded"
+msgstr "קטיגוריות נטענו %d"
+
+msgid "%d applications loaded"
+msgstr "אפליקציות נטענו %d"
+
+msgid "%d screenshots loaded"
+msgstr "תמונות מסך נטענו %d"
+
+msgid "%d reviews loaded"
+msgstr "ביקורות נטענו %d"
+
+msgid "All applications"
+msgstr "כל האפליקציות"
+
+msgid "Visit"
+msgstr "ביקור"
+
+msgid "Search:"
+msgstr ":חיפוש"
+
+msgid "Added:"
+msgstr ":נוסף בתאריך"
+
+msgid "License:"
+msgstr ":רישיון"
+
+msgid "Size:"
+msgstr ":גודל"
+
+msgid "Views:"
+msgstr ":מספר צפיות"
+
+msgid "Average rating:"
+msgstr ":דירוג ממוצע"
+
+msgid "Refreshing mintInstall"
+msgstr "מתעדכן mintInstall"
+
+msgid "Please wait, this operation can take a while"
+msgstr "התאזרי בסבלנות, פעולה זו עשויה להמשך זמן מה"
+
+# Introduced in version 5.1
+msgid "Versions"
+msgstr "גרסאות"
+
+msgid "Please refresh mintInstall by clicking on the Refresh button"
+msgstr "על ידי לחיצה על כפתור העדכון mintInstall יש לעדכן את"
+
+msgid "Repository"
+msgstr "מאגר חבילות"
+
+msgid "Package"
+msgstr "חבילה"
+
+msgid "Installed version"
+msgstr "גרסא מותקנת"
+
+msgid "Available version"
+msgstr "גרסא זמינה"
+
+#Introduced in version 5.2
+msgid "Please enter your password"
+msgstr "אנא הכניסי את ססמתך"
+
+msgid "Games"
+msgstr "משחקים"
+
+msgid "Internet"
+msgstr "אינטרנט"
+
+msgid "Accessories"
+msgstr "עזרים"
+
+msgid "Sound & Video"
+msgstr "קול ותמונה"
+
+msgid "Office"
+msgstr "כלי משרד"
+
+msgid "Graphics"
+msgstr "גראפיקה"
+
+msgid "Programming"
+msgstr "תכנות"
+
+msgid "Education"
+msgstr "חינוך"
+
+msgid "System Tools"
+msgstr "כלי מערכת"
+
+msgid "First person shooters"
+msgstr "משחקי יריות בגוף ראשון"
+
+msgid "Turn-based strategy"
+msgstr "אסטרטגיה מבוססת תורות"
+
+msgid "Real time strategy"
+msgstr "אסטרטגיה בזמן אמת"
+
+msgid "Emulators"
+msgstr "אמולטורים"
+
+msgid "Simulation & racing"
+msgstr "סימולטורים ומירוצים"
+
+msgid "Email"
+msgstr "דואל"
+
+msgid "Web browsers"
+msgstr "דפדפנים"
+
+msgid "Instant messengers"
+msgstr "מסרים מידיים"
+
+msgid "Internet Relay Chat"
+msgstr "IRC"
+
+msgid "FTP"
+msgstr "FTP"
+
+msgid "P2P and torrent"
+msgstr "וטורנט P2P"
+
+msgid "Firewall"
+msgstr "חומת אש"
+
+msgid "Text editors"
+msgstr "עורכי טקסט"
+
+msgid "Audio players"
+msgstr "נגני אודיו"
+
+msgid "Video players"
+msgstr "נגני וידאו"
+
+msgid "Burning tools"
+msgstr "כלי צריבה"
+
+msgid "Office suites"
+msgstr "כלי משרד"
+
+msgid "Collection managers"
+msgstr "מנהלי איסוף"
+
+msgid "Document viewers"
+msgstr "צפיה במסמכים"
+
+msgid "Finance"
+msgstr "כספים"
+
+msgid "Word processors"
+msgstr "מעבדי תמלילים"
+
+msgid "Spreadsheets"
+msgstr "גיליון אלקטרוני"
+
+msgid "Publishing"
+msgstr "שולחנית"
+
+msgid "Graph and flowcharts"
+msgstr "מצגות"
+
+msgid "Databases"
+msgstr "מסדי נתונים"
+
+msgid "Mind mapping"
+msgstr "מיפוי חשיבה"
+
+msgid "2D"
+msgstr "2D"
+
+msgid "Image viewers"
+msgstr "צפיה בתמונות"
+
+msgid "Photo"
+msgstr "תצלום"
+
+msgid "Scanning tools"
+msgstr "כלי סריקה"
+
+msgid "Tools"
+msgstr "כלים"
+
+msgid "Desktop components"
+msgstr "מרכיבי השולחן"
+
+msgid "Package management"
+msgstr "ניהול החבילות"
+
+#Introduced in version 5.3
+msgid "Installed"
+msgstr "מותקן"
+
+msgid "Description"
+msgstr "תיאור"
+
+msgid "No results"
+msgstr "אין תוצאות"
+
+#Introduced in version 5.4
+msgid "Could not find package: %s"
+msgstr "%s :לא ניתן למצוא את החבילה"
+
+#Introduced in version 5.5
+msgid "Featured applications"
+msgstr "אפליקציות פופולריות"
+
+msgid "These popular applications can be installed on your system:"
+msgstr ":האפליקציות הפופולריות הבאות זמינות להתקנה"
+
+msgid "Icon"
+msgstr "איקון"
+
+msgid "Size"
+msgstr "גודל"
+
+msgid "B"
+msgstr "B"
+
+msgid "KB"
+msgstr "KB"
+
+msgid "GB"
+msgstr "GB"
+
+msgid "More info"
+msgstr "מידע נוסף"
+
+msgid "Website"
+msgstr "אתר"
+
+msgid "Downloading data"
+msgstr "מידע בהורדה"
+
+msgid "Please wait, a screenshot is being downloaded for this application."
+msgstr "התאזרי בסבלנות, תמונת מסך לאפיליקציה הזו יורדת"

@@ -1,0 +1,399 @@
+# Same as in version 5.0
+
+msgid "Backing up your APT sources"
+msgstr "आपले APT स्रोत संरक्षित होत आहेत"
+
+msgid "Please wait, this can take some time"
+msgstr "कृपया प्रतिक्षा करा"
+
+msgid "Installation is complete"
+msgstr "स्थापना संपन्न"
+
+msgid "Restoring your APT sources"
+msgstr "आपले APT स्रोत पुनर्स्थापित होत आहेत"
+
+msgid "Finished"
+msgstr "समाप्त"
+
+msgid "not installed"
+msgstr "स्थापित नाही"
+
+msgid "installed"
+msgstr "स्थापित"
+
+msgid "Success"
+msgstr "सफल"
+
+msgid "Failure"
+msgstr "असफल"
+
+msgid "Install"
+msgstr "स्थापित"
+
+msgid "Are you sure you want to install %s?"
+msgstr "%s ची स्थापना निश्चित आहे?"
+
+msgid "Upgrade"
+msgstr "उन्नति"
+
+msgid "Are you sure you want to upgrade %s?"
+msgstr "%s ची उन्नति निश्चित आहे?"
+
+msgid "Default repositories"
+msgstr "पूर्व निर्धारित रेपोसिटोरी"
+
+msgid "Your APT sources were corrupted."
+msgstr "आपले APT स्त्रोत भ्रष्ट आहेत."
+
+msgid "Your APT sources were not correctly restored after you last ran mintInstall. They now have been restored."
+msgstr "मागील mintInstall सत्रा मध्ये आपले APT स्त्रोत सफलरीत्या पुनर्स्थापित होऊ शकले नाहीत. आता ते पुनर्स्थापित झाले आहेत."
+
+msgid "Description:"
+msgstr "वर्णन :"
+
+msgid "Repositories:"
+msgstr "रेपोसिटोरी :"
+
+msgid "Packages:"
+msgstr "संकलन :"
+
+msgid "Status:"
+msgstr "स्थिति :"
+
+msgid "Close"
+msgstr "बंद"
+
+msgid "Install new Software"
+msgstr "नविन सॉफ्टवेअर स्थापित करा"
+
+msgid "Install applications with one click of the mouse"
+msgstr "नविन सॉफ्टवेअर माऊस च्या एका क्लिक मध्ये स्थापित करा"
+
+msgid "Go to the Linux Mint Software Portal"
+msgstr "लिनक्स मिंट सॉफ्टवेअर पोर्टलला भेट द्या"
+
+msgid "Go to the Linux Mint repository"
+msgstr "लिनक्स मिंट रेपोसिटोरी ला भेट द्या"
+
+msgid "Go to the Ubuntu repository"
+msgstr "उबुंटू रेपोसिटोरी ला भेट द्या"
+
+msgid "Go to the GetDeb Portal"
+msgstr "डेबायन पोर्टलला भेट द्या"
+
+msgid "Search for a .mint application"
+msgstr ".mint विनियोगाचा शोध घ्या"
+
+msgid "Search for a .deb package"
+msgstr ".deb संकलनाचा शोध घ्या"
+
+msgid "Search"
+msgstr "शोध"
+
+msgid "Show"
+msgstr "दाखवा"
+
+msgid "reviews"
+msgstr "समीक्षा"
+
+msgid "MB"
+msgstr "एम बि"
+
+msgid "The screenshot for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "विनियोगाचे चित्रिकरण सफलतेने डाउनलोड होउ शकले नाही. समस्या निवारणा साठी रिफ्रेश वर क्लिक करा."
+
+msgid "The mint file for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "या विनियोगाची mint फाईल सफलतेने डाउनलोड होऊ शकली नाही. समस्या निवारणा साठी रिफ्रेश वर क्लिक करा"
+
+msgid "%d applications listed"
+msgstr "%d विनियोग सुची"
+
+msgid "Category"
+msgstr "श्रेणी"
+
+msgid "Application"
+msgstr "विनियोग"
+
+msgid "Average rating"
+msgstr "सामान्य दर्जा"
+
+msgid "Reviews"
+msgstr "समीक्षा"
+
+msgid "Views"
+msgstr "दर्शन"
+
+msgid "Added"
+msgstr "अधिक"
+
+msgid "Score"
+msgstr "गुण"
+
+msgid "Reviewer"
+msgstr "समीक्षक"
+
+msgid "Rating"
+msgstr "दर्जा"
+
+msgid "Review"
+msgstr "समीक्षा"
+
+msgid "Software manager for Linux Mint"
+msgstr "लिनक्स मिंट साठी सॉफ्टवेयर व्यवस्थापक"
+
+msgid "_Help"
+msgstr "_मदत"
+
+msgid "About"
+msgstr "विषयी"
+
+msgid "_File"
+msgstr "_फाईल"
+
+msgid "Quit"
+msgstr "समाप्त"
+
+msgid "The data used by mintInstall is corrupted or out of date. Click on refresh to fix the problem :"
+msgstr "mintInstall कडून वापरली जाणारी माहीती भ्रष्ट झाली आहे. समस्या निवारणा साठी रिफ्रेश वर क्लिक करा:"
+
+msgid "Downloading data for %s from %s"
+msgstr "%s साठी %s वरून माहीती डाउनलोड होत आहे"
+
+msgid "%d categories loaded"
+msgstr "%d श्रेण्या स्थापित"
+
+msgid "%d applications loaded"
+msgstr "%d विनियोग स्थपित"
+
+msgid "%d screenshots loaded"
+msgstr "%d चित्रिकरण स्थापित"
+
+msgid "%d reviews loaded"
+msgstr "%d avis chargés"
+
+msgid "All applications"
+msgstr "सर्व विनियोग"
+
+msgid "Visit"
+msgstr "भेट द्या"
+
+msgid "Search:"
+msgstr "शोध :"
+
+msgid "Added:"
+msgstr "अधिक :"
+
+msgid "License:"
+msgstr "अधिकार पत्र :"
+
+msgid "Size:"
+msgstr "आकार :"
+
+msgid "Views:"
+msgstr "दर्शन :"
+
+msgid "Average rating:"
+msgstr "सामान्य दर्जा :"
+
+msgid "Refreshing mintInstall"
+msgstr "mintInstall रिफ्रेश होत आहे"
+
+msgid "Please wait, this operation can take a while"
+msgstr "कृपया प्रतिक्षा करा"
+
+# Introduced in version 5.1
+msgid "Versions"
+msgstr "संस्करण"
+
+msgid "Please refresh mintInstall by clicking on the Refresh button"
+msgstr "कृपया mintInstall रिफ्रेश करा"
+
+msgid "Repository"
+msgstr "रेपोसिटोरी"
+
+msgid "Package"
+msgstr "संकलन"
+
+msgid "Installed version"
+msgstr "स्थपित संस्करण"
+
+msgid "Available version"
+msgstr "उपलब्ध संस्करण"
+
+#Introduced in version 5.2
+msgid "Please enter your password"
+msgstr "कृपया आपला गुप्तशब्द नोंदा"
+
+msgid "Games"
+msgstr "खेळ"
+
+msgid "Internet"
+msgstr "इंटरनेट"
+
+msgid "Accessories"
+msgstr "उपयुक्त साधने"
+
+msgid "Sound & Video"
+msgstr "ध्वनि व चलचित्र"
+
+msgid "Office"
+msgstr "कचेरी"
+
+msgid "Graphics"
+msgstr "ग्राफिक्स"
+
+msgid "Programming"
+msgstr "प्रोग्रामिंग"
+
+msgid "Education"
+msgstr "शिक्षण"
+
+msgid "System Tools"
+msgstr "प्रणाली उपकरणे"
+
+msgid "First person shooters"
+msgstr "फर्स्ट पर्सन शुटर"
+
+msgid "Turn-based strategy"
+msgstr "टर्न बेस स्ट्रेटेजी"
+
+msgid "Real time strategy"
+msgstr "रिअल टाईम स्ट्रेटेजी"
+
+msgid "Emulators"
+msgstr "ईम्युलेटर"
+
+msgid "Simulation & racing"
+msgstr "सिम्युलेशन व रेसिंग"
+
+msgid "Email"
+msgstr "ई-मेल"
+
+msgid "Web browsers"
+msgstr "वेब ब्राउजर"
+
+msgid "Instant messengers"
+msgstr "तुर्त संदेश"
+
+msgid "Internet Relay Chat"
+msgstr "IRC"
+
+msgid "FTP"
+msgstr "FTP"
+
+msgid "P2P and torrent"
+msgstr "P2P आणि टोरंट"
+
+msgid "Firewall"
+msgstr "फायरवॉल"
+
+msgid "Text editors"
+msgstr "लेखन संपादक"
+
+msgid "Audio players"
+msgstr "ध्वनी प्लेबैक"
+
+msgid "Video players"
+msgstr "चलचित्र प्लेबैक"
+
+msgid "Burning tools"
+msgstr "बर्निंग उपकरणे"
+
+msgid "Office suites"
+msgstr "कचेरी संबंधित विनियोग"
+
+msgid "Collection managers"
+msgstr "संग्रह व्यवस्थापक"
+
+msgid "Document viewers"
+msgstr "लेख्य दर्शक"
+
+msgid "Finance"
+msgstr "अर्थ"
+
+msgid "Word processors"
+msgstr "शब्द संपादक"
+
+msgid "Spreadsheets"
+msgstr "स्प्रेडशीट्स"
+
+msgid "Publishing"
+msgstr "प्रकाशन"
+
+msgid "Graph and flowcharts"
+msgstr "आलेख व फ्लोचार्ट्स"
+
+msgid "Databases"
+msgstr "डेटाबेस"
+
+msgid "Mind mapping"
+msgstr "माईंड मॅपर्स"
+
+msgid "2D"
+msgstr "2D"
+
+msgid "Image viewers"
+msgstr "चित्र दर्शक"
+
+msgid "Photo"
+msgstr "छायाचित्र"
+
+msgid "Scanning tools"
+msgstr "अवलोकन उपकरण"
+
+msgid "Tools"
+msgstr "साधने"
+
+msgid "Desktop components"
+msgstr "डेस्कटॉपचे घटक"
+
+msgid "Package management"
+msgstr "संकलन व्यवस्थापक"
+
+#Introduced in version 5.3
+msgid "Installed"
+msgstr "स्थापित"
+
+msgid "Description"
+msgstr "वर्णन"
+
+msgid "No results"
+msgstr "निकाल नाही"
+
+#Introduced in version 5.4
+msgid "Could not find package: %s"
+msgstr "%s संकलन सापडले नाही"
+
+#Introduced in version 5.5
+msgid "Featured applications"
+msgstr "फीचर्ड विनियोग"
+
+msgid "These popular applications can be installed on your system:"
+msgstr "हे प्रसिद्ध विनियोग आपल्या प्रणालीवर स्थापित होऊ शकतात :"
+
+msgid "Icon"
+msgstr "आईकन"
+
+msgid "Size"
+msgstr "आकारमान"
+
+msgid "B"
+msgstr "बि"
+
+msgid "KB"
+msgstr "के बि"
+
+msgid "GB"
+msgstr "जि बि"
+
+msgid "More info"
+msgstr "अधिक माहिती"
+
+msgid "Website"
+msgstr "वेब साईट"
+
+msgid "Downloading data"
+msgstr "माहिती डाउनलोड होत आहे"
+
+msgid "Please wait, a screenshot is being downloaded for this application."
+msgstr "कृपया थांबा या विनियोगा चे चित्रिकरण डाउनलोड होत आहे."

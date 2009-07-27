@@ -1,0 +1,399 @@
+# Same as in version 5.0
+
+msgid "Backing up your APT sources"
+msgstr "사용자의 APT 소스를 백업중"
+
+msgid "Please wait, this can take some time"
+msgstr "잠시만 기다려주십시오"
+
+msgid "Installation is complete"
+msgstr "설치가 완료되었습니다"
+
+msgid "Restoring your APT sources"
+msgstr "사용자의 APT 소스를 복구중"
+
+msgid "Finished"
+msgstr "끝남"
+
+msgid "not installed"
+msgstr "설치 안됨"
+
+msgid "installed"
+msgstr "설치됨"
+
+msgid "Success"
+msgstr "성공"
+
+msgid "Failure"
+msgstr "실패"
+
+msgid "Install"
+msgstr "설치"
+
+msgid "Are you sure you want to install %s?"
+msgstr "%s을(를) 설치하시겠습니까?"
+
+msgid "Upgrade"
+msgstr "업그레이드"
+
+msgid "Are you sure you want to upgrade %s?"
+msgstr "%s을(를) 업그레이드하시겠습니까?"
+
+msgid "Default repositories"
+msgstr "기본 저장소"
+
+msgid "Your APT sources were corrupted."
+msgstr "사용자의 APT 소스에 문제가 있습니다."
+
+msgid "Your APT sources were not correctly restored after you last ran mintInstall. They now have been restored."
+msgstr "마지막 실행시 사용자의 APT 소스가 제대로 저장되지 않았지만 자동으로 복구되었습니다."
+
+msgid "Description:"
+msgstr "설명:"
+
+msgid "Repositories:"
+msgstr "저장소:"
+
+msgid "Packages:"
+msgstr "패키지:"
+
+msgid "Status:"
+msgstr "상태:"
+
+msgid "Close"
+msgstr "닫기"
+
+msgid "Install new Software"
+msgstr "새로운 소프트웨어 설치"
+
+msgid "Install applications with one click of the mouse"
+msgstr "클릭 한번으로 간편하게 프로그램을 설치합니다"
+
+msgid "Go to the Linux Mint Software Portal"
+msgstr "리눅스 민트 소프트웨어 포털로 가기"
+
+msgid "Go to the Linux Mint repository"
+msgstr "리눅스 민트 저장소로 가기"
+
+msgid "Go to the Ubuntu repository"
+msgstr "우분투 저장소로 가기"
+
+msgid "Go to the GetDeb Portal"
+msgstr "GetDeb 포털로 가기"
+
+msgid "Search for a .mint application"
+msgstr ".mint 응용프로그램 검색"
+
+msgid "Search for a .deb package"
+msgstr "deb 패키지 검색"
+
+msgid "Search"
+msgstr "검색"
+
+msgid "Show"
+msgstr "정보"
+
+msgid "reviews"
+msgstr "리뷰"
+
+msgid "MB"
+msgstr "MB"
+
+msgid "The screenshot for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "스크린샷이 제대로 다운로드되지 않았습니다. 문제를 해결하려면 새로 고침을 누르십시오."
+
+msgid "The mint file for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "mint 파일이 제대로 다운로드되지 않았습니다. 문제를 해결하려면 새로 고침을 누르십시오."
+
+msgid "%d applications listed"
+msgstr "%d개의 응용프로그램을 불러들였습니다."
+
+msgid "Category"
+msgstr "분류"
+
+msgid "Application"
+msgstr "이름"
+
+msgid "Average rating"
+msgstr "평균 점수"
+
+msgid "Reviews"
+msgstr "리뷰"
+
+msgid "Views"
+msgstr "조회"
+
+msgid "Added"
+msgstr "날짜"
+
+msgid "Score"
+msgstr "점수"
+
+msgid "Reviewer"
+msgstr "평가자"
+
+msgid "Rating"
+msgstr "점수"
+
+msgid "Review"
+msgstr "평가"
+
+msgid "Software manager for Linux Mint"
+msgstr "리눅스 민트를 위한 소프트웨어 관리자"
+
+msgid "_Help"
+msgstr "도움말(_H)"
+
+msgid "About"
+msgstr "정보"
+
+msgid "_File"
+msgstr "파일(_F)"
+
+msgid "Quit"
+msgstr "종료"
+
+msgid "The data used by mintInstall is corrupted or out of date. Click on refresh to fix the problem :"
+msgstr "민트설치가 사용하고 있는 자료에 문제가 있습니다. 문제를 해결하려면 새로 고침을 누르십시오 :"
+
+msgid "Downloading data for %s from %s"
+msgstr "%s을(를) %s로부터 받는 중"
+
+msgid "%d categories loaded"
+msgstr "%d개의 분류를 불러들임"
+
+msgid "%d applications loaded"
+msgstr "%d개의 응용프로그램을 불러들임"
+
+msgid "%d screenshots loaded"
+msgstr "%d개의 스크린샷을 불러짐"
+
+msgid "%d reviews loaded"
+msgstr "%d개의 리뷰가 불러짐"
+
+msgid "All applications"
+msgstr "모든 응용프로그램"
+
+msgid "Visit"
+msgstr "방문"
+
+msgid "Search:"
+msgstr "검색:"
+
+msgid "Added:"
+msgstr "날짜:"
+
+msgid "License:"
+msgstr "라이센스:"
+
+msgid "Size:"
+msgstr "크기:"
+
+msgid "Views:"
+msgstr "조회:"
+
+msgid "Average rating:"
+msgstr "평균 점수:"
+
+msgid "Refreshing mintInstall"
+msgstr "민트설치를 새로 고치는 중"
+
+msgid "Please wait, this operation can take a while"
+msgstr "잠시만 기다려 주십시오."
+
+# Introduced in version 5.1
+msgid "Versions"
+msgstr "버전"
+
+msgid "Please refresh mintInstall by clicking on the Refresh button"
+msgstr "새로 고침을 눌러 민트설치를 갱신해 주십시오"
+
+msgid "Repository"
+msgstr "저장소"
+
+msgid "Package"
+msgstr "패키지"
+
+msgid "Installed version"
+msgstr "설치된 버전"
+
+msgid "Available version"
+msgstr "설치 가능한 버전"
+
+#Introduced in version 5.2
+msgid "Please enter your password"
+msgstr "사용자의 암호를 입력하여 주십시오"
+
+msgid "Games"
+msgstr "게임"
+
+msgid "Internet"
+msgstr "인터넷"
+
+msgid "Accessories"
+msgstr "보조 프로그램"
+
+msgid "Sound & Video"
+msgstr "소리 & 비디오"
+
+msgid "Office"
+msgstr "오피스"
+
+msgid "Graphics"
+msgstr "그래픽"
+
+msgid "Programming"
+msgstr "개발"
+
+msgid "Education"
+msgstr "교육"
+
+msgid "System Tools"
+msgstr "시스템 도구"
+
+msgid "First person shooters"
+msgstr "1인칭 슈팅"
+
+msgid "Turn-based strategy"
+msgstr "턴 기반 전략"
+
+msgid "Real time strategy"
+msgstr "실시간 전략"
+
+msgid "Emulators"
+msgstr "에뮬레이터"
+
+msgid "Simulation & racing"
+msgstr "시뮬레이션 & 레이싱"
+
+msgid "Email"
+msgstr "이메일"
+
+msgid "Web browsers"
+msgstr "웹 브라우저"
+
+msgid "Instant messengers"
+msgstr "메신저"
+
+msgid "Internet Relay Chat"
+msgstr "인터넷 릴레이 체팅"
+
+msgid "FTP"
+msgstr "FTP"
+
+msgid "P2P and torrent"
+msgstr "P2P & 토렌트"
+
+msgid "Firewall"
+msgstr "방화벽"
+
+msgid "Text editors"
+msgstr "텍스트 편집기"
+
+msgid "Audio players"
+msgstr "오디오 재생기"
+
+msgid "Video players"
+msgstr "비디오 재생기"
+
+msgid "Burning tools"
+msgstr "CD 굽기 도구"
+
+msgid "Office suites"
+msgstr "오피스 팩"
+
+msgid "Collection managers"
+msgstr "문서 관리자"
+
+msgid "Document viewers"
+msgstr "문서 뷰어"
+
+msgid "Finance"
+msgstr "재정"
+
+msgid "Word processors"
+msgstr "워드 프로세서"
+
+msgid "Spreadsheets"
+msgstr "스프레드시트"
+
+msgid "Publishing"
+msgstr "출판"
+
+msgid "Graph and flowcharts"
+msgstr "그래프 & 흐름도"
+
+msgid "Databases"
+msgstr "데이타베이스"
+
+msgid "Mind mapping"
+msgstr "마인드 맵"
+
+msgid "2D"
+msgstr "2D"
+
+msgid "Image viewers"
+msgstr "이미지 뷰어"
+
+msgid "Photo"
+msgstr "사진"
+
+msgid "Scanning tools"
+msgstr "스캐닝 도구"
+
+msgid "Tools"
+msgstr "도구"
+
+msgid "Desktop components"
+msgstr "데스크탑 구성요소"
+
+msgid "Package management"
+msgstr "패키지 관리"
+
+#Introduced in version 5.3
+msgid "Installed"
+msgstr "설치됨"
+
+msgid "Description"
+msgstr "설명"
+
+msgid "No results"
+msgstr "결과 없음"
+
+#Introduced in version 5.4
+msgid "Could not find package: %s"
+msgstr "%s을(를) 찾을 수 없습니다"
+
+#Introduced in version 5.5
+msgid "Featured applications"
+msgstr "유명한 프로그램들"
+
+msgid "These popular applications can be installed on your system:"
+msgstr "다음의 응용프로그램들을 시스템에 설치할 수 있습니다:"
+
+msgid "Icon"
+msgstr "아이콘"
+
+msgid "Size"
+msgstr "크기"
+
+msgid "B"
+msgstr "B"
+
+msgid "KB"
+msgstr "KB"
+
+msgid "GB"
+msgstr "GB"
+
+msgid "More info"
+msgstr "자세히"
+
+msgid "Website"
+msgstr "웹사이트"
+
+msgid "Downloading data"
+msgstr "자료를 받아오는 중"
+
+msgid "Please wait, a screenshot is being downloaded for this application."
+msgstr "기다려 주십시오. 이 응용프로그램의 스크린샷을 받아오는 중입니다."

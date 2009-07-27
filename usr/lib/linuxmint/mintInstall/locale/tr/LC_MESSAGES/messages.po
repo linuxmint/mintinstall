@@ -1,0 +1,397 @@
+msgid "Backing up your APT sources"
+msgstr "APT kaynaklarınız yedekleniyor"
+
+msgid "Please wait, this can take some time"
+msgstr "Lütfen bekleyin, bu biraz zaman alabilir"
+
+msgid "Installation is complete"
+msgstr "Yükleme tamamlandı"
+
+msgid "Restoring your APT sources"
+msgstr "APT kaynaklarınız yükleniyor"
+
+msgid "Finished"
+msgstr "Bitti"
+
+msgid "not installed"
+msgstr "Yüklenmedi"
+
+msgid "installed"
+msgstr "Yüklendi"
+
+msgid "Success"
+msgstr "Başarılı"
+
+msgid "Failure"
+msgstr "Başarısız"
+
+msgid "Install"
+msgstr "Yükle"
+
+msgid "Are you sure you want to install %s?"
+msgstr "%s'i yüklemek istediğinize emin misiniz?"
+
+msgid "Upgrade"
+msgstr "Yükselt"
+
+msgid "Are you sure you want to upgrade %s?"
+msgstr "%s'i yükseltmek istediğinize emin misiniz?"
+
+msgid "Default repositories"
+msgstr "Ön tanımlı havuzlar(repo)"
+
+msgid "Your APT sources were corrupted."
+msgstr "APT kaynaklarınız bozulmuş."
+
+msgid "Your APT sources were not correctly restored after you last ran mintInstall. They now have been restored."
+msgstr "mintInstall'ı son çalıştırmanızın ardından APT kaynaklarınız doğru bir şekilde yüklenememiş. Şimdi yüklendiler."
+
+msgid "Description:"
+msgstr "Açıklama:"
+
+msgid "Repositories:"
+msgstr "Havuzlar(Repo):"
+
+msgid "Packages:"
+msgstr "Paketler:"
+
+msgid "Status:"
+msgstr "Durum:"
+
+msgid "Close"
+msgstr "Kapat"
+
+msgid "Install new Software"
+msgstr "Yeni Yazılım yükle"
+
+msgid "Install applications with one click of the mouse"
+msgstr "Farenizin tek bir tıklamasıyla yeni uygulamalar yükleyin"
+
+msgid "Go to the Linux Mint Software Portal"
+msgstr "Linux Mint Yazılım Portal'ına git"
+
+msgid "Go to the Linux Mint repository"
+msgstr "Linux Mint havuzuna(repo) git"
+
+msgid "Go to the Ubuntu repository"
+msgstr "Ubuntu havuzuna(repo) git"
+
+msgid "Go to the GetDeb Portal"
+msgstr "GetDep Portal'ına git"
+
+msgid "Search for a .mint application"
+msgstr ".mint programı ara"
+
+msgid "Search for a .deb package"
+msgstr ".deb paketi ara"
+
+msgid "Search"
+msgstr "Ara"
+
+msgid "Show"
+msgstr "Göster"
+
+msgid "reviews"
+msgstr "incelemeler"
+
+msgid "MB"
+msgstr "MB"
+
+msgid "The screenshot for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "Bu uygulamanın ekran görüntüsü indirilemedi. Sorunu çözmek için yenile'ye tıklayın."
+
+msgid "The mint file for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "Bu uygulamanın mint dosyası indirilemedi. Sorunu çözmek için yenile'ye tıklayın."
+
+msgid "%d applications listed"
+msgstr "%d program listelendi"
+
+msgid "Category"
+msgstr "Kategori"
+
+msgid "Application"
+msgstr "Uygulama"
+
+msgid "Average rating"
+msgstr "Ortalama Puan"
+
+msgid "Reviews"
+msgstr "İncelemeler"
+
+msgid "Views"
+msgstr "Ziyaretler"
+
+msgid "Added"
+msgstr "Eklendi"
+
+msgid "Score"
+msgstr "Skor"
+
+msgid "Reviewer"
+msgstr "İnceleyen"
+
+msgid "Rating"
+msgstr "Puan"
+
+msgid "Review"
+msgstr "İnceleme"
+
+msgid "Software manager for Linux Mint"
+msgstr "Linux Mint için yazılım denetleyici"
+
+msgid "_Help"
+msgstr "_Yardım"
+
+msgid "About"
+msgstr "Hakkında"
+
+msgid "_File"
+msgstr "_Dosya"
+
+msgid "Quit"
+msgstr "Çık"
+
+msgid "The data used by mintInstall is corrupted or out of date. Click on refresh to fix the problem :"
+msgstr "mintInstall tarafından kullanılan veri bozuk veya eski. Sorunu gidermek için yenile'ye basın:"
+
+msgid "Downloading data for %s from %s"
+msgstr "%s'ten %s için data indiriliyor"
+
+msgid "%d categories loaded"
+msgstr "%d kategori yüklendi"
+
+msgid "%d applications loaded"
+msgstr "%d uygulama yüklendi"
+
+msgid "%d screenshots loaded"
+msgstr "%d ekran görüntüsü yüklendi"
+
+msgid "%d reviews loaded"
+msgstr "%d inceleme yüklendi"
+
+msgid "All applications"
+msgstr "Tüm uygulamalar"
+
+msgid "Visit"
+msgstr "Ziyaret"
+
+msgid "Search:"
+msgstr "Ara:"
+
+msgid "Added:"
+msgstr "Eklendi :"
+
+msgid "License:"
+msgstr "Lisans :"
+
+msgid "Size:"
+msgstr "Boyut :"
+
+msgid "Views:"
+msgstr "Görüntülenme :"
+
+msgid "Average rating:"
+msgstr "Ortalama Puan :"
+
+msgid "Refreshing mintInstall"
+msgstr "mintInstall'ı yeniliyor"
+
+msgid "Please wait, this operation can take a while"
+msgstr "Lütfen bekleyin, bu işlem uzun sürebilir"
+
+# Introduced in version 5.1
+msgid "Versions"
+msgstr "Versiyonlar"
+
+msgid "Please refresh mintInstall by clicking on the Refresh button"
+msgstr "Lütfen Yenile butonuna basarak mintInstall'ı yenileyin"
+
+msgid "Repository"
+msgstr "Havuz(Repo)"
+
+msgid "Package"
+msgstr "Paket"
+
+msgid "Installed version"
+msgstr "Yüklü versiyon"
+
+msgid "Available version"
+msgstr "Bulunan Versiyon"
+
+#Introduced in version 5.2
+msgid "Please enter your password"
+msgstr "Lütfen şifrenizi girin"
+
+msgid "Games"
+msgstr "Oyunlar"
+
+msgid "Internet"
+msgstr "İnternet"
+
+msgid "Accessories"
+msgstr "Donatılar"
+
+msgid "Sound & Video"
+msgstr "Ses & Müzik"
+
+msgid "Office"
+msgstr "Ofis"
+
+msgid "Graphics"
+msgstr "Grafik"
+
+msgid "Programming"
+msgstr "Programlama"
+
+msgid "Education"
+msgstr "Eğitim"
+
+msgid "System Tools"
+msgstr "Sistem Araçları"
+
+msgid "First person shooters"
+msgstr "Birinci şahıs aksiyon"
+
+msgid "Turn-based strategy"
+msgstr "Tur zamanlı strateji"
+
+msgid "Real time strategy"
+msgstr "Gerçek zamanlı strateji"
+
+msgid "Emulators"
+msgstr "Emülatörler"
+
+msgid "Simulation & racing"
+msgstr "Simülasyon & Yarış"
+
+msgid "Email"
+msgstr "Elektronik Posta"
+
+msgid "Web browsers"
+msgstr "İnternet Tarayıcı"
+
+msgid "Instant messengers"
+msgstr "Anında Mesajlaşma Programları"
+
+msgid "Internet Relay Chat"
+msgstr "IRC"
+
+msgid "FTP"
+msgstr "FTP"
+
+msgid "P2P and torrent"
+msgstr "P2P ve Torrent"
+
+msgid "Firewall"
+msgstr "Firewall"
+
+msgid "Text editors"
+msgstr "Metin Editörü"
+
+msgid "Audio players"
+msgstr "Müzik Çalarlar"
+
+msgid "Video players"
+msgstr "Video Oynatıcılar"
+
+msgid "Burning tools"
+msgstr "Yakma Araçları"
+
+msgid "Office suites"
+msgstr "Ofis Suitleri"
+
+msgid "Collection managers"
+msgstr "Koleksiyon yöneticiler"
+
+msgid "Document viewers"
+msgstr "Dosya göstericiler"
+
+msgid "Finance"
+msgstr "Finans"
+
+msgid "Word processors"
+msgstr "Kelime İşlemciler"
+
+msgid "Spreadsheets"
+msgstr "Tablolar"
+
+msgid "Publishing"
+msgstr "Yayınlamak"
+
+msgid "Graph and flowcharts"
+msgstr "Diyagramlar"
+
+msgid "Databases"
+msgstr "Veritabanları"
+
+msgid "Mind mapping"
+msgstr "Beyin haritalama"
+
+msgid "2D"
+msgstr "2D"
+
+msgid "Image viewers"
+msgstr "İmaj gösterici"
+
+msgid "Photo"
+msgstr "Resim"
+
+msgid "Scanning tools"
+msgstr "Tarayıcı Araçları"
+
+msgid "Tools"
+msgstr "Araçlar"
+
+msgid "Desktop components"
+msgstr "Masaüstü bileşenleri"
+
+msgid "Package management"
+msgstr "Paket Yönetici"
+
+#Introduced in version 5.3
+msgid "Installed"
+msgstr "Yüklendi"
+
+msgid "Description"
+msgstr "Açıklama"
+
+msgid "No results"
+msgstr "Sonuç bulunamadı"
+
+#Introduced in version 5.4
+msgid "Could not find package: %s"
+msgstr "Şu paket bulunamadı: %s"
+
+#Introduced in version 5.5
+msgid "Featured applications"
+msgstr "Gösterilen uygulamalar"
+
+msgid "These popular applications can be installed on your system:"
+msgstr "Bu popüler uygulamalar sisteminize yüklenebilir:"
+
+msgid "Icon"
+msgstr "İcon"
+
+msgid "Size"
+msgstr "Boyut"
+
+msgid "B"
+msgstr "B"
+
+msgid "KB"
+msgstr "KB"
+
+msgid "GB"
+msgstr "GB"
+
+msgid "More info"
+msgstr "Detaylı Bilgi"
+
+msgid "Website"
+msgstr "Web Sitesi"
+
+msgid "Downloading data"
+msgstr "Veriyi İndiriyor"
+
+msgid "Please wait, a screenshot is being downloaded for this application."
+msgstr "Lütfen bekleyin, bu uygulama için bir ekran görüntüsü indiriliyor."

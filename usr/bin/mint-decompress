@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+
+import sys
+import os
+
+mintfile = sys.argv[1]
+mintfile = str.strip(mintfile)
+directory = str.replace(mintfile, ".mint", "")
+
+os.system("mkdir " + directory)
+os.system("cp " + mintfile + " " + directory + "/")
+os.chdir(directory)
+os.system("tar zxvf " + mintfile)
+os.system("rm " + mintfile)
+
+
+
+

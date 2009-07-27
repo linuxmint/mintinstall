@@ -1,0 +1,399 @@
+# Same as in version 5.0
+
+msgid "Backing up your APT sources"
+msgstr "APT iturriko segurtasun kopia egiten"
+
+msgid "Please wait, this can take some time"
+msgstr "Itxaron mesedez, hau zenbait denbora har litzake"
+
+msgid "Installation is complete"
+msgstr "Instalazio amaituta"
+
+msgid "Restoring your APT sources"
+msgstr "APT iturriak konpontzen"
+
+msgid "Finished"
+msgstr "Amiautua"
+
+msgid "not installed"
+msgstr "Ez instalatua"
+
+msgid "installed"
+msgstr "instalatua"
+
+msgid "Success"
+msgstr "Arrakasta"
+
+msgid "Failure"
+msgstr "Porrot"
+
+msgid "Install"
+msgstr "Instalatu"
+
+msgid "Are you sure you want to install %s?"
+msgstr "Seguru zaude %s instalatu nahi duzula?"
+
+msgid "Upgrade"
+msgstr "Actualizatu"
+
+msgid "Are you sure you want to upgrade %s?"
+msgstr "Seguro zaude %s aktualizatu nahi duzula?"
+
+msgid "Default repositories"
+msgstr "Oinarrisko repositorioak"
+
+msgid "Your APT sources were corrupted."
+msgstr "Zure APT iturriak kutzatuta daude."
+
+msgid "Your APT sources were not correctly restored after you last ran mintInstall. They now have been restored."
+msgstr "Zure APT iturriak ezin dira ondo konpondu mintInstall azken aldiz erabili eta gero. Orain konpondu egin dira."
+
+msgid "Description:"
+msgstr "Descripzioa:"
+
+msgid "Repositories:"
+msgstr "Repositorioak:"
+
+msgid "Packages:"
+msgstr "Paketeak:"
+
+msgid "Status:"
+msgstr "Estadoa:"
+
+msgid "Close"
+msgstr "Itxi"
+
+msgid "Install new Software"
+msgstr "Aplakazio berri bat instalatu"
+
+msgid "Install applications with one click of the mouse"
+msgstr "Saguaren klik batekin aplikazioa instalatu"
+
+msgid "Go to the Linux Mint Software Portal"
+msgstr "Linux Mint-ko aplikazio portalera joan"
+
+msgid "Go to the Linux Mint repository"
+msgstr "Linux Mint-ko repositoriora joan"
+
+msgid "Go to the Ubuntu repository"
+msgstr "Ubuntu-ko repositoriora joan"
+
+msgid "Go to the GetDeb Portal"
+msgstr "GetDeb.net-ko aplikazio portalera joan"
+
+msgid "Search for a .mint application"
+msgstr ".mint aplikazio bat bilatu"
+
+msgid "Search for a .deb package"
+msgstr ".deb pakete bat bilatu"
+
+msgid "Search"
+msgstr "Bilatu"
+
+msgid "Show"
+msgstr "Erakutzi"
+
+msgid "reviews"
+msgstr "Aipamen"
+
+msgid "MB"
+msgstr "Mb"
+
+msgid "The screenshot for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "Aplikazio honen pantailla kaptura ezin izan da deskargatu. Jo aktualizatu botoia arazoa konpontzeko."
+
+msgid "The mint file for this application was not successfully downloaded. Click on refresh to fix the problem."
+msgstr "Aplikazioko .mint artziboa ezin izan da deskargatu. Jo aktualizatu botoia arazoa konpontzeko."
+
+msgid "%d applications listed"
+msgstr "%d aplikazio prest daude"
+
+msgid "Category"
+msgstr "Kategoría"
+
+msgid "Application"
+msgstr "Aplicazio"
+
+msgid "Average rating"
+msgstr "Ebaluaketa batez beste"
+
+msgid "Reviews"
+msgstr "Ebaluaketa"
+
+msgid "Views"
+msgstr "Bisitak"
+
+msgid "Added"
+msgstr "Gainontzekoak"
+
+msgid "Score"
+msgstr "Puntuazioa"
+
+msgid "Reviewer"
+msgstr "iruzkigile"
+
+msgid "Rating"
+msgstr "Ebalazioa"
+
+msgid "Review"
+msgstr "Iruzkide"
+
+msgid "Software manager for Linux Mint"
+msgstr "Linux Mint-ko Aplikazio gestorea"
+
+msgid "_Help"
+msgstr "_Laguntza"
+
+msgid "About"
+msgstr "Gutaz"
+
+msgid "_File"
+msgstr "_Archiboa"
+
+msgid "Quit"
+msgstr "Itxi"
+
+msgid "The data used by mintInstall is corrupted or out of date. Click on refresh to fix the problem :"
+msgstr "mintInstall erabilitako datuak uztelduta edo ez eguneratuak daude. Jo Aktualizatu botoia arazoa konpontzeko:"
+
+msgid "Downloading data for %s from %s"
+msgstr "%s rako %s -tik datuak deskargatzen"
+
+msgid "%d categories loaded"
+msgstr "%d kategoriak kargatutak"
+
+msgid "%d applications loaded"
+msgstr "%d aplikazio kargatutak"
+
+msgid "%d screenshots loaded"
+msgstr "%d pantailla kapturak kargatutak"
+
+msgid "%d reviews loaded"
+msgstr "%d iruzkide kargatutak"
+
+msgid "All applications"
+msgstr "Aplikazio guztiak"
+
+msgid "Visit"
+msgstr "Bisitatu"
+
+msgid "Search:"
+msgstr "Bilatu:"
+
+msgid "Added:"
+msgstr "Erantziak:"
+
+msgid "License:"
+msgstr "Litzentzia:"
+
+msgid "Size:"
+msgstr "Tamaina:"
+
+msgid "Views:"
+msgstr "Bisitak:"
+
+msgid "Average rating:"
+msgstr "Batez besteko ebaluzioa:"
+
+msgid "Refreshing mintInstall"
+msgstr "mintInstall eguneatzen"
+
+msgid "Please wait, this operation can take a while"
+msgstr "Itzaron mesedez, operazio hau zenbait denbora har litzake"
+
+# Introduced in version 5.1
+msgid "Versions"
+msgstr "Bersioak"
+
+msgid "Please refresh mintInstall by clicking on the Refresh button"
+msgstr "Mesedez mintInstall eguneratu Actualizatu boroia joituz "
+
+msgid "Repository"
+msgstr "Repositorioa"
+
+msgid "Package"
+msgstr "Paketea"
+
+msgid "Installed version"
+msgstr "Bersio instalatua"
+
+msgid "Available version"
+msgstr "Bersio prest"
+
+#Introduced in version 5.2
+msgid "Please enter your password"
+msgstr "Pasaitza sartu"
+
+msgid "Games"
+msgstr "Jolasak"
+
+msgid "Internet"
+msgstr "Internet"
+
+msgid "Accessories"
+msgstr "Akzesorioak"
+
+msgid "Sound & Video"
+msgstr "Sonido eta Bideoa"
+
+msgid "Office"
+msgstr "Bulegoa"
+
+msgid "Graphics"
+msgstr "Gráficoak"
+
+msgid "Programming"
+msgstr "Programazioa"
+
+msgid "Education"
+msgstr "Ikaskuntza"
+
+msgid "System Tools"
+msgstr "Sistematen herramienta"
+
+msgid "First person shooters"
+msgstr "Lehengo pertzona tiratzaile"
+
+msgid "Turn-based strategy"
+msgstr "Turnozko estrategia"
+
+msgid "Real time strategy"
+msgstr "Momentuzko Estrategia"
+
+msgid "Emulators"
+msgstr "Emuladoreak"
+
+msgid "Simulation & racing"
+msgstr "Simulazio eta lasterketak"
+
+msgid "Email"
+msgstr "Korreo elektronicoa"
+
+msgid "Web browsers"
+msgstr "Web navegadoreak"
+
+msgid "Instant messengers"
+msgstr "Momentuko mensajeria"
+
+msgid "Internet Relay Chat"
+msgstr "IRC"
+
+msgid "FTP"
+msgstr "FTP"
+
+msgid "P2P and torrent"
+msgstr "P2P eta torrent"
+
+msgid "Firewall"
+msgstr "suebaki"
+
+msgid "Text editors"
+msgstr "Textu editoreak"
+
+msgid "Audio players"
+msgstr "Audioko erreproductoreak"
+
+msgid "Video players"
+msgstr "Bideoko erreproductoreak"
+
+msgid "Burning tools"
+msgstr "Grabatzeko herramientak"
+
+msgid "Office suites"
+msgstr "Bulegoko paketeak"
+
+msgid "Collection managers"
+msgstr "Kolekzio organizatzaileak"
+
+msgid "Document viewers"
+msgstr "Dokumento ikusgailu"
+
+msgid "Finance"
+msgstr "Finantzak"
+
+msgid "Word processors"
+msgstr "Textusko prozezadorak"
+
+msgid "Spreadsheets"
+msgstr "Kalkulo horriak"
+
+msgid "Publishing"
+msgstr "Presentazioak"
+
+msgid "Graph and flowcharts"
+msgstr "Grafiko y diagramak"
+
+msgid "Databases"
+msgstr "Datuzko baseak"
+
+msgid "Mind mapping"
+msgstr "Organigramak"
+
+msgid "2D"
+msgstr "2D"
+
+msgid "Image viewers"
+msgstr "Irudi ikusgailuak"
+
+msgid "Photo"
+msgstr "Fotografia"
+
+msgid "Scanning tools"
+msgstr "Eskanerako herramientak"
+
+msgid "Tools"
+msgstr "Herramientak"
+
+msgid "Desktop components"
+msgstr "Idazmahiko konponenteak"
+
+msgid "Package management"
+msgstr "Paketen administradorea"
+
+#Introduced in version 5.3
+msgid "Installed"
+msgstr "Instalatua"
+
+msgid "Description"
+msgstr "Descripzioa"
+
+msgid "No results"
+msgstr "Emaitz gabekoa"
+
+#Introduced in version 5.4
+msgid "Could not find package: %s"
+msgstr "Ezin izan da paketea aurkitu: %s"
+
+#Introduced in version 5.5
+msgid "Featured applications"
+msgstr "Guztuko aplikazioak"
+
+msgid "These popular applications can be installed on your system:"
+msgstr "Guztuko aplikazioa zure ekipoan instalatzeko prest:"
+
+msgid "Icon"
+msgstr "Iconoa"
+
+msgid "Size"
+msgstr "Tamaina"
+
+msgid "B"
+msgstr "b"
+
+msgid "KB"
+msgstr "Kb"
+
+msgid "GB"
+msgstr "Gb"
+
+msgid "More info"
+msgstr "Informazio gehiago"
+
+msgid "Website"
+msgstr "web horrialdea"
+
+msgid "Downloading data"
+msgstr "Dekargatzen"
+
+msgid "Please wait, a screenshot is being downloaded for this application."
+msgstr "Itzaron mesedez, aplikazio honen pantaila kaptura deskargatzen ari da."
