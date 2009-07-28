@@ -6,7 +6,6 @@
     <property name="width_request">790</property>
     <property name="height_request">540</property>
     <property name="visible">True</property>
-    <property name="border_width">3</property>
     <property name="window_position">center-always</property>
     <property name="opacity">0.97999999999999998</property>
     <child>
@@ -437,6 +436,7 @@
         <child>
           <widget class="GtkVBox" id="vbox6">
             <property name="visible">True</property>
+            <property name="border_width">3</property>
             <child>
               <widget class="GtkProgressBar" id="progressbar">
                 <property name="visible">True</property>

@@ -19,6 +19,10 @@ gtk.gdk.threads_init()
 # i18n
 gettext.install("messages", "/usr/lib/linuxmint/mintInstall/locale")
 
+# i18n for menu item
+menuName = _("Software Manager")
+menuComment = _("Install new applications")
+
 architecture = commands.getoutput("uname -a")
 if (architecture.find("x86_64") >= 0):
 	import ctypes
@@ -53,7 +57,7 @@ def show_item(selection, model, wTree, username):
 			if (os.path.exists(selected_item.screenshot)):
 				wTree.get_widget("image_screenshot").set_from_pixbuf(gtk.gdk.pixbuf_new_from_file_at_size(selected_item.screenshot, 200, 200))
 			else:
-				#os.system("sudo -u " + username + " notify-send -t 10000 -i /usr/lib/linuxmint/mintSystem/icon.png \"" + _("Downloading data") + "\" \"<i>" + _("Please wait, a screenshot is being downloaded for this application.") + "</i>\"")				
+				#os.system("sudo -u " + username + " notify-send -t 10000 -i /usr/lib/linuxmint/mintInstall/icon.svg \"" + _("Downloading data") + "\" \"<i>" + _("Please wait, a screenshot is being downloaded for this application.") + "</i>\"")				
 				downloadScreenshot = DownloadScreenshot(selected_item, wTree, model)
 				downloadScreenshot.start()				
 			
@@ -95,7 +99,7 @@ def open_featured(widget):
 	wTree = gtk.glade.XML(gladefile, "featured_window")
 	treeview_featured = wTree.get_widget("treeview_featured")
 	wTree.get_widget("featured_window").set_title(_("Featured applications"))
-	wTree.get_widget("featured_window").set_icon_from_file("/usr/lib/linuxmint/mintSystem/icon.png")	
+	wTree.get_widget("featured_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")	
 	wTree.get_widget("button_close").connect("clicked", close_window, wTree.get_widget("featured_window"))
 	wTree.get_widget("button_apply").connect("clicked", install_featured, wTree, treeview_featured, wTree.get_widget("featured_window"))		
 	wTree.get_widget("featured_window").show_all()	
@@ -211,7 +215,7 @@ def show_screenshot(widget, model):
 		gladefile = "/usr/lib/linuxmint/mintInstall/frontend.glade"
 		wTree = gtk.glade.XML(gladefile, "screenshot_window")
 		wTree.get_widget("screenshot_window").set_title(model.selected_application.name)
-		wTree.get_widget("screenshot_window").set_icon_from_file("/usr/lib/linuxmint/mintSystem/icon.png")
+		wTree.get_widget("screenshot_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
 		wTree.get_widget("screenshot_window").connect("delete_event", close_window, wTree.get_widget("screenshot_window"))
 		wTree.get_widget("button_screen_close").connect("clicked", close_window, wTree.get_widget("screenshot_window"))
 		wTree.get_widget("image_screen").set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(model.selected_application.screenshot))	
@@ -249,7 +253,7 @@ def show_more_info(widget, model):
 			gladefile = "/usr/lib/linuxmint/mintInstall/frontend.glade"
 			wTree = gtk.glade.XML(gladefile, "more_info_window")
 			wTree.get_widget("more_info_window").set_title(model.selected_application.name)
-			wTree.get_widget("more_info_window").set_icon_from_file("/usr/lib/linuxmint/mintSystem/icon.png")
+			wTree.get_widget("more_info_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
 			wTree.get_widget("button_versions_close").connect("clicked", close_window, wTree.get_widget("more_info_window"))
 
 			tree_repositories = wTree.get_widget("treeview_repositories")
@@ -405,8 +409,8 @@ def build_GUI(model, username):
 	#Set the Glade file
 	gladefile = "/usr/lib/linuxmint/mintInstall/frontend.glade"
 	wTree = gtk.glade.XML(gladefile, "main_window")
-	wTree.get_widget("main_window").set_title("mintInstall")
-	wTree.get_widget("main_window").set_icon_from_file("/usr/lib/linuxmint/mintSystem/icon.png")
+	wTree.get_widget("main_window").set_title(_("Software Manager"))
+	wTree.get_widget("main_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
 	wTree.get_widget("main_window").connect("delete_event", close_application)
 
 	wTree.get_widget("image_screenshot").clear()
@@ -544,14 +548,12 @@ def build_GUI(model, username):
 
 
 def open_about(widget):
-	dlg = gtk.AboutDialog()
-	dlg.set_title(_("About") + " - mintInstall")
-	version = commands.getoutput("mint-apt-version mintinstall")
-	dlg.set_version(version)
-	dlg.set_program_name("mintInstall")
-	dlg.set_comments(_("Software manager for Linux Mint"))
+	dlg = gtk.AboutDialog()		
+	dlg.set_version(commands.getoutput("/usr/lib/linuxmint/mintInstall/version.py"))
+	dlg.set_name("mintInstall")
+	dlg.set_comments(_("Software manager"))
         try:
-            h = open('/usr/lib/linuxmint/mintSystem/GPL.txt','r')
+            h = open('/usr/share/common-licenses/GPL','r')
             s = h.readlines()
 	    gpl = ""
             for line in s:
@@ -561,8 +563,8 @@ def open_about(widget):
         except Exception, detail:
             print detail            
         dlg.set_authors(["Clement Lefebvre <root@linuxmint.com>"]) 
-	dlg.set_icon_from_file("/usr/lib/linuxmint/mintSystem/icon.png")
-	dlg.set_logo(gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintSystem/icon.png"))
+	dlg.set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
+	dlg.set_logo(gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/icon.svg"))
         def close(w, res):
             if res == gtk.RESPONSE_CANCEL:
                 w.hide()
@@ -570,7 +572,7 @@ def open_about(widget):
         dlg.show()
 
 def force_refresh(widget, wTree, model, username):
-	os.system("sudo -u " + username + " notify-send -t 10000 -i /usr/lib/linuxmint/mintSystem/icon.png \"" + _("Refreshing mintInstall") + "\" \"<i>" + _("Please wait, this operation can take a while") + "</i>\" &")
+	os.system("sudo -u " + username + " notify-send -t 10000 -i /usr/lib/linuxmint/mintInstall/icon.svg \"" + _("Refreshing mintInstall") + "\" \"<i>" + _("Please wait, this operation can take a while") + "</i>\" &")
 	refresh = RefreshThread(wTree, True, model, username)
 	refresh.start()	
 	wTree.get_widget("entry_search").set_text("")
@@ -599,10 +601,10 @@ class DownloadScreenshot(threading.Thread):
 			pass
 			#print detail
 			#gtk.gdk.threads_enter()
-			#os.system("sudo -u " + username + " notify-send -t 10000 -i /usr/lib/linuxmint/mintSystem/icon.png \"" + _("Downloading data") + "\" \"<i>" + _("The screenshot for this application was not successfully downloaded. Click on refresh to fix the problem.") + "</i>\"")	
+			#os.system("sudo -u " + username + " notify-send -t 10000 -i /usr/lib/linuxmint/mintInstall/icon.svg \"" + _("Downloading data") + "\" \"<i>" + _("The screenshot for this application was not successfully downloaded. Click on refresh to fix the problem.") + "</i>\"")	
 			#dialog = gtk.MessageDialog(wTree.get_widget("main_window"), gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_NONE, _("The screenshot for this application was not successfully downloaded. Click on refresh to fix the problem."))
 			#dialog.set_title("mintInstall")
-			#dialog.set_icon_from_file("/usr/lib/linuxmint/mintSystem/icon.png")
+			#dialog.set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
 			#dialog.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
 			#dialog.connect('response', lambda dialog, response: dialog.destroy())
 			#dialog.show()
@@ -666,7 +668,7 @@ class RefreshThread(threading.Thread):
 					gtk.gdk.threads_enter()
 					dialog = gtk.MessageDialog(self.wTree.get_widget("main_window"), gtk.DIALOG_MODAL, gtk.MESSAGE_INFO, gtk.BUTTONS_NONE, _("Please refresh mintInstall by clicking on the Refresh button"))
 					dialog.set_title("mintInstall")
-					dialog.set_icon_from_file("/usr/lib/linuxmint/mintSystem/icon.png")
+					dialog.set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
 					dialog.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
 					dialog.connect('response', lambda dialog, response: dialog.destroy())
 					dialog.show()
@@ -849,7 +851,7 @@ class RefreshThread(threading.Thread):
 		iter = model_categories.insert_before(None, None)						
 		model_categories.set_value(iter, 0, _("All applications"))						
 		model_categories.set_value(iter, 1, None)
-		model_categories.set_value(iter, 2, gtk.gdk.pixbuf_new_from_file_at_size("/usr/lib/linuxmint/mintSystem/icon.png", 16, 16))
+		model_categories.set_value(iter, 2, gtk.gdk.pixbuf_new_from_file_at_size("/usr/lib/linuxmint/mintInstall/icon.svg", 16, 16))
 		for portal in model.portals:
 			for category in portal.categories:		
 				if (category.parent == None or category.parent == "None"):

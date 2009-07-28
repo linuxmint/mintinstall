@@ -1,11 +1,10 @@
 [Desktop Entry]
-Name=mintInstall
-GenericName=Software Manager
-GenericName[fr]=Gestionnaire d'Applications
+Name=Software Manager
+Name[fr]=Gestionnaire d'Applications
 Comment=Install new applications
 Comment[fr]=Installez de nouvelles applications
 Exec=mintinstall
-Icon=/usr/lib/linuxmint/mintSystem/icon.png
+Icon=/usr/lib/linuxmint/mintInstall/icon.svg
 Terminal=false
 Type=Application
 Encoding=UTF-8

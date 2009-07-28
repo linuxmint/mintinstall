@@ -157,7 +157,7 @@ class mintInstallExecuter(threading.Thread):
 	#button.connect("clicked",gtk.main_quit)
 	#dialog = dialog_wTree.get_widget("message_dialog")	
 	#dialog.set_parent(wTree.get_widget("main_window"))
-	#dialog.set_icon_from_file("/usr/lib/linuxmint/mintSystem/icon.png")
+	#dialog.set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
 	#dialog.show()
 
 class mintInstallWindow:
@@ -220,7 +220,8 @@ class mintInstallWindow:
         #Set the Glade file
         self.gladefile = "/usr/lib/linuxmint/mintInstall/mintInstall.glade"
         wTree = gtk.glade.XML(self.gladefile,"main_window")
-	wTree.get_widget("main_window").set_icon_from_file("/usr/lib/linuxmint/mintSystem/icon.png")
+	wTree.get_widget("main_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
+	wTree.get_widget("main_window").set_title(_("Install %s?") % (self.name))
 
 	wTree.get_widget("main_window").connect("destroy", self.giveUp)
 
@@ -236,10 +237,6 @@ class mintInstallWindow:
 	wTree.get_widget("label176").set_text(_("Packages:"))
 
 	#Fill in the GUI with information from the mintFile
-	wTree.get_widget("txt_name").set_text("<big><b>" + _("Install") + " " + self.name + "</b></big>")
-	wTree.get_widget("txt_name").set_use_markup(True)	
-	wTree.get_widget("txt_guidance").set_text("<i>" + _("Are you sure you want to install %s?") % self.name + "</i>")
-	wTree.get_widget("txt_guidance").set_use_markup(True)
 	wTree.get_widget("txt_description").set_text(self.description)
 	wTree.get_widget("main_button_label").set_text(_("Install"))
 	
@@ -269,10 +266,7 @@ class mintInstallWindow:
 		txt_repositories = repository + "\n"
 	txt_repositories = str.strip(txt_repositories)
 	if ( not self.needToInstallSomething ):
-		wTree.get_widget("txt_name").set_text("<big><b>" + _("Upgrade") + " " + self.name + "</b></big>")
-		wTree.get_widget("txt_name").set_use_markup(True)
-		wTree.get_widget("txt_guidance").set_text("<i>" + _("Are you sure you want to upgrade %s?") % self.name + "</i>")
-		wTree.get_widget("txt_guidance").set_use_markup(True)		
+		wTree.get_widget("main_window").set_title(_("Upgrade %s?") % (self.name))
 		wTree.get_widget("main_button_label").set_text(_("Upgrade"))
 
 	if (txt_repositories != ""):
@@ -318,7 +312,7 @@ class MessageDialog:
 		self.message = message
 
 	def show(self):
-		warnDlg = gtk.Dialog(title="MintInstall", parent=None, flags=0, buttons=(gtk.STOCK_OK, gtk.RESPONSE_OK))
+		warnDlg = gtk.Dialog(title=_("Software Manager"), parent=None, flags=0, buttons=(gtk.STOCK_OK, gtk.RESPONSE_OK))
 		warnDlg.vbox.set_spacing(10)
 		labelSpc = gtk.Label(" ")
 		warnDlg.vbox.pack_start(labelSpc)	
@@ -415,13 +409,10 @@ if __name__ == "__main__":
 	wTree.get_widget("txt_search_mint").connect("changed", updateEntries, wTree)
 	wTree.get_widget("txt_search_getdeb").connect("changed", updateEntries, wTree)
 	wTree.get_widget("txt_apt").connect("changed", updateEntries, wTree)
-	wTree.get_widget("window_menu").set_icon_from_file("/usr/lib/linuxmint/mintSystem/icon.png")
+	wTree.get_widget("window_menu").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
+	wTree.get_widget("window_menu").set_title(_("Find Software"))
 
 	#i18n
-	wTree.get_widget("label_title").set_text("<big><b>" + _("Install new Software") + "</b></big>")
-	wTree.get_widget("label_title").set_use_markup(True)	
-	wTree.get_widget("label_guidance").set_text("<i>" + _("Install applications with one click of the mouse") + "</i>")
-	wTree.get_widget("label_guidance").set_use_markup(True)
 	wTree.get_widget("button_portal_mint_label").set_label(_("Go to the Linux Mint Software Portal"))
 	wTree.get_widget("button_search_mint_label").set_label(_("Search for a .mint application"))
 	wTree.get_widget("button_portal_getdeb_label").set_label(_("Go to the GetDeb Portal"))
