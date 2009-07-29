@@ -33,6 +33,10 @@ else:
 	libc = dl.open('/lib/libc.so.6')
 	libc.call('prctl', 15, 'mintInstall', 0, 0, 0)
 
+global cache
+import apt
+cache = apt.Cache()
+
 def close_application(window, event=None):	
 	gtk.main_quit()
 	sys.exit(0)
@@ -43,6 +47,12 @@ def close_window(widget, window):
 def show_item(selection, model, wTree, username):
 	(model_applications, iter) = selection.get_selected()
 	if (iter != None):
+		wTree.get_widget("button_install").set_sensitive(False)
+		wTree.get_widget("button_remove").set_sensitive(False)
+		wTree.get_widget("label_install").set_text(_("Install"))
+		wTree.get_widget("label_install").set_tooltip_text("")
+		wTree.get_widget("label_remove").set_text(_("Remove"))
+		wTree.get_widget("label_remove").set_tooltip_text("")
 		selected_item = model_applications.get_value(iter, 5)
 		model.selected_application = selected_item
 		wTree.get_widget("label_name").set_text("<b>" + selected_item.name + "</b>")
@@ -55,9 +65,11 @@ def show_item(selection, model, wTree, username):
 		wTree.get_widget("image_screenshot").clear()
 		if (selected_item.screenshot != None):
 			if (os.path.exists(selected_item.screenshot)):
-				wTree.get_widget("image_screenshot").set_from_pixbuf(gtk.gdk.pixbuf_new_from_file_at_size(selected_item.screenshot, 200, 200))
-			else:
-				#os.system("sudo -u " + username + " notify-send -t 10000 -i /usr/lib/linuxmint/mintInstall/icon.svg \"" + _("Downloading data") + "\" \"<i>" + _("Please wait, a screenshot is being downloaded for this application.") + "</i>\"")				
+				try:
+					wTree.get_widget("image_screenshot").set_from_pixbuf(gtk.gdk.pixbuf_new_from_file_at_size(selected_item.screenshot, 200, 200))
+				except Exception, detail:
+					print detail
+			else:							
 				downloadScreenshot = DownloadScreenshot(selected_item, wTree, model)
 				downloadScreenshot.start()				
 			
@@ -71,6 +83,10 @@ def show_item(selection, model, wTree, username):
 			model_reviews.set_value(iter, 3, review)
 		model_reviews.set_sort_column_id( 1, gtk.SORT_DESCENDING )
 		tree_reviews.set_model(model_reviews)
+		
+		updateAPTState = UpdateAPTState(selected_item, wTree, model)
+		updateAPTState.start()			
+			
 		del model_reviews								
 
 def show_category(selection, model, wTree):	
@@ -134,9 +150,6 @@ def open_featured(widget):
 	treeview_featured.set_headers_clickable(False)
 	treeview_featured.set_reorderable(False)
 	treeview_featured.show()
-	
-	import apt
-	cache = apt.Cache()	
 
 	model = gtk.TreeStore(str, str, str, gtk.gdk.Pixbuf, str, str)
 	import string
@@ -149,6 +162,7 @@ def open_featured(widget):
 			application_name = application_details[1]
 			application_icon = application_details[2]			
 			try:
+				global cache
 				pkg = cache[application_pkg]
 				
 				if ((not pkg.isInstalled) and (pkg.summary != "")):
@@ -296,14 +310,14 @@ def show_more_info(widget, model):
 			tree_packages.set_reorderable(False)
 			tree_packages.show()
 			model_packages = gtk.TreeStore(str, str, str, str)
-			import apt
-			cache = apt.Cache()
+
 			description = ""
 			strSize = ""	
 			for package in packages:
 				installedVersion = ""
 				candidateVersion = ""
 				try:
+					global cacke
 					pkg = cache[package]
 					description = pkg.rawDescription
 					installedVersion = pkg.installedVersion	
@@ -359,12 +373,25 @@ def visit_website(widget, model, username):
 		launcher = commands.getoutput("/usr/bin/mint-which-launcher")	
 		os.system(launcher + " -u " + username + " \"" + browser + "\" &")		
 
-def install(widget, model):
+def install(widget, model, wTree, username):	
 	if model.selected_application != None:
 		if not os.path.exists((model.selected_application.mint_file)):
 			os.system("zenity --error --text=\"" + _("The mint file for this application was not successfully downloaded. Click on refresh to fix the problem.") + "\"")
 		else:
-			os.system("mintInstall " + model.selected_application.mint_file + " & ")
+			os.system("mintInstall " + model.selected_application.mint_file)
+			show_item(wTree.get_widget("tree_applications").get_selection(), model, wTree, username)
+			global cache
+			cache = apt.Cache()
+
+def remove(widget, model, wTree, username):
+	if model.selected_application != None:
+		if not os.path.exists((model.selected_application.mint_file)):
+			os.system("zenity --error --text=\"" + _("The mint file for this application was not successfully downloaded. Click on refresh to fix the problem.") + "\"")
+		else:
+			os.system("/usr/lib/linuxmint/mintInstall/remove.py " + model.selected_application.mint_file)
+			show_item(wTree.get_widget("tree_applications").get_selection(), model, wTree, username)
+			global cache
+			cache = apt.Cache()
 
 def show_applications(wTree, model):
 	num_applications = 0
@@ -406,6 +433,7 @@ def show_applications(wTree, model):
 	statusbar.push(context_id,  _("%d applications listed") % num_applications)
 
 def build_GUI(model, username):
+
 	#Set the Glade file
 	gladefile = "/usr/lib/linuxmint/mintInstall/frontend.glade"
 	wTree = gtk.glade.XML(gladefile, "main_window")
@@ -417,7 +445,6 @@ def build_GUI(model, username):
 
 	#i18n
 	wTree.get_widget("label5").set_text(_("Search:"))
-	wTree.get_widget("label1").set_text(_("Install"))
 	wTree.get_widget("label3").set_text(_("Visit"))
 	wTree.get_widget("label2").set_text(_("More info"))
 
@@ -519,7 +546,8 @@ def build_GUI(model, username):
 	wTree.get_widget("button_feature").connect("clicked", open_featured)				
 	wTree.get_widget("button_screenshot").connect("clicked", show_screenshot, model)
 	wTree.get_widget("button_visit").connect("clicked", visit_web, model, username)	
-	wTree.get_widget("button_install").connect("clicked", install, model)	
+	wTree.get_widget("button_install").connect("clicked", install, model, wTree, username)	
+	wTree.get_widget("button_remove").connect("clicked", remove, model, wTree, username)	
 	wTree.get_widget("button_show").connect("clicked", show_more_info, model)
 
 	fileMenu = gtk.MenuItem(_("_File"))
@@ -588,28 +616,78 @@ class DownloadScreenshot(threading.Thread):
 
 	def run(self):
 		try:
-			#os.chdir("/usr/lib/linuxmint/mintInstall/data/screenshots")
 			import urllib
 			urllib.urlretrieve (self.selected_item.screenshot_url, "/usr/lib/linuxmint/mintInstall/data/screenshots/" + self.selected_item.key)
-			#os.system("wget -nc -O" + self.selected_item.key + " -t 1 -T10 \"" + self.selected_item.screenshot_url + "\"")
-			#os.chdir("/usr/lib/linuxmint/mintInstall")
 			gtk.gdk.threads_enter()
 			if (self.model.selected_application == self.selected_item):
 				self.wTree.get_widget("image_screenshot").set_from_pixbuf(gtk.gdk.pixbuf_new_from_file_at_size(self.selected_item.screenshot, 200, 200))
 			gtk.gdk.threads_leave()
 		except Exception, detail:
-			pass
-			#print detail
-			#gtk.gdk.threads_enter()
-			#os.system("sudo -u " + username + " notify-send -t 10000 -i /usr/lib/linuxmint/mintInstall/icon.svg \"" + _("Downloading data") + "\" \"<i>" + _("The screenshot for this application was not successfully downloaded. Click on refresh to fix the problem.") + "</i>\"")	
-			#dialog = gtk.MessageDialog(wTree.get_widget("main_window"), gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_NONE, _("The screenshot for this application was not successfully downloaded. Click on refresh to fix the problem."))
-			#dialog.set_title("mintInstall")
-			#dialog.set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
-			#dialog.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
-			#dialog.connect('response', lambda dialog, response: dialog.destroy())
-			#dialog.show()
-			#gtk.gdk.threads_leave()
-			#os.system("zenity --error --text=\"" + _("The screenshot for this application was not successfully downloaded. Click on refresh to fix the problem.") + "\"")
+			pass			
+
+class UpdateAPTState(threading.Thread):
+
+	def __init__(self, selected_item, wTree, model):
+		threading.Thread.__init__(self)
+		self.selected_item = selected_item
+		self.wTree = wTree
+		self.model = model		
+
+	def run(self):
+		try:
+			installed = False
+			version = ""
+			if os.path.exists((self.selected_item.mint_file)):			
+				directory = home + "/.linuxmint/mintInstall/tmp/mintFile"
+				os.system("mkdir -p " + directory)
+				os.system("rm -rf " + directory + "/*") 
+				os.system("cp " + self.selected_item.mint_file + " " + directory + "/file.mint")
+				os.system("tar zxf " + directory + "/file.mint -C " + directory)
+				steps = int(commands.getoutput("ls -l " + directory + "/steps/ | wc -l"))
+				steps = steps -1
+				repositories = []
+				packages = []
+				for i in range(steps + 1):
+					if (i > 0):			
+						openfile = open(directory + "/steps/"+str(i), 'r' )
+						datalist = openfile.readlines()
+						for j in range( len( datalist ) ):
+						    if (str.find(datalist[j], "INSTALL") > -1):
+							install = datalist[j][8:]
+							install = str.strip(install)
+							packages.append(install)						   					
+						openfile.close()		
+				global cache				
+				for package in packages:
+					pkg = cache[package]
+					if pkg.isInstalled:
+						installed = True
+						version = pkg.installedVersion
+					else:
+						installed = False
+						version = pkg.candidateVersion
+
+			gtk.gdk.threads_enter()
+			if (self.model.selected_application == self.selected_item):
+				version = str(version)
+				if len(version) > 10:
+					short_version = version[:10] + "..."
+				else:
+					short_version = version
+					
+				if (installed):
+					self.wTree.get_widget("button_remove").set_sensitive(True)				
+					self.wTree.get_widget("label_remove").set_text(_("Remove %s") % ("v" + str(short_version)))
+					self.wTree.get_widget("label_remove").set_tooltip_text(_("Remove %s") % ("v" + str(version)))
+				else:
+					self.wTree.get_widget("button_install").set_sensitive(True)
+					self.wTree.get_widget("label_install").set_text(_("Install %s") % ("v" + str(short_version)))
+					self.wTree.get_widget("label_install").set_tooltip_text(_("Install %s") % ("v" + str(version)))
+
+			gtk.gdk.threads_leave()
+		except Exception, detail:
+			print detail
+			pass			
 
 class RefreshThread(threading.Thread):
 

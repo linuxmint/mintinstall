@@ -1,3 +1,10 @@
+mintinstall (6.3.8) helena; urgency=low
+
+  * Blueprint implemented: https://blueprints.launchpad.net/linuxmint/+spec/generic-branding
+  * Blueprint implemented: https://blueprints.launchpad.net/linuxmint/+spec/mintinstall-uninstall
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed,  29 Jul 2009 19:38:00 +0000
+
 mintinstall (6.3.7) gloria; urgency=low
 
   * Bug fix: "Finished" in the progress bar of installing/upgrading is not internationalised. (https://bugs.launchpad.net/bugs/399298)

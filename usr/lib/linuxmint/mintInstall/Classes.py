@@ -2,13 +2,13 @@ class Model:
 	portals = []
 	selected_category = None
 	selected_application = None
-	keyword = ""	
+	keyword = ""
 
 	def __init__(self):
 		portals = []
 		selected_category = None
 		selected_application = None
-		keyword = ""	
+		keyword = ""		
 
 class Portal:
 	key = ""

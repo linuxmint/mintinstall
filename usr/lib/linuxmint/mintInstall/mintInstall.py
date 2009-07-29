@@ -122,43 +122,12 @@ class mintInstallExecuter(threading.Thread):
 		self.execute("mv /etc/apt/sources.list.mintbackup /etc/apt/sources.list")
 		os.system("apt-get update")
 	progressbar.set_fraction(1)
-	
 	progressbar.set_text(_("Finished"))
 	wTree.get_widget("main_button").hide()
 	wTree.get_widget("cancel_button").set_label(_("Close"))
-	# Check that all packages are now installed
-	txt_packages = ""
-	allPackagesAreInstalled = True
-	for package in packages:
-		cache = apt.Cache()		
-		pkg = cache[install]
-		if not pkg.isInstalled: 
-			txt_packages = package + " (" + _("not installed") + ")\n"
-			allPackagesAreInstalled = False
-		else:
-			txt_packages = package + " (" + _("installed") + ")\n"
-	txt_packages = str.strip(txt_packages)
-	wTree.get_widget("txt_packages").set_text(txt_packages)
-
-	#dialog_gladefile = "/usr/lib/linuxmint/mintInstall/mintInstall.glade"
-        #dialog_wTree = gtk.glade.XML(dialog_gladefile,"message_dialog")
-
-	#dialog_wTree.get_widget("label182").set_text(_("Status:"))
-	#dialog_wTree.get_widget("label183").set_text(_("Packages:"))
-
-	#if (allPackagesAreInstalled):
-	#	dialog_wTree.get_widget("txt_status").set_text(_("Success"))	
-	#else:
-	#	dialog_wTree.get_widget("txt_status").set_text(_("Failure"))
-	
-	#dialog_wTree.get_widget("txt_packages_status").set_text(txt_packages)
-
-	#button = dialog_wTree.get_widget("ok_button")	
-	#button.connect("clicked",gtk.main_quit)
-	#dialog = dialog_wTree.get_widget("message_dialog")	
-	#dialog.set_parent(wTree.get_widget("main_window"))
-	#dialog.set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
-	#dialog.show()
+	#Everything is done, exit quietly
+	gtk.main_quit()
+	sys.exit(0)
 
 class mintInstallWindow:
     """This is the main class for the application"""
@@ -190,15 +159,14 @@ class mintInstallWindow:
 	self.name = commands.getoutput("cat /usr/lib/linuxmint/mintInstall/tmp/name")	
 	self.name = str.strip(self.name)
 
-	#Extract the description
-	self.description = commands.getoutput("cat /usr/lib/linuxmint/mintInstall/tmp/description")
-	self.description = str.strip(self.description)
-
 	#Extract the number of steps
 	steps = int(commands.getoutput("ls -l /usr/lib/linuxmint/mintInstall/tmp/steps/ | wc -l"))
 	steps = steps -1
 	self.pulse = 1/steps
 	
+	#Initialize APT
+	cache = apt.Cache()
+
 	#Extract repositories and packages
 	self.repositories = []
 	packages = []
@@ -221,7 +189,7 @@ class mintInstallWindow:
         self.gladefile = "/usr/lib/linuxmint/mintInstall/mintInstall.glade"
         wTree = gtk.glade.XML(self.gladefile,"main_window")
 	wTree.get_widget("main_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
-	wTree.get_widget("main_window").set_title(_("Install %s?") % (self.name))
+	wTree.get_widget("main_window").set_title("")
 
 	wTree.get_widget("main_window").connect("destroy", self.giveUp)
 
@@ -232,55 +200,109 @@ class mintInstallWindow:
 	socket.show()
 	window_id = repr(socket.get_id())        	
 
-	wTree.get_widget("label184").set_text(_("Description:"))
-	wTree.get_widget("label175").set_text(_("Repositories:"))
-	wTree.get_widget("label176").set_text(_("Packages:"))
+	wTree.get_widget("label_repositories").set_text(_("Using the following repositories:"))
 
 	#Fill in the GUI with information from the mintFile
-	wTree.get_widget("txt_description").set_text(self.description)
 	wTree.get_widget("main_button_label").set_text(_("Install"))
 	
-	txt_packages = ""
-	packages.sort()
+	wTree.get_widget("txt_name").set_text("<big><b>" + _("Install %s?") % (self.name) + "</b></big>")
+	wTree.get_widget("txt_name").set_use_markup(True)
+
+	wTree.get_widget("txt_guidance").set_text(_("The following packages will be installed:"))
+
+	if (len(self.repositories) == 0):		
+		treeview = wTree.get_widget("tree_repositories")
+		column1 = gtk.TreeViewColumn()
+		renderer = gtk.CellRendererText()
+		column1.pack_start(renderer, False)
+		column1.set_attributes(renderer, text = 0)
+		treeview.append_column(column1)
+		treeview.set_headers_visible(False)
+		model = gtk.ListStore(str)
+		model.append([_("Default repositories")])
+		treeview.set_model(model)
+		wTree.get_widget("label_repositories").hide()
+		wTree.get_widget("scrolledwindow_repositories").hide()
+
+		treeview = wTree.get_widget("tree_packages")
+		column1 = gtk.TreeViewColumn()
+		renderer = gtk.CellRendererText()
+		column1.pack_start(renderer, False)
+		column1.set_attributes(renderer, text = 0)
+		treeview.append_column(column1)
+		treeview.set_headers_visible(False)
+		model = gtk.ListStore(str)
+
+		for package in packages:			
+			strPackage = package			
+			try:
+				pkg = cache[package]
+				strPackage = str(package) + " [" + pkg.candidateVersion + "]"
+				for dep in pkg.candidateDependencies:
+					for o in dep.or_dependencies:
+						dependency = cache[o.name]	
+						if not dependency.isInstalled:					
+							strDependency = dependency.name + " [" + dependency.candidateVersion + "]"
+							model.append([strDependency])
+			except Exception, detail:
+				print detail
+				pass	
+			model.append([strPackage])		
+		treeview.set_model(model)
+		treeview.show()		
+	else:		
+		treeview = wTree.get_widget("tree_repositories")
+		column1 = gtk.TreeViewColumn()
+		renderer = gtk.CellRendererText()
+		column1.pack_start(renderer, False)
+		column1.set_attributes(renderer, text = 0)
+		treeview.append_column(column1)
+		treeview.set_headers_visible(False)
+		model = gtk.ListStore(str)
+		for repository in self.repositories:
+			model.append([repository])
+		treeview.set_model(model)
+		treeview.show()		
+
+		treeview = wTree.get_widget("tree_packages")
+		column1 = gtk.TreeViewColumn()
+		renderer = gtk.CellRendererText()
+		column1.pack_start(renderer, False)
+		column1.set_attributes(renderer, text = 0)
+		treeview.append_column(column1)
+		treeview.set_headers_visible(False)
+		model = gtk.ListStore(str)
+		for package in packages:				
+			model.append([package])
+		treeview.set_model(model)
+		treeview.show()		
+
 	self.needToInstallSomething = False
 	packageNotFoundLocally = False
+	
 	for package in packages:
-		try:
-			cache = apt.Cache()		
-			pkg = cache[install]
+		try:					
+			pkg = cache[package]
 			if not pkg.isInstalled: 
-				txt_packages = package + " (" + _("not installed") + ")\n"
 				self.needToInstallSomething = True
-			else:
-				txt_packages = package + " (" + _("installed") + ")\n"
 		except Exception, details:
 			print details
 			packageNotFoundLocally = True
-			txt_packages = package + " (" + _("not installed") + ")\n"
 			self.needToInstallSomething = True
-	txt_packages = str.strip(txt_packages)
-	wTree.get_widget("txt_packages").set_text(txt_packages)
-	txt_repositories = ""
-	self.repositories.sort()
-	for repository in self.repositories: 
-		txt_repositories = repository + "\n"
-	txt_repositories = str.strip(txt_repositories)
+	
 	if ( not self.needToInstallSomething ):
 		wTree.get_widget("main_window").set_title(_("Upgrade %s?") % (self.name))
 		wTree.get_widget("main_button_label").set_text(_("Upgrade"))
 
-	if (txt_repositories != ""):
+	if (len(self.repositories) > 0):
 		#The mint file defines repositories so we use them. 
-		wTree.get_widget("txt_repo").set_text(txt_repositories)
 		rightRepositories = "mint"
 	else:
 		if (packageNotFoundLocally):
 		#The mint file doesn't define repositories but the package isn't found with the user's repos.. so we use the ones from mintsystem
-			wTree.get_widget("txt_repo").set_text(_("Default repositories"))
 			rightRepositories = "default"
 		else:
 		#The mint file doesn't define repositories but the package is found with the user's repos.. so we use the user's repositories (no update required)
-			wTree.get_widget("txt_repo").set_text(_("Local repositories"))
 			rightRepositories = "local"
 
 	progressbar = wTree.get_widget("progressbar1")
@@ -291,11 +313,13 @@ class mintInstallWindow:
 	wTree.get_widget("main_window").show()
 
 	#Create our dictionay and connect it
-        dic = {"on_main_button_clicked" : (self.MainButtonClicked, window_id, rightRepositories),
+        dic = {"on_main_button_clicked" : (self.MainButtonClicked, window_id, rightRepositories, wTree),
                "on_cancel_button_clicked" : (self.giveUp) }
         wTree.signal_autoconnect(dic)
 
-    def MainButtonClicked(self, widget, window_id, rightRepositories):
+    def MainButtonClicked(self, widget, window_id, rightRepositories, wTree):
+	wTree.get_widget("main_window").window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+	wTree.get_widget("main_window").set_sensitive(False)
 	executer = mintInstallExecuter(window_id, rightRepositories)
 	executer.start()
 	return True
