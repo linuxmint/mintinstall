@@ -26,7 +26,7 @@ result = commands.getoutput("dpkg -L " + suggestion)
 results = str.split(result, "\n")
 for result in results:
 	buff.insert_at_cursor(result + "\n")
-wTree.get_widget("window_dialog").set_icon_from_file("/usr/lib/linuxmint/mintSystem/icon.png")
+wTree.get_widget("window_dialog").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
 wTree.get_widget("window_dialog").set_title("apt show " + suggestion)
 wTree.get_widget("window_dialog").connect("destroy", gtk.main_quit)
 wTree.get_widget("window_dialog").show()

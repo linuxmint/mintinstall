@@ -28,7 +28,7 @@ suggestion = sys.argv[1]
 
 gladefile = "/usr/lib/linuxmint/mintMenu/suggestions.glade"
 wTree = gtk.glade.XML(gladefile,"window_dialog_list")
-wTree.get_widget("window_dialog_list").set_icon_from_file("/usr/lib/linuxmint/mintSystem/icon.png")
+wTree.get_widget("window_dialog_list").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
 wTree.get_widget("window_dialog_list").set_title("apt search " + suggestion)
 wTree.get_widget("window_dialog_list").connect("destroy", gtk.main_quit)
 wTree.get_widget("label_no_results").set_text(_("No results"))
