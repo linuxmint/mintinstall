@@ -104,7 +104,7 @@ class mintRemoveWindow:
 	wTree.get_widget("txt_name").set_text("<big><b>" + _("Remove %s?") % (appName) + "</b></big>")
 	wTree.get_widget("txt_name").set_use_markup(True)
 
-	wTree.get_widget("txt_guidance").set_text(_("The following packages would be removed:"))
+	wTree.get_widget("txt_guidance").set_text(_("The following packages will be removed:"))
 	
 	treeview = wTree.get_widget("tree")
 	column1 = gtk.TreeViewColumn()
