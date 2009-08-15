@@ -1,3 +1,9 @@
+mintinstall (6.3.7.1) gloria; urgency=low
+
+  * Bug fix: ability to decompress both gzipped and simple tar mint files
+
+ -- Clement Lefebvre <root@linuxmint.com>  Sat,  15 Aug 2009 14:41:00 +0000
+
 mintinstall (6.3.7) gloria; urgency=low
 
   * Bug fix: "Finished" in the progress bar of installing/upgrading is not internationalised. (https://bugs.launchpad.net/bugs/399298)
