@@ -184,7 +184,8 @@ class mintInstallWindow:
 
 	#Decompress file
 	os.system("cp " + mintFile + " /usr/lib/linuxmint/mintInstall/tmp/file.mint")
-	os.system("tar zxf /usr/lib/linuxmint/mintInstall/tmp/file.mint -C /usr/lib/linuxmint/mintInstall/tmp/")
+	os.system("tar xf /usr/lib/linuxmint/mintInstall/tmp/file.mint -C /usr/lib/linuxmint/mintInstall/tmp/") # Some mint file aren't gzipped
+	os.system("tar zxf /usr/lib/linuxmint/mintInstall/tmp/file.mint -C /usr/lib/linuxmint/mintInstall/tmp/") # Some are... on of these two calls should show an error, but it shouldn't throw any exception.
 
 	#Extract the name
 	self.name = commands.getoutput("cat /usr/lib/linuxmint/mintInstall/tmp/name")	
