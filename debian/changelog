@@ -1,3 +1,9 @@
+mintinstall (6.3.9) helena; urgency=low
+
+  * Data moved to mintinstall-data
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed,  29 Jul 2009 19:38:00 +0000
+
 mintinstall (6.3.8) helena; urgency=low
 
   * Blueprint implemented: https://blueprints.launchpad.net/linuxmint/+spec/generic-branding

@@ -23,11 +23,11 @@
         <child>
           <widget class="GtkToolbar" id="toolbar1">
             <property name="visible">True</property>
+            <property name="border_width">1</property>
             <property name="toolbar_style">both</property>
             <property name="icon_size">0</property>
             <child>
               <widget class="GtkToolButton" id="button_refresh">
-                <property name="visible">True</property>
                 <property name="stock_id">gtk-refresh</property>
               </widget>
               <packing>
@@ -36,9 +36,7 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkSeparatorToolItem" id="toolbutton3">
-                <property name="visible">True</property>
-              </widget>
+              <widget class="GtkSeparatorToolItem" id="toolbutton3"/>
               <packing>
                 <property name="expand">False</property>
               </packing>
@@ -152,14 +150,13 @@
           <widget class="GtkHPaned" id="hpaned1">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="border_width">3</property>
+            <property name="border_width">1</property>
             <property name="position">182</property>
             <property name="position_set">True</property>
             <child>
               <widget class="GtkScrolledWindow" id="scrolledwindow1">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="border_width">3</property>
                 <property name="hscrollbar_policy">automatic</property>
                 <property name="vscrollbar_policy">automatic</property>
                 <property name="shadow_type">out</property>
@@ -167,7 +164,6 @@
                   <widget class="GtkTreeView" id="tree_categories">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="border_width">4</property>
                   </widget>
                 </child>
               </widget>
@@ -186,7 +182,6 @@
                   <widget class="GtkScrolledWindow" id="scrolledwindow3">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="border_width">3</property>
                     <property name="hscrollbar_policy">automatic</property>
                     <property name="vscrollbar_policy">automatic</property>
                     <property name="shadow_type">out</property>
@@ -194,7 +189,6 @@
                       <widget class="GtkTreeView" id="tree_applications">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="border_width">3</property>
                         <property name="rules_hint">True</property>
                       </widget>
                     </child>
@@ -208,14 +202,12 @@
                   <widget class="GtkScrolledWindow" id="scrolledwindow2">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="border_width">3</property>
                     <property name="hscrollbar_policy">automatic</property>
                     <property name="vscrollbar_policy">automatic</property>
                     <property name="shadow_type">out</property>
                     <child>
                       <widget class="GtkVBox" id="vbox3">
                         <property name="visible">True</property>
-                        <property name="border_width">3</property>
                         <property name="spacing">5</property>
                         <child>
                           <widget class="GtkHBox" id="hbox1">
@@ -449,7 +441,6 @@
                               <widget class="GtkTreeView" id="tree_reviews">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="border_width">1</property>
                                 <property name="rules_hint">True</property>
                               </widget>
                             </child>
@@ -480,11 +471,8 @@
         <child>
           <widget class="GtkVBox" id="vbox6">
             <property name="visible">True</property>
-            <property name="border_width">3</property>
             <child>
-              <widget class="GtkProgressBar" id="progressbar">
-                <property name="visible">True</property>
-              </widget>
+              <widget class="GtkProgressBar" id="progressbar"/>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
@@ -494,7 +482,6 @@
             <child>
               <widget class="GtkStatusbar" id="statusbar">
                 <property name="visible">True</property>
-                <property name="spacing">2</property>
               </widget>
               <packing>
                 <property name="expand">False</property>

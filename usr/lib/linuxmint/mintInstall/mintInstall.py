@@ -67,7 +67,7 @@ class mintInstallExecuter(threading.Thread):
 	if (self.rightRepositories != "local"):
 		progressbar.set_text(_("Backing up your APT sources"))
 		self.execute("mv /etc/apt/sources.list /etc/apt/sources.list.mintbackup")
-		self.execute("cp /etc/linuxmint/version/mintinstall/sources.list /etc/apt/sources.list")
+		self.execute("cp /usr/share/linuxmint/mintinstall/sources.list /etc/apt/sources.list")
 		cache = apt.Cache()	
 		os.system("apt-get update")	
 		totalSteps = steps + 2
@@ -358,11 +358,11 @@ class MessageDialog:
 def search_mint(widget, username, textfield):
 	search_txt = textfield.get_text()
 	search_txt = search_txt.replace(" ", "_")	
-	releaseID = commands.getoutput("cat /etc/linuxmint/version/mintinstall/release.id")
+	releaseID = commands.getoutput("cat /usr/share/linuxmint/mintinstall/release.id")
 	show_website(username, "http://www.linuxmint.com/software/?sec=search&search=" + search_txt + "&release=" + str.strip(releaseID))	
 
 def show_portal_mint(widget, username):
-	releaseID = commands.getoutput("cat /etc/linuxmint/version/mintinstall/release.id")	
+	releaseID = commands.getoutput("cat /usr/share/linuxmint/mintinstall/release.id")	
 	show_website(username, "http://linuxmint.com/software/?sec=categories&release=" + str.strip(releaseID))
 
 def search_getdeb(widget, username, textfield):

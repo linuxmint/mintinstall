@@ -153,7 +153,7 @@ def open_featured(widget):
 
 	model = gtk.TreeStore(str, str, str, gtk.gdk.Pixbuf, str, str)
 	import string
-	applications = open("/usr/lib/linuxmint/mintInstall/featured_applications/list.txt", "r")
+	applications = open("/usr/share/linuxmint/mintinstall/featured_applications/list.txt", "r")
 	for application in applications:
 		application = application.strip()
 		application_details = string.split(application, "=")
@@ -177,7 +177,7 @@ def open_featured(widget):
 					model.set_value(iter, 0, application_pkg)
 					model.set_value(iter, 1, "false")
 					model.set_value(iter, 2, application_name)
-					model.set_value(iter, 3, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/featured_applications/" + application_icon))						
+					model.set_value(iter, 3, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintinstall/featured_applications/" + application_icon))						
 					model.set_value(iter, 4, pkg.summary)
 					model.set_value(iter, 5, strSize)
 
@@ -617,7 +617,7 @@ class DownloadScreenshot(threading.Thread):
 	def run(self):
 		try:
 			import urllib
-			urllib.urlretrieve (self.selected_item.screenshot_url, "/usr/lib/linuxmint/mintInstall/data/screenshots/" + self.selected_item.key)
+			urllib.urlretrieve (self.selected_item.screenshot_url, "/usr/share/linuxmint/mintinstall/data/screenshots/" + self.selected_item.key)
 			gtk.gdk.threads_enter()
 			if (self.model.selected_application == self.selected_item):
 				self.wTree.get_widget("image_screenshot").set_from_pixbuf(gtk.gdk.pixbuf_new_from_file_at_size(self.selected_item.screenshot, 200, 200))
@@ -695,7 +695,7 @@ class RefreshThread(threading.Thread):
 		threading.Thread.__init__(self)
 		self.wTree = wTree
 		self.refresh = refresh
-		self.directory = "/usr/lib/linuxmint/mintInstall/data"
+		self.directory = "/usr/share/linuxmint/mintinstall/data"
 		self.model = model
 		self.username = username
 
@@ -775,7 +775,7 @@ class RefreshThread(threading.Thread):
 		#	os.system("cp /etc/linuxmint/version/mintinstall/portals.list " + self.directory + "/etc/portals.list")
 
 	def register_portals(self, model):		
-		portalsFile = open("/etc/linuxmint/version/mintinstall/portals.list")	
+		portalsFile = open("/usr/share/linuxmint/mintinstall/portals.list")	
 		for line in portalsFile:
 			array = line.split(";")
 			if len(array) == 6:
