@@ -47,8 +47,8 @@ def close_window(widget, window):
 def show_item(selection, model, wTree, username):
 	(model_applications, iter) = selection.get_selected()
 	if (iter != None):
-		wTree.get_widget("button_install").set_sensitive(False)
-		wTree.get_widget("button_remove").set_sensitive(False)
+		wTree.get_widget("button_install").hide()
+		wTree.get_widget("button_remove").hide()
 		wTree.get_widget("label_install").set_text(_("Install"))
 		wTree.get_widget("label_install").set_tooltip_text("")
 		wTree.get_widget("label_remove").set_text(_("Remove"))
@@ -676,11 +676,11 @@ class UpdateAPTState(threading.Thread):
 					short_version = version
 					
 				if (installed):
-					self.wTree.get_widget("button_remove").set_sensitive(True)				
+					self.wTree.get_widget("button_remove").show()
 					self.wTree.get_widget("label_remove").set_text(_("Remove %s") % ("v" + str(short_version)))
 					self.wTree.get_widget("label_remove").set_tooltip_text(_("Remove %s") % ("v" + str(version)))
 				else:
-					self.wTree.get_widget("button_install").set_sensitive(True)
+					self.wTree.get_widget("button_install").show()
 					self.wTree.get_widget("label_install").set_text(_("Install %s") % ("v" + str(short_version)))
 					self.wTree.get_widget("label_install").set_tooltip_text(_("Install %s") % ("v" + str(version)))
 

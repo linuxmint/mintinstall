@@ -235,12 +235,12 @@
                                     </child>
                                     <child>
                                       <widget class="GtkButton" id="button_install">
-                                        <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">True</property>
                                         <child>
                                           <widget class="GtkHBox" id="hbox3">
                                             <property name="visible">True</property>
+                                            <property name="spacing">2</property>
                                             <child>
                                               <widget class="GtkImage" id="image2">
                                                 <property name="visible">True</property>
@@ -270,12 +270,12 @@
                                     </child>
                                     <child>
                                       <widget class="GtkButton" id="button_remove">
-                                        <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">True</property>
                                         <child>
                                           <widget class="GtkHBox" id="hbox5">
                                             <property name="visible">True</property>
+                                            <property name="spacing">2</property>
                                             <child>
                                               <widget class="GtkImage" id="image6">
                                                 <property name="visible">True</property>
@@ -311,6 +311,7 @@
                                         <child>
                                           <widget class="GtkHBox" id="hbox4">
                                             <property name="visible">True</property>
+                                            <property name="spacing">2</property>
                                             <child>
                                               <widget class="GtkImage" id="image5">
                                                 <property name="visible">True</property>
@@ -346,6 +347,7 @@
                                         <child>
                                           <widget class="GtkHBox" id="hbox10">
                                             <property name="visible">True</property>
+                                            <property name="spacing">2</property>
                                             <child>
                                               <widget class="GtkImage" id="image1">
                                                 <property name="visible">True</property>
