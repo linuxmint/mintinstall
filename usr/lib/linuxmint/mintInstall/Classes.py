@@ -3,12 +3,14 @@ class Model:
 	selected_category = None
 	selected_application = None
 	keyword = ""
+	ready = False
 
 	def __init__(self):
 		portals = []
 		selected_category = None
 		selected_application = None
 		keyword = ""		
+		ready = False
 
 class Portal:
 	key = ""
@@ -82,6 +84,7 @@ class Item:
 	category=""
 	name=""
 	description=""
+	long_description=""
 	added=""
 	views=""
 	license=""
@@ -93,8 +96,9 @@ class Item:
 	screenshot=None
 	screenshot_url=None
 	reviews = []
+	apt_details = None
 
-	def __init__(self, portal, key, link="", mint_file="", category="", name="", description="", added="", views="", license="", size="", website="", repository="", average_rating=""):
+	def __init__(self, portal, key, link="", mint_file="", category="", name="", description="", long_description="", added="", views="", license="", size="", website="", repository="", average_rating=""):
 		self.portal=portal
 		self.key=key
 		self.link=link
@@ -102,6 +106,7 @@ class Item:
 		self.category=category
 		self.name=name
 		self.description=description
+		self.long_description=long_description
 		self.added=added
 		self.views=views
 		self.license=license
@@ -113,6 +118,7 @@ class Item:
 		self.screenshot_url=None
 		self.score = 0
 		self.reviews = []
+		self.apt_details = APTDetails()
 
 	def add_review(self, review):
 		self.reviews.append(review)
@@ -133,4 +139,14 @@ class Review:
 		self.comment=comment
 		self.user_id=user_id
 		self.username=username
+
+class APTDetails:
+	packages = []
+	repositories = []
+	is_special = False
+
+	def __init__(self):
+		self.packages = []
+		self.repositories = []
+		self.is_special = False
 

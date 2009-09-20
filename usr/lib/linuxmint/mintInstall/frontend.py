@@ -236,6 +236,61 @@ def show_screenshot(widget, model):
 		wTree.get_widget("button_screen").connect("clicked", close_window, wTree.get_widget("screenshot_window"))	
 		wTree.get_widget("screenshot_window").show_all()
 
+class fetch_apt_details(threading.Thread):
+
+	def __init__(self, model, wTree):
+		threading.Thread.__init__(self)
+		self.model = model
+		self.wTree = wTree
+
+	def run(self):
+		global cache
+		num_apps = 0
+		for portal in self.model.portals:
+			num_apps = num_apps + len(portal.items)
+			for item in portal.items:	
+				item.apt_details.packages = []
+				item.apt_details.repositories = []
+	
+				if os.path.exists(item.mint_file):	
+					directory = home + "/.linuxmint/mintInstall/tmp/mintFileFetchAPTDetails"		
+					os.system("mkdir -p " + directory)
+					os.system("rm -rf " + directory + "/*") 
+					os.system("cp " + item.mint_file + " " + directory + "/file.mint")
+					os.system("tar zxf " + directory + "/file.mint -C " + directory)
+					steps = int(commands.getoutput("ls -l " + directory + "/steps/ | wc -l"))
+					steps = steps -1				
+					for i in range(steps + 1):
+						if (i > 0):			
+							openfile = open(directory + "/steps/"+str(i), 'r' )
+							datalist = openfile.readlines()
+							for j in range( len( datalist ) ):
+							    if (str.find(datalist[j], "INSTALL") > -1):
+								install = datalist[j][8:]
+								install = str.strip(install)
+								try:
+									pkg = cache[install]
+									item.apt_details.packages.append(pkg)
+									item.long_description = pkg.rawDescription												
+								except: 
+									pass
+						
+							    if (str.find(datalist[j], "SOURCE") > -1):
+								source = datalist[j][7:]
+								source = source.rstrip()
+								item.apt_details.repositories.append(source)	
+							    if (str.find(datalist[j], "EXECUTE") > -1):
+								execute = datalist[j][8:]
+								execute = execute.rstrip()
+								item.apt_details.is_special = True						
+							openfile.close()
+		model.ready = True
+		gtk.gdk.threads_enter()	
+		statusbar = wTree.get_widget("statusbar")
+		context_id = statusbar.get_context_id("mintInstall")
+		statusbar.push(context_id, _("%d applications listed") % num_apps)
+		gtk.gdk.threads_leave()						
+
 def show_more_info(widget, model):
 	if model.selected_application != None:
 		if not os.path.exists((model.selected_application.mint_file)):			
@@ -412,7 +467,8 @@ def show_applications(wTree, model):
 			if (item.category.key in category_keys):
 				if (model.keyword == None 
 					or item.name.upper().count(model.keyword.upper()) > 0
-					or item.description.upper().count(model.keyword.upper()) > 0):
+					or item.description.upper().count(model.keyword.upper()) > 0
+					or item.long_description.upper().count(model.keyword.upper()) > 0):
 					iter = model_applications.insert_before(None, None)						
 					model_applications.set_value(iter, 0, item.name)						
 					model_applications.set_value(iter, 1, item.average_rating)
@@ -429,8 +485,11 @@ def show_applications(wTree, model):
 		tree_applications.get_selection().select_iter(first)
 	del model_applications
 	statusbar = wTree.get_widget("statusbar")
-	context_id = statusbar.get_context_id("mintInstall")				
-	statusbar.push(context_id,  _("%d applications listed") % num_applications)
+	context_id = statusbar.get_context_id("mintInstall")	
+	if model.ready:			
+		statusbar.push(context_id,  _("%d applications listed") % num_applications)
+	else:
+		statusbar.push(context_id,  _("%d applications listed, refreshing APT details") % num_applications)
 
 def build_GUI(model, username):
 
@@ -731,7 +790,7 @@ class RefreshThread(threading.Thread):
 				gtk.gdk.threads_enter()	
 				statusbar = wTree.get_widget("statusbar")
 				context_id = statusbar.get_context_id("mintInstall")
-				statusbar.push(context_id, _("%d applications listed") % num_apps)
+				statusbar.push(context_id, _("%d applications listed, refreshing APT details") % num_apps)
 				gtk.gdk.threads_leave()				
 			except Exception, details:
 				print details
@@ -841,8 +900,8 @@ class RefreshThread(threading.Thread):
 				gtk.gdk.threads_leave()		
 					
 			elif element.tag == "item":
-				item = Classes.Item(portal, element.attrib["id"], element.attrib["link"], element.attrib["mint_file"], element.attrib["category"], element.attrib["name"], element.attrib["description"], element.attrib["added"], element.attrib["views"], element.attrib["license"], element.attrib["size"], element.attrib["website"], element.attrib["repository"], element.attrib["average_rating"])
-				item.average_rating = item.average_rating[:3]
+				item = Classes.Item(portal, element.attrib["id"], element.attrib["link"], element.attrib["mint_file"], element.attrib["category"], element.attrib["name"], element.attrib["description"], "", element.attrib["added"], element.attrib["views"], element.attrib["license"], element.attrib["size"], element.attrib["website"], element.attrib["repository"], element.attrib["average_rating"])
+				item.average_rating = item.average_rating[:3]								
 				if item.average_rating.endswith("0"):
 					item.average_rating = item.average_rating[0]
 				item.views = int(item.views)
@@ -851,7 +910,7 @@ class RefreshThread(threading.Thread):
 					os.chdir(self.directory + "/mintfiles")	
 					os.system("wget -nc -O" + item.key + ".mint -T10 \"" + item.mint_file + "\"")
 					os.chdir("/usr/lib/linuxmint/mintInstall")
-				item.mint_file = self.directory + "/mintfiles/" + item.key + ".mint"
+				item.mint_file = self.directory + "/mintfiles/" + item.key + ".mint"				
 
 				if item.repository == "":
 					item.repository = _("Default repositories")
@@ -918,6 +977,9 @@ class RefreshThread(threading.Thread):
 				pct = int(ratio * 100)
 				progressbar.set_text(str(pct) + "%")
 				gtk.gdk.threads_leave()
+
+		f = fetch_apt_details(model, wTree)
+		f.start()
 
 		gtk.gdk.threads_enter()
 		progressbar.set_fraction(0)
