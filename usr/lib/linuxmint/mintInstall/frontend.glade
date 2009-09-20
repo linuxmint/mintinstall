@@ -154,17 +154,45 @@
             <property name="position">182</property>
             <property name="position_set">True</property>
             <child>
-              <widget class="GtkScrolledWindow" id="scrolledwindow1">
+              <widget class="GtkVBox" id="vbox4">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="hscrollbar_policy">automatic</property>
-                <property name="vscrollbar_policy">automatic</property>
-                <property name="shadow_type">out</property>
+                <property name="orientation">vertical</property>
                 <child>
-                  <widget class="GtkTreeView" id="tree_categories">
+                  <widget class="GtkScrolledWindow" id="scrolledwindow1">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="hscrollbar_policy">automatic</property>
+                    <property name="vscrollbar_policy">automatic</property>
+                    <property name="shadow_type">out</property>
+                    <child>
+                      <widget class="GtkTreeView" id="tree_categories">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                      </widget>
+                    </child>
                   </widget>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkButton" id="button_screenshot">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="relief">none</property>
+                    <property name="focus_on_click">False</property>
+                    <child>
+                      <widget class="GtkImage" id="image_screenshot">
+                        <property name="visible">True</property>
+                        <property name="stock">gtk-missing-image</property>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">1</property>
+                  </packing>
                 </child>
               </widget>
               <packing>
@@ -384,22 +412,7 @@
                                   <widget class="GtkHBox" id="hbox6">
                                     <property name="visible">True</property>
                                     <child>
-                                      <widget class="GtkButton" id="button_screenshot">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
-                                        <property name="receives_default">True</property>
-                                        <property name="relief">none</property>
-                                        <property name="focus_on_click">False</property>
-                                        <child>
-                                          <widget class="GtkImage" id="image_screenshot">
-                                            <property name="visible">True</property>
-                                            <property name="stock">gtk-missing-image</property>
-                                          </widget>
-                                        </child>
-                                      </widget>
-                                      <packing>
-                                        <property name="position">0</property>
-                                      </packing>
+                                      <placeholder/>
                                     </child>
                                     <child>
                                       <widget class="GtkLabel" id="label_description">
