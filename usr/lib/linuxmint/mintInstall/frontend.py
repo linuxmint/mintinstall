@@ -74,7 +74,7 @@ def show_item(selection, model, wTree, username):
 				downloadScreenshot.start()				
 			
 		tree_reviews = wTree.get_widget("tree_reviews")
-		model_reviews = gtk.TreeStore(str, str, str, object)
+		model_reviews = gtk.TreeStore(str, int, str, object)
 		for review in selected_item.reviews:
 			iter = model_reviews.insert_before(None, None)						
 			model_reviews.set_value(iter, 0, review.username)						
@@ -406,7 +406,7 @@ def show_applications(wTree, model):
 		for subcategory in model.selected_category.subcategories:
 			category_keys.append(subcategory.key)		
 	tree_applications = wTree.get_widget("tree_applications")
-	model_applications = gtk.TreeStore(str, int, int, int, str, object, int)
+	model_applications = gtk.TreeStore(str, str, int, int, str, object, int)
 	for portal in model.portals:
 		for item in portal.items:	
 			if (item.category.key in category_keys):
@@ -420,7 +420,7 @@ def show_applications(wTree, model):
 					model_applications.set_value(iter, 3, item.views)
 					model_applications.set_value(iter, 4, item.added)
 					model_applications.set_value(iter, 5, item)
-					model_applications.set_value(iter, 6, ((item.average_rating - 50) * len(item.reviews)) + (item.views / 1000))
+					model_applications.set_value(iter, 6, float(item.average_rating) * len(item.reviews) + (item.views / 1000))
 					num_applications = num_applications + 1
 	model_applications.set_sort_column_id( 6, gtk.SORT_DESCENDING )
 	tree_applications.set_model(model_applications)
@@ -530,7 +530,7 @@ def build_GUI(model, username):
 	tree_reviews.set_headers_clickable(True)
 	tree_reviews.set_reorderable(False)
 	tree_reviews.show()
-	model_reviews = gtk.TreeStore(str, str, str, object)
+	model_reviews = gtk.TreeStore(str, int, str, object)
 	tree_reviews.set_model(model_reviews)
 	del model_reviews
 	
@@ -842,7 +842,9 @@ class RefreshThread(threading.Thread):
 					
 			elif element.tag == "item":
 				item = Classes.Item(portal, element.attrib["id"], element.attrib["link"], element.attrib["mint_file"], element.attrib["category"], element.attrib["name"], element.attrib["description"], element.attrib["added"], element.attrib["views"], element.attrib["license"], element.attrib["size"], element.attrib["website"], element.attrib["repository"], element.attrib["average_rating"])
-				item.average_rating = int((float(item.average_rating) - float(1)) / float(4) * float(100))
+				item.average_rating = item.average_rating[:3]
+				if item.average_rating.endswith("0"):
+					item.average_rating = item.average_rating[0]
 				item.views = int(item.views)
 				item.link = item.link.replace("ANDAND", "&")
 				if self.refresh:					
@@ -901,6 +903,7 @@ class RefreshThread(threading.Thread):
 						secondname = elements[1]
 						firstname = firstname[0:1] + "..." + firstname [-2:-1]
 						review.username = firstname + "@" + secondname
+					review.rating = int(review.rating)
 					item.add_review(review)
 					portal.reviews.append(review)
 					gtk.gdk.threads_enter()					
@@ -949,7 +952,7 @@ class RefreshThread(threading.Thread):
 
 		#Build applications table
 		tree_applications = wTree.get_widget("tree_applications")
-		model_applications = gtk.TreeStore(str, int, int, int, str, object, int)		
+		model_applications = gtk.TreeStore(str, str, int, int, str, object, int)		
 		for portal in model.portals:
 			for item in portal.items:		
 				iter = model_applications.insert_before(None, None)						
@@ -959,7 +962,7 @@ class RefreshThread(threading.Thread):
 				model_applications.set_value(iter, 3, item.views)
 				model_applications.set_value(iter, 4, item.added)
 				model_applications.set_value(iter, 5, item)
-				model_applications.set_value(iter, 6, ((item.average_rating - 50) * len(item.reviews)) + (item.views / 1000))				
+				model_applications.set_value(iter, 6, float(item.average_rating) * len(item.reviews) + (item.views / 1000))
 		model_applications.set_sort_column_id( 6, gtk.SORT_DESCENDING )
 		tree_applications.set_model(model_applications)		
 		first = model_applications.get_iter_first()
