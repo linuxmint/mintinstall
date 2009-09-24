@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-07-29 22:01+0200\n"
+"POT-Creation-Date: 2009-09-24 15:34+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,6 +21,7 @@ msgid "Backing up your APT sources"
 msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/mintInstall.py:92
+#: usr/lib/linuxmint/mintInstall/frontend.py:460
 #: usr/lib/linuxmint/mintInstall/remove.py:48
 msgid "Please wait, this can take some time"
 msgstr ""
@@ -47,8 +48,8 @@ msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/mintInstall.py:206
 #: usr/lib/linuxmint/mintInstall/mintInstall.py:445
-#: usr/lib/linuxmint/mintInstall/frontend.py:52
-#: usr/lib/linuxmint/mintInstall/frontend.py:128
+#: usr/lib/linuxmint/mintInstall/frontend.py:55
+#: usr/lib/linuxmint/mintInstall/frontend.py:135
 msgid "Install"
 msgstr ""
 
@@ -62,8 +63,8 @@ msgid "The following packages will be installed:"
 msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/mintInstall.py:222
-#: usr/lib/linuxmint/mintInstall/frontend.py:284
-#: usr/lib/linuxmint/mintInstall/frontend.py:855
+#: usr/lib/linuxmint/mintInstall/frontend.py:324
+#: usr/lib/linuxmint/mintInstall/frontend.py:964
 msgid "Default repositories"
 msgstr ""
 
@@ -77,8 +78,8 @@ msgid "Upgrade"
 msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/mintInstall.py:339
-#: usr/lib/linuxmint/mintInstall/frontend.py:23
-#: usr/lib/linuxmint/mintInstall/frontend.py:440
+#: usr/lib/linuxmint/mintInstall/frontend.py:26
+#: usr/lib/linuxmint/mintInstall/frontend.py:580
 msgid "Software Manager"
 msgstr ""
 
@@ -103,6 +104,7 @@ msgid "Search for a .deb package"
 msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/mintInstall.py:444
+#: usr/lib/linuxmint/mintInstall/frontend.py:590
 msgid "Search"
 msgstr ""
 
@@ -128,228 +130,244 @@ msgid ""
 "They now have been restored."
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:24
+#: usr/lib/linuxmint/mintInstall/frontend.py:27
 msgid "Install new applications"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:54
+#: usr/lib/linuxmint/mintInstall/frontend.py:57
 msgid "Remove"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:62
-#: usr/lib/linuxmint/mintInstall/frontend.py:173
-#: usr/lib/linuxmint/mintInstall/frontend.py:330
+#: usr/lib/linuxmint/mintInstall/frontend.py:72
+#: usr/lib/linuxmint/mintInstall/frontend.py:180
+#: usr/lib/linuxmint/mintInstall/frontend.py:370
 msgid "MB"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:117
-#: usr/lib/linuxmint/mintInstall/frontend.py:451
+#: usr/lib/linuxmint/mintInstall/frontend.py:124
+#: usr/lib/linuxmint/mintInstall/frontend.py:592
 msgid "Featured applications"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:123
+#: usr/lib/linuxmint/mintInstall/frontend.py:130
 msgid "These popular applications can be installed on your system:"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:132
-#: usr/lib/linuxmint/mintInstall/frontend.py:475
+#: usr/lib/linuxmint/mintInstall/frontend.py:139
+#: usr/lib/linuxmint/mintInstall/frontend.py:627
 msgid "Application"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:135
+#: usr/lib/linuxmint/mintInstall/frontend.py:142
 msgid "Icon"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:138
+#: usr/lib/linuxmint/mintInstall/frontend.py:145
 msgid "Description"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:141
-#: usr/lib/linuxmint/mintInstall/frontend.py:302
+#: usr/lib/linuxmint/mintInstall/frontend.py:148
+#: usr/lib/linuxmint/mintInstall/frontend.py:342
 msgid "Size"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:169
-#: usr/lib/linuxmint/mintInstall/frontend.py:326
+#: usr/lib/linuxmint/mintInstall/frontend.py:176
+#: usr/lib/linuxmint/mintInstall/frontend.py:366
 msgid "B"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:171
-#: usr/lib/linuxmint/mintInstall/frontend.py:328
+#: usr/lib/linuxmint/mintInstall/frontend.py:178
+#: usr/lib/linuxmint/mintInstall/frontend.py:368
 msgid "KB"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:175
-#: usr/lib/linuxmint/mintInstall/frontend.py:332
+#: usr/lib/linuxmint/mintInstall/frontend.py:182
+#: usr/lib/linuxmint/mintInstall/frontend.py:372
 msgid "GB"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:242
-#: usr/lib/linuxmint/mintInstall/frontend.py:379
-#: usr/lib/linuxmint/mintInstall/frontend.py:389
+#: usr/lib/linuxmint/mintInstall/frontend.py:282
+#: usr/lib/linuxmint/mintInstall/frontend.py:423
+#: usr/lib/linuxmint/mintInstall/frontend.py:441
 msgid ""
 "The mint file for this application was not successfully downloaded. Click on "
 "refresh to fix the problem."
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:274
+#: usr/lib/linuxmint/mintInstall/frontend.py:314
 msgid "Repository"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:293
+#: usr/lib/linuxmint/mintInstall/frontend.py:333
 msgid "Package"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:296
+#: usr/lib/linuxmint/mintInstall/frontend.py:336
 msgid "Installed version"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:299
+#: usr/lib/linuxmint/mintInstall/frontend.py:339
 msgid "Available version"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:344
+#: usr/lib/linuxmint/mintInstall/frontend.py:384
 msgid "License:"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:345
+#: usr/lib/linuxmint/mintInstall/frontend.py:385
 msgid "Website"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:346
+#: usr/lib/linuxmint/mintInstall/frontend.py:386
+msgid "Portal URL"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/frontend.py:387
 msgid "Description:"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:433
-#: usr/lib/linuxmint/mintInstall/frontend.py:734
+#: usr/lib/linuxmint/mintInstall/frontend.py:462
+msgid "The changes are complete"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/frontend.py:567
+#: usr/lib/linuxmint/mintInstall/frontend.py:842
 #, python-format
 msgid "%d applications listed"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:447
-msgid "Search:"
+#: usr/lib/linuxmint/mintInstall/frontend.py:587
+msgid "Quick search:"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:448
-msgid "Visit"
-msgstr ""
-
-#: usr/lib/linuxmint/mintInstall/frontend.py:449
+#: usr/lib/linuxmint/mintInstall/frontend.py:588
 msgid "More info"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:458
+#: usr/lib/linuxmint/mintInstall/frontend.py:589
+msgid "Show:"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/frontend.py:598
+msgid "All software"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/frontend.py:599
+msgid "Available software"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/frontend.py:600
+msgid "Installed software"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/frontend.py:601
+msgid "Your changes"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/frontend.py:610
 msgid "Category"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:479
+#: usr/lib/linuxmint/mintInstall/frontend.py:631
 msgid "Average rating"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:483
+#: usr/lib/linuxmint/mintInstall/frontend.py:635
 msgid "Reviews"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:487
+#: usr/lib/linuxmint/mintInstall/frontend.py:639
 msgid "Views"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:491
+#: usr/lib/linuxmint/mintInstall/frontend.py:643
 msgid "Added"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:495
+#: usr/lib/linuxmint/mintInstall/frontend.py:647
 msgid "Score"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:514
+#: usr/lib/linuxmint/mintInstall/frontend.py:651
+msgid "Status"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/frontend.py:673
 msgid "Reviewer"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:518
+#: usr/lib/linuxmint/mintInstall/frontend.py:677
 msgid "Rating"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:522
+#: usr/lib/linuxmint/mintInstall/frontend.py:681
 msgid "Review"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:553
+#: usr/lib/linuxmint/mintInstall/frontend.py:711
 msgid "_File"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:557
+#: usr/lib/linuxmint/mintInstall/frontend.py:715
 msgid "Quit"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:561
+#: usr/lib/linuxmint/mintInstall/frontend.py:720
+msgid "_Edit"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/frontend.py:723
+msgid "Cancel all changes"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/frontend.py:728
 msgid "_Help"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:565
+#: usr/lib/linuxmint/mintInstall/frontend.py:732
 msgid "About"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:582
+#: usr/lib/linuxmint/mintInstall/frontend.py:761
 msgid "Software manager"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:603
-msgid "Refreshing mintInstall"
-msgstr ""
-
-#: usr/lib/linuxmint/mintInstall/frontend.py:603
-msgid "Please wait, this operation can take a while"
-msgstr ""
-
-#: usr/lib/linuxmint/mintInstall/frontend.py:680
-#: usr/lib/linuxmint/mintInstall/frontend.py:681
-#, python-format
-msgid "Remove %s"
-msgstr ""
-
-#: usr/lib/linuxmint/mintInstall/frontend.py:684
-#: usr/lib/linuxmint/mintInstall/frontend.py:685
-#, python-format
-msgid "Install %s"
-msgstr ""
-
-#: usr/lib/linuxmint/mintInstall/frontend.py:744
+#: usr/lib/linuxmint/mintInstall/frontend.py:852
 msgid ""
 "The data used by mintInstall is corrupted or out of date. Click on refresh "
 "to fix the problem :"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:747
+#: usr/lib/linuxmint/mintInstall/frontend.py:855
 msgid "Please refresh mintInstall by clicking on the Refresh button"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:792
+#: usr/lib/linuxmint/mintInstall/frontend.py:900
 #, python-format
 msgid "Downloading data for %s"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:835
+#: usr/lib/linuxmint/mintInstall/frontend.py:942
 #, python-format
 msgid "%d categories loaded"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:860
+#: usr/lib/linuxmint/mintInstall/frontend.py:969
 #, python-format
 msgid "%d applications loaded"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:882
+#: usr/lib/linuxmint/mintInstall/frontend.py:991
 #, python-format
 msgid "%d screenshots loaded"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:908
+#: usr/lib/linuxmint/mintInstall/frontend.py:1018
 #, python-format
 msgid "%d reviews loaded"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:930
+#: usr/lib/linuxmint/mintInstall/frontend.py:1042
 msgid "All applications"
 msgstr ""
 

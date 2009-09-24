@@ -586,9 +586,7 @@ def build_GUI(model, username):
 	#i18n
 	wTree.get_widget("label5").set_text(_("Quick search:"))
 	wTree.get_widget("label2").set_text(_("More info"))
-	#wTree.get_widget("label_installed").set_text(_("Installed"))
-	#wTree.get_widget("label_available").set_text(_("Available"))
-	#wTree.get_widget("label_special").set_text(_("Special"))
+	wTree.get_widget("label1").set_text(_("Show:"))
 	wTree.get_widget("button_search_online").set_label(_("Search"))
 
 	wTree.get_widget("lbl_featured").set_label(_("Featured applications"))	
@@ -722,8 +720,7 @@ def build_GUI(model, username):
 	editMenu = gtk.MenuItem(_("_Edit"))
 	editSubmenu = gtk.Menu()
 	editMenu.set_submenu(editSubmenu)
-	cancelMenuItem = gtk.ImageMenuItem(gtk.STOCK_CANCEL)
-	cancelMenuItem.get_child().set_text(_("Cancel all changes"))
+	cancelMenuItem = gtk.MenuItem(_("Cancel all changes"))
 	cancelMenuItem.connect("activate", cancel_changes, wTree, model)
 	editSubmenu.append(cancelMenuItem)		
 	cancelMenuItem.show()
