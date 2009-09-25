@@ -1,3 +1,10 @@
+mintinstall (6.4.1) helena; urgency=low
+
+  * Changed status icons
+  * Fixed scrolling issues
+
+ -- Clement Lefebvre <root@linuxmint.com>  Fri,  25 Sep 2009 15:15:00 +0000
+
 mintinstall (6.4.0) helena; urgency=low
 
   * GUI improvements

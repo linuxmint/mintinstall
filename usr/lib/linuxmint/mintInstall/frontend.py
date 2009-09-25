@@ -92,7 +92,13 @@ def show_item(selection, model, wTree, username):
 			model_reviews.set_value(iter, 2, review.comment)
 			model_reviews.set_value(iter, 3, review)
 		model_reviews.set_sort_column_id( 1, gtk.SORT_DESCENDING )
-		tree_reviews.set_model(model_reviews)						
+		tree_reviews.set_model(model_reviews)	
+
+		first = model_reviews.get_iter_first()
+		if (first != None):
+			tree_reviews.get_selection().select_iter(first)
+			tree_reviews.scroll_to_cell(model_reviews.get_path(first))
+					
 		del model_reviews			
 		if selected_item.is_special:
 			wTree.get_widget("button_install").show()
@@ -107,12 +113,12 @@ def show_category(selection, model, wTree):
 	if (iter != None):
 		selected_category = model_categories.get_value(iter, 1)
 		model.selected_category = selected_category
-		show_applications(wTree, model)					
+		show_applications(wTree, model, True)					
 
 def filter_search(widget, wTree, model):
 	keyword = widget.get_text()
 	model.keyword = keyword
-	show_applications(wTree, model)	
+	show_applications(wTree, model, True)	
 
 def open_search(widget, username):
 	os.system("/usr/lib/linuxmint/mintInstall/mintInstall.py " + username + " &")
@@ -432,7 +438,7 @@ def install(widget, model, wTree, username):
 					model.packages_to_install.append(package)
 			model.selected_application.status = "add"
 			wTree.get_widget("toolbutton_apply").set_sensitive(True)
-		show_applications(wTree, model)
+		show_applications(wTree, model, False)
 
 def remove(widget, model, wTree, username):
 	if model.selected_application != None:
@@ -450,7 +456,7 @@ def remove(widget, model, wTree, username):
 					model.packages_to_remove.append(package)
 			model.selected_application.status = "remove"
 			wTree.get_widget("toolbutton_apply").set_sensitive(True)
-		show_applications(wTree, model)
+		show_applications(wTree, model, False)
 
 def apply(widget, model, wTree, username):
 	wTree.get_widget("main_window").window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
@@ -487,11 +493,11 @@ def apply(widget, model, wTree, username):
 	cache = apt.Cache()
 
 	fetch_apt_details(model)
-	show_applications(wTree, model)
+	show_applications(wTree, model, True)
 	
 
-def show_applications(wTree, model):	
-	
+def show_applications(wTree, model, scrollback):	
+
 	matching_statuses = []
 	if model.filter_applications == "available":
 		matching_statuses.append("available")
@@ -521,6 +527,7 @@ def show_applications(wTree, model):
 			category_keys.append(subcategory.key)		
 
 	tree_applications = wTree.get_widget("tree_applications")
+	new_selection = None
 	model_applications = gtk.TreeStore(str, str, int, int, str, object, int, gtk.gdk.Pixbuf, int)
 	for portal in model.portals:
 		for item in portal.items:	
@@ -554,13 +561,22 @@ def show_applications(wTree, model):
 						elif item.status == "remove":
 							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/remove.png"))		
 							model_applications.set_value(iter, 8, 2)
+
+					if model.selected_application == item:						
+						new_selection = iter
 						
 					num_applications = num_applications + 1
 	model_applications.set_sort_column_id( 6, gtk.SORT_DESCENDING )
 	tree_applications.set_model(model_applications)
-	first = model_applications.get_iter_first()
-	if (first != None):
-		tree_applications.get_selection().select_iter(first)
+	if scrollback: 
+		first = model_applications.get_iter_first()
+		if (first != None):
+			tree_applications.get_selection().select_iter(first)
+			tree_applications.scroll_to_cell(model_applications.get_path(first))
+	else:
+		if new_selection is not None:
+			tree_applications.get_selection().select_iter(new_selection)
+			tree_applications.scroll_to_cell(model_applications.get_path(new_selection))
 	del model_applications
 	statusbar = wTree.get_widget("statusbar")
 	context_id = statusbar.get_context_id("mintInstall")	
@@ -570,7 +586,7 @@ def filter_applications(combo, wTree, model):
 	combomodel = combo.get_model()
 	comboindex = combo.get_active()
         model.filter_applications = combomodel[comboindex][1]
-	show_applications(wTree, model)
+	show_applications(wTree, model, True)
 
 def build_GUI(model, username):
 
@@ -752,7 +768,7 @@ def cancel_changes(widget, wTree, model):
 	model.packages_to_install = []
 	model.packages_to_remove = []
 	wTree.get_widget("toolbutton_apply").set_sensitive(False)
-	show_applications(wTree, model)
+	show_applications(wTree, model, True)
 
 def open_about(widget):
 	dlg = gtk.AboutDialog()		
