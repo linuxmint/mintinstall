@@ -1,3 +1,11 @@
+mintinstall (6.4.2) helena; urgency=low
+
+  * Fixed remove icon for color-blind people
+  * Install/remove applications doesn't scroll the list anymore
+  * User can now cancel changes individually
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon,  28 Sep 2009 17:08:00 +0000
+
 mintinstall (6.4.1) helena; urgency=low
 
   * Changed status icons
