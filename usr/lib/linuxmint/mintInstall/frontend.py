@@ -39,6 +39,8 @@ else:
 global cache
 import apt
 cache = apt.Cache()
+global num_apps
+num_apps = 0
 
 def close_application(window, event=None):	
 	gtk.main_quit()
@@ -52,10 +54,13 @@ def show_item(selection, model, wTree, username):
 	if (iter != None):
 		wTree.get_widget("button_install").hide()
 		wTree.get_widget("button_remove").hide()
+		wTree.get_widget("button_cancel_change").hide()
 		wTree.get_widget("label_install").set_text(_("Install"))
 		wTree.get_widget("label_install").set_tooltip_text("")
 		wTree.get_widget("label_remove").set_text(_("Remove"))
 		wTree.get_widget("label_remove").set_tooltip_text("")
+		wTree.get_widget("label_cancel_change").set_text(_("Cancel change"))
+		wTree.get_widget("label_cancel_change").set_tooltip_text("")
 		selected_item = model_applications.get_value(iter, 5)
 		model.selected_application = selected_item		
 		if selected_item.version == "":
@@ -107,6 +112,14 @@ def show_item(selection, model, wTree, username):
 				wTree.get_widget("button_install").show()
 			elif selected_item.status == "installed": 					
 				wTree.get_widget("button_remove").show()
+			elif selected_item.status == "add":
+				wTree.get_widget("button_cancel_change").show()
+				wTree.get_widget("label_cancel_change").set_text(_("Cancel installation"))
+ 			elif selected_item.status == "remove":
+				wTree.get_widget("button_cancel_change").show()
+				wTree.get_widget("label_cancel_change").set_text(_("Cancel removal"))
+
+	update_statusbar(wTree, model)
 
 def show_category(selection, model, wTree):	
 	(model_categories, iter) = selection.get_selected()
@@ -432,13 +445,18 @@ def install(widget, model, wTree, username):
 				show_item(wTree.get_widget("tree_applications").get_selection(), model, wTree, username)
 				global cache
 				cache = apt.Cache()
+				show_applications(wTree, model, False)
 		else:
 			for package in model.selected_application.packages:
 				if package not in model.packages_to_install:
 					model.packages_to_install.append(package)
 			model.selected_application.status = "add"
-			wTree.get_widget("toolbutton_apply").set_sensitive(True)
-		show_applications(wTree, model, False)
+			wTree.get_widget("toolbutton_apply").set_sensitive(True)			
+			model_applications, iter = wTree.get_widget("tree_applications").get_selection().get_selected()			
+			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/add.png"))		
+			model_applications.set_value(iter, 8, 1)
+			show_item(wTree.get_widget("tree_applications").get_selection(), model, wTree, username)
+		
 
 def remove(widget, model, wTree, username):
 	if model.selected_application != None:
@@ -450,13 +468,40 @@ def remove(widget, model, wTree, username):
 				show_item(wTree.get_widget("tree_applications").get_selection(), model, wTree, username)
 				global cache
 				cache = apt.Cache()
+				show_applications(wTree, model, False)
 		else:
 			for package in model.selected_application.packages:
 				if package not in model.packages_to_remove:
 					model.packages_to_remove.append(package)
 			model.selected_application.status = "remove"
 			wTree.get_widget("toolbutton_apply").set_sensitive(True)
-		show_applications(wTree, model, False)
+			model_applications, iter = wTree.get_widget("tree_applications").get_selection().get_selected()			
+			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/remove.png"))		
+			model_applications.set_value(iter, 8, 2)
+			show_item(wTree.get_widget("tree_applications").get_selection(), model, wTree, username)
+
+def cancel_change(widget, model, wTree, username):
+	if model.selected_application != None:
+		model_applications, iter = wTree.get_widget("tree_applications").get_selection().get_selected()
+		if model.selected_application.status == "add":
+			for package in model.selected_application.packages:
+				if package in model.packages_to_install:
+					model.packages_to_install.remove(package)
+			model.selected_application.status = "available"
+			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/available.png"))		
+			model_applications.set_value(iter, 8, 4)
+		elif model.selected_application.status == "remove":
+			for package in model.selected_application.packages:
+				if package in model.packages_to_remove:
+					model.packages_to_remove.remove(package)
+			model.selected_application.status = "installed"
+			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/installed.png"))		
+			model_applications.set_value(iter, 8, 3)
+
+		if len(model.packages_to_install) == 0 and len(model.packages_to_remove) == 0:
+			wTree.get_widget("toolbutton_apply").set_sensitive(False)
+
+		show_item(wTree.get_widget("tree_applications").get_selection(), model, wTree, username)
 
 def apply(widget, model, wTree, username):
 	wTree.get_widget("main_window").window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
@@ -501,9 +546,11 @@ def show_applications(wTree, model, scrollback):
 	matching_statuses = []
 	if model.filter_applications == "available":
 		matching_statuses.append("available")
+		matching_statuses.append("add")
 		matching_statuses.append("special")
 	elif model.filter_applications == "installed":
 		matching_statuses.append("installed")	
+		matching_statuses.append("remove")	
 	elif model.filter_applications == "changes":
 		matching_statuses.append("add")	
 		matching_statuses.append("remove")	
@@ -513,8 +560,8 @@ def show_applications(wTree, model, scrollback):
 		matching_statuses.append("special")	
 		matching_statuses.append("add")	
 		matching_statuses.append("remove")	
-
-	num_applications = 0
+	global num_apps
+	num_apps = 0
 	category_keys = []
 	if (model.selected_category == None): 
 		#The All category is selected
@@ -565,7 +612,7 @@ def show_applications(wTree, model, scrollback):
 					if model.selected_application == item:						
 						new_selection = iter
 						
-					num_applications = num_applications + 1
+					num_apps = num_apps + 1
 	model_applications.set_sort_column_id( 6, gtk.SORT_DESCENDING )
 	tree_applications.set_model(model_applications)
 	if scrollback: 
@@ -578,9 +625,13 @@ def show_applications(wTree, model, scrollback):
 			tree_applications.get_selection().select_iter(new_selection)
 			tree_applications.scroll_to_cell(model_applications.get_path(new_selection))
 	del model_applications
+	update_statusbar(wTree, model)
+
+def update_statusbar(wTree, model):
+	global num_apps
 	statusbar = wTree.get_widget("statusbar")
 	context_id = statusbar.get_context_id("mintInstall")	
-	statusbar.push(context_id,  _("%d applications listed") % num_applications)
+	statusbar.push(context_id,  _("%(applications)d applications listed, %(install)d to install, %(remove)d to remove") % {'applications':num_apps, 'install':len(model.packages_to_install), 'remove':len(model.packages_to_remove)})
 
 def filter_applications(combo, wTree, model):
 	combomodel = combo.get_model()
@@ -719,7 +770,8 @@ def build_GUI(model, username):
 	wTree.get_widget("button_feature").connect("clicked", open_featured)				
 	wTree.get_widget("button_screenshot").connect("clicked", show_screenshot, model)
 	wTree.get_widget("button_install").connect("clicked", install, model, wTree, username)	
-	wTree.get_widget("button_remove").connect("clicked", remove, model, wTree, username)	
+	wTree.get_widget("button_remove").connect("clicked", remove, model, wTree, username)
+	wTree.get_widget("button_cancel_change").connect("clicked", cancel_change, model, wTree, username)		
 	wTree.get_widget("button_show").connect("clicked", show_more_info, model)
 
 	wTree.get_widget("toolbutton_apply").connect("clicked", apply, model, wTree, username)	
@@ -837,6 +889,7 @@ class RefreshThread(threading.Thread):
 				for portal in self.model.portals:
 					self.download_portal(portal)
 			try:
+				global num_apps
 				num_apps = 0
 				for portal in self.model.portals:
 					self.build_portal(self.model, portal)
@@ -853,9 +906,7 @@ class RefreshThread(threading.Thread):
 							parent.add_subcategory(category)
 
 				gtk.gdk.threads_enter()	
-				statusbar = wTree.get_widget("statusbar")
-				context_id = statusbar.get_context_id("mintInstall")
-				statusbar.push(context_id, _("%d applications listed") % num_apps)
+				update_statusbar(wTree, model)
 				gtk.gdk.threads_leave()				
 			except Exception, details:
 				print details
