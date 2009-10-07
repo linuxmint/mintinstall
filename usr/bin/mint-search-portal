@@ -14,7 +14,7 @@ else:
 link = "http://www.linuxmint.com/software/?sec=search&search=" + search_txt + "&release=" + str.strip(releaseID)
 browser = browser.replace("\"%s\"", link)
 browser = browser.replace("%s", link) 
-os.system("/usr/lib/linuxmint/mintInstall/launch_browser.sh \"" + browser + "\" &")
+os.system("/usr/lib/linuxmint/common/launch_browser.sh \"" + browser + "\" &")
 
 
 	

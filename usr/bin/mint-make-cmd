@@ -37,7 +37,7 @@ except Exception, cause:
 	print _("Could not find package: %s") % pkg_name
 	msgDlg = gtk.MessageDialog( None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK, _("Could not find package: %s") % pkg_name )
 	msgDlg.set_title("mintInstall")
-	msgDlg.set_icon_from_file("/usr/lib/linuxmint/mintSystem/icon.png")
+	msgDlg.set_icon_from_file("/usr/share/linuxmint/logo.png")
 	msgDlg.run();
 	msgDlg.destroy();
 

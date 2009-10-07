@@ -1,3 +1,10 @@
+mintinstall (6.4.3) helena; urgency=low
+
+  * Removed dependency on mintsystem (using mint-common)
+  * Updated calls to newer apt lib
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed,  7 Oct 2009 17:41:00 +0000
+
 mintinstall (6.4.2) helena; urgency=low
 
   * Fixed remove icon for color-blind people

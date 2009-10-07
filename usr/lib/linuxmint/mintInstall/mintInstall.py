@@ -386,7 +386,8 @@ def show_website(username, link):
 		browser = browser.replace("%s", link) 
 	else:
 		browser = "firefox " + link	
-	launcher = commands.getoutput("/usr/bin/mint-which-launcher")
+	launcher = commands.getoutput("/usr/lib/linuxmint/common/mint-which-launcher.py")
+	os.system("sudo -u " + username + " xhost +root")
 	os.system(launcher + " -u " + username + " \"" + browser + "\" &")
 
 def search_apt(widget, textfield):

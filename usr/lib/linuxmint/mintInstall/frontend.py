@@ -191,20 +191,20 @@ def open_featured(widget):
 				global cache
 				pkg = cache[application_pkg]
 				
-				if ((not pkg.isInstalled) and (pkg.summary != "")):
-					strSize = str(pkg.candidateInstalledSize) + _("B")
-					if (pkg.candidateInstalledSize >= 1000):
-						strSize = str(pkg.candidateInstalledSize / 1000) + _("KB")
-					if (pkg.candidateInstalledSize >= 1000000):
-						strSize = str(pkg.candidateInstalledSize / 1000000) + _("MB")
-					if (pkg.candidateInstalledSize >= 1000000000):
-						strSize = str(pkg.candidateInstalledSize / 1000000000) + _("GB")
+				if ((not pkg.isInstalled) and (pkg.candidate.summary != "")):
+					strSize = str(pkg.candidate.size) + _("B")
+					if (pkg.candidate.size >= 1000):
+						strSize = str(pkg.candidate.size / 1000) + _("KB")
+					if (pkg.candidate.size >= 1000000):
+						strSize = str(pkg.candidate.size / 1000000) + _("MB")
+					if (pkg.candidate.size >= 1000000000):
+						strSize = str(pkg.candidate.size / 1000000000) + _("GB")
 					iter = model.insert_before(None, None)						
 					model.set_value(iter, 0, application_pkg)
 					model.set_value(iter, 1, "false")
 					model.set_value(iter, 2, application_name)
 					model.set_value(iter, 3, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintinstall/featured_applications/" + application_icon))						
-					model.set_value(iter, 4, pkg.summary)
+					model.set_value(iter, 4, pkg.candidate.summary)
 					model.set_value(iter, 5, strSize)
 
 			except Exception, detail:
@@ -282,12 +282,12 @@ def fetch_apt_details(model):
 						pkg = cache[package]
 						if not pkg.isInstalled:
 							item.status = "available"
-							item.version = pkg.candidateVersion
+							item.version = pkg.candidate.version
 						else:
-							item.version = pkg.installedVersion
+							item.version = pkg.installed.version
 						item.packages.append(pkg)
 						item.is_special = False
-						item.long_description = pkg.rawDescription
+						item.long_description = pkg.candidate.raw_description
 					except Exception, details: 
 						print details
 			packagesFile.close()											
@@ -378,10 +378,12 @@ def show_more_info(widget, model):
 				try:
 					global cacke
 					pkg = cache[package]
-					description = pkg.rawDescription
-					installedVersion = pkg.installedVersion	
-					candidateVersion = pkg.candidateVersion				
-					size = int(pkg.packageSize)
+					description = pkg.candidate.raw_description
+					if pkg.installed is not None:
+						installedVersion = pkg.installed.version	
+					if pkg.candidate is not None:
+						candidateVersion = pkg.candidate.version				
+					size = int(pkg.candidate.size)
 					strSize = str(size) + _("B")
 					if (size >= 1000):
 						strSize = str(size / 1000) + _("KB")
@@ -421,7 +423,7 @@ def visit_web(widget, model, username):
 			browser = browser.replace("%s", model.selected_application.link) 
 		else:
 			browser = "firefox " + model.selected_application.link	
-		launcher = commands.getoutput("/usr/bin/mint-which-launcher")
+		launcher = commands.getoutput("/usr/lib/linuxmint/common/mint-which-launcher.py")		
 		os.system(launcher + " -u " + username + " \"" + browser + "\" &")
 
 def visit_website(widget, model, username):
@@ -432,7 +434,7 @@ def visit_website(widget, model, username):
 			browser = browser.replace("%s", model.selected_application.website) 
 		else:
 			browser = "firefox " + model.selected_application.website	
-		launcher = commands.getoutput("/usr/bin/mint-which-launcher")	
+		launcher = commands.getoutput("/usr/lib/linuxmint/common/mint-which-launcher.py")	
 		os.system(launcher + " -u " + username + " \"" + browser + "\" &")		
 
 def install(widget, model, wTree, username):	
@@ -824,7 +826,7 @@ def cancel_changes(widget, wTree, model):
 
 def open_about(widget):
 	dlg = gtk.AboutDialog()		
-	dlg.set_version(commands.getoutput("/usr/lib/linuxmint/mintInstall/version.py"))
+	dlg.set_version(commands.getoutput("/usr/lib/linuxmint/common/version.py mintinstall"))
 	dlg.set_name("mintInstall")
 	dlg.set_comments(_("Software manager"))
         try:
@@ -1164,6 +1166,7 @@ class RefreshThread(threading.Thread):
 
 if __name__ == "__main__":
 	username = sys.argv[1]
+	os.system("sudo -u " + username + " xhost +root")
 	model = Classes.Model()
 	wTree = build_GUI(model, username)
 	refresh = RefreshThread(wTree, False, model, username)

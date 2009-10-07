@@ -4,7 +4,7 @@ import os
 import sys
 import commands 
 
-launcher = commands.getoutput("/usr/bin/mint-which-launcher")
+launcher = commands.getoutput("/usr/lib/linuxmint/common/mint-which-launcher.py")
 if len(sys.argv) > 1:
 	mintfile = sys.argv[1]
 	command = "%s /usr/lib/linuxmint/mintInstall/mintInstall.py %s %s %s" % (launcher, mintfile, os.getenv("USER"), os.getenv("HOME"))
