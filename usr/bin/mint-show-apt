@@ -14,7 +14,7 @@ gettext.install("messages", "/usr/lib/linuxmint/mintInstall/locale")
 
 suggestion = sys.argv[1]
 
-gladefile = "/usr/lib/linuxmint/mintMenu/suggestions.glade"
+gladefile = "/usr/lib/linuxmint/mintInstall/suggestions.glade"
 wTree = gtk.glade.XML(gladefile,"window_dialog")
 buff = wTree.get_widget("textview").get_buffer()	
 result = commands.getoutput("aptitude show " + suggestion)

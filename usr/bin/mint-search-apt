@@ -26,7 +26,7 @@ gettext.install("messages", "/usr/lib/linuxmint/mintInstall/locale")
 
 suggestion = sys.argv[1]
 
-gladefile = "/usr/lib/linuxmint/mintMenu/suggestions.glade"
+gladefile = "/usr/lib/linuxmint/mintInstall/suggestions.glade"
 wTree = gtk.glade.XML(gladefile,"window_dialog_list")
 wTree.get_widget("window_dialog_list").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
 wTree.get_widget("window_dialog_list").set_title("apt search " + suggestion)
