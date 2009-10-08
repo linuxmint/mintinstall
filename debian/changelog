@@ -1,3 +1,9 @@
+mintinstall (6.4.4) helena; urgency=low
+
+  * Not dependent on mintMenu anymore
+
+ -- Clement Lefebvre <root@linuxmint.com>  Thu,  8 Oct 2009 14:27:00 +0000
+
 mintinstall (6.4.3) helena; urgency=low
 
   * Removed dependency on mintsystem (using mint-common)
