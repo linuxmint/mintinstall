@@ -380,15 +380,7 @@ def show_portal_mint_apt(widget, username):
 	show_website(username, "http://packages.linuxmint.com/")
 
 def show_website(username, link):
-	if os.path.exists("/usr/bin/gconftool-2"):
-		browser = commands.getoutput("gconftool-2 --get /desktop/gnome/url-handlers/http/command")		
-	        browser = browser.replace("\"%s\"", link)
-		browser = browser.replace("%s", link) 
-	else:
-		browser = "firefox " + link	
-	launcher = commands.getoutput("/usr/lib/linuxmint/common/mint-which-launcher.py")
-	os.system("sudo -u " + username + " xhost +root")
-	os.system(launcher + " -u " + username + " \"" + browser + "\" &")
+	os.system("sudo -u " + username + " /usr/lib/linuxmint/common/launch_browser_as.py \"" + link + "\"")
 
 def search_apt(widget, textfield):
 	os.system("/usr/bin/mint-search-apt " + textfield.get_text() + " &")

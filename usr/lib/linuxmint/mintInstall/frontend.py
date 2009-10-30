@@ -417,25 +417,11 @@ def show_more_info(widget, model):
 
 def visit_web(widget, model, username):
 	if model.selected_application != None:
-		if os.path.exists("/usr/bin/gconftool-2"):
-			browser = commands.getoutput("gconftool-2 --get /desktop/gnome/url-handlers/http/command")		
-		        browser = browser.replace("\"%s\"", model.selected_application.link)
-			browser = browser.replace("%s", model.selected_application.link) 
-		else:
-			browser = "firefox " + model.selected_application.link	
-		launcher = commands.getoutput("/usr/lib/linuxmint/common/mint-which-launcher.py")		
-		os.system(launcher + " -u " + username + " \"" + browser + "\" &")
+		os.system("sudo -u " + username + " /usr/lib/linuxmint/common/launch_browser_as.py \"" + model.selected_application.link + "\"")	
 
 def visit_website(widget, model, username):
 	if model.selected_application != None:
-		if os.path.exists("/usr/bin/gconftool-2"):
-			browser = commands.getoutput("gconftool-2 --get /desktop/gnome/url-handlers/http/command")		
-		        browser = browser.replace("\"%s\"", model.selected_application.website)
-			browser = browser.replace("%s", model.selected_application.website) 
-		else:
-			browser = "firefox " + model.selected_application.website	
-		launcher = commands.getoutput("/usr/lib/linuxmint/common/mint-which-launcher.py")	
-		os.system(launcher + " -u " + username + " \"" + browser + "\" &")		
+		os.system("sudo -u " + username + " /usr/lib/linuxmint/common/launch_browser_as.py \"" + model.selected_application.website + "\"")		
 
 def install(widget, model, wTree, username):	
 	if model.selected_application != None:
