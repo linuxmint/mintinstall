@@ -6,7 +6,7 @@ import commands
 
 search_txt = sys.argv[1]
 search_txt = search_txt.replace(" ", "_")
-releaseID = commands.getoutput("cat /etc/linuxmint/version/mintinstall/release.id")
+releaseID = commands.getoutput("cat /usr/share/linuxmint/mintinstall/release.id")
 if os.path.exists("/usr/bin/gconftool-2"):
 	browser = commands.getoutput("gconftool-2 --get /desktop/gnome/url-handlers/http/command")
 else:

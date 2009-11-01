@@ -43,5 +43,5 @@ for line in lines:
 		os.chdir(home + "/mintfiles")
 		os.system("mint-compress " + pkg_name)
 		os.system("rm -rf " + pkg_name)
-		os.system("echo \"INSERT INTO items (id, category, name, description, \`file\`, license, website, size, added, \`release\`) VALUES (0, 21, '" + app_name + "', '" + description + "', 'files/7/" + pkg_name + ".mint', 'Open Source', '" + homepage + "', " + str(size) + ", '" + today + "', 5);\" >> insert.sql ") 
+		os.system("echo \"INSERT INTO items (id, category, name, description, \`file\`, license, website, size, added, \`release\`) VALUES (0, 21, '" + app_name + "', '" + description + "', 'files/8/" + pkg_name + ".mint', 'Open Source', '" + homepage + "', " + str(size) + ", '" + today + "', 6);\" >> insert.sql ") 
 pkgfile.close()
