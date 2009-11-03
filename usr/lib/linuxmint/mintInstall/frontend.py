@@ -20,7 +20,7 @@ from subprocess import Popen, PIPE
 gtk.gdk.threads_init()
 
 # i18n
-gettext.install("messages", "/usr/lib/linuxmint/mintInstall/locale")
+gettext.install("mintinstall", "/usr/share/linuxmint/locale")
 
 # i18n for menu item
 menuName = _("Software Manager")

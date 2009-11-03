@@ -1,0 +1,74 @@
+#!/usr/bin/python
+
+import commands, os
+
+sourceFile = "usr/lib/linuxmint/mintInstall/frontend.py"
+
+menuName = commands.getoutput("cat " + sourceFile + " | grep menuName")
+menuName = menuName.replace("menuName", "")
+menuName = menuName.replace("=", "")
+menuName = menuName.replace("_(", "")
+menuName = menuName.replace("\"", "")
+menuName = menuName.replace(")", "")
+menuName = menuName.strip()
+
+menuComment = commands.getoutput("cat " + sourceFile + " | grep menuComment")
+menuComment = menuComment.replace("menuComment", "")
+menuComment = menuComment.replace("=", "")
+menuComment = menuComment.replace("_(", "")
+menuComment = menuComment.replace("\"", "")
+menuComment = menuComment.replace(")", "")
+menuComment = menuComment.strip()
+
+desktopFile = open("usr/share/applications/mintInstall.desktop", "w")
+desktopFile2 = open("usr/share/applications/mintInstall_mime.desktop", "w")
+desktopFile.writelines("""[Desktop Entry]
+Name=Software Manager
+""")
+desktopFile2.writelines("""[Desktop Entry]
+Name=Software Manager
+""")
+
+import gettext
+gettext.install("mintinstall", "/usr/share/linuxmint/locale")
+
+for directory in os.listdir("/usr/share/linuxmint/locale"):
+	if os.path.isdir(os.path.join("/usr/share/linuxmint/locale", directory)):
+		try:
+			language = gettext.translation('mintinstall', "/usr/share/linuxmint/locale", languages=[directory])
+			language.install()
+			desktopFile.writelines("Name[%s]=%s\n" % (directory, _(menuName)))
+			desktopFile2.writelines("Name[%s]=%s\n" % (directory, _(menuName)))
+		except:
+			pass
+
+desktopFile.writelines("Comment=Install new applications\n")
+desktopFile2.writelines("Comment=Install new applications\n")
+
+for directory in os.listdir("/usr/share/linuxmint/locale"):
+	if os.path.isdir(os.path.join("/usr/share/linuxmint/locale", directory)):
+		try:
+			language = gettext.translation('mintinstall', "/usr/share/linuxmint/locale", languages=[directory])
+			language.install()			
+			desktopFile.writelines("Comment[%s]=%s\n" % (directory, _(menuComment)))
+			desktopFile2.writelines("Comment[%s]=%s\n" % (directory, _(menuComment)))
+		except:
+			pass
+
+desktopFile.writelines("""Exec=mintinstall
+Icon=/usr/lib/linuxmint/mintInstall/icon.svg
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Application;System;Settings
+""")
+desktopFile2.writelines("""Exec=mintInstall
+Icon=/usr/share/linuxmint/logo.png
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Application;System;Settings
+NoDisplay=true
+MimeType=application/x-mint;
+""")
+

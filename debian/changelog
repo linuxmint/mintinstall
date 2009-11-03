@@ -1,3 +1,9 @@
+mintinstall (6.4.7) helena; urgency=low
+
+  * Modified translation framework
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue,  3 Nov 2009 10:59:00 +0000
+
 mintinstall (6.4.6) helena; urgency=low
 
   * Changed path of release.id to use mintinstall-data instead of mint-info
