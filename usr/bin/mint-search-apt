@@ -22,7 +22,7 @@ def onRowActivated(widget, path, column):
 	os.system("mint-make-cmd " + name + " &")
 
 # i18n
-gettext.install("messages", "/usr/lib/linuxmint/mintInstall/locale")
+gettext.install("mintinstall", "/usr/share/linuxmint/locale")
 
 suggestion = sys.argv[1]
 

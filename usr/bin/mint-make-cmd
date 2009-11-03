@@ -8,7 +8,7 @@ import gettext
 import gtk
 
 # i18n
-gettext.install("messages", "/usr/lib/linuxmint/mintInstall/locale")
+gettext.install("mintinstall", "/usr/share/linuxmint/locale")
 
 os.system("mkdir -p " + home + "/.linuxmint/mintInstall/tmp")
 os.system("rm -rf " + home + "/.linuxmint/mintInstall/tmp/*")

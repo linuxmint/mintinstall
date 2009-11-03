@@ -7,7 +7,7 @@ from subprocess import Popen, PIPE
 window_id = sys.argv[1]
 packages = sys.argv[2:]
 
-gettext.install("messages", "/usr/lib/linuxmint/mintInstall/locale")
+gettext.install("mintinstall", "/usr/share/linuxmint/locale")
 
 cmd = ["sudo", "/usr/sbin/synaptic", "--hide-main-window", "--non-interactive", "--parent-window-id", window_id]
 cmd.append("--progress-str")

@@ -10,7 +10,7 @@ import gtk.glade
 import commands
 
 # i18n
-gettext.install("messages", "/usr/lib/linuxmint/mintInstall/locale")
+gettext.install("mintinstall", "/usr/share/linuxmint/locale")
 
 suggestion = sys.argv[1]
 
