@@ -1,3 +1,9 @@
+mintinstall (6.4.8) helena; urgency=low
+
+  * Made window fully opaque
+
+ -- Clement Lefebvre <root@linuxmint.com>  Sat,  14 Nov 2009 10:10:00 +0000
+
 mintinstall (6.4.7) helena; urgency=low
 
   * Modified translation framework

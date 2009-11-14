@@ -7,7 +7,6 @@
     <property name="height_request">540</property>
     <property name="visible">True</property>
     <property name="window_position">center-always</property>
-    <property name="opacity">0.97999999999999998</property>
     <child>
       <widget class="GtkVBox" id="vbox1">
         <property name="visible">True</property>
@@ -578,7 +577,7 @@
             <property name="visible">True</property>
             <child>
               <widget class="GtkButton" id="button_screen_close">
-                <property name="label" translatable="yes">gtk-close</property>
+                <property name="label">gtk-close</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -646,7 +645,7 @@
                     <property name="layout_style">spread</property>
                     <child>
                       <widget class="GtkButton" id="button_portals_add">
-                        <property name="label" translatable="yes">gtk-add</property>
+                        <property name="label">gtk-add</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -660,7 +659,7 @@
                     </child>
                     <child>
                       <widget class="GtkButton" id="button_portals_modify">
-                        <property name="label" translatable="yes">gtk-edit</property>
+                        <property name="label">gtk-edit</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -674,7 +673,7 @@
                     </child>
                     <child>
                       <widget class="GtkButton" id="button_portals_delete">
-                        <property name="label" translatable="yes">gtk-remove</property>
+                        <property name="label">gtk-remove</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -717,7 +716,7 @@
             <property name="layout_style">spread</property>
             <child>
               <widget class="GtkButton" id="button_preferences_cancel">
-                <property name="label" translatable="yes">gtk-cancel</property>
+                <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -731,7 +730,7 @@
             </child>
             <child>
               <widget class="GtkButton" id="button_preferences_ok">
-                <property name="label" translatable="yes">gtk-apply</property>
+                <property name="label">gtk-apply</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -910,7 +909,7 @@
             <property name="visible">True</property>
             <child>
               <widget class="GtkButton" id="button_versions_close">
-                <property name="label" translatable="yes">gtk-close</property>
+                <property name="label">gtk-close</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -979,7 +978,7 @@
             <property name="layout_style">spread</property>
             <child>
               <widget class="GtkButton" id="button_close">
-                <property name="label" translatable="yes">gtk-close</property>
+                <property name="label">gtk-close</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -993,7 +992,7 @@
             </child>
             <child>
               <widget class="GtkButton" id="button_apply">
-                <property name="label" translatable="yes">gtk-apply</property>
+                <property name="label">gtk-apply</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
