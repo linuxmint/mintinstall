@@ -291,7 +291,10 @@ class mintInstallWindow:
 			self.needToInstallSomething = True
 	
 	if ( not self.needToInstallSomething ):
-		wTree.get_widget("main_window").set_title(_("Upgrade %s?") % (self.name))
+		#wTree.get_widget("main_window").set_title(_("Upgrade %s?") % (self.name))
+		wTree.get_widget("txt_name").set_text("<big><b>" + _("Upgrade %s?") % (self.name) + "</b></big>")
+		wTree.get_widget("txt_name").set_use_markup(True)
+		wTree.get_widget("txt_guidance").set_text(_("The following packages will be upgraded:"))
 		wTree.get_widget("main_button_label").set_text(_("Upgrade"))
 
 	if (len(self.repositories) > 0):

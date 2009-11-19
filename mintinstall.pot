@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-11-17 12:25+0000\n"
+"POT-Creation-Date: 2009-11-19 16:17+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -48,7 +48,7 @@ msgid "Using the following repositories:"
 msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/mintInstall.py:206
-#: usr/lib/linuxmint/mintInstall/mintInstall.py:438
+#: usr/lib/linuxmint/mintInstall/mintInstall.py:441
 #: usr/lib/linuxmint/mintInstall/frontend.py:58
 #: usr/lib/linuxmint/mintInstall/frontend.py:154
 msgid "Install"
@@ -69,63 +69,67 @@ msgstr ""
 msgid "Default repositories"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintInstall.py:294
+#: usr/lib/linuxmint/mintInstall/mintInstall.py:295
 #, python-format
 msgid "Upgrade %s?"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintInstall.py:295
+#: usr/lib/linuxmint/mintInstall/mintInstall.py:297
+msgid "The following packages will be upgraded:"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintInstall.py:298
 msgid "Upgrade"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintInstall.py:339
+#: usr/lib/linuxmint/mintInstall/mintInstall.py:342
 #: usr/lib/linuxmint/mintInstall/frontend.py:26
 #: usr/lib/linuxmint/mintInstall/frontend.py:635
 msgid "Software Manager"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintInstall.py:430
+#: usr/lib/linuxmint/mintInstall/mintInstall.py:433
 msgid "Find Software"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintInstall.py:433
+#: usr/lib/linuxmint/mintInstall/mintInstall.py:436
 msgid "Go to the Linux Mint Software Portal"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintInstall.py:434
+#: usr/lib/linuxmint/mintInstall/mintInstall.py:437
 msgid "Search for a .mint application"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintInstall.py:435
+#: usr/lib/linuxmint/mintInstall/mintInstall.py:438
 msgid "Go to the GetDeb Portal"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintInstall.py:436
+#: usr/lib/linuxmint/mintInstall/mintInstall.py:439
 msgid "Search for a .deb package"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintInstall.py:437
+#: usr/lib/linuxmint/mintInstall/mintInstall.py:440
 #: usr/lib/linuxmint/mintInstall/frontend.py:645
 msgid "Search"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintInstall.py:439
+#: usr/lib/linuxmint/mintInstall/mintInstall.py:442
 msgid "Show"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintInstall.py:440
+#: usr/lib/linuxmint/mintInstall/mintInstall.py:443
 msgid "Go to the Ubuntu repository"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintInstall.py:441
+#: usr/lib/linuxmint/mintInstall/mintInstall.py:444
 msgid "Go to the Linux Mint repository"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintInstall.py:453
+#: usr/lib/linuxmint/mintInstall/mintInstall.py:456
 msgid "Your APT sources were corrupted."
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintInstall.py:453
+#: usr/lib/linuxmint/mintInstall/mintInstall.py:456
 msgid ""
 "Your APT sources were not correctly restored after you last ran mintInstall. "
 "They now have been restored."
