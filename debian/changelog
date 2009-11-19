@@ -1,3 +1,9 @@
+mintinstall (6.5.1) helena; urgency=low
+
+  * Decompress uses both gzip and tar directly, so it works for tar and for tar.gz archives
+
+ -- Clement Lefebvre <root@linuxmint.com>  Thu,  19 Nov 2009 18:33:00 +0000
+
 mintinstall (6.5.0) helena; urgency=low
 
   * mintInstall window, removed title and used "Upgrade" instead of "Install" in the text labels when suitable
