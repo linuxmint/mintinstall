@@ -1,0 +1,230 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US" xml:lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
+    <title></title>
+   
+    <link rel="stylesheet" href="/usr/lib/linuxmint/mintInstall/data/templates/style.css" type="text/css" media="screen" />
+
+ <script type="text/javascript">
+  function changeTitle(title) { 
+    document.title = title; 
+  }
+  function fadeIn(objId,opacity) {
+    if (document.getElementById) {
+      obj = document.getElementById(objId);
+      if (opacity <= 100) {
+        setOpacity(obj, opacity);
+        opacity += 10;
+        window.setTimeout("fadeIn('"+objId+"',"+opacity+")", 100);
+      }
+    }
+  }
+            
+  function setOpacity(obj, opacity) {
+    opacity = (opacity == 100)?99.999:opacity;
+    obj.style.opacity = opacity/100;
+  }
+  function initElement(id) {
+    element = document.getElementById(id);
+    setOpacity(element, 0);
+    element.style.visibility = 'visible';
+    fadeIn(id,0);
+  }
+  function action_button_clicked() {
+    //document.getElementById("button_$action_button_value").disabled = true;
+    document.getElementById("button_$action_button_value").style.visibility = "hidden";
+    changeTitle("call:on_button_clicked");
+  }
+  function action_screenshot_clicked() {   
+    changeTitle("call:on_screenshot_clicked");
+    changeTitle("nop");
+  }
+  function action_website_clicked() {   
+    changeTitle("call:on_website_clicked");
+    changeTitle("nop");
+  }
+  function enable_action_button() {
+    document.getElementById("button_$action_button_value").disabled = false;
+  }
+  function disable_action_button() {
+    document.getElementById("button_$action_button_value").disabled = true;
+  }
+
+  function addReview(mydate, username, rating, comment) {
+	var table = document.getElementById("reviewsTable");
+	var rowCount = table.rows.length;
+	var row = table.insertRow(rowCount);
+
+	var cell1 = row.insertCell(0);
+	cell1.innerHTML = mydate;
+
+	var cell2 = row.insertCell(1);
+	cell2.innerHTML = username;
+
+	var cell3 = row.insertCell(2);
+	newImg = document.createElement("img");
+	newImg.src = rating;
+	cell3.appendChild(newImg);
+
+	var cell4 = row.insertCell(3);
+	cell4.innerHTML = comment;
+  }
+
+  function clearReviews() {
+	var table = document.getElementById("reviewsTable");
+	for(var i = table.rows.length - 1; i >= 0; i--)
+	{
+	    table.deleteRow(i);
+	}
+  }
+
+  window.onload = function() {
+    initElement('screenshot_thumbnail_img');
+  }
+ </script>
+
+  <style type="text/css">
+    body {
+      margin: 0; 
+      padding: 1em 12px;   
+    }
+    h1 {
+      font-size:140%; 
+      margin: 0 0 1em;
+    }
+    #description {
+      font-size: 80%;
+    }
+
+    #icon {
+      width:64px;
+      height:64px;
+      z-index:-1;      
+      position:absolute;
+      -webkit-background-clip: border-box;
+      -webkit-background-origin: border-box;
+      -webkit-background-size: 32px 32px;
+    }
+
+    .screenshot_thumbnail {
+	width:${screenshot_width}px; 
+	height:${screenshot_height}px;
+	float:right;	
+	border-style: solid; 
+	border-width: 0px; 
+	border-color: #FFFFFF;
+	margin: 0 0 1em 1em;
+	-khtml-user-drag:none;
+    }
+  
+    #screenshot_thumbnail_img {
+	visibility:hidden;
+	border-style: solid; 
+	border-width: 0px; 
+	border-color: #FFFFFF; 
+	background:url('${screenshot_thumbnail_url}') no-repeat;    
+	cursor: -webkit-zoom-in
+    }
+    #text {
+      float:left; 
+      padding-left:86px;
+    }   
+    #package_information { 
+      font-size:70%; 
+    }
+    #maintainance_time { 
+      font-size:70%; 
+    }
+    #license { 
+      font-size:70%; 
+    }
+    #price { 
+      font-size:70%; 
+    } 
+    #action_button_description { 
+      font-size:70%; 
+    } 
+    #reviewsTable { 
+      font-size:90%; 
+      #float:left; 
+      padding-left:30px;
+    }  
+    #infoTable { 
+      font-size:70%; 
+      float:left; 
+      padding-left:86px;
+      padding-bottom:20px;
+    }  
+ </style>
+
+</head>
+<body>
+
+   <div id="button_${action_button_value}" align="right">
+	                                <span class="art-button-wrapper" align="right">
+        	                        <span class="l"> </span>
+	                                <span class="r"> </span>
+	                                <a href="javascript:action_button_clicked()" class="art-button">$action_button_label</a>                                </span>
+        	                </div>
+               
+                     	
+
+                            <div class="art-PostContent">
+<div class="boxinfo">
+				<table border="0" cellspacing="0" cellpadding="0">
+                                  <tbody>
+
+					<tr>
+					
+					<td>
+					
+					<table cellspacing="5" style="width: 100%">
+					<tr>
+						<td valign="top" align="center">
+							<a href="javascript:action_screenshot_clicked()"><img id="screenshot_thumbnail_img" class="screenshot_thumbnail" onerror="this.src='/usr/lib/linuxmint/mintInstall/data/no-screenshot.png'" src="http://community.linuxmint.com/thumbnail.php?pic=/var/www/community.linuxmint.com/img/screenshots/$appname.png"></a>
+
+						</td>
+
+						<td valign="top" align="center" style="width: 90%">
+							 <h2 class="art-PostHeaderIcon-wrapper">
+	        			                        <span class="art-PostHeader">$appname</span>				
+				                            </h2>
+								<center>$summary<br/>$size<br/><i><a href="javascript:action_website_clicked()">$homepage</a></i></center>
+						</td>			
+						<td valign="top" align="center">
+							<b>Score:</b><br/><img src="$rating"/>
+						</td>
+					</tr>
+					</table>
+					
+					</td>
+					</tr>
+					<tr><td>
+						<p>$description</p></div></td></tr>
+											
+					<tr><td>
+					
+					$reviews
+					<table id="reviewsTable"></table>
+					
+					</td></tr>
+
+				</tbody>
+				</table>
+</div>
+                                                              	
+                            </div>
+                            <div class="cleared"></div>
+
+                        </div>
+                        
+                            </div>
+              
+
+
+  
+    
+</body>
+</html>
