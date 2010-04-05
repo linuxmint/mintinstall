@@ -199,6 +199,19 @@
 					</tr>
 					</table>
 					
+<center>
+<form action="http://community.linuxmint.com/index.php/software/remote_review" method="post">
+<input type="hidden" name="username" value="$username">
+<input type="hidden" name="password" value="$password">
+<input type="hidden" name="package" value="$appname">
+Your review: <select name="score">
+$score_options
+</select>
+<input type="text" name="comment" size="40" value="$comment"/>
+<input type="submit" value="Submit review"/>
+</form>
+</center>
+
 					</td>
 					</tr>
 					<tr><td>

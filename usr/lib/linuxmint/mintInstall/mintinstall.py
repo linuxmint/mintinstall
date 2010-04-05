@@ -26,6 +26,7 @@ from subprocess import Popen, PIPE
 from widgets.pathbar2 import NavigationBar
 from widgets.searchentry import SearchEntry
 from user import home
+import base64
 
 pygtk.require("2.0")
 
@@ -370,6 +371,12 @@ class Application():
 
 		#prefsMenuItem.connect("activate", open_preferences, treeview_update, statusIcon, wTree)
 		editSubmenu.append(prefsMenuItem)
+
+		accountMenuItem = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
+		accountMenuItem.get_child().set_text(_("Account information"))
+		accountMenuItem.connect("activate", self.open_account_info)
+		editSubmenu.append(accountMenuItem)
+
 		if os.path.exists("/usr/bin/software-properties-gtk") or os.path.exists("/usr/bin/software-properties-kde"):
 			sourcesMenuItem = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)	
 			sourcesMenuItem.set_image(gtk.image_new_from_file("/usr/lib/linuxmint/mintUpdate/icons/software-properties.png"))
@@ -542,8 +549,7 @@ class Application():
 		try:
 			prefs["search_in_description"] = (config['search']['search_in_description'] == "True")
 		except:
-			prefs["search_in_description"] = False
-		
+			prefs["search_in_description"] = False		
 		
 		return prefs
 
@@ -554,6 +560,41 @@ class Application():
 		elif os.path.exists("/usr/bin/software-properties-kde"):
 			os.system("%s /usr/bin/software-properties-kde" % launcher) 
 		self.close_application(None, None, 9) # Status code 9 means we want to restart ourselves
+
+	def open_account_info(self, widget):
+		gladefile = "/usr/lib/linuxmint/mintInstall/mintinstall.glade"
+		wTree = gtk.glade.XML(gladefile, "window_account")
+		wTree.get_widget("window_account").set_title(_("Account information"))
+		wTree.get_widget("window_account").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")			
+		wTree.get_widget("label1").set_label("<b>%s</b>" % _("Your community account"))
+		wTree.get_widget("label1").set_use_markup(True)
+		wTree.get_widget("label2").set_label("<i><small>%s</small></i>" % _("Fill in your account info to review applications"))
+		wTree.get_widget("label2").set_use_markup(True)
+		wTree.get_widget("label3").set_label(_("Username:"))
+		wTree.get_widget("label4").set_label(_("Password:"))
+		wTree.get_widget("entry_username").set_text(self.prefs["username"])
+		wTree.get_widget("entry_password").set_text(base64.b64decode(self.prefs["password"]))
+		wTree.get_widget("close_button").connect("clicked", self.close_window, wTree.get_widget("window_account"))
+		wTree.get_widget("entry_username").connect("notify::text", self.update_account_info, "username")
+		wTree.get_widget("entry_password").connect("notify::text", self.update_account_info, "password")
+		wTree.get_widget("window_account").show_all()
+
+	def close_window(self, widget, window):
+		window.hide()
+
+	def update_account_info(self, entry, prop, configName):
+		config = ConfigObj(home + "/.linuxmint/mintinstall.conf")
+		if (not config.has_key('account')):
+			config['account'] = {}
+
+		if (configName == "password"):
+			text = base64.b64encode(entry.props.text)
+		else:
+			text = entry.props.text
+		
+		config['account'][configName] = text
+		config.write()
+		self.prefs = self.read_configuration()
 
 	def open_about(self, widget):
 		dlg = gtk.AboutDialog()
@@ -1018,6 +1059,29 @@ class Application():
 
 		# Load package info
 		subs = {}
+		subs['username'] = self.prefs["username"]
+		subs['password'] = self.prefs["password"]
+		subs['comment'] = ""
+		subs['score'] = 0
+
+		if self.prefs["username"] != "":
+			for review in package.reviews:
+				if review.username == self.prefs["username"]:
+					subs['comment'] = review.comment
+					subs['score'] = review.rating
+
+		score_options = ["", _("Hate it"), _("Not a fan"), _("So so"), _("Like it"), _("Awesome!")]
+		subs['score_options'] = ""
+		for score in range(6):
+			if (score == subs['score']):
+				option = "<option value=%d %s>%s</option>" % (score, "SELECTED", score_options[score])
+			else:
+				option = "<option value=%d %s>%s</option>" % (score, "", score_options[score])
+
+			subs['score_options'] = subs['score_options'] + option	
+
+		print subs['score_options']
+
 		subs['appname'] = package.name
 		subs['pkgname'] = package.pkg.name
 	        subs['description'] = package.pkg.candidate.description		
