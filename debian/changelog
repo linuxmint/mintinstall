@@ -1,3 +1,9 @@
+mintinstall (7.0.1) isadora; urgency=low
+
+  * Apps can now be reviewed from within the Software Manager
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon,  5 Apr 2010 16:33:00 +0000
+
 mintinstall (7.0.0) isadora; urgency=low
 
   * Complete rewrite 
