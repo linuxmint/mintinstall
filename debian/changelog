@@ -1,3 +1,9 @@
+mintinstall (7.0.3) isadora; urgency=low
+
+  * Updated categories
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon,  12 Apr 2010 14:38:00 +0000
+
 mintinstall (7.0.2) isadora; urgency=low
 
   * Replaced ttf-droid with ttf-freefont in dependencies

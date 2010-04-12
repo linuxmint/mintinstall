@@ -833,26 +833,51 @@ class Application():
 
 	def add_categories(self):
 		self.categories = []
-		self.root_category = Category(_("Categories"), "applications-other", ("titi", "toto"), None, self.categories)	
+		self.root_category = Category(_("Categories"), "applications-other", ("null"), None, self.categories)	
 		featured = Category(_("Featured"), "emblem-special", ("null"), self.root_category, self.categories)
-		featured.matchingPackages = ("firefox", "opera", "thunderbird", "googleearth", "virtualbox-3.0", "virtualbox-3.1", "acroread")
+		featured.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/featured.list")
 		Category(_("Accessories"), "applications-utilities", ("accessories", "utils"), self.root_category, self.categories)
 		Category(_("Education"), "applications-accessories", ("education", "math"), self.root_category, self.categories)
-		games = Category(_("Games"), "applications-games", ("games", "titi"), self.root_category, self.categories)
-		shooters = Category(_("FPS"), "applications-games", ("toto", "titi"), games, self.categories)
-		shooters.matchingPackages = ("nexuiz", "open-arena", "urban-terror", "alien-arena")
-		Category(_("Graphics"), "applications-graphics", ("graphics", "titi"), self.root_category, self.categories)
+		games = Category(_("Games"), "applications-games", ("games"), self.root_category, self.categories)
+
+		subcat = Category(_("Board games"), "applications-games", ("null"), games, self.categories)
+		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-board.list")
+
+		subcat = Category(_("First-person shooters"), "applications-games", ("null"), games, self.categories)
+		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-fps.list")
+
+		subcat = Category(_("Real-time strategy"), "applications-games", ("null"), games, self.categories)
+		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-rts.list")
+
+		subcat = Category(_("Turn-based strategy"), "applications-games", ("null"), games, self.categories)
+		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-tbs.list")
+
+		subcat = Category(_("Emulators"), "applications-games", ("null"), games, self.categories)
+		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-emulators.list")
+
+		subcat = Category(_("Simulation and racing"), "applications-games", ("null"), games, self.categories)
+		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-simulations.list")
+
+		Category(_("Graphics"), "applications-graphics", ("graphics"), self.root_category, self.categories)
 		internet = Category(_("Internet"), "applications-internet", ("mail", "web", "net"), self.root_category, self.categories)
-		Category(_("Email"), "applications-internet", ("mail", "titi"), internet, self.categories)
-		Category(_("Web"), "applications-internet", ("web", "titi"), internet, self.categories)				
+		Category(_("Email"), "applications-internet", ("mail"), internet, self.categories)
+		Category(_("Web"), "applications-internet", ("web"), internet, self.categories)				
 		Category(_("Office"), "applications-office", ("office", "editors"), self.root_category, self.categories)
 		Category(_("Science"), "applications-science", ("science", "math"), self.root_category, self.categories)
-		Category(_("Sound & Video"), "applications-multimedia", ("multimedia", "video"), self.root_category, self.categories)
-		Category(_("System Tools"), "applications-system", ("system", "admin"), self.root_category, self.categories)
-		#Category(_("Universal Access"), "accessibility-directory", ("accessibility", "titi"), self.root_category, self.categories)
+		Category(_("Sound and video"), "applications-multimedia", ("multimedia", "video"), self.root_category, self.categories)
+		Category(_("System tools"), "applications-system", ("system", "admin"), self.root_category, self.categories)		
 		Category(_("Programming"), "applications-development", ("devel", ""), self.root_category, self.categories)
 		self.category_other = Category(_("Other"), "applications-other", ("other", ""), self.root_category, self.categories)
-		self.category_all = Category(_("System Packages"), "emblem-package", ("all", ""), self.root_category, self.categories)
+		self.category_all = Category(_("System packages"), "emblem-package", ("all", ""), self.root_category, self.categories)
+
+	def file_to_array(self, filename):
+		array = []
+		f = open(filename)
+		for line in f:
+			line = line.replace("\n","").replace("\r","").strip();
+			if line != "":
+				array.append(line)				
+		return array
 	
 	def add_packages(self):
 		self.packages = []
@@ -1079,8 +1104,6 @@ class Application():
 				option = "<option value=%d %s>%s</option>" % (score, "", score_options[score])
 
 			subs['score_options'] = subs['score_options'] + option	
-
-		print subs['score_options']
 
 		subs['appname'] = package.name
 		subs['pkgname'] = package.pkg.name

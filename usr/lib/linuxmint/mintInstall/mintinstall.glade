@@ -138,6 +138,8 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="orientation">vertical</property>
+                    <property name="position">100</property>
+                    <property name="position_set">True</property>
                     <child>
                       <widget class="GtkScrolledWindow" id="scrolled_mixed_categories">
                         <property name="visible">True</property>
