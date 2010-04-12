@@ -1,3 +1,10 @@
+mintinstall (7.0.2) isadora; urgency=low
+
+  * Replaced ttf-droid with ttf-freefont in dependencies
+  * Added dependency on python-imaging
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon,  12 Apr 2010 10:31:00 +0000
+
 mintinstall (7.0.1) isadora; urgency=low
 
   * Apps can now be reviewed from within the Software Manager
