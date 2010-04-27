@@ -837,7 +837,10 @@ class Application():
 		featured = Category(_("Featured"), "emblem-special", ("null"), self.root_category, self.categories)
 		featured.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/featured.list")
 		Category(_("Accessories"), "applications-utilities", ("accessories", "utils"), self.root_category, self.categories)
-		Category(_("Education"), "applications-accessories", ("education", "math"), self.root_category, self.categories)
+
+		subcat = Category(_("Education"), "applications-accessories", ("education", "math"), self.root_category, self.categories)
+		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/education.list")
+
 		games = Category(_("Games"), "applications-games", ("games"), self.root_category, self.categories)
 
 		subcat = Category(_("Board games"), "applications-games", ("null"), games, self.categories)
@@ -858,10 +861,38 @@ class Application():
 		subcat = Category(_("Simulation and racing"), "applications-games", ("null"), games, self.categories)
 		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-simulations.list")
 
-		Category(_("Graphics"), "applications-graphics", ("graphics"), self.root_category, self.categories)
+		graphics = Category(_("Graphics"), "applications-graphics", ("graphics"), self.root_category, self.categories)
+		graphics.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics.list")
+
+		subcat = Category(_("3D"), "applications-graphics", ("null"), graphics, self.categories)
+		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-3d.list")
+
+		subcat = Category(_("Drawing"), "applications-graphics", ("null"), graphics, self.categories)
+		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-drawing.list")
+
+		subcat = Category(_("Photography"), "applications-graphics", ("null"), graphics, self.categories)
+		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-photography.list")
+
+		subcat = Category(_("Publishing"), "applications-graphics", ("null"), graphics, self.categories)
+		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-publishing.list")
+
+		subcat = Category(_("Scanning"), "applications-graphics", ("null"), graphics, self.categories)
+		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-scanning.list")
+
+		subcat = Category(_("Viewers"), "applications-graphics", ("null"), graphics, self.categories)
+		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-viewers.list")
+
 		internet = Category(_("Internet"), "applications-internet", ("mail", "web", "net"), self.root_category, self.categories)
-		Category(_("Email"), "applications-internet", ("mail"), internet, self.categories)
-		Category(_("Web"), "applications-internet", ("web"), internet, self.categories)				
+
+		subcat = Category(_("Web"), "applications-internet", ("null"), internet, self.categories)		
+		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/internet-web.list")
+		subcat = Category(_("Email"), "applications-internet", ("null"), internet, self.categories)
+		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/internet-email.list")
+		subcat = Category(_("Chat"), "applications-internet", ("null"), internet, self.categories)				
+		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/internet-chat.list")
+		subcat = Category(_("File sharing"), "applications-internet", ("null"), internet, self.categories)				
+		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/internet-filesharing.list")
+
 		Category(_("Office"), "applications-office", ("office", "editors"), self.root_category, self.categories)
 		Category(_("Science"), "applications-science", ("science", "math"), self.root_category, self.categories)
 		Category(_("Sound and video"), "applications-multimedia", ("multimedia", "video"), self.root_category, self.categories)

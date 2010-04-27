@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-04-05 16:33+0100\n"
+"POT-Creation-Date: 2010-04-27 11:13+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -228,21 +228,21 @@ msgid "Password:"
 msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/mintinstall.py:644
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1091
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1145
 #: usr/lib/linuxmint/mintInstall/frontend.py:195
 #: usr/lib/linuxmint/mintInstall/frontend.py:387
 msgid "B"
 msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/mintinstall.py:646
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1093
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1147
 #: usr/lib/linuxmint/mintInstall/frontend.py:197
 #: usr/lib/linuxmint/mintInstall/frontend.py:389
 msgid "KB"
 msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/mintinstall.py:648
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1095
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1149
 #: usr/lib/linuxmint/mintInstall/frontend.py:77
 #: usr/lib/linuxmint/mintInstall/frontend.py:199
 #: usr/lib/linuxmint/mintInstall/frontend.py:391
@@ -250,7 +250,7 @@ msgid "MB"
 msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/mintinstall.py:650
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1097
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1151
 #: usr/lib/linuxmint/mintInstall/frontend.py:201
 #: usr/lib/linuxmint/mintInstall/frontend.py:393
 msgid "GB"
@@ -313,101 +313,154 @@ msgstr ""
 msgid "Accessories"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:840
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:841
 #: usr/lib/linuxmint/mintInstall/frontend.py:1190
 msgid "Education"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:841
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:844
 #: usr/lib/linuxmint/mintInstall/frontend.py:1155
 msgid "Games"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:842
-msgid "FPS"
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:846
+msgid "Board games"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:844
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:849
+msgid "First-person shooters"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:852
+msgid "Real-time strategy"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:855
+#: usr/lib/linuxmint/mintInstall/frontend.py:1157
+msgid "Turn-based strategy"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:858
+#: usr/lib/linuxmint/mintInstall/frontend.py:1160
+msgid "Emulators"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:861
+msgid "Simulation and racing"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:864
 #: usr/lib/linuxmint/mintInstall/frontend.py:1174
 msgid "Graphics"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:845
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:867
+msgid "3D"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:870
+msgid "Drawing"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:873
+msgid "Photography"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:876
+#: usr/lib/linuxmint/mintInstall/frontend.py:1183
+msgid "Publishing"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:879
+msgid "Scanning"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:882
+msgid "Viewers"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:885
 #: usr/lib/linuxmint/mintInstall/frontend.py:1159
 msgid "Internet"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:846
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:887
+msgid "Web"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:889
 #: usr/lib/linuxmint/mintInstall/frontend.py:1162
 msgid "Email"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:847
-msgid "Web"
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:891
+msgid "Chat"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:848
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:893
+msgid "File sharing"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:896
 #: usr/lib/linuxmint/mintInstall/frontend.py:1169
 msgid "Office"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:849
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:897
 msgid "Science"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:850
-#: usr/lib/linuxmint/mintInstall/frontend.py:1165
-msgid "Sound & Video"
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:898
+msgid "Sound and video"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:851
-#: usr/lib/linuxmint/mintInstall/frontend.py:1191
-msgid "System Tools"
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:899
+msgid "System tools"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:853
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:900
 #: usr/lib/linuxmint/mintInstall/frontend.py:1189
 msgid "Programming"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:854
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:901
 msgid "Other"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:855
-msgid "System Packages"
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:902
+msgid "System packages"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1044
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1100
 msgid "Search results"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1073
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1129
 msgid "Hate it"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1073
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1129
 msgid "Not a fan"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1073
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1129
 msgid "So so"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1073
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1129
 msgid "Like it"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1073
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1129
 msgid "Awesome!"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1113
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1167
 #: usr/lib/linuxmint/mintInstall/frontend.py:60
 msgid "Remove"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1117
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1171
 #: usr/lib/linuxmint/mintInstall/mintInstall.py:207
 #: usr/lib/linuxmint/mintInstall/mintInstall.py:442
 #: usr/lib/linuxmint/mintInstall/frontend.py:58
@@ -415,7 +468,7 @@ msgstr ""
 msgid "Install"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1136
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1190
 msgid "Reviews:"
 msgstr ""
 
@@ -709,16 +762,8 @@ msgstr ""
 msgid "First person shooters"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:1157
-msgid "Turn-based strategy"
-msgstr ""
-
 #: usr/lib/linuxmint/mintInstall/frontend.py:1158
 msgid "Real time strategy"
-msgstr ""
-
-#: usr/lib/linuxmint/mintInstall/frontend.py:1160
-msgid "Emulators"
 msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/frontend.py:1161
@@ -727,6 +772,10 @@ msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/frontend.py:1164
 msgid "Text editors"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/frontend.py:1165
+msgid "Sound & Video"
 msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/frontend.py:1166
@@ -789,10 +838,6 @@ msgstr ""
 msgid "Spreadsheets"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/frontend.py:1183
-msgid "Publishing"
-msgstr ""
-
 #: usr/lib/linuxmint/mintInstall/frontend.py:1184
 msgid "Graph and flowcharts"
 msgstr ""
@@ -811,6 +856,10 @@ msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/frontend.py:1188
 msgid "Internet Relay Chat"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/frontend.py:1191
+msgid "System Tools"
 msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/frontend.py:1192
