@@ -241,7 +241,7 @@ class TransactionLoop(threading.Thread):
 		transaction.cancel()
 
 	def get_status_description(self, transaction):
-		descriptions = (_("Setting up"),_("Waiting"), _("Waiting for medium"), _("Waiting for config file prompt"), _("Waiting for lock"), _("Running"), _("Loading cache"), _("Downloading"), _("Committing"), _("Cleaning up"), _("Resoling dependencies"), _("Finished"), _("Cancelling"))
+		descriptions = (_("Setting up"),_("Waiting"), _("Waiting for medium"), _("Waiting for config file prompt"), _("Waiting for lock"), _("Running"), _("Loading cache"), _("Downloading"), _("Committing"), _("Cleaning up"), _("Resolving dependencies"), _("Finished"), _("Cancelling"))
 		return descriptions[transaction.status]
 
 	def get_role_description(self, transaction):
