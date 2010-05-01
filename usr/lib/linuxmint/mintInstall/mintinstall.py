@@ -831,6 +831,7 @@ class Application():
 		    # now we need to reset the title
 		    self.browser.execute_script('document.title = "nop"')
 
+	@print_timing
 	def add_categories(self):
 		self.categories = []
 		self.root_category = Category(_("Categories"), "applications-other", ("null"), None, self.categories)	
@@ -909,7 +910,8 @@ class Application():
 			if line != "":
 				array.append(line)				
 		return array
-	
+
+	@print_timing
 	def add_packages(self):
 		self.packages = []
 		cache = apt.Cache()
@@ -928,16 +930,21 @@ class Application():
 					found_category = True
 				else:
 					# Check the matching packages
-					for match in category.matchingPackages:
-						if pkg.name == match:
-							category.packages.append(package)
-							package.categories.append(category)
-							found_category = True
+					if pkg.name in category.matchingPackages:
+					#for match in category.matchingPackages:
+					#	if pkg.name == match:
+					#		category.packages.append(package)
+					#		package.categories.append(category)
+					#		found_category = True
+						category.packages.append(package)
+						package.categories.append(category)
+						found_category = True
 			self.category_all.packages.append(package)
 			if not found_category:
 				self.category_other.packages.append(package)
 				package.categories.append(self.category_other)
 	
+	@print_timing
 	def add_reviews(self):
 		reviews_path = home + "/.linuxmint/mintinstall/reviews.list"
 		if os.path.exists(reviews_path):
@@ -951,6 +958,8 @@ class Application():
 							package.reviews.append(review)
 							review.package = package
 							package.update_stats()
+							break
+
 	
 	def show_category(self, category):		
 		# Load subcategories
