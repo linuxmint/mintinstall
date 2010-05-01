@@ -87,6 +87,8 @@
 
   <style type="text/css">
     body {
+background-image: url('/usr/lib/linuxmint/mintInstall/data/templates/gradient.png');
+      background-repeat: repeat;        
       margin: 0; 
       padding: 1em 12px;   
     }
@@ -188,8 +190,7 @@
 						</td>
 
 						<td valign="top" align="center" style="width: 90%">
-							 <h2 class="art-PostHeaderIcon-wrapper">
-	        			                        <span class="art-PostHeader">$appname</span>				
+							 <h2 class="art-PostHeaderIcon-wrapper"><font color="#222222">$appname</font>
 				                            </h2>
 								<center>$summary<br/>$size<br/><i><a href="javascript:action_website_clicked()">$homepage</a></i></center>
 						</td>			
@@ -220,7 +221,7 @@ $score_options
 					<tr><td>
 					
 					$reviews
-					<table id="reviewsTable"></table>
+					<table id="reviewsTable" cellpadding=2></table>
 					
 					</td></tr>
 

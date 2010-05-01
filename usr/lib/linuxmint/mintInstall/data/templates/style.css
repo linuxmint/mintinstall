@@ -915,7 +915,7 @@ a img
   font-family: "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, Sans-Serif;
   text-decoration: none;
   font-variant: small-caps;
-  color: #4E7029;
+  color: #111111;
 }
 
 .art-PostHeader a:visited, .art-PostHeader a.visited
@@ -923,7 +923,7 @@ a img
   font-family: "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, Sans-Serif;
   text-decoration: none;
   font-variant: small-caps;
-  color: #5D6F5E;
+  color: #111111;
 }
 
 .art-PostHeader a:hover, .art-PostHeader a.hovered
@@ -931,7 +931,7 @@ a img
   font-family: "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, Sans-Serif;
   text-decoration: none;
   font-variant: small-caps;
-  color: #396016;
+  color: #111111;
 }
 /* end PostHeader */
 
@@ -943,7 +943,7 @@ body
   font-size: 12px;
   font-style: normal;
   font-weight: normal;
-  color: #3A453B;
+  color: #333333;
 }
 
 .art-PostContent
@@ -952,7 +952,7 @@ body
   font-style: normal;
   font-weight: normal;
   text-align: justify;
-  color: #3A453B;
+  color: #333333;
 }
 
 
@@ -1113,9 +1113,10 @@ ol
 
 .boxinfo
 {
-	border:solid 1px #BBE693;
+	/*border:solid 1px #BBE693;*/
+	border:solid 1px #AAAAAA;
 	margin:10px 10px 10px 50px;
-        padding:2px 2px 2px 2px;
+        padding:20px 20px 20px 20px;
 }
 
 /* begin PostQuote */
