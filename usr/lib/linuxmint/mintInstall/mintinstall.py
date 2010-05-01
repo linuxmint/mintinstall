@@ -85,7 +85,7 @@ class DownloadReviews(threading.Thread):
 			if numlines_new > numlines:			
 				os.system("mv " + reviews_path_tmp + " " + reviews_path)
 				print "Overwriting reviews file in " + reviews_path
-			self.application.add_reviews()
+			self.application.update_reviews()
 		except Exception, detail:
 			print detail	
 
@@ -325,7 +325,7 @@ class Application():
 
 		self.add_categories()
 		self.add_packages()				
-		#self.add_reviews()
+		self.add_reviews()
 
 		if len(sys.argv) > 1 and sys.argv[1] == "list":
 			# Print packages and their categories and exit
@@ -958,6 +958,28 @@ class Application():
 							package.reviews.append(review)
 							review.package = package
 							package.update_stats()
+							break
+
+	@print_timing
+	def update_reviews(self):
+		reviews_path = home + "/.linuxmint/mintinstall/reviews.list"
+		if os.path.exists(reviews_path):
+			reviews = open(reviews_path)
+			for line in reviews:
+				elements = line.split("~~~")
+				if len(elements) == 5:
+					review = Review(elements[0], float(elements[1]), elements[2], elements[3], elements[4])				
+					for package in self.packages:
+						if package.name == elements[0]:
+							alreadyThere = False
+							for rev in package.reviews:
+								if rev.username == elements[2]:
+									alreadyThere = True
+									break
+							if not alreadyThere:
+								package.reviews.append(review)
+								review.package = package
+								package.update_stats()
 							break
 
 	
