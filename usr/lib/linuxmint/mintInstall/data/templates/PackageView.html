@@ -195,7 +195,7 @@ background-image: url('/usr/lib/linuxmint/mintInstall/data/templates/gradient.pn
 								<center>$summary<br/>$size<br/><i><a href="javascript:action_website_clicked()">$homepage</a></i></center>
 						</td>			
 						<td valign="top" align="center">
-							<b>Score:</b><br/><img src="$rating"/>
+							<b>$label_score </b><br/><img src="$rating"/>
 						</td>
 					</tr>
 					</table>
@@ -205,11 +205,11 @@ background-image: url('/usr/lib/linuxmint/mintInstall/data/templates/gradient.pn
 <input type="hidden" name="username" value="$username">
 <input type="hidden" name="password" value="$password">
 <input type="hidden" name="package" value="$appname">
-Your review: <select name="score">
+$label_your_review <select name="score">
 $score_options
 </select>
 <input type="text" name="comment" size="40" value="$comment"/>
-<input type="submit" value="Submit review"/>
+<input type="submit" value="$label_submit"/>
 </form>
 </center>
 

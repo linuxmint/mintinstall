@@ -1119,7 +1119,7 @@ class Application():
 					elif package.score > 0: 
 						color = "#55AA55"
 					draw.text((32, 0), str(package.score), font=sans26, fill=color)
-					draw.text((13, 33), str(package.num_reviews) + " reviews", font=sans10, fill="#555555")
+					draw.text((13, 33), _("%d reviews") % package.num_reviews, font=sans10, fill="#555555")
 					tmpFile = tempfile.NamedTemporaryFile(delete=False)
 					im.save (tmpFile.name + ".png")			
 					model_applications.set_value(iter, 2, gtk.gdk.pixbuf_new_from_file(tmpFile.name + ".png"))
@@ -1171,7 +1171,10 @@ class Application():
 		subs['pkgname'] = package.pkg.name
 	        subs['description'] = package.pkg.candidate.description		
 		subs['description'] = subs['description'].replace('\n','<br />\n')
-	        subs['summary'] = package.pkg.candidate.summary.capitalize()	
+	        subs['summary'] = package.pkg.candidate.summary.capitalize()
+		subs['label_score'] = _("Score:")	
+		subs['label_submit'] = _("Submit review")	
+		subs['label_your_review'] = _("Your review:")	
 
 		strSize = str(package.pkg.candidate.size) + _("B")
 		if (package.pkg.candidate.size >= 1000):
@@ -1214,7 +1217,7 @@ class Application():
 			elif package.score > 0: 
 				color = "#55AA55"
 			draw.text((32, 0), str(package.score), font=sans26, fill=color)
-			draw.text((13, 33), str(package.num_reviews) + " reviews", font=sans10, fill="#555555")
+			draw.text((13, 33), _("%d reviews") % package.num_reviews, font=sans10, fill="#555555")
 			tmpFile = tempfile.NamedTemporaryFile(delete=False) 
 			im.save (tmpFile.name + ".png")			
 			subs['rating'] = tmpFile.name + ".png"
