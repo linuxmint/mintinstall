@@ -1,3 +1,9 @@
+mintinstall (7.1.1) isadora; urgency=low
+
+  * Localization
+
+ -- Clement Lefebvre <root@linuxmint.com>  Thu,  06 May 2010 14:19:00 +0000
+
 mintinstall (7.1.0) isadora; urgency=low
 
   * Added Java and Skype to featured list

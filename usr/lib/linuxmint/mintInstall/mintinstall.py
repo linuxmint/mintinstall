@@ -1005,7 +1005,7 @@ class Application():
 					iconInfo = theme.lookup_icon("applications-other", 32, 0)
 					if iconInfo and os.path.exists(iconInfo.get_filename()):
 						icon = iconInfo.get_filename()
-				browser.execute_script('addCategory("%s", "%s", "%s")' % (cat.name, str(len(cat.packages)), icon))				
+				browser.execute_script('addCategory("%s", "%s", "%s")' % (cat.name, "%d packages" % len(cat.packages), icon))				
 
 		# Load packages into self.tree_applications		
 		if (len(category.subcategories) == 0):
