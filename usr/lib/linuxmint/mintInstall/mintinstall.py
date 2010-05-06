@@ -1051,7 +1051,7 @@ class Application():
 				elif package.score > 0: 
 					color = "#55AA55"
 				draw.text((32, 0), str(package.score), font=sans26, fill=color)
-				draw.text((13, 33), str(package.num_reviews) + " reviews", font=sans10, fill="#555555")
+				draw.text((13, 33), _("%d reviews") % package.num_reviews, font=sans10, fill="#555555")
 				tmpFile = tempfile.NamedTemporaryFile(delete=False)
 				im.save (tmpFile.name + ".png")			
 				model_applications.set_value(iter, 2, gtk.gdk.pixbuf_new_from_file(tmpFile.name + ".png"))
