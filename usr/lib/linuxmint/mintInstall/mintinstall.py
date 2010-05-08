@@ -85,7 +85,7 @@ class DownloadReviews(threading.Thread):
 			if numlines_new > numlines:			
 				os.system("mv " + reviews_path_tmp + " " + reviews_path)
 				print "Overwriting reviews file in " + reviews_path
-			self.application.update_reviews()
+				self.application.update_reviews()
 		except Exception, detail:
 			print detail	
 
@@ -319,13 +319,29 @@ class Application():
 
 	FONT = "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
 
+	@print_timing
 	def __init__(self):	
 
 		self.aptd_client = AptClient()
 
 		self.add_categories()
+		self.build_matched_packages()
 		self.add_packages()				
+
+		# Build the GUI
+		gladefile = "/usr/lib/linuxmint/mintInstall/mintinstall.glade"
+		wTree = gtk.glade.XML(gladefile, "main_window")
+		wTree.get_widget("main_window").set_title(_("Software Manager"))
+		wTree.get_widget("main_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
+		wTree.get_widget("main_window").connect("delete_event", self.close_application)	
+
+		self.transaction_loop = TransactionLoop(self.packages, wTree)
+		self.transaction_loop.setDaemon(True)
+		self.transaction_loop.start()
+
 		self.add_reviews()
+		downloadReviews = DownloadReviews(self)
+		downloadReviews.start()
 
 		if len(sys.argv) > 1 and sys.argv[1] == "list":
 			# Print packages and their categories and exit
@@ -334,13 +350,7 @@ class Application():
 
 		self.prefs = self.read_configuration()
 	
-		# Build the GUI
-		gladefile = "/usr/lib/linuxmint/mintInstall/mintinstall.glade"
-		wTree = gtk.glade.XML(gladefile, "main_window")
-		wTree.get_widget("main_window").set_title(_("Software Manager"))
-		wTree.get_widget("main_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
-		wTree.get_widget("main_window").connect("delete_event", self.close_application)	
-
+		
 		# Build the menu
 		fileMenu = gtk.MenuItem(_("_File"))
 		fileSubmenu = gtk.Menu()
@@ -480,14 +490,7 @@ class Application():
 
 		wTree.get_widget("button_transactions").connect("clicked", self.show_transactions)
 
-		wTree.get_widget("main_window").show_all()
-
-		self.transaction_loop = TransactionLoop(self.packages, wTree)
-		self.transaction_loop.setDaemon(True)
-		self.transaction_loop.start()
-
-		downloadReviews = DownloadReviews(self)
-		downloadReviews.start()
+		wTree.get_widget("main_window").show_all()		
 
 	def on_search_terms_changed(self, searchentry, terms):
 		if terms != "":
@@ -834,8 +837,8 @@ class Application():
 	@print_timing
 	def add_categories(self):
 		self.categories = []
-		self.root_category = Category(_("Categories"), "applications-other", ("null"), None, self.categories)	
-		featured = Category(_("Featured"), "emblem-special", ("null"), self.root_category, self.categories)
+		self.root_category = Category(_("Categories"), "applications-other", None, None, self.categories)	
+		featured = Category(_("Featured"), "emblem-special", None, self.root_category, self.categories)
 		featured.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/featured.list")
 		Category(_("Accessories"), "applications-utilities", ("accessories", "utils"), self.root_category, self.categories)
 
@@ -844,63 +847,63 @@ class Application():
 
 		games = Category(_("Games"), "applications-games", ("games"), self.root_category, self.categories)
 
-		subcat = Category(_("Board games"), "applications-games", ("null"), games, self.categories)
+		subcat = Category(_("Board games"), "applications-games", None, games, self.categories)
 		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-board.list")
 
-		subcat = Category(_("First-person shooters"), "applications-games", ("null"), games, self.categories)
+		subcat = Category(_("First-person shooters"), "applications-games", None, games, self.categories)
 		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-fps.list")
 
-		subcat = Category(_("Real-time strategy"), "applications-games", ("null"), games, self.categories)
+		subcat = Category(_("Real-time strategy"), "applications-games", None, games, self.categories)
 		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-rts.list")
 
-		subcat = Category(_("Turn-based strategy"), "applications-games", ("null"), games, self.categories)
+		subcat = Category(_("Turn-based strategy"), "applications-games", None, games, self.categories)
 		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-tbs.list")
 
-		subcat = Category(_("Emulators"), "applications-games", ("null"), games, self.categories)
+		subcat = Category(_("Emulators"), "applications-games", None, games, self.categories)
 		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-emulators.list")
 
-		subcat = Category(_("Simulation and racing"), "applications-games", ("null"), games, self.categories)
+		subcat = Category(_("Simulation and racing"), "applications-games", None, games, self.categories)
 		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-simulations.list")
 
 		graphics = Category(_("Graphics"), "applications-graphics", ("graphics"), self.root_category, self.categories)
 		graphics.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics.list")
 
-		subcat = Category(_("3D"), "applications-graphics", ("null"), graphics, self.categories)
+		subcat = Category(_("3D"), "applications-graphics", None, graphics, self.categories)
 		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-3d.list")
 
-		subcat = Category(_("Drawing"), "applications-graphics", ("null"), graphics, self.categories)
+		subcat = Category(_("Drawing"), "applications-graphics", None, graphics, self.categories)
 		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-drawing.list")
 
-		subcat = Category(_("Photography"), "applications-graphics", ("null"), graphics, self.categories)
+		subcat = Category(_("Photography"), "applications-graphics", None, graphics, self.categories)
 		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-photography.list")
 
-		subcat = Category(_("Publishing"), "applications-graphics", ("null"), graphics, self.categories)
+		subcat = Category(_("Publishing"), "applications-graphics", None, graphics, self.categories)
 		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-publishing.list")
 
-		subcat = Category(_("Scanning"), "applications-graphics", ("null"), graphics, self.categories)
+		subcat = Category(_("Scanning"), "applications-graphics", None, graphics, self.categories)
 		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-scanning.list")
 
-		subcat = Category(_("Viewers"), "applications-graphics", ("null"), graphics, self.categories)
+		subcat = Category(_("Viewers"), "applications-graphics", None, graphics, self.categories)
 		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-viewers.list")
 
 		internet = Category(_("Internet"), "applications-internet", ("mail", "web", "net"), self.root_category, self.categories)
 
-		subcat = Category(_("Web"), "applications-internet", ("null"), internet, self.categories)		
+		subcat = Category(_("Web"), "applications-internet", None, internet, self.categories)		
 		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/internet-web.list")
-		subcat = Category(_("Email"), "applications-internet", ("null"), internet, self.categories)
+		subcat = Category(_("Email"), "applications-internet", None, internet, self.categories)
 		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/internet-email.list")
-		subcat = Category(_("Chat"), "applications-internet", ("null"), internet, self.categories)				
+		subcat = Category(_("Chat"), "applications-internet", None, internet, self.categories)				
 		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/internet-chat.list")
-		subcat = Category(_("File sharing"), "applications-internet", ("null"), internet, self.categories)				
+		subcat = Category(_("File sharing"), "applications-internet", None, internet, self.categories)				
 		subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/internet-filesharing.list")
 
 		Category(_("Office"), "applications-office", ("office", "editors"), self.root_category, self.categories)
 		Category(_("Science"), "applications-science", ("science", "math"), self.root_category, self.categories)
 		Category(_("Sound and video"), "applications-multimedia", ("multimedia", "video"), self.root_category, self.categories)
 		Category(_("System tools"), "applications-system", ("system", "admin"), self.root_category, self.categories)		
-		Category(_("Programming"), "applications-development", ("devel", ""), self.root_category, self.categories)
-		self.category_other = Category(_("Other"), "applications-other", ("other", ""), self.root_category, self.categories)
-		self.category_all = Category(_("System packages"), "emblem-package", ("all", ""), self.root_category, self.categories)
+		Category(_("Programming"), "applications-development", ("devel"), self.root_category, self.categories)
+		self.category_other = Category(_("Other"), "applications-other", None, self.root_category, self.categories)
+		self.category_all = Category(_("System packages"), "emblem-package", None, self.root_category, self.categories)
 
 	def file_to_array(self, filename):
 		array = []
@@ -911,77 +914,107 @@ class Application():
 				array.append(line)				
 		return array
 
+
+	@print_timing
+	def build_matched_packages(self):
+		# Build a list of matched packages
+		self.matchedPackages = []
+		for category in self.categories:
+			self.matchedPackages.extend(category.matchingPackages)
+		self.matchedPackages.sort()
+
 	@print_timing
 	def add_packages(self):
 		self.packages = []
 		cache = apt.Cache()
 		for pkg in cache:
+			isMarked = (pkg.name in self.matchedPackages)
 			found_category = False
 			package = Package(pkg.name, pkg)
 			self.packages.append(package)		
 			for category in self.categories:
-				# Check the section
-				section = pkg.section
-				if "/" in section:
-					section = section.split("/")[1]
-				if section in category.sections:					
-					category.packages.append(package)
-					package.categories.append(category)
-					found_category = True
-				else:
-					# Check the matching packages
-					if pkg.name in category.matchingPackages:
-					#for match in category.matchingPackages:
-					#	if pkg.name == match:
-					#		category.packages.append(package)
-					#		package.categories.append(category)
-					#		found_category = True
+				matches = False
+				if category.sections is not None:
+					# Check the section
+					section = pkg.section
+					if "/" in section:
+						section = section.split("/")[1]
+					if section in category.sections:					
 						category.packages.append(package)
 						package.categories.append(category)
 						found_category = True
+						matches = True
+				if not matches:
+					if isMarked:
+						# Check the matching packages
+						if pkg.name in category.matchingPackages:					
+							category.packages.append(package)
+							package.categories.append(category)
+							found_category = True
 			self.category_all.packages.append(package)
 			if not found_category:
 				self.category_other.packages.append(package)
-				package.categories.append(self.category_other)
+				package.categories.append(self.category_other)	
 	
 	@print_timing
 	def add_reviews(self):
-		reviews_path = home + "/.linuxmint/mintinstall/reviews.list"
+		reviews_path = home + "/.linuxmint/mintinstall/reviews.list"				
 		if os.path.exists(reviews_path):
 			reviews = open(reviews_path)
+			last_package = None
 			for line in reviews:
 				elements = line.split("~~~")
 				if len(elements) == 5:
-					review = Review(elements[0], float(elements[1]), elements[2], elements[3], elements[4])				
-					for package in self.packages:
-						if package.name == elements[0]:
-							package.reviews.append(review)
-							review.package = package
-							package.update_stats()
-							break
-
+					review = Review(elements[0], float(elements[1]), elements[2], elements[3], elements[4])	
+					if last_package != None and last_package.name == elements[0]: 
+						#Comment is on the same package as previous comment.. no need to search for the package				
+						last_package.reviews.append(review)
+						review.package = last_package
+						last_package.update_stats()						
+					else:
+						for package in self.packages:
+							if package.name == elements[0]:
+								last_package = package
+								package.reviews.append(review)
+								review.package = package
+								package.update_stats()
+								break
+	
 	@print_timing
 	def update_reviews(self):
 		reviews_path = home + "/.linuxmint/mintinstall/reviews.list"
 		if os.path.exists(reviews_path):
 			reviews = open(reviews_path)
+			last_package = None
 			for line in reviews:
 				elements = line.split("~~~")
 				if len(elements) == 5:
-					review = Review(elements[0], float(elements[1]), elements[2], elements[3], elements[4])				
-					for package in self.packages:
-						if package.name == elements[0]:
-							alreadyThere = False
-							for rev in package.reviews:
-								if rev.username == elements[2]:
-									alreadyThere = True
-									break
-							if not alreadyThere:
-								package.reviews.append(review)
-								review.package = package
-								package.update_stats()
-							break
-
+					review = Review(elements[0], float(elements[1]), elements[2], elements[3], elements[4])	
+					if last_package != None and last_package.name == elements[0]: 
+						#Comment is on the same package as previous comment.. no need to search for the package
+						alreadyThere = False
+						for rev in last_package.reviews:
+							if rev.username == elements[2]:
+								alreadyThere = True
+								break
+						if not alreadyThere:
+							last_package.reviews.append(review)
+							review.package = last_package
+							last_package.update_stats()
+					else:			
+						for package in self.packages:
+							if package.name == elements[0]:
+								last_package = package
+								alreadyThere = False
+								for rev in package.reviews:
+									if rev.username == elements[2]:
+										alreadyThere = True
+										break
+								if not alreadyThere:
+									package.reviews.append(review)
+									review.package = package
+									package.update_stats()
+								break
 	
 	def show_category(self, category):		
 		# Load subcategories

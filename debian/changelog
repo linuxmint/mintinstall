@@ -1,3 +1,10 @@
+mintinstall (7.1.3) isadora; urgency=low
+
+  * Starts faster
+  * More responsive (transaction loop initiates earlier)
+
+ -- Clement Lefebvre <root@linuxmint.com>  Sat,  08 May 2010 13:02:00 +0000
+
 mintinstall (7.1.2) isadora; urgency=low
 
   * Localization
