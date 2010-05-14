@@ -1,3 +1,9 @@
+mintinstall (7.1.4) isadora; urgency=low
+
+  * Updated desktop file
+
+ -- Clement Lefebvre <root@linuxmint.com>  Fri,  14 May 2010 10:45:00 +0000
+
 mintinstall (7.1.3) isadora; urgency=low
 
   * Starts faster

@@ -2,7 +2,7 @@
 
 import commands, os
 
-sourceFile = "usr/lib/linuxmint/mintInstall/frontend.py"
+sourceFile = "usr/lib/linuxmint/mintInstall/mintinstall.py"
 
 menuName = commands.getoutput("cat " + sourceFile + " | grep menuName")
 menuName = menuName.replace("menuName", "")
