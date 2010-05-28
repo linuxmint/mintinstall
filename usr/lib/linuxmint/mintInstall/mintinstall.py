@@ -902,8 +902,8 @@ class Application():
 		Category(_("Sound and video"), "applications-multimedia", ("multimedia", "video"), self.root_category, self.categories)
 		Category(_("System tools"), "applications-system", ("system", "admin"), self.root_category, self.categories)		
 		Category(_("Programming"), "applications-development", ("devel"), self.root_category, self.categories)
-		self.category_other = Category(_("Other"), "applications-other", None, self.root_category, self.categories)
-		self.category_all = Category(_("System packages"), "emblem-package", None, self.root_category, self.categories)
+		#self.category_other = Category(_("Other"), "applications-other", None, self.root_category, self.categories)
+		self.category_all = Category(_("All packages"), "applications-other", None, self.root_category, self.categories)
 
 	def file_to_array(self, filename):
 		array = []
@@ -928,35 +928,30 @@ class Application():
 		self.packages = []
 		self.packages_dict = {}
 		cache = apt.Cache()
-		for pkg in cache:
-			isMarked = (pkg.name in self.matchedPackages)
-			found_category = False
+		for pkg in cache:			
 			package = Package(pkg.name, pkg)
 			self.packages.append(package)
 			self.packages_dict[pkg.name] = package
-			for category in self.categories:
-				matches = False
-				if category.sections is not None:
-					# Check the section
-					section = pkg.section
-					if "/" in section:
-						section = section.split("/")[1]
-					if section in category.sections:					
-						category.packages.append(package)
-						package.categories.append(category)
-						found_category = True
-						matches = True
-				if not matches:
-					if isMarked:
-						# Check the matching packages
-						if pkg.name in category.matchingPackages:					
-							category.packages.append(package)
-							package.categories.append(category)
-							found_category = True
 			self.category_all.packages.append(package)
-			if not found_category:
-				self.category_other.packages.append(package)
-				package.categories.append(self.category_other)	
+			
+			# If the package is not a "matching package", find categories with matching sections
+			if (pkg.name not in self.matchedPackages):
+				section = pkg.section
+				if "/" in section:
+					section = section.split("/")[1]
+				for category in self.categories:
+					if category.sections is not None:											
+						if section in category.sections:
+							category.packages.append(package)
+							package.categories.append(category)												
+				
+		# Process matching packages
+		for category in self.categories:
+			for package_name in category.matchingPackages:
+				if package_name in self.packages_dict:
+					package = self.packages_dict[package_name]
+					category.packages.append(package)
+					package.categories.append(category)	
 	
 	@print_timing
 	def add_reviews(self):
@@ -973,14 +968,7 @@ class Application():
 						last_package.reviews.append(review)
 						review.package = last_package
 						last_package.update_stats()						
-					else:
-						#for package in self.packages:
-						#	if package.name == elements[0]:
-						#		last_package = package
-						#		package.reviews.append(review)
-						#		review.package = package
-						#		package.update_stats()
-						#		break
+					else:						
 						if elements[0] in self.packages_dict:
 							package = self.packages_dict[elements[0]]
 							last_package = package

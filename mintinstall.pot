@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-05-08 09:47+0100\n"
+"POT-Creation-Date: 2010-05-28 14:59+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,8 +17,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: usr/lib/linuxmint/mintInstall/mintinstall.py:49
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:340
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:603
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:334
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:606
 #: usr/lib/linuxmint/mintInstall/mintInstall.py:343
 msgid "Software Manager"
 msgstr ""
@@ -135,328 +135,324 @@ msgstr ""
 msgid "Removing vendor key"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:345
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:355
 msgid "_File"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:349
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:359
 #: usr/lib/linuxmint/mintInstall/mintInstall.py:127
 msgid "Close"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:353
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:363
 msgid "_Edit"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:357
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:367
 msgid "Preferences"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:361
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:371
 msgid "Search in packages summary (slower search)"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:365
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:375
 msgid "Search in packages description (even slower search)"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:376
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:567
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:386
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:570
 msgid "Account information"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:383
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:393
 msgid "Software sources"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:387
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:397
 msgid "_View"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:391
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:401
 msgid "Available packages"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:395
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:405
 msgid "Installed packages"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:402
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:412
 msgid "_Help"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:406
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:601
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:416
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:604
 msgid "About"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:444
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:453
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:837
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:454
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:463
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:840
 msgid "Categories"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:476
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:486
 msgid "No ongoing actions"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:477
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:487
 msgid "Active tasks:"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:569
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:572
 msgid "Your community account"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:571
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:574
 msgid "Fill in your account info to review applications"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:573
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:576
 msgid "Username:"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:574
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:577
 msgid "Password:"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:644
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1179
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:647
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1207
 msgid "B"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:646
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1181
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:649
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1209
 msgid "KB"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:648
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1183
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:651
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1211
 msgid "MB"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:650
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1185
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:653
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1213
 msgid "GB"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:672
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:675
 msgid "Icon"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:676
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:679
 msgid "Application"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:683
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:686
 msgid "Score"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:699
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:702
 msgid "Task"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:702
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:705
 msgid "Status"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:705
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:708
 msgid "Progress"
-msgstr ""
-
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:783
-#, python-format
-msgid "Removing %s"
 msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/mintinstall.py:786
 #, python-format
+msgid "Removing %s"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:789
+#, python-format
 msgid "Installing %s"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:799
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:802
 msgid "Screenshot"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:805
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:808
 msgid "Website"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:838
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:841
 msgid "Featured"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:840
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:843
 msgid "Accessories"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:842
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:845
 msgid "Education"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:845
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:848
 msgid "Games"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:847
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:850
 msgid "Board games"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:850
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:853
 msgid "First-person shooters"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:853
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:856
 msgid "Real-time strategy"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:856
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:859
 msgid "Turn-based strategy"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:859
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:862
 msgid "Emulators"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:862
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:865
 msgid "Simulation and racing"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:865
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:868
 msgid "Graphics"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:868
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:871
 msgid "3D"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:871
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:874
 msgid "Drawing"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:874
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:877
 msgid "Photography"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:877
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:880
 msgid "Publishing"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:880
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:883
 msgid "Scanning"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:883
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:886
 msgid "Viewers"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:886
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:889
 msgid "Internet"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:888
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:891
 msgid "Web"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:890
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:893
 msgid "Email"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:892
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:895
 msgid "Chat"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:894
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:897
 msgid "File sharing"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:897
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:900
 msgid "Office"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:898
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:901
 msgid "Science"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:899
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:902
 msgid "Sound and video"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:900
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:903
 msgid "System tools"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:901
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:904
 msgid "Programming"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:902
-msgid "Other"
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:906
+msgid "All packages"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:903
-msgid "System packages"
-msgstr ""
-
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1008
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1036
 #, python-format
 msgid "%d packages"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1054
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1122
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1220
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1082
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1150
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1248
 #, python-format
 msgid "%d reviews"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1131
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1159
 msgid "Search results"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1160
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1188
 msgid "Hate it"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1160
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1188
 msgid "Not a fan"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1160
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1188
 msgid "So so"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1160
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1188
 msgid "Like it"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1160
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1188
 msgid "Awesome!"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1175
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1203
 msgid "Score:"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1176
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1204
 msgid "Submit review"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1177
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1205
 msgid "Your review:"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1201
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1229
 msgid "Remove"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1205
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1233
 #: usr/lib/linuxmint/mintInstall/mintInstall.py:207
 #: usr/lib/linuxmint/mintInstall/mintInstall.py:442
 msgid "Install"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1224
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1252
 msgid "Reviews:"
 msgstr ""
 
