@@ -926,12 +926,14 @@ class Application():
 	@print_timing
 	def add_packages(self):
 		self.packages = []
+		self.packages_dict = {}
 		cache = apt.Cache()
 		for pkg in cache:
 			isMarked = (pkg.name in self.matchedPackages)
 			found_category = False
 			package = Package(pkg.name, pkg)
-			self.packages.append(package)		
+			self.packages.append(package)
+			self.packages_dict[pkg.name] = package
 			for category in self.categories:
 				matches = False
 				if category.sections is not None:
@@ -972,14 +974,20 @@ class Application():
 						review.package = last_package
 						last_package.update_stats()						
 					else:
-						for package in self.packages:
-							if package.name == elements[0]:
-								last_package = package
-								package.reviews.append(review)
-								review.package = package
-								package.update_stats()
-								break
-	
+						#for package in self.packages:
+						#	if package.name == elements[0]:
+						#		last_package = package
+						#		package.reviews.append(review)
+						#		review.package = package
+						#		package.update_stats()
+						#		break
+						if elements[0] in self.packages_dict:
+							package = self.packages_dict[elements[0]]
+							last_package = package
+							package.reviews.append(review)
+							review.package = package
+							package.update_stats()
+							
 	@print_timing
 	def update_reviews(self):
 		reviews_path = home + "/.linuxmint/mintinstall/reviews.list"
@@ -1001,20 +1009,19 @@ class Application():
 							last_package.reviews.append(review)
 							review.package = last_package
 							last_package.update_stats()
-					else:			
-						for package in self.packages:
-							if package.name == elements[0]:
-								last_package = package
-								alreadyThere = False
-								for rev in package.reviews:
-									if rev.username == elements[2]:
-										alreadyThere = True
-										break
-								if not alreadyThere:
-									package.reviews.append(review)
-									review.package = package
-									package.update_stats()
-								break
+					else:
+						if elements[0] in self.packages_dict:
+							package = self.packages_dict[elements[0]]
+							last_package = package
+							alreadyThere = False
+							for rev in package.reviews:
+								if rev.username == elements[2]:
+									alreadyThere = True
+									break
+							if not alreadyThere:
+								package.reviews.append(review)
+								review.package = package
+								package.update_stats()
 	
 	def show_category(self, category):		
 		# Load subcategories
