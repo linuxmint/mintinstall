@@ -72,6 +72,7 @@ class PathBar(gtk.DrawingArea):
         self.connect("expose-event", self.__expose_cb)
         self.connect("style-set", self.__style_change_cb)
         self.connect("size-allocate", self.__allocation_change_cb)
+	self.last_label = None
         return
 
     def set_active(self, part):	
@@ -80,6 +81,7 @@ class PathBar(gtk.DrawingArea):
         if redraw:
             self.queue_draw_area(*prev.get_allocation_tuple())
             self.queue_draw_area(*part.get_allocation_tuple())
+	self.last_label = None
         return
 
     def get_active(self):
@@ -1344,7 +1346,7 @@ class NavigationBar(PathBar):
     def __init__(self, group=None):
         PathBar.__init__(self)
         self.set_size_request(-1, 28)
-        self.id_to_part = {}
+        self.id_to_part = {}	
         return
 
     def add_with_id(self, label, callback, id, obj, icon=None):
@@ -1354,6 +1356,10 @@ class NavigationBar(PathBar):
         If there is the same id already, replace the existing one
         with the new one
         """
+	if label == self.last_label:
+		#ignoring duplicate
+		return
+
 	#print "Adding %s(%d)" % (label, id)
 
 
@@ -1373,6 +1379,7 @@ class NavigationBar(PathBar):
         gobject.timeout_add(150, self.append, part)
 
         if icon: part.set_icon(icon)
+	self.last_label = label
         return
 
     def remove_id(self, id):
@@ -1382,6 +1389,7 @@ class NavigationBar(PathBar):
         part = self.id_to_part[id]
         del self.id_to_part[id]
         self.remove(part)
+	self.last_label = None
         return
 
     def remove_all(self):
@@ -1389,6 +1397,7 @@ class NavigationBar(PathBar):
         self.__parts = []
         self.id_to_part = {}
         self.queue_draw()
+	self.last_label = None
         return
 
     def get_button_from_id(self, id):

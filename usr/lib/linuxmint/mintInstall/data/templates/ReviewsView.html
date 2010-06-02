@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US" xml:lang="en">
+<head>
+    <title></title>  
+    
+ <script type="text/javascript">
+  
+  function addReview(mydate, username, rating, comment) {
+	var table = document.getElementById("reviewsTable");
+	var rowCount = table.rows.length;
+	var row = table.insertRow(rowCount);
+
+	var cell1 = row.insertCell(0);
+	cell1.innerHTML = mydate;
+
+	var cell2 = row.insertCell(1);
+	cell2.innerHTML = username;
+
+	var cell3 = row.insertCell(2);
+	newImg = document.createElement("img");
+	newImg.src = rating;
+	cell3.appendChild(newImg);
+
+	var cell4 = row.insertCell(3);
+	cell4.innerHTML = comment;
+  }
+    
+  function clearReviews() {
+	var table = document.getElementById("reviewsTable");
+	for(var i = table.rows.length - 1; i >= 0; i--)
+	{
+	    table.deleteRow(i);
+	}
+  }
+  
+ </script>
+
+<style type="text/css">
+    body {
+      margin: 0; 
+      padding: 1em 12px; 
+      font-size: 80%;  
+    }
+    h1 {
+      font-size:140%; 
+      margin: 0 0 1em;
+    }
+    #description {
+      font-size: 80%;
+    }
+
+    #icon {
+      width:64px;
+      height:64px;
+      z-index:-1;      
+      position:absolute;
+      -webkit-background-clip: border-box;
+      -webkit-background-origin: border-box;
+      -webkit-background-size: 32px 32px;
+    }
+
+    .screenshot_thumbnail {
+	width:${screenshot_width}px; 
+	height:${screenshot_height}px;
+	float:right;	
+	border-style: solid; 
+	border-width: 0px; 
+	border-color: #FFFFFF;
+	margin: 0 0 1em 1em;
+	-khtml-user-drag:none;
+    }
+  
+    #screenshot_thumbnail_img {
+	visibility:hidden;
+	border-style: solid; 
+	border-width: 0px; 
+	border-color: #FFFFFF; 
+	background:url('${screenshot_thumbnail_url}') no-repeat;    
+	cursor: -webkit-zoom-in
+    }
+    #text {
+      float:left; 
+      padding-left:86px;
+    }   
+    #package_information { 
+      font-size:70%; 
+    }
+    #maintainance_time { 
+      font-size:70%; 
+    }
+    #license { 
+      font-size:70%; 
+    }
+    #price { 
+      font-size:70%; 
+    } 
+    #action_button_description { 
+      font-size:70%; 
+    } 
+    #reviewsTable { 
+      font-size:90%; 
+      #float:left; 
+      padding-left:30px;
+    }  
+    #infoTable { 
+      font-size:70%; 
+      float:left; 
+      padding-left:86px;
+      padding-bottom:20px;
+    }  
+ </style>
+</head>
+<body>
+
+<table id="reviewsTable" cellpadding=2></table>
+    
+</body>
+</html>

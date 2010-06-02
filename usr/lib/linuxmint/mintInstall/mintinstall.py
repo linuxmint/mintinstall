@@ -64,6 +64,26 @@ gtk.gdk.threads_init()
 global shutdown_flag
 shutdown_flag = False
 
+class LaunchAPTAction(threading.Thread):
+	def __init__(self, aptd_client, package):
+		threading.Thread.__init__(self)	
+		self.aptd_client = aptd_client
+		self.package = package		
+
+	def run(self):
+		try:				
+			if self.package.pkg.isInstalled:				
+				transaction = self.aptd_client.remove_packages([self.package.pkg.name])
+				label = _("Removing %s") % self.package.pkg.name
+			else:
+				transaction = self.aptd_client.install_packages([self.package.pkg.name])
+				label = _("Installing %s") % self.package.pkg.name			
+			transaction.set_meta_data(mintinstall_label=label)
+			transaction.set_meta_data(mintinstall_pkgname=self.package.pkg.name)
+			transaction.run()			
+		except Exception, detail:
+			print detail	
+
 class DownloadReviews(threading.Thread):
 	def __init__(self, application):
 		threading.Thread.__init__(self)		
@@ -308,6 +328,7 @@ class Application():
 	PAGE_WEBSITE = 5
 	PAGE_SEARCH = 6
 	PAGE_TRANSACTIONS = 7
+	PAGE_REVIEWS = 8
 
 	NAVIGATION_HOME = 1
 	NAVIGATION_SEARCH = 2
@@ -316,6 +337,7 @@ class Application():
 	NAVIGATION_ITEM = 5
 	NAVIGATION_SCREENSHOT = 6
 	NAVIGATION_WEBSITE = 6
+	NAVIGATION_REVIEWS = 6
 
 	FONT = "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
 
@@ -376,8 +398,13 @@ class Application():
 		searchInDescriptionMenuItem.set_active(self.prefs["search_in_description"])		
 		searchInDescriptionMenuItem.connect("toggled", self.set_search_filter, "search_in_description")
 	
+		openLinkExternalMenuItem = gtk.CheckMenuItem(_("Open links using the web browser"))
+		openLinkExternalMenuItem.set_active(self.prefs["external_browser"])
+		openLinkExternalMenuItem.connect("toggled", self.set_external_browser)
+
 		prefsMenu.append(searchInSummaryMenuItem)	
-		prefsMenu.append(searchInDescriptionMenuItem)	
+		prefsMenu.append(searchInDescriptionMenuItem)
+		prefsMenu.append(openLinkExternalMenuItem)	
 
 		#prefsMenuItem.connect("activate", open_preferences, treeview_update, statusIcon, wTree)
 		editSubmenu.append(prefsMenuItem)
@@ -477,20 +504,23 @@ class Application():
 		self.websiteBrowser = webkit.WebView()
 		wTree.get_widget("scrolled_website").add(self.websiteBrowser)
 		
+		self.reviewsBrowser = webkit.WebView()
+		wTree.get_widget("scrolled_reviews").add(self.reviewsBrowser)
+		
 		# kill right click menus in webkit views
 	        self.browser.connect("button-press-event", lambda w, e: e.button == 3)
 		self.browser2.connect("button-press-event", lambda w, e: e.button == 3)
 		self.packageBrowser.connect("button-press-event", lambda w, e: e.button == 3)
 		self.screenshotBrowser.connect("button-press-event", lambda w, e: e.button == 3)
+		self.reviewsBrowser.connect("button-press-event", lambda w, e: e.button == 3)
 
 		wTree.get_widget("label_ongoing").set_text(_("No ongoing actions"))
 		wTree.get_widget("label_transactions_header").set_text(_("Active tasks:"))
 		wTree.get_widget("progressbar1").hide_all()
 
-
 		wTree.get_widget("button_transactions").connect("clicked", self.show_transactions)
 
-		wTree.get_widget("main_window").show_all()		
+		wTree.get_widget("main_window").show_all()			
 
 	def on_search_terms_changed(self, searchentry, terms):
 		if terms != "":
@@ -519,6 +549,12 @@ class Application():
 		self.prefs = self.read_configuration()
 		if (self.searchentry.get_text() != ""):
 			self.show_search_results(self.searchentry.get_text())		
+			
+	def set_external_browser(self, checkmenuitem):	
+		config = ConfigObj(home + "/.linuxmint/mintinstall.conf")
+		config['external_browser'] = checkmenuitem.get_active()		
+		config.write()
+		self.prefs = self.read_configuration()		
 
 	def read_configuration(self):	
 	
@@ -552,7 +588,13 @@ class Application():
 		try:
 			prefs["search_in_description"] = (config['search']['search_in_description'] == "True")
 		except:
-			prefs["search_in_description"] = False		
+			prefs["search_in_description"] = False	
+			
+		#External browser
+		try:
+			prefs["external_browser"] = (config['external_browser'] == "True")
+		except:
+			prefs["external_browser"] = False
 		
 		return prefs
 
@@ -745,6 +787,8 @@ class Application():
 				self.notebook.set_current_page(self.PAGE_DETAILS)
 			elif (destination == "screenshot"):
 				self.notebook.set_current_page(self.PAGE_SCREENSHOT)
+			elif (destination == "reviews"):
+				self.notebook.set_current_page(self.PAGE_REVIEWS)
 			else:
 				self.notebook.set_current_page(self.PAGE_WEBSITE)			
 
@@ -762,16 +806,29 @@ class Application():
 	def _on_package_load_finished(self, view, frame, reviews):		
 		#Add the reviews
 		self.packageBrowser.execute_script('clearReviews()')
-		reviews.sort(key=lambda x: x.date, reverse=True)		
-		for review in reviews:	
-			rating = "/usr/lib/linuxmint/mintInstall/data/small_" + str(review.rating) + ".png"			
-			comment = review.comment.strip()
-			comment = comment.replace("'", "\'")
-			comment = comment.replace('"', '\"')
-			comment = comment.capitalize()
-			review_date = datetime.fromtimestamp(review.date).strftime("%x")
+		reviews.sort(key=lambda x: x.date, reverse=True)
+		if len(reviews) > 10:
+			for review in reviews[0:10]:	
+				rating = "/usr/lib/linuxmint/mintInstall/data/small_" + str(review.rating) + ".png"			
+				comment = review.comment.strip()
+				comment = comment.replace("'", "\'")
+				comment = comment.replace('"', '\"')
+				comment = comment.capitalize()
+				review_date = datetime.fromtimestamp(review.date).strftime("%x")
 
-			self.packageBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
+				self.packageBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
+			self.packageBrowser.execute_script('addLink("%s")' % _("See more reviews"))
+			
+		else:
+			for review in reviews:	
+				rating = "/usr/lib/linuxmint/mintInstall/data/small_" + str(review.rating) + ".png"			
+				comment = review.comment.strip()
+				comment = comment.replace("'", "\'")
+				comment = comment.replace('"', '\"')
+				comment = comment.capitalize()
+				review_date = datetime.fromtimestamp(review.date).strftime("%x")
+
+				self.packageBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
 
 	def on_category_clicked(self, name):		
 		for category in self.categories:
@@ -781,17 +838,10 @@ class Application():
 	def on_button_clicked(self):
 		package = self.current_package
 		if package is not None:
-			if package.pkg.isInstalled:
-				transaction = self.aptd_client.remove_packages([package.pkg.name])
-				label = _("Removing %s") % package.pkg.name
-			else:
-				transaction = self.aptd_client.install_packages([package.pkg.name])
-				label = _("Installing %s") % package.pkg.name
-			transaction.set_meta_data(mintinstall_label=label)
-			transaction.set_meta_data(mintinstall_pkgname=package.pkg.name)
-			transaction.run()
+			action = LaunchAPTAction(self.aptd_client, package)
+			action.start()		
 
-	def on_screenshot_clicked(self):		
+	def on_screenshot_clicked(self):
 		package = self.current_package
 		if package is not None:
 			template = open("/usr/lib/linuxmint/mintInstall/data/templates/ScreenshotView.html").read()
@@ -804,9 +854,35 @@ class Application():
 	def on_website_clicked(self):		
 		package = self.current_package
 		if package is not None:
-			self.websiteBrowser.open(self.current_package.pkg.candidate.homepage)
-			self.navigation_bar.add_with_id(_("Website"), self.navigate, self.NAVIGATION_WEBSITE, "website")
-
+			if self.prefs['external_browser']:
+				os.system("xdg-open " + self.current_package.pkg.candidate.homepage + " &")
+			else:
+				self.websiteBrowser.open(self.current_package.pkg.candidate.homepage)
+				self.navigation_bar.add_with_id(_("Website"), self.navigate, self.NAVIGATION_WEBSITE, "website")
+			
+	def on_reviews_clicked(self):		
+		package = self.current_package
+		if package is not None:
+			template = open("/usr/lib/linuxmint/mintInstall/data/templates/ReviewsView.html").read()
+			subs = {}
+			subs['appname'] = self.current_package.pkg.name
+			html = string.Template(template).safe_substitute(subs)
+			self.reviewsBrowser.load_html_string(html, "file:/")
+			self.reviewsBrowser.connect("load-finished", self._on_reviews_load_finished, package.reviews)
+			self.navigation_bar.add_with_id(_("Reviews"), self.navigate, self.NAVIGATION_REVIEWS, "reviews")
+			
+	def _on_reviews_load_finished(self, view, frame, reviews):	
+		#Add the reviews
+		self.reviewsBrowser.execute_script('clearReviews()')
+		reviews.sort(key=lambda x: x.date, reverse=True)	
+		for review in reviews:	
+			rating = "/usr/lib/linuxmint/mintInstall/data/small_" + str(review.rating) + ".png"			
+			comment = review.comment.strip()
+			comment = comment.replace("'", "\'")
+			comment = comment.replace('"', '\"')
+			comment = comment.capitalize()
+			review_date = datetime.fromtimestamp(review.date).strftime("%x")
+			self.reviewsBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
 
 	def _on_title_changed(self, view, frame, title):
 		# no op - needed to reset the title after a action so that
@@ -817,22 +893,22 @@ class Application():
 		#  "call:func:arg1,arg2"
 		#  "call:func"
 		if title.startswith("call:"):
-		    args_str = ""
-		    args_list = []
+			args_str = ""
+			args_list = []
 		    # try long form (with arguments) first
-		    try:
-		        (t,funcname,args_str) = title.split(":")
-		    except ValueError:
-		        # now try short (without arguments)
-		        (t,funcname) = title.split(":")
-		    if args_str:
-		        args_list = args_str.split(",")
-		    # see if we have it and if it can be called
-		    f = getattr(self, funcname)
-		    if f and callable(f):
-		        f(*args_list)
-		    # now we need to reset the title
-		    self.browser.execute_script('document.title = "nop"')
+			try:
+				(t,funcname,args_str) = title.split(":")
+			except ValueError:
+				# now try short (without arguments)
+				(t,funcname) = title.split(":")
+			if args_str:
+				args_list = args_str.split(",")
+			# see if we have it and if it can be called
+			f = getattr(self, funcname)
+			if f and callable(f):
+				f(*args_list)
+			# now we need to reset the title
+			self.browser.execute_script('document.title = "nop"')			
 
 	@print_timing
 	def add_categories(self):
@@ -1010,7 +1086,7 @@ class Application():
 								package.reviews.append(review)
 								review.package = package
 								package.update_stats()
-	
+		
 	def show_category(self, category):		
 		# Load subcategories
 		if len(category.subcategories) > 0:			
@@ -1051,8 +1127,8 @@ class Application():
 		sans26  =  ImageFont.truetype ( self.FONT, 26 )
 		sans10  =  ImageFont.truetype ( self.FONT, 12 )
 
-		category.packages.sort(self.package_compare)
-		for package in category.packages:
+		category.packages.sort(self.package_compare)		
+		for package in category.packages[0:500]:
 			iter = model_applications.insert_before(None, None)						
 			if package.pkg.isInstalled:
 				model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/data/installed.png"))				

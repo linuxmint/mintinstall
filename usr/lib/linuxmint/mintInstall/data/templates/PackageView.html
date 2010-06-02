@@ -45,6 +45,10 @@
     changeTitle("call:on_website_clicked");
     changeTitle("nop");
   }
+  function action_reviews_clicked() {   
+    changeTitle("call:on_reviews_clicked");
+    changeTitle("nop");
+  }
   function enable_action_button() {
     document.getElementById("button_$action_button_value").disabled = false;
   }
@@ -70,6 +74,15 @@
 
 	var cell4 = row.insertCell(3);
 	cell4.innerHTML = comment;
+  }
+  
+  function addLink(linkname) {
+	var table = document.getElementById("reviewsTable");
+	var rowCount = table.rows.length;
+	var row = table.insertRow(rowCount);
+	var cell1 = row.insertCell(0);
+	cell1.colSpan="3";		
+	cell1.innerHTML=  '<a href="javascript:action_reviews_clicked()">'+linkname+'</a>';
   }
 
   function clearReviews() {

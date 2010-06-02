@@ -1,3 +1,13 @@
+mintinstall (7.1.6) isadora; urgency=low
+
+  * Fixed double-click issue with webkit
+  * Limited categories to 500 items (speed improvement)
+  * Only showing 10 comments by default
+  * Reduced lag with aptd
+  * New option to use external browser for links
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed,  2 Jun 2010 12:18:00 +0000
+ 
 mintinstall (7.1.5) isadora; urgency=low
 
   * Using hashtables, significant speed improvements
