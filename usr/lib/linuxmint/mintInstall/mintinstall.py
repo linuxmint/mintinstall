@@ -1273,9 +1273,9 @@ class Application():
 
 		subs['appname'] = package.name
 		subs['pkgname'] = package.pkg.name
-	        subs['description'] = package.pkg.candidate.description		
+		subs['description'] = package.pkg.candidate.description
 		subs['description'] = subs['description'].replace('\n','<br />\n')
-	        subs['summary'] = package.pkg.candidate.summary.capitalize()
+		subs['summary'] = package.pkg.candidate.summary.capitalize()
 		subs['label_score'] = _("Score:")	
 		subs['label_submit'] = _("Submit review")	
 		subs['label_your_review'] = _("Your review:")	
@@ -1304,10 +1304,12 @@ class Application():
 			#subs['iconpath'] = "/usr/lib/linuxmint/mintInstall/data/installed.png"
 			subs['action_button_label'] = _("Remove")
 			subs['action_button_value'] = "remove"
+			subs['version'] = package.pkg.installed.version
 		else:
 			#subs['iconpath'] = "/usr/lib/linuxmint/mintInstall/data/available.png"
 			subs['action_button_label'] = _("Install")
 			subs['action_button_value'] = "install"
+			subs['version'] = package.pkg.candidate.version
 
 		if package.num_reviews > 0:
 			sans26 = ImageFont.truetype(self.FONT, 26)
