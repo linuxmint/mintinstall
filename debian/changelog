@@ -1,3 +1,9 @@
+mintinstall (7.1.7) isadora; urgency=low
+
+  * Show package versions
+
+ -- Clement Lefebvre <root@linuxmint.com>  Sat,  12 Jun 2010 10:42:00 +0000
+
 mintinstall (7.1.6) isadora; urgency=low
 
   * Fixed double-click issue with webkit
