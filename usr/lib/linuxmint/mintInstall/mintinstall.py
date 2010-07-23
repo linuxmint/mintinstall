@@ -110,8 +110,9 @@ class DownloadReviews(threading.Thread):
 			print detail	
 
 class TransactionLoop(threading.Thread):
-	def __init__(self, packages, wTree):
+	def __init__(self, application, packages, wTree):
 		threading.Thread.__init__(self)
+		self.application = application
 		self.wTree = wTree
 		self.status_label = wTree.get_widget("label_ongoing")
 		self.progressbar = wTree.get_widget("progressbar1")
@@ -193,10 +194,7 @@ class TransactionLoop(threading.Thread):
 									while iter_apps is not None:
 										package = model_apps.get_value(iter_apps, 3)
 										if package.pkg.name == pkg_name:
-											if package.pkg.isInstalled:
-												model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/data/installed.png"))
-											else:
-												model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/data/available.png"))
+											model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon(package), 32, 32))
 										iter_apps = model_apps.iter_next(iter_apps)
 								gtk.gdk.threads_leave()	
 							
@@ -210,10 +208,7 @@ class TransactionLoop(threading.Thread):
 									while iter_apps is not None:
 										package = model_apps.get_value(iter_apps, 3)
 										if package.pkg.name == pkg_name:
-											if package.pkg.isInstalled:
-												model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/data/installed.png"))
-											else:
-												model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/data/available.png"))
+											model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon(package), 32, 32))											
 										iter_apps = model_apps.iter_next(iter_apps)
 								gtk.gdk.threads_leave()	
 						else:
@@ -357,7 +352,7 @@ class Application():
 		wTree.get_widget("main_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
 		wTree.get_widget("main_window").connect("delete_event", self.close_application)	
 
-		self.transaction_loop = TransactionLoop(self.packages, wTree)
+		self.transaction_loop = TransactionLoop(self, self.packages, wTree)
 		self.transaction_loop.setDaemon(True)
 		self.transaction_loop.start()
 
@@ -1129,12 +1124,8 @@ class Application():
 
 		category.packages.sort(self.package_compare)		
 		for package in category.packages[0:500]:
-			iter = model_applications.insert_before(None, None)						
-			if package.pkg.isInstalled:
-				model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/data/installed.png"))				
-			else:
-				model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/data/available.png"))		
-
+			iter = model_applications.insert_before(None, None)									
+			model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon(package), 32, 32))
 			summary = ""
 			if package.pkg.candidate is not None:
 				summary = package.pkg.candidate.summary
@@ -1174,6 +1165,22 @@ class Application():
 		else:
 			self.navigation_bar.add_with_id(category.name, self.navigate, self.NAVIGATION_SUB_CATEGORY, category)
 
+	def find_app_icon(self, package):		
+		if package.pkg.isInstalled:
+			icon_path = "/usr/share/linuxmint/mintinstall/installed/%s" % package.name
+		else:
+			icon_path = "/usr/share/linuxmint/mintinstall/icons/%s" % package.name		
+		if os.path.exists(icon_path + ".png"):
+			icon_path = icon_path + ".png"			
+		elif os.path.exists(icon_path + ".xpm"):				
+			icon_path = icon_path + ".xpm"			
+		else:
+			if package.pkg.isInstalled:
+				icon_path = "/usr/lib/linuxmint/mintInstall/data/installed.png"
+			else:
+				icon_path = "/usr/lib/linuxmint/mintInstall/data/available.png"	
+		return icon_path
+
 	def show_search_results(self, terms):
 		# Load packages into self.tree_search				
 		model_applications = gtk.TreeStore(gtk.gdk.Pixbuf, str, gtk.gdk.Pixbuf, object)
@@ -1198,11 +1205,7 @@ class Application():
 			
 			if visible:
 				iter = model_applications.insert_before(None, None)						
-				if package.pkg.isInstalled:
-					model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/data/installed.png"))				
-				else:
-					model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/data/available.png"))		
-
+				model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon(package), 32, 32))
 				summary = ""
 				if package.pkg.candidate is not None:
 					summary = package.pkg.candidate.summary
@@ -1300,13 +1303,11 @@ class Application():
 	        elif direction ==  gtk.TEXT_DIR_LTR:
 	            subs['text_direction'] = 'DIR="LTR"'
 
-		if package.pkg.isInstalled:
-			#subs['iconpath'] = "/usr/lib/linuxmint/mintInstall/data/installed.png"
+		if package.pkg.isInstalled:			
 			subs['action_button_label'] = _("Remove")
 			subs['action_button_value'] = "remove"
 			subs['version'] = package.pkg.installed.version
-		else:
-			#subs['iconpath'] = "/usr/lib/linuxmint/mintInstall/data/available.png"
+		else:			
 			subs['action_button_label'] = _("Install")
 			subs['action_button_value'] = "install"
 			subs['version'] = package.pkg.candidate.version
@@ -1332,6 +1333,7 @@ class Application():
 			subs['rating'] = "/usr/lib/linuxmint/mintInstall/data/no-reviews.png"
 			subs['reviews'] = ""
 
+		subs['icon'] = self.find_app_icon(package)
 
 		template = open("/usr/lib/linuxmint/mintInstall/data/templates/PackageView.html").read()		
 		html = string.Template(template).safe_substitute(subs)
