@@ -19,7 +19,6 @@ import time
 import apt
 import aptdaemon
 import urllib
-from aptdaemon.client import AptClient
 from aptdaemon import enums
 from datetime import datetime
 from subprocess import Popen, PIPE
@@ -63,26 +62,6 @@ gtk.gdk.threads_init()
 
 global shutdown_flag
 shutdown_flag = False
-
-class LaunchAPTAction(threading.Thread):
-    def __init__(self, aptd_client, package):
-        threading.Thread.__init__(self)
-        self.aptd_client = aptd_client
-        self.package = package
-
-    def run(self):
-        try:
-            if self.package.pkg.isInstalled:
-                transaction = self.aptd_client.remove_packages([self.package.pkg.name])
-                label = _("Removing %s") % self.package.pkg.name
-            else:
-                transaction = self.aptd_client.install_packages([self.package.pkg.name])
-                label = _("Installing %s") % self.package.pkg.name
-            transaction.set_meta_data(mintinstall_label=label)
-            transaction.set_meta_data(mintinstall_pkgname=self.package.pkg.name)
-            transaction.run()
-        except Exception, detail:
-            print detail
 
 class DownloadReviews(threading.Thread):
     def __init__(self, application):
@@ -230,6 +209,8 @@ class TransactionLoop(threading.Thread):
                     gtk.gdk.threads_leave()
                 except Exception, detail:
                     print detail
+                    import traceback
+                    traceback.print_exc(file=sys.stdout)
                     self.apt_daemon = aptdaemon.client.get_aptdaemon()
                     print "A problem occured but the transaction loop was kept running"
             del model
@@ -256,12 +237,20 @@ class TransactionLoop(threading.Thread):
         transaction.cancel()
 
     def get_status_description(self, transaction):
-        descriptions = (_("Setting up"),_("Waiting"), _("Waiting for medium"), _("Waiting for config file prompt"), _("Waiting for lock"), _("Running"), _("Loading cache"), _("Downloading"), _("Committing"), _("Cleaning up"), _("Resolving dependencies"), _("Finished"), _("Cancelling"))
-        return descriptions[transaction.status]
-
+        from aptdaemon.enums import *
+        descriptions = {STATUS_SETTING_UP:_("Setting up"), STATUS_WAITING:_("Waiting"), STATUS_WAITING_MEDIUM:_("Waiting for medium"), STATUS_WAITING_CONFIG_FILE_PROMPT:_("Waiting for config file prompt"), STATUS_WAITING_LOCK:_("Waiting for lock"), STATUS_RUNNING:_("Running"), STATUS_LOADING_CACHE:_("Loading cache"), STATUS_DOWNLOADING:_("Downloading"), STATUS_COMMITTING:_("Committing"), STATUS_CLEANING_UP:_("Cleaning up"), STATUS_RESOLVING_DEP:_("Resolving dependencies"), STATUS_FINISHED:_("Finished"), STATUS_CANCELLING:_("Cancelling")}
+        if transaction.status in descriptions.keys():
+            return descriptions[transaction.status]
+        else:
+            return transaction.status
+        
     def get_role_description(self, transaction):
-        roles = (_("No role set"), _("Installing package"), _("Installing file"), _("Upgrading package"), _("Upgrading system"), _("Updating cache"), _("Removing package"), _("Committing package"), _("Adding vendor key file"), _("Removing vendor key"))
-        return roles[transaction.role]
+        from aptdaemon.enums import *
+        roles = {ROLE_UNSET:_("No role set"), ROLE_INSTALL_PACKAGES:_("Installing package"), ROLE_INSTALL_FILE:_("Installing file"), ROLE_UPGRADE_PACKAGES:_("Upgrading package"), ROLE_UPGRADE_SYSTEM:_("Upgrading system"), ROLE_UPDATE_CACHE:_("Updating cache"), ROLE_REMOVE_PACKAGES:_("Removing package"), ROLE_COMMIT_PACKAGES:_("Committing package"), ROLE_ADD_VENDOR_KEY_FILE:_("Adding vendor key file"), ROLE_REMOVE_VENDOR_KEY:_("Removing vendor key"), ROLE_ADD_REPOSITORY: _("Adding repository"), ROLE_ADD_VENDOR_KEY_FROM_KEYSERVER: _("Adding vendor key from keyserver"), ROLE_ENABLE_DISTRO_COMP: _("Enabling distribution component"), ROLE_FIX_BROKEN_DEPENDS: _("Fixing broken dependencies"), ROLE_FIX_INCOMPLETE_INSTALL: _("Fixing incomplete installations")}
+        if transaction.role in roles.keys():
+            return roles[transaction.role]
+        else:
+            return transaction.role
 
 class Category:
 
@@ -338,9 +327,6 @@ class Application():
 
     @print_timing
     def __init__(self):
-
-        self.aptd_client = AptClient()
-
         self.add_categories()
         self.build_matched_packages()
         self.add_packages()
@@ -830,12 +816,14 @@ class Application():
             if category.name == name:
                 self.show_category(category)
 
-    def on_button_clicked(self):
+    def on_button_clicked(self):        
         package = self.current_package
-        if package is not None:
-            action = LaunchAPTAction(self.aptd_client, package)
-            action.start()
-
+        if package is not None:                
+            if package.pkg.is_installed:
+                os.system("/usr/lib/linuxmint/mintInstall/aptd_client.py remove %s" % package.pkg.name)
+            else:
+                os.system("/usr/lib/linuxmint/mintInstall/aptd_client.py install %s" % package.pkg.name)
+    
     def on_screenshot_clicked(self):
         package = self.current_package
         if package is not None:
@@ -970,13 +958,13 @@ class Application():
 
         Category(_("Office"), "applications-office", ("office", "editors"), self.root_category, self.categories)
         Category(_("Science"), "applications-science", ("science", "math"), self.root_category, self.categories)
-        
+
         cat = Category(_("Sound and video"), "applications-multimedia", ("multimedia", "video"), self.root_category, self.categories)
         cat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/sound-video.list")
-        
+
         cat = Category(_("System tools"), "applications-system", ("system", "admin"), self.root_category, self.categories)
         cat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/system-tools.list")
-        
+
         Category(_("Programming"), "applications-development", ("devel"), self.root_category, self.categories)
         #self.category_other = Category(_("Other"), "applications-other", None, self.root_category, self.categories)
         self.category_all = Category(_("All packages"), "applications-other", None, self.root_category, self.categories)
@@ -1030,7 +1018,7 @@ class Application():
     def add_package_to_category(self, package, category):
         if category.parent is not None:
             if category not in package.categories:
-                package.categories.append(category)           
+                package.categories.append(category)
                 category.packages.append(package)
             self.add_package_to_category(package, category.parent)
 
@@ -1176,7 +1164,7 @@ class Application():
             self.navigation_bar.add_with_id(category.name, self.navigate, self.NAVIGATION_SUB_CATEGORY, category)
 
     def find_app_icon(self, package):
-        if package.pkg.isInstalled:
+        if package.pkg.is_installed:
             icon_path = "/usr/share/linuxmint/mintinstall/installed/%s" % package.name
         else:
             icon_path = "/usr/share/linuxmint/mintinstall/icons/%s" % package.name
@@ -1185,7 +1173,7 @@ class Application():
         elif os.path.exists(icon_path + ".xpm"):
             icon_path = icon_path + ".xpm"
         else:
-            if package.pkg.isInstalled:
+            if package.pkg.is_installed:
                 icon_path = "/usr/lib/linuxmint/mintInstall/data/installed.png"
             else:
                 icon_path = "/usr/lib/linuxmint/mintInstall/data/available.png"
@@ -1251,9 +1239,9 @@ class Application():
         package = model.get_value(iter, 3)
         if package is not None:
             if package.pkg is not None:
-                if (package.pkg.isInstalled and self.prefs["installed_packages_visible"] == True):
+                if (package.pkg.is_installed and self.prefs["installed_packages_visible"] == True):
                     return True
-                elif (package.pkg.isInstalled == False and self.prefs["available_packages_visible"] == True):
+                elif (package.pkg.is_installed == False and self.prefs["available_packages_visible"] == True):
                     return True
         return False
 
@@ -1313,7 +1301,7 @@ class Application():
         elif direction ==  gtk.TEXT_DIR_LTR:
             subs['text_direction'] = 'DIR="LTR"'
 
-        if package.pkg.isInstalled:
+        if package.pkg.is_installed:
             subs['action_button_label'] = _("Remove")
             subs['action_button_value'] = "remove"
             subs['version'] = package.pkg.installed.version
