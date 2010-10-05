@@ -1,3 +1,9 @@
+mintinstall (7.2.1) julia; urgency=low
+
+  * APTD 0.3 compatible
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue,  05 Oct 2010 15:30:00 +0000
+
 mintinstall (7.2.0) julia; urgency=low
 
   * Virtualbox-nonfree featured
