@@ -97,6 +97,7 @@ class TransactionLoop(threading.Thread):
         self.progressbar = wTree.get_widget("progressbar1")
         self.tree_transactions = wTree.get_widget("tree_transactions")
         self.packages = packages
+        from aptdaemon import client
         self.apt_daemon = aptdaemon.client.get_aptdaemon()
 
 
