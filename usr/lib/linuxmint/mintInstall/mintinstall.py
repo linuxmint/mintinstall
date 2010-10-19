@@ -1193,13 +1193,13 @@ class Application():
         self.packages.sort(self.package_compare)
         for package in self.packages:
             visible = False
-            if terms in package.pkg.name:
+            if terms.upper() in package.pkg.name.upper():
                 visible = True
             else:
                 if (package.pkg.candidate is not None):
-                    if (self.prefs["search_in_summary"] and terms in package.pkg.candidate.summary):
+                    if (self.prefs["search_in_summary"] and terms.upper() in package.pkg.candidate.summary.upper()):
                         visible = True
-                    elif(self.prefs["search_in_description"] and terms in package.pkg.candidate.description):
+                    elif(self.prefs["search_in_description"] and terms.upper() in package.pkg.candidate.description.upper()):
                         visible = True
 
             if visible:
