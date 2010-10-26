@@ -324,8 +324,11 @@ class Application():
     NAVIGATION_WEBSITE = 6
     NAVIGATION_REVIEWS = 6
 
-    FONT = "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
-
+    if os.path.exists("/usr/share/fonts/truetype/wqy/wqy-microhei.ttc"):
+        FONT = "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc"
+    else:
+        FONT = "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
+        
     @print_timing
     def __init__(self):
         self.add_categories()
@@ -1145,7 +1148,7 @@ class Application():
                 elif package.score > 0:
                     color = "#55AA55"
                 draw.text((32, 0), str(package.score), font=sans26, fill=color)
-                draw.text((13, 33), _("%d reviews") % package.num_reviews, font=sans10, fill="#555555")
+                draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
                 tmpFile = tempfile.NamedTemporaryFile(delete=False)
                 im.save (tmpFile.name + ".png")
                 model_applications.set_value(iter, 2, gtk.gdk.pixbuf_new_from_file(tmpFile.name + ".png"))
@@ -1225,7 +1228,7 @@ class Application():
                     elif package.score > 0:
                         color = "#55AA55"
                     draw.text((32, 0), str(package.score), font=sans26, fill=color)
-                    draw.text((13, 33), _("%d reviews") % package.num_reviews, font=sans10, fill="#555555")
+                    draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
                     tmpFile = tempfile.NamedTemporaryFile(delete=False)
                     im.save (tmpFile.name + ".png")
                     model_applications.set_value(iter, 2, gtk.gdk.pixbuf_new_from_file(tmpFile.name + ".png"))
@@ -1323,7 +1326,7 @@ class Application():
             elif package.score > 0:
                 color = "#55AA55"
             draw.text((32, 0), str(package.score), font=sans26, fill=color)
-            draw.text((13, 33), _("%d reviews") % package.num_reviews, font=sans10, fill="#555555")
+            draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
             tmpFile = tempfile.NamedTemporaryFile(delete=False)
             im.save (tmpFile.name + ".png")
             subs['rating'] = tmpFile.name + ".png"
