@@ -779,10 +779,15 @@ class Application():
 
 
     def close_application(self, window, event=None, exit_code=0):
-        global shutdown_flag
-        shutdown_flag = True
-        gtk.main_quit()
-        sys.exit(exit_code)
+        if exit_code == 0:
+            # Not happy with Python when it comes to closing threads, so here's a radical method to get what we want.
+            pid = os.getpid()
+            os.system("kill -9 %s" % pid)
+        else:
+            global shutdown_flag
+            shutdown_flag = True
+            gtk.main_quit()
+            sys.exit(exit_code)
 
     def _on_load_finished(self, view, frame):
         # Get the categories
