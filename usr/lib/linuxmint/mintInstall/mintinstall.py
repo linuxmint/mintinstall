@@ -782,7 +782,7 @@ class Application():
         if exit_code == 0:
             # Not happy with Python when it comes to closing threads, so here's a radical method to get what we want.
             pid = os.getpid()
-            os.system("kill -9 %s" % pid)
+            os.system("kill -9 %s &" % pid)
         else:
             global shutdown_flag
             shutdown_flag = True
