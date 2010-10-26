@@ -3,7 +3,7 @@ mintinstall (7.2.5) julia; urgency=low
   * Unicode support in generated images
   * ttf-wqy-microhei fonts are used if installed (bringing additional unicode support)
 
- -- Clement Lefebvre <root@linuxmint.com>  ,  26 Oct 2010 16:18:00 +0000
+ -- Clement Lefebvre <root@linuxmint.com>  Tue,  26 Oct 2010 16:18:00 +0000
 
 mintinstall (7.2.4) julia; urgency=low
 
