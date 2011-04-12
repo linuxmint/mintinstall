@@ -54,9 +54,13 @@ if (architecture.find("x86_64") >= 0):
     libc = ctypes.CDLL('libc.so.6')
     libc.prctl(15, 'mintinstall', 0, 0, 0)
 else:
-    import dl
-    libc = dl.open('/lib/libc.so.6')
-    libc.call('prctl', 15, 'mintinstall', 0, 0, 0)
+    import dl    
+    if os.path.exists('/lib/libc.so.6'):
+        libc = dl.open('/lib/libc.so.6')
+        libc.call('prctl', 15, 'mintinstall', 0, 0, 0)
+    elif os.path.exists('/lib/i386-linux-gnu/libc.so.6'):
+        libc = dl.open('/lib/i386-linux-gnu/libc.so.6')
+        libc.call('prctl', 15, 'mintinstall', 0, 0, 0)
 
 gtk.gdk.threads_init()
 
