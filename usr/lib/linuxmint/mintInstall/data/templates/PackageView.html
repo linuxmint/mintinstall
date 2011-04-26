@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
     <title></title>
    
-    <link rel="stylesheet" href="/usr/lib/linuxmint/mintInstall/data/templates/style.css" type="text/css" media="screen" />
+    
 
  <script type="text/javascript">
   function changeTitle(title) { 
@@ -55,65 +55,112 @@
   function disable_action_button() {
     document.getElementById("button_$action_button_value").disabled = true;
   }
-
-  function addReview(mydate, username, rating, comment) {
-	var table = document.getElementById("reviewsTable");
+  
+  function addReview(mydate, username, rating, comment) { 
+    
+    var table = document.getElementById("reviews");
 	var rowCount = table.rows.length;
 	var row = table.insertRow(rowCount);
 
 	var cell1 = row.insertCell(0);
-	cell1.innerHTML = mydate;
-
-	var cell2 = row.insertCell(1);
-	cell2.innerHTML = username;
-
-	var cell3 = row.insertCell(2);
 	newImg = document.createElement("img");
 	newImg.src = rating;
-	cell3.appendChild(newImg);
-
-	var cell4 = row.insertCell(3);
-	cell4.innerHTML = comment;
+	cell1.appendChild(newImg);
+    
+	var cell2 = row.insertCell(1);
+	cell2.innerHTML = comment + "<br/><small><i><font color='#777777'>" + username + " (" + mydate + ")</font></i></small>";            
   }
   
   function addLink(linkname) {
-	var table = document.getElementById("reviewsTable");
+	var table = document.getElementById("reviews");
 	var rowCount = table.rows.length;
 	var row = table.insertRow(rowCount);
 	var cell1 = row.insertCell(0);
 	cell1.colSpan="3";		
-	cell1.innerHTML=  '<a href="javascript:action_reviews_clicked()">'+linkname+'</a>';
+	cell1.innerHTML=  '<a href="javascript:action_reviews_clicked()" style="color: black;">'+linkname+'</a>';
   }
 
   function clearReviews() {
-	var table = document.getElementById("reviewsTable");
+	var table = document.getElementById("reviews");
 	for(var i = table.rows.length - 1; i >= 0; i--)
 	{
 	    table.deleteRow(i);
 	}
   }
 
-  window.onload = function() {
-    initElement('screenshot_thumbnail_img');
-  }
+  
  </script>
 
   <style type="text/css">
+    *{ -khtml-user-drag:none;}
     body {
-background-image: url('/usr/lib/linuxmint/mintInstall/data/templates/gradient.png');
-      background-repeat: repeat;        
-      margin: 0; 
+      background-color: #efefef;
+      background-image: url('/usr/lib/linuxmint/mintInstall/data/templates/bg-gradient.jpg');
+      background-repeat: repeat-x;        
+      margin-left: 20px; 
+      margin-right: 20px; 
       padding: 1em 12px;   
+      font-family:${font_family};
+      font-size:${font_size};
+      font-weight:${font_weight};
+      font-style:${font_style};
     }
-    h1 {
-      font-size:140%; 
-      margin: 0 0 1em;
+    #wrap{ margin:0 auto; padding: 0 15px 0 15px; }
+    #header{ padding-left:76px }
+   
+    h1 { 
+      position: relative;
+      top: 0;
+      left: 0;
+      font-size: 50px;
+      #line-height: 50px;
+      text-shadow: -3px 0 4px #000;
+      margin-bottom: 0px;
+    padding-bottom: 0px;
+      }
+
+    h1 a:link,
+    h1 a:visited,
+    h1 a:hover,
+    h1 a:active {
+      position: absolute;
+      top: 0; z-index: 2;
+      color: #000;
+      -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,0)), to(rgba(0,0,0,0)));
+      }
+    h1:after {
+      content: "$appname";
+      color: #000;
+      text-shadow: 3px 3px 1px #666;
+      }
+  
+    h2 {
+      font-size:80%;
+      margin:0 0 0.3em 0;
+      font-weight:normal;
+    }
+    #error {
+      font-size: 80%;
+      clear:left;
+      border-left: 5px solid #ea2824;
+      border-right: 5px solid #ea2824;
+      background-color: #fcb9b8;
+      padding: 0 5px;
+    }
+    #warning {
+      font-size: 80%;
+      clear:left;
+      border-left: 5px solid #fc9518;
+      border-right: 5px solid #fc9518;
+      background-color: #feeecc;
+      padding: 0 5px;
     }
     #description {
       font-size: 80%;
+      clear:left;
     }
-
     #icon {
+      margin-left:-76px;
       width:64px;
       height:64px;
       z-index:-1;      
@@ -122,26 +169,34 @@ background-image: url('/usr/lib/linuxmint/mintInstall/data/templates/gradient.pn
       -webkit-background-origin: border-box;
       -webkit-background-size: 32px 32px;
     }
-
-    .screenshot_thumbnail {
-	width:${screenshot_width}px; 
-	height:${screenshot_height}px;
-	float:right;	
-	border-style: solid; 
-	border-width: 0px; 
-	border-color: #FFFFFF;
-	margin: 0 0 1em 1em;
-	-khtml-user-drag:none;
+    
+    .pod {
+        border: 1px solid #6aa5d7;
+        background-color: #adcde9;
+        margin-bottom: 1em;
+        _zoom: 100%;
+        *zoom: 100%;
     }
-  
-    #screenshot_thumbnail_img {
-	visibility:hidden;
-	border-style: solid; 
-	border-width: 0px; 
-	border-color: #FFFFFF; 
-	background:url('${screenshot_thumbnail_url}') no-repeat;    
-	cursor: -webkit-zoom-in
+       
+    #screenshot_wrap{
+      display:block;
     }
+    
+    .screenshot {
+      overflow:hidden;
+      -webkit-box-shadow: rgba(0, 0, 0, 0.4) -4px 2px 10px;
+      
+      display:inline-block;
+      max-width:500px;
+      max-height:375px;
+      
+      cursor: -webkit-zoom-in;
+      
+      text-align:center;
+      -khtml-user-drag:none;
+    }
+    
+    
     #text {
       float:left; 
       padding-left:86px;
@@ -172,78 +227,128 @@ background-image: url('/usr/lib/linuxmint/mintInstall/data/templates/gradient.pn
       padding-left:86px;
       padding-bottom:20px;
     }  
+    #wrapper h2{
+      padding:-15px;
+      color: #4a4a4a;
+      font-weight:normal;
+      font-size:1em;      
+      padding:0.2em  0.8em;
+      margin: .25em 0;
+     
+      background-color:#dad7d3;
+       -webkit-border-top-left-radius: 5px;
+       -webkit-border-top-right-radius: 5px;
+    }
+    #wrapper{
+        margin-top:1em;
+        clear:both;
+        border-radius: 5px;
+        background-color:#f7f7f7;        
+        -webkit-box-shadow: rgba(0, 0, 0, 0.2) -1px 1px 4px;
+    }
+    #inner{
+      padding:15px;
+      font-size:70%; 
+    }
  </style>
 
 </head>
-<body>
+    
+<body class="${body_class}">
 
-   <div id="button_${action_button_value}" align="right">
-	                                <span class="art-button-wrapper" align="right">
-        	                        <span class="l"> </span>
-	                                <span class="r"> </span>
-	                                <a href="javascript:action_button_clicked()" class="art-button">$action_button_label</a>                                </span>
-        	                </div>
-               
+<table width="100%">
+    <tr>
+    <td valign="absmiddle" align="center"><img src="$iconbig"/></td>
+    <td valign="absmiddle" align="left" nowrap><h1><a href="#">$appname</a></h1><i><small>$summary</small></i></td>
+    <td width="100%">&nbsp;</td>
+    <td valign="absmiddle" align="right">
+        <b>$label_score </b><br/><img src="$rating"/>
+    </td>
+    </tr>
+</table>
+  <br/>
+    <div class="pod">
+         <table width="100%">
+         <tr>
+             <td align="left" valign="absmiddle"><img align=absmiddle src="$iconstatus"/>&nbsp;$action_button_description</td>
+             <td align="right" valign="absmiddle">
+              <input type="button" id="button_${action_button_value}" 
+              class="action_button"
+          alt="$action_button_label"
+              value="$action_button_label"
+              onclick='action_button_clicked()'
+          />
+             </td>
+         </tr>
+         </table>
+             
+    </div>
+
+<p>
+<div id="description">
+<table width="100%" cellpadding="3">
+    <tr>
+        <td valign="top">$description<br/><br/><i><a href="javascript:action_website_clicked()">$homepage</a></i></td>
+        <td valign="top">
+            <div id="screenshot-wrap">
+                <div id="screenshot" class="screenshot">
+                    <a href="javascript:action_screenshot_clicked()"><img id="screenshot_thumbnail_img" class="screenshot_thumbnail" onerror="this.style.display='none'" src="http://community.linuxmint.com/thumbnail.php?w=250&pic=/var/www/community.linuxmint.com/img/screenshots/$appname.png"></a>
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>    
                      	
 
-                            <div class="art-PostContent">
-<div class="boxinfo">
-				<table border="0" cellspacing="0" cellpadding="0">
-                                  <tbody>
-
-					<tr>
-					
-					<td>
-					
-					<table cellspacing="5" style="width: 100%">
-					<tr>
-						<td valign="top" align="center">
-							<a href="javascript:action_screenshot_clicked()"><img id="screenshot_thumbnail_img" class="screenshot_thumbnail" onerror="this.src='/usr/lib/linuxmint/mintInstall/data/no-screenshot.png'" src="http://community.linuxmint.com/thumbnail.php?pic=/var/www/community.linuxmint.com/img/screenshots/$appname.png"></a>
-
-						</td>
-
-						<td valign="top" align="center" style="width: 90%">
-							 <h2 class="art-PostHeaderIcon-wrapper"><font color="#222222"><img align=absmiddle src="$icon"/>&nbsp;$appname</font>
-				                            </h2>
-								<center><font size=1><i>$version</i></font><br/>$summary<br/>$size<br/><i><a href="javascript:action_website_clicked()">$homepage</a></i></center>
-						</td>			
-						<td valign="top" align="center">
-							<b>$label_score </b><br/><img src="$rating"/>
-						</td>
-					</tr>
-					</table>
-					
-<center>
-<form action="http://community.linuxmint.com/index.php/software/remote_review" method="post">
-<input type="hidden" name="username" value="$username">
-<input type="hidden" name="password" value="$password">
-<input type="hidden" name="package" value="$appname">
-$label_your_review <select name="score">
-$score_options
-</select>
-<input type="text" name="comment" size="40" value="$comment"/>
-<input type="submit" value="$label_submit"/>
-</form>
-</center>
-
-					</td>
-					</tr>
-					<tr><td>
-						<p>$description</p></div></td></tr>
-											
-					<tr><td>
-					
-					$reviews
-					<table id="reviewsTable" cellpadding=2></table>
-					
-					</td></tr>
-
-				</tbody>
-				</table>
 </div>
-                                                              	
-                            </div>
-                            <div class="cleared"></div>
+</p>
+
+
+    
+					
+					<div id="wrapper">
+                     <h2>$detailsLabel</h2>
+                     <div id="inner">                      
+                       <p><b>$versionLabel</b> $version</p>
+                       <p><b>$sizeLabel</b> $sizeinfo</p>
+                       <p><b>$impactLabel</b> $packagesinfo</p>
+                     </div> 
+                   </div>
+                    
+                  
+                    <div id="wrapper">
+                     <h2>$reviewsLabel</h2>                                         
+                              
+                    
+                     <form action="http://community.linuxmint.com/index.php/software/remote_review" method="post">
+                              <input type="hidden" name="username" value="$username">
+                                <input type="hidden" name="password" value="$password">
+                                <input type="hidden" name="package" value="$appname">
+                    <table width="100%" cellpadding="3">
+                        <tr>
+                            <td nowrap><b>$yourReviewLabel</b></td>
+                            <td>                                                          
+                                <select name="score">
+                                $score_options
+                                </select>
+                            </td>
+                            <td width="100%">
+                                <input type="text" name="comment" style="width:100%" value="$comment"/>
+                            </td>
+                            <td>
+                                <input type="submit" value="$label_submit"/>                                
+                            </td>
+                        </tr>                        
+                    </table> 
+                    </form>
+                    <div id="inner">           
+                       <table id="reviews" cellpadding="5"></table>
+                     </div> 
+                   </div>
+                    
+					
+				
+                        
 
                         </div>
                         
@@ -252,6 +357,6 @@ $score_options
 
 
   
-    
+    </div>
 </body>
 </html>

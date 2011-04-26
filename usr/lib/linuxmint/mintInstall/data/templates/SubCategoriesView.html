@@ -19,8 +19,8 @@
     newTextAroundImg = document.createElement("div");
     newImg = document.createElement("img");
     newImg.src = img;
-    newImg.setAttribute("width", 64);
-    newImg.setAttribute("height", 64);
+    newImg.setAttribute("width", 48);
+    newImg.setAttribute("height", 48);
     newImg.className = "no_drag";
     newTextAroundImg.appendChild(newImg);
     newText = document.createElement("div");
@@ -185,11 +185,7 @@
       color: #000;
       -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,0)), to(rgba(0,0,0,0)));
       }
-    h1:after {
-      content: "$title";
-      color: #000;
-      text-shadow: 3px 3px 1px #666;
-      }
+ 
   
     h2 {
       font-size:80%;
@@ -218,8 +214,8 @@
     }
     #icon {
       margin-left:-76px;
-      width:64px;
-      height:64px;
+      width:48px;
+      height:48px;
       z-index:-1;      
       position:absolute;
       -webkit-background-clip: border-box;
@@ -311,12 +307,10 @@
  </head>
 
 <body>
-    
-    <h1><a href="#">$title</a></h1><i><small>$subtitle</small></i>    
-    <br/><br/>
+  <i><small>$subtitle</small></i>
+  <br/><br/>
   <table id="categoriesTable">        
     <tr></tr>
-  </table>
-  <div class="pod"><div style="font-size:70%">&nbsp;$package_num</div></div>
+  </table>  
 </body>
 </html>

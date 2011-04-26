@@ -178,7 +178,10 @@ class TransactionLoop(threading.Thread):
                                     while iter_apps is not None:
                                         package = model_apps.get_value(iter_apps, 3)
                                         if package.pkg.name == pkg_name:
-                                            model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon(package), 32, 32))
+                                            try:
+                                                model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon(package), 32, 32))
+                                            except:
+                                                model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon_alternative(package), 32, 32))
                                         iter_apps = model_apps.iter_next(iter_apps)
                                 gtk.gdk.threads_leave()
 
@@ -192,7 +195,10 @@ class TransactionLoop(threading.Thread):
                                     while iter_apps is not None:
                                         package = model_apps.get_value(iter_apps, 3)
                                         if package.pkg.name == pkg_name:
-                                            model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon(package), 32, 32))
+                                            try:
+                                                model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon(package), 32, 32))
+                                            except:
+                                                model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon_alternative(package), 32, 32))
                                         iter_apps = model_apps.iter_next(iter_apps)
                                 gtk.gdk.threads_leave()
                         else:
@@ -308,7 +314,7 @@ class Review:
         self.package = None
 
 class Application():
-
+        
     PAGE_CATEGORIES = 0
     PAGE_MIXED = 1
     PAGE_PACKAGES = 2
@@ -333,18 +339,21 @@ class Application():
     else:
         FONT = "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
         
-    @print_timing
+    
+    @print_timing    
     def __init__(self):
         self.add_categories()
         self.build_matched_packages()
         self.add_packages()
-
+                    
         # Build the GUI
         gladefile = "/usr/lib/linuxmint/mintInstall/mintinstall.glade"
         wTree = gtk.glade.XML(gladefile, "main_window")
         wTree.get_widget("main_window").set_title(_("Software Manager"))
         wTree.get_widget("main_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
         wTree.get_widget("main_window").connect("delete_event", self.close_application)
+        
+        self.main_window = wTree.get_widget("main_window")
 
         self.transaction_loop = TransactionLoop(self, self.packages, wTree)
         self.transaction_loop.setDaemon(True)
@@ -468,6 +477,9 @@ class Application():
         self.browser = webkit.WebView()
         template = open("/usr/lib/linuxmint/mintInstall/data/templates/CategoriesView.html").read()
         subs = {'header': _("Categories")}
+        subs['title'] = _("Software Manager")
+        subs['subtitle'] = _("Please choose a category")
+        subs['package_num'] = _("%d packages are currently available") % len(self.packages)
         html = string.Template(template).safe_substitute(subs)
         self.browser.load_html_string(html, "file:/")
         self.browser.connect("load-finished", self._on_load_finished)
@@ -475,8 +487,9 @@ class Application():
         wTree.get_widget("scrolled_categories").add(self.browser)
 
         self.browser2 = webkit.WebView()
-        template = open("/usr/lib/linuxmint/mintInstall/data/templates/CategoriesView.html").read()
+        template = open("/usr/lib/linuxmint/mintInstall/data/templates/SubCategoriesView.html").read()
         subs = {'header': _("Categories")}
+        subs['subtitle'] = _("Please choose a sub-category")
         html = string.Template(template).safe_substitute(subs)
         self.browser2.load_html_string(html, "file:/")
         self.browser2.connect('title-changed', self._on_title_changed)
@@ -510,6 +523,7 @@ class Application():
         wTree.get_widget("button_transactions").connect("clicked", self.show_transactions)
 
         wTree.get_widget("main_window").show_all()
+        
 
     def on_search_terms_changed(self, searchentry, terms):
         if terms != "":
@@ -573,7 +587,7 @@ class Application():
         try:
             prefs["search_in_summary"] = (config['search']['search_in_summary'] == "True")
         except:
-            prefs["search_in_summary"] = False
+            prefs["search_in_summary"] = True
         try:
             prefs["search_in_description"] = (config['search']['search_in_description'] == "True")
         except:
@@ -808,7 +822,7 @@ class Application():
                 comment = comment.replace("'", "\'")
                 comment = comment.replace('"', '\"')
                 comment = comment.capitalize()
-                review_date = datetime.fromtimestamp(review.date).strftime("%x")
+                review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
 
                 self.packageBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
             self.packageBrowser.execute_script('addLink("%s")' % _("See more reviews"))
@@ -820,7 +834,7 @@ class Application():
                 comment = comment.replace("'", "\'")
                 comment = comment.replace('"', '\"')
                 comment = comment.capitalize()
-                review_date = datetime.fromtimestamp(review.date).strftime("%x")
+                review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
 
                 self.packageBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
 
@@ -862,6 +876,15 @@ class Application():
             template = open("/usr/lib/linuxmint/mintInstall/data/templates/ReviewsView.html").read()
             subs = {}
             subs['appname'] = self.current_package.pkg.name
+            subs['reviewsLabel'] = _("Reviews")
+            font_description = gtk.Label("pango").get_pango_context().get_font_description()
+            subs['font_family'] = font_description.get_family()
+            try:
+                subs['font_weight'] = font_description.get_weight().real
+            except:
+                subs['font_weight'] = font_description.get_weight()   
+            subs['font_style'] = font_description.get_style().value_nick        
+            subs['font_size'] = font_description.get_size() / 1024      
             html = string.Template(template).safe_substitute(subs)
             self.reviewsBrowser.load_html_string(html, "file:/")
             self.reviewsBrowser.connect("load-finished", self._on_reviews_load_finished, package.reviews)
@@ -877,7 +900,7 @@ class Application():
             comment = comment.replace("'", "\'")
             comment = comment.replace('"', '\"')
             comment = comment.capitalize()
-            review_date = datetime.fromtimestamp(review.date).strftime("%x")
+            review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
             self.reviewsBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
 
     def _on_title_changed(self, view, frame, title):
@@ -910,56 +933,13 @@ class Application():
     def add_categories(self):
         self.categories = []
         self.root_category = Category(_("Categories"), "applications-other", None, None, self.categories)
-        featured = Category(_("Featured"), "emblem-special", None, self.root_category, self.categories)
+        
+        featured = Category(_("Featured"), "/usr/lib/linuxmint/mintInstall/data/templates/featured.svg", None, self.root_category, self.categories)
         featured.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/featured.list")
-        Category(_("Accessories"), "applications-utilities", ("accessories", "utils"), self.root_category, self.categories)
-
-        subcat = Category(_("Education"), "applications-accessories", ("education", "math"), self.root_category, self.categories)
-        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/education.list")
-
-        games = Category(_("Games"), "applications-games", ("games"), self.root_category, self.categories)
-
-        subcat = Category(_("Board games"), "applications-games", None, games, self.categories)
-        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-board.list")
-
-        subcat = Category(_("First-person shooters"), "applications-games", None, games, self.categories)
-        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-fps.list")
-
-        subcat = Category(_("Real-time strategy"), "applications-games", None, games, self.categories)
-        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-rts.list")
-
-        subcat = Category(_("Turn-based strategy"), "applications-games", None, games, self.categories)
-        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-tbs.list")
-
-        subcat = Category(_("Emulators"), "applications-games", None, games, self.categories)
-        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-emulators.list")
-
-        subcat = Category(_("Simulation and racing"), "applications-games", None, games, self.categories)
-        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-simulations.list")
-
-        graphics = Category(_("Graphics"), "applications-graphics", ("graphics"), self.root_category, self.categories)
-        graphics.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics.list")
-
-        subcat = Category(_("3D"), "applications-graphics", None, graphics, self.categories)
-        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-3d.list")
-
-        subcat = Category(_("Drawing"), "applications-graphics", None, graphics, self.categories)
-        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-drawing.list")
-
-        subcat = Category(_("Photography"), "applications-graphics", None, graphics, self.categories)
-        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-photography.list")
-
-        subcat = Category(_("Publishing"), "applications-graphics", None, graphics, self.categories)
-        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-publishing.list")
-
-        subcat = Category(_("Scanning"), "applications-graphics", None, graphics, self.categories)
-        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-scanning.list")
-
-        subcat = Category(_("Viewers"), "applications-graphics", None, graphics, self.categories)
-        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-viewers.list")
-
+        
+        self.category_all = Category(_("All Packages"), "applications-other", None, self.root_category, self.categories)
+        
         internet = Category(_("Internet"), "applications-internet", None, self.root_category, self.categories)
-
         subcat = Category(_("Web"), "applications-internet", ("web", "net"), internet, self.categories)
         subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/internet-web.list")
         subcat = Category(_("Email"), "applications-internet", ("mail"), internet, self.categories)
@@ -968,19 +948,54 @@ class Application():
         subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/internet-chat.list")
         subcat = Category(_("File sharing"), "applications-internet", None, internet, self.categories)
         subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/internet-filesharing.list")
-
-        Category(_("Office"), "applications-office", ("office", "editors"), self.root_category, self.categories)
-        Category(_("Science"), "applications-science", ("science", "math"), self.root_category, self.categories)
-
+        
         cat = Category(_("Sound and video"), "applications-multimedia", ("multimedia", "video"), self.root_category, self.categories)
         cat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/sound-video.list")
+        
+        graphics = Category(_("Graphics"), "applications-graphics", ("graphics"), self.root_category, self.categories)
+        graphics.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics.list")
+        subcat = Category(_("3D"), "applications-graphics", None, graphics, self.categories)
+        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-3d.list")
+        subcat = Category(_("Drawing"), "applications-graphics", None, graphics, self.categories)
+        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-drawing.list")
+        subcat = Category(_("Photography"), "applications-graphics", None, graphics, self.categories)
+        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-photography.list")
+        subcat = Category(_("Publishing"), "applications-graphics", None, graphics, self.categories)
+        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-publishing.list")
+        subcat = Category(_("Scanning"), "applications-graphics", None, graphics, self.categories)
+        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-scanning.list")
+        subcat = Category(_("Viewers"), "applications-graphics", None, graphics, self.categories)
+        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/graphics-viewers.list")
+        
+        Category(_("Office"), "applications-office", ("office", "editors"), self.root_category, self.categories)
+        
+        games = Category(_("Games"), "applications-games", ("games"), self.root_category, self.categories)
+        subcat = Category(_("Board games"), "applications-games", None, games, self.categories)
+        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-board.list")
+        subcat = Category(_("First-person shooters"), "applications-games", None, games, self.categories)
+        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-fps.list")
+        subcat = Category(_("Real-time strategy"), "applications-games", None, games, self.categories)
+        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-rts.list")
+        subcat = Category(_("Turn-based strategy"), "applications-games", None, games, self.categories)
+        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-tbs.list")
+        subcat = Category(_("Emulators"), "applications-games", None, games, self.categories)
+        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-emulators.list")
+        subcat = Category(_("Simulation and racing"), "applications-games", None, games, self.categories)
+        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-simulations.list")
+        
+        Category(_("Accessories"), "applications-utilities", ("accessories", "utils"), self.root_category, self.categories)
 
         cat = Category(_("System tools"), "applications-system", ("system", "admin"), self.root_category, self.categories)
         cat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/system-tools.list")
 
+        subcat = Category(_("Fonts"), "applications-fonts", ("fonts"), self.root_category, self.categories)
+        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/fonts.list")
+               
+        subcat = Category(_("Science and Education"), "applications-science", ("science", "math", "education"), self.root_category, self.categories)
+        subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/education.list")
+
         Category(_("Programming"), "applications-development", ("devel"), self.root_category, self.categories)
-        #self.category_other = Category(_("Other"), "applications-other", None, self.root_category, self.categories)
-        self.category_all = Category(_("All packages"), "applications-other", None, self.root_category, self.categories)
+        #self.category_other = Category(_("Other"), "applications-other", None, self.root_category, self.categories)        
 
     def file_to_array(self, filename):
         array = []
@@ -1004,7 +1019,8 @@ class Application():
     def add_packages(self):
         self.packages = []
         self.packages_dict = {}
-        cache = apt.Cache()
+        cache = apt.Cache()            
+                                                
         for pkg in cache:
             package = Package(pkg.name, pkg)
             self.packages.append(package)
@@ -1020,13 +1036,18 @@ class Application():
                     if category.sections is not None:
                         if section in category.sections:
                             self.add_package_to_category(package, category)
-
+     
         # Process matching packages
         for category in self.categories:
-            for package_name in category.matchingPackages:
-                if package_name in self.packages_dict:
-                    package = self.packages_dict[package_name]
+            for package_name in category.matchingPackages:                
+                try:
+                    package = self.packages_dict[package_name]                    
                     self.add_package_to_category(package, category)
+                except Exception, detail:
+                    pass
+                    #print detail
+        
+        
 
     def add_package_to_category(self, package, category):
         if category.parent is not None:
@@ -1092,29 +1113,34 @@ class Application():
                                 package.reviews.append(review)
                                 review.package = package
                                 package.update_stats()
-
+    @print_timing
     def show_category(self, category):
         # Load subcategories
         if len(category.subcategories) > 0:
             if len(category.packages) == 0:
                 # Show categories page
                 browser = self.browser
+                size = 64
             else:
                 # Show mixed page
                 browser = self.browser2
+                size = 48
 
             browser.execute_script('clearCategories()')
             theme = gtk.icon_theme_get_default()
             for cat in category.subcategories:
                 icon = None
                 if theme.has_icon(cat.icon):
-                    iconInfo = theme.lookup_icon(cat.icon, 32, 0)
+                    iconInfo = theme.lookup_icon(cat.icon, size, 0)
                     if iconInfo and os.path.exists(iconInfo.get_filename()):
-                        icon = iconInfo.get_filename()
+                        icon = iconInfo.get_filename()                
                 if icon == None:
-                    iconInfo = theme.lookup_icon("applications-other", 32, 0)
-                    if iconInfo and os.path.exists(iconInfo.get_filename()):
-                        icon = iconInfo.get_filename()
+                    if os.path.exists(cat.icon):
+                        icon = cat.icon
+                    else:
+                        iconInfo = theme.lookup_icon("applications-other", size, 0)
+                        if iconInfo and os.path.exists(iconInfo.get_filename()):
+                            icon = iconInfo.get_filename()
                 browser.execute_script('addCategory("%s", "%s", "%s")' % (cat.name, _("%d packages") % len(cat.packages), icon))
 
         # Load packages into self.tree_applications
@@ -1136,7 +1162,10 @@ class Application():
         category.packages.sort(self.package_compare)
         for package in category.packages[0:500]:
             iter = model_applications.insert_before(None, None)
-            model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon(package), 32, 32))
+            try:
+                model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file(self.find_app_icon(package)))
+            except:
+                model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon_alternative(package), 32, 32))
             summary = ""
             if package.pkg.candidate is not None:
                 summary = package.pkg.candidate.summary
@@ -1156,6 +1185,8 @@ class Application():
                     color = "#AA5555"
                 elif package.score > 0:
                     color = "#55AA55"
+                draw.text((34, 2), str(package.score), font=sans26, fill="#AAAAAA")
+                draw.text((33, 1), str(package.score), font=sans26, fill="#555555")                    
                 draw.text((32, 0), str(package.score), font=sans26, fill=color)
                 draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
                 tmpFile = tempfile.NamedTemporaryFile(delete=False)
@@ -1176,21 +1207,86 @@ class Application():
         else:
             self.navigation_bar.add_with_id(category.name, self.navigate, self.NAVIGATION_SUB_CATEGORY, category)
 
-    def find_app_icon(self, package):
+    def find_app_icon_alternative(self, package):
+        icon_path = None
         if package.pkg.is_installed:
             icon_path = "/usr/share/linuxmint/mintinstall/installed/%s" % package.name
-        else:
-            icon_path = "/usr/share/linuxmint/mintinstall/icons/%s" % package.name
-        if os.path.exists(icon_path + ".png"):
-            icon_path = icon_path + ".png"
-        elif os.path.exists(icon_path + ".xpm"):
-            icon_path = icon_path + ".xpm"
-        else:
-            if package.pkg.is_installed:
-                icon_path = "/usr/lib/linuxmint/mintInstall/data/installed.png"
+            if os.path.exists(icon_path + ".png"):
+                icon_path = icon_path + ".png"
+            elif os.path.exists(icon_path + ".xpm"):
+                icon_path = icon_path + ".xpm"
             else:
-                icon_path = "/usr/lib/linuxmint/mintInstall/data/available.png"
+                # Else, default to generic icons
+                icon_path = "/usr/lib/linuxmint/mintInstall/data/installed.png"
+        else:           
+            # Try the Icon theme first
+            theme = gtk.icon_theme_get_default()
+            if theme.has_icon(package.name):
+                iconInfo = theme.lookup_icon(package.name, 32, 0)
+                if iconInfo and os.path.exists(iconInfo.get_filename()):
+                    icon_path = iconInfo.get_filename()
+            else:
+                # Try mintinstall-icons then
+                icon_path = "/usr/share/linuxmint/mintinstall/icons/%s" % package.name
+                if os.path.exists(icon_path + ".png"):
+                    icon_path = icon_path + ".png"
+                elif os.path.exists(icon_path + ".xpm"):
+                    icon_path = icon_path + ".xpm"
+                else:
+                    # Else, default to generic icons
+                    icon_path = "/usr/lib/linuxmint/mintInstall/data/available.png"
         return icon_path
+    
+    def find_app_icon(self, package):
+        icon_path = None
+        # Try the Icon theme first
+        theme = gtk.icon_theme_get_default()
+        if theme.has_icon(package.name):
+            iconInfo = theme.lookup_icon(package.name, 32, 0)
+            if iconInfo and os.path.exists(iconInfo.get_filename()):
+                icon_path = iconInfo.get_filename()
+            
+        if icon_path is not None:
+            if package.pkg.is_installed:
+                im=Image.open(icon_path)
+                bg_w,bg_h=im.size
+                im2=Image.open("/usr/lib/linuxmint/mintInstall/data/emblem-installed.png")
+                img_w,img_h=im2.size 
+                offset=(17,17)           
+                im.paste(im2, offset,im2)
+                tmpFile = tempfile.NamedTemporaryFile(delete=False)
+                im.save (tmpFile.name + ".png")                
+                icon_path = tmpFile.name + ".png"                
+        else:
+            # Try mintinstall-icons then
+            if package.pkg.is_installed:
+                icon_path = "/usr/share/linuxmint/mintinstall/icons/installed/%s" % package.name
+            else:
+                icon_path = "/usr/share/linuxmint/mintinstall/icons/%s" % package.name
+                
+            if os.path.exists(icon_path + ".png"):
+                icon_path = icon_path + ".png"
+            elif os.path.exists(icon_path + ".xpm"):
+                icon_path = icon_path + ".xpm"
+            else:
+                # Else, default to generic icons                
+                if package.pkg.is_installed:
+                    icon_path = "/usr/lib/linuxmint/mintInstall/data/installed.png"
+                else:
+                    icon_path = "/usr/lib/linuxmint/mintInstall/data/available.png"
+                                            
+        return icon_path
+    
+                
+    def find_large_app_icon(self, package):
+        theme = gtk.icon_theme_get_default()
+        if theme.has_icon(package.name):
+            iconInfo = theme.lookup_icon(package.name, 64, 0)
+            if iconInfo and os.path.exists(iconInfo.get_filename()):
+                return iconInfo.get_filename()
+    
+        iconInfo = theme.lookup_icon("applications-other", 64, 0)        
+        return iconInfo.get_filename()
 
     def show_search_results(self, terms):
         # Load packages into self.tree_search
@@ -1216,7 +1312,10 @@ class Application():
 
             if visible:
                 iter = model_applications.insert_before(None, None)
-                model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon(package), 32, 32))
+                try:
+                    model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon(package), 32, 32))
+                except:
+                    model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon_alternative(package), 32, 32))
                 summary = ""
                 if package.pkg.candidate is not None:
                     summary = package.pkg.candidate.summary
@@ -1236,6 +1335,8 @@ class Application():
                         color = "#AA5555"
                     elif package.score > 0:
                         color = "#55AA55"
+                    draw.text((34, 2), str(package.score), font=sans26, fill="#AAAAAA")
+                    draw.text((33, 1), str(package.score), font=sans26, fill="#555555") 
                     draw.text((32, 0), str(package.score), font=sans26, fill=color)
                     draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
                     tmpFile = tempfile.NamedTemporaryFile(delete=False)
@@ -1258,16 +1359,26 @@ class Application():
                     return True
         return False
 
+    @print_timing
     def show_package(self, package):
 
         self.current_package = package
-
+                
         # Load package info
         subs = {}
         subs['username'] = self.prefs["username"]
         subs['password'] = self.prefs["password"]
         subs['comment'] = ""
         subs['score'] = 0
+        
+        font_description = gtk.Label("pango").get_pango_context().get_font_description()
+        subs['font_family'] = font_description.get_family()
+        try:
+            subs['font_weight'] = font_description.get_weight().real
+        except:
+            subs['font_weight'] = font_description.get_weight()   
+        subs['font_style'] = font_description.get_style().value_nick        
+        subs['font_size'] = font_description.get_size() / 1024        
 
         if self.prefs["username"] != "":
             for review in package.reviews:
@@ -1285,28 +1396,77 @@ class Application():
 
             subs['score_options'] = subs['score_options'] + option
 
+        subs['iconbig'] = self.find_large_app_icon(package)
+
         subs['appname'] = package.name
         subs['pkgname'] = package.pkg.name
         subs['description'] = package.pkg.candidate.description
         subs['description'] = subs['description'].replace('\n','<br />\n')
         subs['summary'] = package.pkg.candidate.summary.capitalize()
         subs['label_score'] = _("Score:")
-        subs['label_submit'] = _("Submit review")
-        subs['label_your_review'] = _("Your review:")
+        subs['label_submit'] = _("Submit")
+        subs['label_your_review'] = _("Your review")
 
-        strSize = str(package.pkg.candidate.size) + _("B")
-        if (package.pkg.candidate.size >= 1000):
-            strSize = str(package.pkg.candidate.size / 1000) + _("KB")
-        if (package.pkg.candidate.size >= 1000000):
-            strSize = str(package.pkg.candidate.size / 1000000) + _("MB")
-        if (package.pkg.candidate.size >= 1000000000):
-            strSize = str(package.pkg.candidate.size / 1000000000) + _("GB")
-        subs['size'] = strSize
+        impacted_packages = []      
+    
+        cache = apt.Cache()
+        pkg = cache[package.name]
+        if package.pkg.isInstalled:
+            pkg.mark_delete(True, True)
+        else:
+            pkg.mark_install()
+        changes = cache.get_changes()
+        for pkg in changes:
+            if (pkg.is_installed):
+                impacted_packages.append(_("%s (removed)") % pkg.name)
+            else:
+                impacted_packages.append(_("%s (installed)") % pkg.name)
+        
+        downloadSize = str(cache.required_download) + _("B")
+        if (cache.required_download >= 1000):
+            downloadSize = str(cache.required_download / 1000) + _("KB")
+        if (cache.required_download >= 1000000):
+            downloadSize = str(cache.required_download / 1000000) + _("MB")
+        if (cache.required_download >= 1000000000):
+            downloadSize = str(cache.required_download / 1000000000) + _("GB")
+                   
+        required_space = cache.required_space
+        if (required_space < 0):
+            required_space = (-1) * required_space            
+        localSize = str(required_space) + _("B")
+        if (required_space >= 1000):
+            localSize = str(required_space / 1000) + _("KB")
+        if (required_space >= 1000000):
+            localSize = str(required_space / 1000000) + _("MB")
+        if (required_space >= 1000000000):
+            localSize = str(required_space / 1000000000) + _("GB")
+
+        subs['sizeLabel'] = _("Size:")
+        subs['versionLabel'] = _("Version:")
+        subs['impactLabel'] = _("Impact on packages:")
+        subs['reviewsLabel'] = _("Reviews")
+        subs['yourReviewLabel'] = _("Your review:")
+        subs['detailsLabel'] = _("Details")
+        
+        if package.pkg.isInstalled:
+            if cache.required_space < 0:
+                subs['sizeinfo'] = _("%(localSize)s of disk space freed") % {'localSize': localSize}
+            else:
+                subs['sizeinfo'] = _("%(localSize)s of disk space required") % {'localSize': localSize}
+        else:
+            if cache.required_space < 0:
+                subs['sizeinfo'] = _("%(downloadSize)s to download, %(localSize)s of disk space freed") % {'downloadSize': downloadSize, 'localSize': localSize}
+            else:
+                subs['sizeinfo'] = _("%(downloadSize)s to download, %(localSize)s of disk space required") % {'downloadSize': downloadSize, 'localSize': localSize}
+            
+        subs['packagesinfo'] = (', '.join(name for name in impacted_packages))
 
         if len(package.pkg.candidate.homepage) > 0:
             subs['homepage'] = package.pkg.candidate.homepage
+            subs['homepage_button_visibility'] = "visible"
         else:
             subs['homepage'] = ""
+            subs['homepage_button_visibility'] = "hidden"
 
         direction = gtk.widget_get_default_direction()
         if direction ==  gtk.TEXT_DIR_RTL:
@@ -1318,10 +1478,14 @@ class Application():
             subs['action_button_label'] = _("Remove")
             subs['action_button_value'] = "remove"
             subs['version'] = package.pkg.installed.version
+            subs['action_button_description'] = _("Installed")
+            subs['iconstatus'] = "/usr/lib/linuxmint/mintInstall/data/installed.png"
         else:
             subs['action_button_label'] = _("Install")
             subs['action_button_value'] = "install"
             subs['version'] = package.pkg.candidate.version
+            subs['action_button_description'] = _("Not installed")
+            subs['iconstatus'] = "/usr/lib/linuxmint/mintInstall/data/available.png"
 
         if package.num_reviews > 0:
             sans26 = ImageFont.truetype(self.FONT, 26)
@@ -1334,7 +1498,9 @@ class Application():
                 color = "#AA5555"
             elif package.score > 0:
                 color = "#55AA55"
-            draw.text((32, 0), str(package.score), font=sans26, fill=color)
+            draw.text((34, 2), str(package.score), font=sans26, fill="#AAAAAA")
+            draw.text((33, 1), str(package.score), font=sans26, fill="#555555")
+            draw.text((32, 0), str(package.score), font=sans26, fill=color)            
             draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
             tmpFile = tempfile.NamedTemporaryFile(delete=False)
             im.save (tmpFile.name + ".png")
@@ -1343,15 +1509,11 @@ class Application():
         else:
             subs['rating'] = "/usr/lib/linuxmint/mintInstall/data/no-reviews.png"
             subs['reviews'] = ""
-
-        subs['icon'] = self.find_app_icon(package)
-
+        
         template = open("/usr/lib/linuxmint/mintInstall/data/templates/PackageView.html").read()
         html = string.Template(template).safe_substitute(subs)
         self.packageBrowser.load_html_string(html, "file:/")
-        self.packageBrowser.connect("load-finished", self._on_package_load_finished, package.reviews)
-
-        #self.packageBrowser.show()
+        self.packageBrowser.connect("load-finished", self._on_package_load_finished, package.reviews)       
 
         # Update the navigation bar
         self.navigation_bar.add_with_id(package.name, self.navigate, self.NAVIGATION_ITEM, package)
@@ -1373,6 +1535,8 @@ class Application():
 
 if __name__ == "__main__":
     os.system("mkdir -p " + home + "/.linuxmint/mintinstall/screenshots/")
+    splash_process = Popen("/usr/lib/linuxmint/mintInstall/splash.py")
     model = Classes.Model()
     Application()
+    os.system("kill -9 %d" % splash_process.pid)
     gtk.main()
