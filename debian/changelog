@@ -1,3 +1,9 @@
+mintinstall (7.3.2) katya; urgency=low
+
+  * Added dependency on python-sexy
+
+ -- Clement Lefebvre <root@linuxmint.com>  Thu,  28 Apr 2011 14:14:00 +0000
+
 mintinstall (7.3.1) katya; urgency=low
 
   * Mint 11 improvements
