@@ -242,7 +242,7 @@ class mintInstallWindow:
 				for dep in pkg.candidateDependencies:
 					for o in dep.or_dependencies:
 						dependency = cache[o.name]	
-						if not dependency.isInstalled:					
+						if not dependency.is_installed:					
 							strDependency = dependency.name + " [" + dependency.candidateVersion + "]"
 							model.append([strDependency])
 			except Exception, detail:
@@ -284,7 +284,7 @@ class mintInstallWindow:
 	for package in packages:
 		try:					
 			pkg = cache[package]
-			if not pkg.isInstalled: 
+			if not pkg.is_installed: 
 				self.needToInstallSomething = True
 		except Exception, details:
 			print details

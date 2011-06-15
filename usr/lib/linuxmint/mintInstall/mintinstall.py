@@ -1411,7 +1411,7 @@ class Application():
     
         cache = apt.Cache()
         pkg = cache[package.name]
-        if package.pkg.isInstalled:
+        if package.pkg.is_installed:
             pkg.mark_delete(True, True)
         else:
             pkg.mark_install()
@@ -1448,7 +1448,7 @@ class Application():
         subs['yourReviewLabel'] = _("Your review:")
         subs['detailsLabel'] = _("Details")
         
-        if package.pkg.isInstalled:
+        if package.pkg.is_installed:
             if cache.required_space < 0:
                 subs['sizeinfo'] = _("%(localSize)s of disk space freed") % {'localSize': localSize}
             else:

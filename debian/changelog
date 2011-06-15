@@ -1,3 +1,9 @@
+mintinstall (7.3.3) katya; urgency=low
+
+  * Replaced deprecated Python refs to pkg.isInstalled with pkg.is_installed
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue,  15 Jun 2011 11:49:00 +0000
+
 mintinstall (7.3.2) katya; urgency=low
 
   * Added dependency on python-sexy

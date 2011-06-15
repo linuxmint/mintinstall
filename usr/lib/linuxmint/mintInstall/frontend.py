@@ -191,7 +191,7 @@ def open_featured(widget):
 				global cache
 				pkg = cache[application_pkg]
 				
-				if ((not pkg.isInstalled) and (pkg.candidate.summary != "")):
+				if ((not pkg.is_installed) and (pkg.candidate.summary != "")):
 					strSize = str(pkg.candidate.size) + _("B")
 					if (pkg.candidate.size >= 1000):
 						strSize = str(pkg.candidate.size / 1000) + _("KB")
@@ -280,7 +280,7 @@ def fetch_apt_details(model):
 				for package in packages:
 					try:
 						pkg = cache[package]
-						if not pkg.isInstalled:
+						if not pkg.is_installed:
 							item.status = "available"
 							item.version = pkg.candidate.version
 						else:
