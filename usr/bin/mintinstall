@@ -7,7 +7,7 @@ import gettext
 
 gettext.install("mintinstall", "/usr/share/linuxmint/locale")
 
-launcher = commands.getoutput("/usr/lib/linuxmint/common/mint-which-launcher.py "+_("Please enter your password to start the software manager"))
+launcher = commands.getoutput("/usr/lib/linuxmint/common/mint-which-launcher.py \"%s\""%_("Please enter your password to start the software manager"))
 
 if len(sys.argv) > 1:
 	mintfile = sys.argv[1]
