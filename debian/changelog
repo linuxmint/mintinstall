@@ -1,3 +1,9 @@
+mintinstall (7.3.4) lisa; urgency=low
+
+  * Removed commercial apps from categories view 
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue,  8 Nov 2011 12:54:00 +0000
+
 mintinstall (7.3.3) katya; urgency=low
 
   * Replaced deprecated Python refs to pkg.isInstalled with pkg.is_installed

@@ -67,6 +67,8 @@ gtk.gdk.threads_init()
 global shutdown_flag
 shutdown_flag = False
 
+COMMERCIAL_APPS = ["chromium-browser", "opera"]
+
 class DownloadReviews(threading.Thread):
     def __init__(self, application):
         threading.Thread.__init__(self)
@@ -1161,6 +1163,10 @@ class Application():
 
         category.packages.sort(self.package_compare)
         for package in category.packages[0:500]:
+            
+            if package.name in COMMERCIAL_APPS:
+                continue
+            
             iter = model_applications.insert_before(None, None)
             try:
                 model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file(self.find_app_icon(package)))
