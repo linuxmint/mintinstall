@@ -679,6 +679,8 @@ class Application():
     def export_listing(self):
         # packages
         for package in self.packages:
+            if package.pkg.name.endswith(":i386") or package.pkg.name.endswith(":amd64"):
+                continue
             summary = ""
             if package.pkg.candidate is not None:
                 summary = package.pkg.candidate.summary
