@@ -67,7 +67,7 @@ gtk.gdk.threads_init()
 global shutdown_flag
 shutdown_flag = False
 
-COMMERCIAL_APPS = ["chromium-browser", "opera"]
+COMMERCIAL_APPS = ["chromium-browser"]
 
 class DownloadReviews(threading.Thread):
     def __init__(self, application):
