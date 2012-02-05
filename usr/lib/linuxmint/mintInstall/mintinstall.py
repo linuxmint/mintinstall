@@ -736,7 +736,6 @@ class Application():
         column2.set_sort_column_id(2)
         column2.set_resizable(True)
 
-	self.showingSelected = False
         treeview.append_column(column0)
         treeview.append_column(column1)
         treeview.append_column(column2)
@@ -768,21 +767,20 @@ class Application():
         treeview.show()
 
     def show_selected(self, tree, path, column):
-	if (self.showingSelected == False):
-		self.showingSelected = True
-		model = tree.get_model()
-		iter = model.get_iter(path) 
-		#(model, iter) = selection.get_selected()
-        	if (iter != None):
-            		self.selected_package = model.get_value(iter, 3)
-            		self.show_package(self.selected_package)
-            		#selection.unselect_all()
+	model = tree.get_model()
+	iter = model.get_iter(path) 
+	#(model, iter) = selection.get_selected()
+        if (iter != None):
+            	self.selected_package = model.get_value(iter, 3)
+            	self.show_package(self.selected_package, tree)
+            	tree.set_sensitive(False)	
+		#selection.unselect_all()
 
     def show_more_info(self, tree, path, column):
         model = tree.get_model()
         iter = model.get_iter(path)
         self.selected_package = model.get_value(iter, 3)
-        self.show_package(self.selected_package)
+        self.show_package(self.selected_package, tree)
 
     def navigate(self, button, destination):
 
@@ -823,7 +821,7 @@ class Application():
         # Get the categories
         self.show_category(self.root_category)
 
-    def _on_package_load_finished(self, view, frame, reviews):
+    def _on_package_load_finished(self, view, frame, reviews, tree):
         #Add the reviews
         self.packageBrowser.execute_script('clearReviews()')
         reviews.sort(key=lambda x: x.date, reverse=True)
@@ -849,6 +847,7 @@ class Application():
                 review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
 
                 self.packageBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
+	tree.set_sensitive(True)
 	self.showingSelected = False
 
     def on_category_clicked(self, name):
@@ -1377,7 +1376,7 @@ class Application():
         return False
 
     @print_timing
-    def show_package(self, package):
+    def show_package(self, package, tree):
 
         self.current_package = package
                 
@@ -1530,7 +1529,7 @@ class Application():
         template = open("/usr/lib/linuxmint/mintInstall/data/templates/PackageView.html").read()
         html = string.Template(template).safe_substitute(subs)
         self.packageBrowser.load_html_string(html, "file:/")
-        self.packageBrowser.connect("load-finished", self._on_package_load_finished, package.reviews)       
+        self.packageBrowser.connect("load-finished", self._on_package_load_finished, package.reviews, tree)       
 
         # Update the navigation bar
         self.navigation_bar.add_with_id(package.name, self.navigate, self.NAVIGATION_ITEM, package)
