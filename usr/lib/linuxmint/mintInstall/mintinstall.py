@@ -736,16 +736,20 @@ class Application():
         column2.set_sort_column_id(2)
         column2.set_resizable(True)
 
+	self.showingSelected = False
         treeview.append_column(column0)
         treeview.append_column(column1)
         treeview.append_column(column2)
         treeview.set_headers_visible(False)
-        treeview.show()
+        treeview.connect("row-activated", self.show_selected)
+	treeview.show()
         #treeview.connect("row_activated", self.show_more_info)
 
         selection = treeview.get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
-        selection.connect("changed", self.show_selected)
+        
+	
+	#selection.connect("changed", self.show_selected)
 
     def build_transactions_tree(self, treeview):
         column0 = gtk.TreeViewColumn(_("Task"), gtk.CellRendererText(), text=0)
@@ -763,12 +767,16 @@ class Application():
         treeview.set_headers_visible(True)
         treeview.show()
 
-    def show_selected(self, selection):
-        (model, iter) = selection.get_selected()
-        if (iter != None):
-            self.selected_package = model.get_value(iter, 3)
-            self.show_package(self.selected_package)
-            selection.unselect_all()
+    def show_selected(self, tree, path, column):
+	if (self.showingSelected == False):
+		self.showingSelected = True
+		model = tree.get_model()
+		iter = model.get_iter(path) 
+		#(model, iter) = selection.get_selected()
+        	if (iter != None):
+            		self.selected_package = model.get_value(iter, 3)
+            		self.show_package(self.selected_package)
+            		#selection.unselect_all()
 
     def show_more_info(self, tree, path, column):
         model = tree.get_model()
@@ -841,6 +849,7 @@ class Application():
                 review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
 
                 self.packageBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
+	self.showingSelected = False
 
     def on_category_clicked(self, name):
         for category in self.categories:
