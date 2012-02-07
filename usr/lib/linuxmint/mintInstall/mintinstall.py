@@ -742,7 +742,8 @@ class Application():
 		
 		#prevents multiple load finished handlers being hooked up to packageBrowser in show_package
 		self.loadHandlerID = -1
-
+		self.acthread = threading.Thread(target=self.cache_apt)
+		
 		treeview.append_column(column0)
 		treeview.append_column(column1)
 		treeview.append_column(column2)
@@ -774,27 +775,26 @@ class Application():
 
 	def show_selected(self, tree, path, column):
 		self.main_window.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))   
-		tree.set_sensitive(False)
-		#model = tree.get_model()
-		#iter = model.get_iter(path) 
-		(model, iter) = tree.get_selection().get_selected()
-		self.selected_package = model.get_value(iter, 3)
-		self.aptCached = False
+		self.main_window.set_sensitive(False)
+		model = tree.get_model()
+		iter = model.get_iter(path)
+
 		#poll for end of apt caching when idle
-		glib.idle_add(self.show_package_if_apt_cached,self.selected_package, tree)
-		#cache apt in a seperate thread as blocks gui update
-		threading.Thread(target=self.cache_apt).start()
+		glib.idle_add(self.show_package_if_apt_cached, model.get_value(iter, 3), tree)
+		#cache apt in a separate thread as blocks gui update
+		self.acthread.start()
 
 	def show_package_if_apt_cached(self, pkg, tree):
-		if (self.aptCached == True):
-			self.aptCached = False
-			self.show_package(pkg, tree)
-			return False #false will remove this from gtk's list of idle functions
-		return True
+		if (self.acthread.isAlive()):
+			self.acthread.join()
+		
+		self.show_package(pkg, tree)
+		self.acthread = threading.Thread(target=self.cache_apt) #rebuild here for speed
+		return False #false will remove this from gtk's list of idle functions
+		#return True
 
 	def cache_apt(self):
 		self.cache = apt.Cache()
-		self.aptCached = True
 
 	def show_more_info(self, tree, path, column):
 		model = tree.get_model()
@@ -842,7 +842,6 @@ class Application():
 
 	def _on_package_load_finished(self, view, frame, reviews, tree):
 		#Add the reviews
-		print "Load finished"
 		self.packageBrowser.execute_script('clearReviews()')
 		reviews.sort(key=lambda x: x.date, reverse=True)
 		if len(reviews) > 10:
@@ -867,7 +866,7 @@ class Application():
 				review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
 
 				self.packageBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
-		tree.set_sensitive(True)
+		self.main_window.set_sensitive(True)
 		self.main_window.window.set_cursor(None)
 
 	def on_category_clicked(self, name):
