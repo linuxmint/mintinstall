@@ -6,7 +6,7 @@ import sys, os, commands
 import gtk
 import gtk.glade
 import pygtk
-import threading
+import thread
 import gettext
 import tempfile
 import threading
@@ -19,6 +19,9 @@ import time
 import apt
 import aptdaemon
 import urllib
+import thread
+import glib
+
 from aptdaemon import enums
 from datetime import datetime
 from subprocess import Popen, PIPE
@@ -54,7 +57,7 @@ if (architecture.find("x86_64") >= 0):
     libc = ctypes.CDLL('libc.so.6')
     libc.prctl(15, 'mintinstall', 0, 0, 0)
 else:
-    import dl    
+    import dl   
     if os.path.exists('/lib/libc.so.6'):
         libc = dl.open('/lib/libc.so.6')
         libc.call('prctl', 15, 'mintinstall', 0, 0, 0)
@@ -735,17 +738,23 @@ class Application():
         column2 = gtk.TreeViewColumn(_("Score"), gtk.CellRendererPixbuf(), pixbuf=2)
         column2.set_sort_column_id(2)
         column2.set_resizable(True)
-
+        
+        #prevents multiple load finished handlers being hooked up to packageBrowser in show_package
+        self.loadHandlerID = -1
+        self.acthread = threading.Thread(target=self.cache_apt)
+        
         treeview.append_column(column0)
         treeview.append_column(column1)
         treeview.append_column(column2)
         treeview.set_headers_visible(False)
+        treeview.connect("row-activated", self.show_selected)
         treeview.show()
         #treeview.connect("row_activated", self.show_more_info)
 
         selection = treeview.get_selection()
-        selection.set_mode(gtk.SELECTION_SINGLE)
-        selection.connect("changed", self.show_selected)
+        selection.set_mode(gtk.SELECTION_BROWSE)
+
+        #selection.connect("changed", self.show_selected)
 
     def build_transactions_tree(self, treeview):
         column0 = gtk.TreeViewColumn(_("Task"), gtk.CellRendererText(), text=0)
@@ -763,18 +772,33 @@ class Application():
         treeview.set_headers_visible(True)
         treeview.show()
 
-    def show_selected(self, selection):
-        (model, iter) = selection.get_selected()
-        if (iter != None):
-            self.selected_package = model.get_value(iter, 3)
-            self.show_package(self.selected_package)
-            selection.unselect_all()
+    def show_selected(self, tree, path, column):
+        self.main_window.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))   
+        self.main_window.set_sensitive(False)
+        model = tree.get_model()
+        iter = model.get_iter(path)
+
+        #poll for end of apt caching when idle
+        glib.idle_add(self.show_package_if_apt_cached, model.get_value(iter, 3), tree)
+        #cache apt in a separate thread as blocks gui update
+        self.acthread.start()
+
+    def show_package_if_apt_cached(self, pkg, tree):
+        if (self.acthread.isAlive()):
+            self.acthread.join()
+        
+        self.show_package(pkg, tree)
+        self.acthread = threading.Thread(target=self.cache_apt) #rebuild here for speed
+        return False #false will remove this from gtk's list of idle functions
+        #return True
+
+    def cache_apt(self):
+        self.cache = apt.Cache()
 
     def show_more_info(self, tree, path, column):
         model = tree.get_model()
         iter = model.get_iter(path)
         self.selected_package = model.get_value(iter, 3)
-        self.show_package(self.selected_package)
 
     def navigate(self, button, destination):
 
@@ -841,6 +865,8 @@ class Application():
                 review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
 
                 self.packageBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
+        self.main_window.set_sensitive(True)
+        self.main_window.window.set_cursor(None)
 
     def on_category_clicked(self, name):
         for category in self.categories:
@@ -849,7 +875,7 @@ class Application():
 
     def on_button_clicked(self):        
         package = self.current_package
-        if package is not None:                
+        if package is not None:             
             if package.pkg.is_installed:
                 os.system("/usr/lib/linuxmint/mintInstall/aptd_client.py remove %s" % package.pkg.name)
             else:
@@ -888,7 +914,7 @@ class Application():
             except:
                 subs['font_weight'] = font_description.get_weight()   
             subs['font_style'] = font_description.get_style().value_nick        
-            subs['font_size'] = font_description.get_size() / 1024      
+            subs['font_size'] = font_description.get_size() / 1024    
             html = string.Template(template).safe_substitute(subs)
             self.reviewsBrowser.load_html_string(html, "file:/")
             self.reviewsBrowser.connect("load-finished", self._on_reviews_load_finished, package.reviews)
@@ -909,7 +935,7 @@ class Application():
 
     def _on_title_changed(self, view, frame, title):
         # no op - needed to reset the title after a action so that
-        #         the action can be triggered again
+        #        the action can be triggered again
         if title.startswith("nop"):
             return
         # call directive looks like:
@@ -1023,7 +1049,7 @@ class Application():
     def add_packages(self):
         self.packages = []
         self.packages_dict = {}
-        cache = apt.Cache()            
+        cache = apt.Cache()         
                                                 
         for pkg in cache:
             package = Package(pkg.name, pkg)
@@ -1043,9 +1069,9 @@ class Application():
      
         # Process matching packages
         for category in self.categories:
-            for package_name in category.matchingPackages:                
+            for package_name in category.matchingPackages:              
                 try:
-                    package = self.packages_dict[package_name]                    
+                    package = self.packages_dict[package_name]                  
                     self.add_package_to_category(package, category)
                 except Exception, detail:
                     pass
@@ -1137,7 +1163,7 @@ class Application():
                 if theme.has_icon(cat.icon):
                     iconInfo = theme.lookup_icon(cat.icon, size, 0)
                     if iconInfo and os.path.exists(iconInfo.get_filename()):
-                        icon = iconInfo.get_filename()                
+                        icon = iconInfo.get_filename()              
                 if icon == None:
                     if os.path.exists(cat.icon):
                         icon = cat.icon
@@ -1194,7 +1220,7 @@ class Application():
                 elif package.score > 0:
                     color = "#55AA55"
                 draw.text((34, 2), str(package.score), font=sans26, fill="#AAAAAA")
-                draw.text((33, 1), str(package.score), font=sans26, fill="#555555")                    
+                draw.text((33, 1), str(package.score), font=sans26, fill="#555555")                 
                 draw.text((32, 0), str(package.score), font=sans26, fill=color)
                 draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
                 tmpFile = tempfile.NamedTemporaryFile(delete=False)
@@ -1226,7 +1252,7 @@ class Application():
             else:
                 # Else, default to generic icons
                 icon_path = "/usr/lib/linuxmint/mintInstall/data/installed.png"
-        else:           
+        else:          
             # Try the Icon theme first
             theme = gtk.icon_theme_get_default()
             if theme.has_icon(package.name):
@@ -1260,11 +1286,11 @@ class Application():
                 bg_w,bg_h=im.size
                 im2=Image.open("/usr/lib/linuxmint/mintInstall/data/emblem-installed.png")
                 img_w,img_h=im2.size 
-                offset=(17,17)           
+                offset=(17,17)         
                 im.paste(im2, offset,im2)
                 tmpFile = tempfile.NamedTemporaryFile(delete=False)
-                im.save (tmpFile.name + ".png")                
-                icon_path = tmpFile.name + ".png"                
+                im.save (tmpFile.name + ".png")             
+                icon_path = tmpFile.name + ".png"               
         else:
             # Try mintinstall-icons then
             if package.pkg.is_installed:
@@ -1293,7 +1319,7 @@ class Application():
             if iconInfo and os.path.exists(iconInfo.get_filename()):
                 return iconInfo.get_filename()
     
-        iconInfo = theme.lookup_icon("applications-other", 64, 0)        
+        iconInfo = theme.lookup_icon("applications-other", 64, 0)       
         return iconInfo.get_filename()
 
     def show_search_results(self, terms):
@@ -1368,7 +1394,7 @@ class Application():
         return False
 
     @print_timing
-    def show_package(self, package):
+    def show_package(self, package, tree):
 
         self.current_package = package
                 
@@ -1386,7 +1412,7 @@ class Application():
         except:
             subs['font_weight'] = font_description.get_weight()   
         subs['font_style'] = font_description.get_style().value_nick        
-        subs['font_size'] = font_description.get_size() / 1024        
+        subs['font_size'] = font_description.get_size() / 1024      
 
         if self.prefs["username"] != "":
             for review in package.reviews:
@@ -1415,32 +1441,31 @@ class Application():
         subs['label_submit'] = _("Submit")
         subs['label_your_review'] = _("Your review")
 
-        impacted_packages = []      
-    
-        cache = apt.Cache()
-        pkg = cache[package.name]
+        impacted_packages = []    
+        pkg = self.cache[package.name]
         if package.pkg.is_installed:
             pkg.mark_delete(True, True)
         else:
             pkg.mark_install()
-        changes = cache.get_changes()
+    
+        changes = self.cache.get_changes()
         for pkg in changes:
             if (pkg.is_installed):
                 impacted_packages.append(_("%s (removed)") % pkg.name)
             else:
                 impacted_packages.append(_("%s (installed)") % pkg.name)
         
-        downloadSize = str(cache.required_download) + _("B")
-        if (cache.required_download >= 1000):
-            downloadSize = str(cache.required_download / 1000) + _("KB")
-        if (cache.required_download >= 1000000):
-            downloadSize = str(cache.required_download / 1000000) + _("MB")
-        if (cache.required_download >= 1000000000):
-            downloadSize = str(cache.required_download / 1000000000) + _("GB")
+        downloadSize = str(self.cache.required_download) + _("B")
+        if (self.cache.required_download >= 1000):
+            downloadSize = str(self.cache.required_download / 1000) + _("KB")
+        if (self.cache.required_download >= 1000000):
+            downloadSize = str(self.cache.required_download / 1000000) + _("MB")
+        if (self.cache.required_download >= 1000000000):
+            downloadSize = str(self.cache.required_download / 1000000000) + _("GB")
                    
-        required_space = cache.required_space
+        required_space = self.cache.required_space
         if (required_space < 0):
-            required_space = (-1) * required_space            
+            required_space = (-1) * required_space          
         localSize = str(required_space) + _("B")
         if (required_space >= 1000):
             localSize = str(required_space / 1000) + _("KB")
@@ -1457,12 +1482,12 @@ class Application():
         subs['detailsLabel'] = _("Details")
         
         if package.pkg.is_installed:
-            if cache.required_space < 0:
+            if self.cache.required_space < 0:
                 subs['sizeinfo'] = _("%(localSize)s of disk space freed") % {'localSize': localSize}
             else:
                 subs['sizeinfo'] = _("%(localSize)s of disk space required") % {'localSize': localSize}
         else:
-            if cache.required_space < 0:
+            if self.cache.required_space < 0:
                 subs['sizeinfo'] = _("%(downloadSize)s to download, %(localSize)s of disk space freed") % {'downloadSize': downloadSize, 'localSize': localSize}
             else:
                 subs['sizeinfo'] = _("%(downloadSize)s to download, %(localSize)s of disk space required") % {'downloadSize': downloadSize, 'localSize': localSize}
@@ -1475,7 +1500,7 @@ class Application():
         else:
             subs['homepage'] = ""
             subs['homepage_button_visibility'] = "hidden"
-
+        
         direction = gtk.widget_get_default_direction()
         if direction ==  gtk.TEXT_DIR_RTL:
             subs['text_direction'] = 'DIR="RTL"'
@@ -1508,7 +1533,7 @@ class Application():
                 color = "#55AA55"
             draw.text((34, 2), str(package.score), font=sans26, fill="#AAAAAA")
             draw.text((33, 1), str(package.score), font=sans26, fill="#555555")
-            draw.text((32, 0), str(package.score), font=sans26, fill=color)            
+            draw.text((32, 0), str(package.score), font=sans26, fill=color)         
             draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
             tmpFile = tempfile.NamedTemporaryFile(delete=False)
             im.save (tmpFile.name + ".png")
@@ -1517,11 +1542,15 @@ class Application():
         else:
             subs['rating'] = "/usr/lib/linuxmint/mintInstall/data/no-reviews.png"
             subs['reviews'] = ""
-        
+
         template = open("/usr/lib/linuxmint/mintInstall/data/templates/PackageView.html").read()
         html = string.Template(template).safe_substitute(subs)
         self.packageBrowser.load_html_string(html, "file:/")
-        self.packageBrowser.connect("load-finished", self._on_package_load_finished, package.reviews)       
+        
+        if self.loadHandlerID != -1:
+            self.packageBrowser.disconnect(self.loadHandlerID)
+        
+        self.loadHandlerID = self.packageBrowser.connect("load-finished", self._on_package_load_finished, package.reviews)       
 
         # Update the navigation bar
         self.navigation_bar.add_with_id(package.name, self.navigate, self.NAVIGATION_ITEM, package)
