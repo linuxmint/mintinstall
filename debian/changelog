@@ -1,3 +1,15 @@
+mintinstall (7.3.6) lisa; urgency=low
+
+  * Multiple fixes from glebihan and doverton51
+
+ -- Clement Lefebvre <root@linuxmint.com>  Thu, 26 Apr 2012 14:20:00 +0000
+
+mintinstall (7.3.5) lisa; urgency=low
+
+  * Featured Opera
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon, 02 Jan 2012 17:41:41 +0000
+
 mintinstall (7.3.4) lisa; urgency=low
 
   * Removed commercial apps from categories view 
