@@ -7,7 +7,10 @@ Standards-Version: 3.7.2
 
 Package: mintinstall
 Architecture: all
-Depends: python (>= 2.4), python (<< 3), python-gtk2, python-glade2, mint-common, python-aptdaemon, python-webkit, python-imaging, ttf-freefont
+Depends: python (>= 2.4), python (<< 3), python-gtk2, python-glade2, python-aptdaemon, python-webkit, python-imaging, ttf-freefont
 Recommends: mintinstall-icons
 Description: Software Manager
  A software manager to easily install new applications.
+ .
+ Note that this is meant to be used with the linux mint distribution,
+ all stats, screenshots, and review, come from the Mint user base (and not Debian).
