@@ -22,11 +22,10 @@
 # this program; if not, write to the Free Software Foundation, Inc., 59 Temple
 # Place, Suite 330, Boston, MA 02111-1307 USA
 
-import sexy
 import gtk
 import gobject
 
-class SearchEntry(sexy.IconEntry):
+class SearchEntry(gtk.Entry):
 
     # FIMXE: we need "can-undo", "can-redo" signals
     __gsignals__ = {'terms-changed':(gobject.SIGNAL_RUN_FIRST,
@@ -40,21 +39,19 @@ class SearchEntry(sexy.IconEntry):
         Creates an enhanced IconEntry that supports a time out when typing
         and uses a different background colour when the search is active
         """
-        sexy.IconEntry.__init__(self)
+        gtk.Entry.__init__(self)
         if not icon_theme:
             icon_theme = gtk.icon_theme_get_default()
         self._handler_changed = self.connect_after("changed",
                                                    self._on_changed)
-        self.connect("icon-pressed", self._on_icon_pressed)
-        image_find = gtk.image_new_from_stock(gtk.STOCK_FIND, 
-                                              gtk.ICON_SIZE_MENU)
-        self.set_icon(sexy.ICON_ENTRY_PRIMARY, image_find)
+        self.connect("icon-press", self._on_icon_pressed)
+        self.set_icon_from_stock(gtk.ENTRY_ICON_PRIMARY, gtk.STOCK_FIND)
 
-        self.empty_image = gtk.Image()
-        self.clear_image = gtk.image_new_from_stock(gtk.STOCK_CLEAR, 
-                                                    gtk.ICON_SIZE_MENU)
-        self.set_icon(sexy.ICON_ENTRY_SECONDARY, self.clear_image)
-        self.set_icon_highlight(sexy.ICON_ENTRY_PRIMARY, True)
+        self.empty_image = None
+        self.clear_image = gtk.STOCK_CLEAR
+        self.set_icon_from_stock(gtk.ENTRY_ICON_SECONDARY, self.clear_image)
+        # FIXME: what did this do ?
+        # self.set_icon_highlight(sexy.ICON_ENTRY_PRIMARY, True)
 
         # Do not draw a yellow bg if an a11y theme is used
         settings = gtk.settings_get_default()
@@ -71,13 +68,13 @@ class SearchEntry(sexy.IconEntry):
         Emit the terms-changed signal without any time out when the clear
         button was clicked
         """
-        if icon == sexy.ICON_ENTRY_SECONDARY:
+        if icon == gtk.ENTRY_ICON_SECONDARY:
             # clear with no signal and emit manually to avoid the
             # search-timeout
             self.clear_with_no_signal()
             self.grab_focus()
             self.emit("terms-changed", "")
-        elif icon == sexy.ICON_ENTRY_PRIMARY:
+        elif icon == gtk.ENTRY_ICON_PRIMARY:
             self.select_region(0, -1)
             self.grab_focus()
 
@@ -133,9 +130,9 @@ class SearchEntry(sexy.IconEntry):
         """
         # show/hide icon
         if self.get_text() != "":
-            self.set_icon(sexy.ICON_ENTRY_SECONDARY, self.clear_image)
+            self.set_icon_from_stock(gtk.ENTRY_ICON_SECONDARY, self.clear_image)
         else:
-            self.set_icon(sexy.ICON_ENTRY_SECONDARY, self.empty_image)
+            self.set_icon_from_stock(gtk.ENTRY_ICON_SECONDARY, self.empty_image)
         # Based on the Rhythmbox code
         yellowish = gtk.gdk.Color(63479, 63479, 48830)
         if self._a11y == True:
