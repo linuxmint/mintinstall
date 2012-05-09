@@ -17,20 +17,24 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gobject
-import gtk
+from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import GdkPixbuf
+from gi.repository import GLib
+from gi.repository import GObject
+
 import os
 import glob
 import time
 
-class AnimatedImage(gtk.Image):
-    
+class AnimatedImage(Gtk.Image):
+
     FPS = 20.0
     SIZE = 24
 
     def __init__(self, icon):
         """ Animate a gtk.Image
-    
+
         Keywords:
         icon: pass either:
               - None - creates empty image with self.SIZE
@@ -42,13 +46,13 @@ class AnimatedImage(gtk.Image):
         super(AnimatedImage, self).__init__()
         self._progressN = 0
         if icon is None:
-            icon = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, 1, 1)
+            icon = GdkPixbuf.new(GdkPixbuf.Colorspace.RGB, True, 8, 1, 1)
             icon.fill(0)
         if isinstance(icon, list):
             self.images = []
             for f in icon:
-                self.images.append(gtk.gdk.pixbuf_new_from_file(f))
-        elif isinstance(icon, gtk.gdk.Pixbuf):
+                self.images.append(GdkPixbuf.Pixbuf.new_from_file(f))
+        elif isinstance(icon, GdkPixbuf.Pixbuf):
             self.images = [icon]
             self.set_from_pixbuf(icon)
         elif isinstance(icon, str):
@@ -57,13 +61,13 @@ class AnimatedImage(gtk.Image):
             if not self._imagefiles:
                 raise IOError, "no images for the animation found in '%s'" % icon
             # construct self.images list
-            pixbuf_orig = gtk.gdk.pixbuf_new_from_file(icon)
+            pixbuf_orig = GdkPixbuf.Pixbuf.new_from_file(icon)
             pixbuf_buffer = pixbuf_orig.copy()
             x = 0
             y = 0
-            for f in range((pixbuf_orig.get_width() / self.SIZE) * 
+            for f in range((pixbuf_orig.get_width() / self.SIZE) *
                            (pixbuf_orig.get_height() / self.SIZE)):
-                pixbuf_buffer = pixbuf_orig.subpixbuf(x, y, self.SIZE, self.SIZE)
+                pixbuf_orig.copy_area(x, y, self.SIZE, self.SIZE, pixbuf_buffer, 0, 0)
                 self.images.append(pixbuf_buffer)
                 if x == (pixbuf_orig.get_width() - self.SIZE):
                     x = 0
@@ -78,7 +82,7 @@ class AnimatedImage(gtk.Image):
             raise IOError, "need a str, list or a pixbuf"
 
     def start(self, w=None):
-        source_id = gobject.timeout_add(int(1000/self.FPS), 
+        source_id = GLib.timeout_add(int(1000/self.FPS),
                                               self._progress_timeout)
         self._run = True
 
@@ -98,18 +102,18 @@ class AnimatedImage(gtk.Image):
         self.set_from_pixbuf(self.get_current_pixbuf())
         return self._run
 
-class CellRendererAnimatedImage(gtk.CellRendererPixbuf):
+class CellRendererAnimatedImage(Gtk.CellRendererPixbuf):
 
-    __gproperties__  = { 
-        "image" : (gobject.TYPE_OBJECT, 
+    __gproperties__  = {
+        "image" : (Gtk.Image,
                    "Image",
-                   "Image", 
-                   gobject.PARAM_READWRITE),
+                   "Image",
+                   GObject.PARAM_READWRITE),
     }
     FPS = 20.0
 
     def __init__(self):
-        gtk.CellRendererPixbuf.__init__(self)
+        Gtk.CellRendererPixbuf.__init__(self)
     def do_set_property(self, pspec, value):
         setattr(self, pspec.name, value)
     def do_get_property(self, pspec):
@@ -121,18 +125,18 @@ class CellRendererAnimatedImage(gtk.CellRendererPixbuf):
             return
         for row in model:
             cell_area = widget.get_cell_area(row.path, widget.get_column(0))
-            widget.queue_draw_area(cell_area.x, cell_area.y, 
+            widget.queue_draw_area(cell_area.x, cell_area.y,
                                    cell_area.width, cell_area.height)
-    def do_render(self, window, widget, background_area, cell_area, expose_area, flags):
+    def do_render(self, window, widget, background_area, cell_area, expose_area):
         image = self.get_property("image")
         if image.get_animation_len() > 1:
-            gobject.timeout_add(int(1000.0/self.FPS), self._animation_helper, widget, image)
+            GLib.timeout_add(int(1000.0/self.FPS), self._animation_helper, widget, image)
         self.set_property("pixbuf", image.get_current_pixbuf())
-        return gtk.CellRendererPixbuf.do_render(self, window, widget, background_area, cell_area, expose_area, flags)
+        return Gtk.CellRendererPixbuf.do_render(self, window, widget, background_area, cell_area, expose_area)
     def do_get_size(self, widget, cell_area):
         image = self.get_property("image")
         self.set_property("pixbuf", image.get_current_pixbuf())
-        return gtk.CellRendererPixbuf.do_get_size(self, widget, cell_area)
+        return Gtk.CellRendererPixbuf.do_get_size(self, widget, cell_area)
 
 if __name__ == "__main__":
     import sys
@@ -142,44 +146,42 @@ if __name__ == "__main__":
     elif os.path.exists("./data"):
         datadir = "./data"
     else:
-        datadir = "/usr/share/software-center/data"
+        datadir = "/usr/share/icons/gnome"
 
-    image = AnimatedImage(datadir+"/icons/24x24/status/softwarecenter-progress.png")
-    image1 = AnimatedImage(datadir+"/icons/24x24/status/softwarecenter-progress.png")
+    image = AnimatedImage(datadir+"/24x24/status/software-update-available.png")
+    image1 = AnimatedImage(datadir+"/24x24/status/software-update-available.png")
     image1.start()
-    image2 = AnimatedImage(datadir+"/icons/24x24/status/softwarecenter-progress.png")
-    pixbuf = gtk.gdk.pixbuf_new_from_file(datadir+"/icons/24x24/status/softwarecenter-progress.png")
+    image2 = AnimatedImage(datadir+"/24x24/status/software-update-available.png")
+    pixbuf = GdkPixbuf.Pixbuf.new_from_file(datadir+"/24x24/status/software-update-available.png")
     image3 = AnimatedImage(pixbuf)
     image3.show()
 
-    image4 = AnimatedImage(glob.glob(datadir+"/icons/32x32/status/*"))
+    image4 = AnimatedImage(glob.glob(datadir+"/32x32/status/*"))
     image4.start()
     image4.show()
 
-    model = gtk.ListStore(AnimatedImage)
+    model = Gtk.ListStore(AnimatedImage)
     model.append([image1])
     model.append([image2])
-    treeview = gtk.TreeView(model)
+    treeview = Gtk.TreeView(model)
     tp = CellRendererAnimatedImage()
-    column = gtk.TreeViewColumn("Icon", tp, image=0)
+    column = Gtk.TreeViewColumn("Icon", tp, image=0)
     treeview.append_column(column)
     treeview.show()
 
-    box = gtk.VBox()
-    box.pack_start(image)
-    box.pack_start(image3)
-    box.pack_start(image4)
-    box.pack_start(treeview)
+    box = Gtk.VBox()
+    box.add(image)
+    box.add(image3)
+    box.add(image4)
+    box.add(treeview)
     box.show()
-    win = gtk.Window()
+    win = Gtk.Window()
     win.add(box)
     win.set_size_request(400,400)
     win.show()
 
     print "running the image for 5s"
-    gobject.timeout_add_seconds(1, image.show)
-    gobject.timeout_add_seconds(5, image.hide)
+    GLib.timeout_add_seconds(1, image.show)
+    GLib.timeout_add_seconds(5, image.hide)
 
-    gtk.main()
-
-
+    Gtk.main()
