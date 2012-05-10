@@ -1,46 +1,45 @@
 # urlview.py
-#  
+#
 #  Copyright (c) 2006 Sebastian Heinlein
-#  
+#
 #  Author: Sebastian Heinlein <sebastian.heinlein@web.de>
 #
-#  This modul provides an inheritance of the gtk.TextView that is 
+#  This modul provides an inheritance of the gtk.TextView that is
 #  aware of http URLs and allows to open them in a browser.
 #  It is based on the pygtk-demo "hypertext".
-# 
-#  This program is free software; you can redistribute it and/or 
-#  modify it under the terms of the GNU General Public License as 
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License as
 #  published by the Free Software Foundation; version 3.
-# 
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 #  USA
 
+from gi.repository import Gtk
+from gi.repository import Pango
 
-import pygtk
-import gtk
-import pango
 import subprocess
 import os
 
-class UrlTextView(gtk.TextView):
+class UrlTextView(Gtk.TextView):
     def __init__(self, text=None):
         """TextView subclass that supports tagging/adding of links"""
         # init the parent
-        gtk.TextView.__init__(self)
+        Gtk.TextView.__init__(self)
         # global hovering over link state
         self.hovering = False
         self.first = True
         # setup the buffer and signals
         self.set_property("editable", False)
         self.set_cursor_visible(False)
-        self.buffer = gtk.TextBuffer()
+        self.buffer = Gtk.TextBuffer()
         self.set_buffer(self.buffer)
         self.connect("event-after", self.event_after)
         self.connect("motion-notify-event", self.motion_notify_event)
@@ -53,22 +52,22 @@ class UrlTextView(gtk.TextView):
 
     def tag_link(self, start, end, url):
         """Apply the tag that marks links to the specified buffer selection"""
-        tag = self.buffer.create_tag(None, 
+        tag = self.buffer.create_tag(None,
                                      foreground="blue",
-                                     underline=pango.UNDERLINE_SINGLE)
+                                     underline=Pango.Underline.SINGLE)
         tag.set_data("url", url)
         self.buffer.apply_tag(tag , start, end)
 
     def on_insert_text(self, buffer, iter_end, text, *args):
-        """Search for http URLs in newly inserted text  
+        """Search for http URLs in newly inserted text
            and tag them accordingly"""
         iter = buffer.get_iter_at_offset(iter_end.get_offset() - len(text))
         iter_real_end = buffer.get_end_iter()
         for protocol in ["http://", "https://"]:
             while True:
                 # search for the next URL in the buffer
-                ret = iter.forward_search(protocol, 
-                                      gtk.TEXT_SEARCH_VISIBLE_ONLY,
+                ret = iter.forward_search(protocol,
+                                      Gtk.TextSearchFlagsVISIBLE_ONLY,
                                       iter_end)
                 # if we reach the end break the loop
                 if not ret:
@@ -102,7 +101,7 @@ class UrlTextView(gtk.TextView):
     def event_after(self, text_view, event):
         """callback for mouse click events"""
         # we only react on left mouse clicks
-        if event.type != gtk.gdk.BUTTON_RELEASE:
+        if event.type != Gdk.EventType.BUTTON_RELEASE:
             return False
         if event.button != 1:
             return False
@@ -117,10 +116,10 @@ class UrlTextView(gtk.TextView):
                 return False
 
         # get the iter at the mouse position
-        (x, y) = self.window_to_buffer_coords(gtk.TEXT_WINDOW_WIDGET,
+        (x, y) = self.window_to_buffer_coords(Gtk.TextWindowType.WIDGET,
                                               int(event.x), int(event.y))
         iter = self.get_iter_at_location(x, y)
-        
+
         # call open_url if an URL is assigned to the iter
         tags = iter.get_tags()
         for tag in tags:
@@ -146,18 +145,18 @@ class UrlTextView(gtk.TextView):
     def motion_notify_event(self, text_view, event):
         """callback for the mouse movement event, that calls the
            check_hovering method with the mouse postition coordiantes"""
-        x, y = text_view.window_to_buffer_coords(gtk.TEXT_WINDOW_WIDGET,
+        x, y = text_view.window_to_buffer_coords(Gtk.TextWindowType.WIDGET,
                                                  int(event.x), int(event.y))
         self.check_hovering(x, y)
         self.window.get_pointer()
         return False
-    
+
     def visibility_notify_event(self, text_view, event):
         """callback if the widgets gets visible (e.g. moves to the foreground)
            that calls the check_hovering method with the mouse position
            coordinates"""
         (wx, wy, mod) = text_view.window.get_pointer()
-        (bx, by) = text_view.window_to_buffer_coords(gtk.TEXT_WINDOW_WIDGET, wx,
+        (bx, by) = text_view.window_to_buffer_coords(Gtk.TextWindowType.WIDGET, wx,
                                                      wy)
         self.check_hovering(bx, by)
         return False
@@ -168,7 +167,7 @@ class UrlTextView(gtk.TextView):
         _hovering = False
         # get the iter at the mouse position
         iter = self.get_iter_at_location(x, y)
-        
+
         # set _hovering if the iter has the tag "url"
         tags = iter.get_tags()
         for tag in tags:
@@ -183,8 +182,8 @@ class UrlTextView(gtk.TextView):
             self.hovering = _hovering
             # Set the appropriate cursur icon
             if self.hovering:
-                self.get_window(gtk.TEXT_WINDOW_TEXT).\
-                        set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
+                self.get_window(Gtk.TextWindowType.TEXT).\
+                        set_cursor(Gdk.Cursor(Gdk.CursorType.HAND2))
             else:
-                self.get_window(gtk.TEXT_WINDOW_TEXT).\
-                        set_cursor(gtk.gdk.Cursor(gtk.gdk.LEFT_PTR))
+                self.get_window(Gtk.TextWindowType.TEXT).\
+                        set_cursor(Gdk.Cursor(Gdk.CursorType.LEFT_PTR))

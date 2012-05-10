@@ -19,13 +19,13 @@ set -e
 
 case "$1" in
     configure)
-	if [ -x /usr/bin/update-mime-database ]
+	if which update-mime-database > /dev/null
 	then
-		/usr/bin/update-mime-database /usr/share/mime
+		update-mime-database /usr/share/mime
 	fi
-	if [ -x /usr/bin/update-desktop-database ]
+	if which /usr/bin/update-desktop-database > /dev/null
 	then
-		/usr/bin/update-desktop-database
+		update-desktop-database
 	fi
     ;;
 

@@ -16,32 +16,31 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from gi.repository import Gtk
 
-import gobject
-import gtk
 import logging
 import os
 import sys
 import string
 
-class GtkbuilderWidget(gtk.HBox):
-    """A widget that gets loaded from a Gtkbuilder UI file 
-    
+class GtkbuilderWidget(Gtk.HBox):
+    """A widget that gets loaded from a Gtkbuilder UI file
+
     If no "toplevel_name" paramter is given, the name of
     the class is used to find a UI file of that name and
     load the object with that name
     """
     def __init__(self, datadir, toplevel_name=None):
-        gtk.HBox.__init__(self)
+        Gtk.HBox.__init__(self)
         if toplevel_name is None:
             toplevel_name = self.__class__.__name__
-        ui_file = "%s/ui/%s.ui" % (datadir, toplevel_name)
-        builder = gtk.Builder()
+        ui_file = "%s/ui/gtk3/%s.ui" % (datadir, toplevel_name)
+        builder = Gtk.Builder()
         builder.add_objects_from_file(ui_file, [toplevel_name])
         builder.connect_signals(self)
         for o in builder.get_objects():
-            if issubclass(type(o), gtk.Buildable):
-                name = gtk.Buildable.get_name(o)
+            if issubclass(type(o), Gtk.Buildable):
+                name = Gtk.Buildable.get_name(o)
                 setattr(self, name, o)
             else:
                 logging.warn("WARNING: can not get name for '%s'" % o)
@@ -52,7 +51,7 @@ class GtkbuilderWidget(gtk.HBox):
         w = getattr(self, self.__class__.__name__)
         w.show_all()
 
-# test widget that just loads the 
+# test widget that just loads the
 class GBTestWidget(GtkbuilderWidget):
 
     def on_button_clicked(self, button):
@@ -72,9 +71,9 @@ if __name__ == "__main__":
     w = GBTestWidget(datadir)
     w.show()
 
-    win = gtk.Window()
+    win = Gtk.Window()
     win.add(w)
     #win.set_size_request(600,400)
     win.show_all()
 
-    gtk.main()
+    Gtk.main()

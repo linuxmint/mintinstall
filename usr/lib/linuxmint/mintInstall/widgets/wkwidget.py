@@ -16,18 +16,18 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from gi.repository import WebKit
+from gi.repository import Gtk
+from gi.repository import Gdk
 
-import gobject
-import gtk
 import logging
 import os
 import tempfile
 import string
 
-gobject.threads_init()
-import webkit
+Gdk.threads_init()
 
-class WebkitWidget(webkit.WebView):
+class WebkitWidget(WebKit.WebView):
     """Widget that uses a webkit html form for its drawing
 
     All i18n should be done *outside* the html, currently
@@ -38,7 +38,7 @@ class WebkitWidget(webkit.WebView):
     called on load of the page and the template in the
     html page will be replaced by the value that is returned
     by the function. E.g. the html has "... <p>$description</p>"
-    then that will get replaced by the call to 
+    then that will get replaced by the call to
     "def wksub_description(self)".
 
     It support calls to functions via javascript title change
@@ -51,7 +51,7 @@ class WebkitWidget(webkit.WebView):
 
     def __init__(self, datadir, substitute=None):
         # init webkit
-        webkit.WebView.__init__(self)
+        WebKit.WebView.__init__(self)
         # kill right click menu (the hard way) by stopping event
         # propergation on right-click
         self.connect("button-press-event", lambda w, e: e.button == 3)
@@ -83,7 +83,7 @@ class WebkitWidget(webkit.WebView):
         #print self._html
 
     def _load(self):
-        class_name = self.__class__.__name__        
+        class_name = self.__class__.__name__
         self._html_path = self.datadir+"/templates/%s.html" % class_name
         logging.debug("looking for '%s'" % self._html_path)
         if os.path.exists(self._html_path):
@@ -103,7 +103,7 @@ class WebkitWidget(webkit.WebView):
         """
         substituate template strings in the html text. If a dict is passed
         to the argument "subs" that will be used for the substitution.
-        Otherwise it will call all functions that are prefixed with 
+        Otherwise it will call all functions that are prefixed with
         "wksub_" and use those values for the substitution
         """
         if subs is None:
@@ -165,15 +165,15 @@ if __name__ == "__main__":
 
 
     subs = {
-        'key' : 'subs value' 
+        'key' : 'subs value'
     }
     w = WKTestWidget(datadir, subs)
 
-    win = gtk.Window()
-    scroll = gtk.ScrolledWindow()
+    win = Gtk.Window()
+    scroll = Gtk.ScrolledWindow()
     scroll.add(w)
     win.add(scroll)
     win.set_size_request(600,400)
     win.show_all()
 
-    gtk.main()
+    Gtk.main()

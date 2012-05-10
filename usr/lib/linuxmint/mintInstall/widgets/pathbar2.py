@@ -16,12 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from gi.repository import GLib
+from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import Pango
 
 import rgb
-import gtk
 import cairo
-import pango
-import gobject
 
 from rgb import to_float as f
 
@@ -30,7 +31,26 @@ M_PI = 3.1415926535897931
 PI_OVER_180 = 0.017453292519943295
 
 
-class PathBar(gtk.DrawingArea):
+def hack_point_in_rect(x, y, a):
+    return (x > a.x and x < a.x + a.width) and (y > a.y and y < a.height)
+
+def hack_rect_in_rect(a, b):
+    a = hack_new_GdkRectangle(*a)
+    for x,y in ((a.x, a.y), (a.x, a.y + a.height), (a.x + a.width, a.y), (a.x + a.width, a.y + a.height)):
+        if (not hack_point_in_rect(x, y, b)):
+            return False
+    return True
+
+def hack_new_GdkRectangle(x,y,w,h):
+    r = Gdk.Rectangle()
+    r.x = x
+    r.y = y
+    r.width = w
+    r.height = h
+
+    return r
+
+class PathBar(Gtk.DrawingArea):
 
     # shapes
     SHAPE_RECTANGLE = 0
@@ -39,7 +59,7 @@ class PathBar(gtk.DrawingArea):
     SHAPE_END_CAP = 3
 
     def __init__(self, group=None):
-        gtk.DrawingArea.__init__(self)
+        Gtk.DrawingArea.__init__(self)
         self.__init_drawing()
         self.set_redraw_on_allocate(False)
 
@@ -54,13 +74,13 @@ class PathBar(gtk.DrawingArea):
         self.theme = self.__pick_theme()
 
         # setup event handling
-        self.set_flags(gtk.CAN_FOCUS)
-        self.set_events(gtk.gdk.POINTER_MOTION_MASK|
-                        gtk.gdk.BUTTON_PRESS_MASK|
-                        gtk.gdk.BUTTON_RELEASE_MASK|
-                        gtk.gdk.KEY_RELEASE_MASK|
-                        gtk.gdk.KEY_PRESS_MASK|
-                        gtk.gdk.LEAVE_NOTIFY_MASK)
+        self.set_can_focus(True)
+        self.set_events(Gdk.EventMask.POINTER_MOTION_MASK|
+                        Gdk.EventMask.BUTTON_PRESS_MASK|
+                        Gdk.EventMask.BUTTON_RELEASE_MASK|
+                        Gdk.EventMask.KEY_RELEASE_MASK|
+                        Gdk.EventMask.KEY_PRESS_MASK|
+                        Gdk.EventMask.LEAVE_NOTIFY_MASK)
 
         self.connect("motion-notify-event", self.__motion_notify_cb)
         self.connect("leave-notify-event", self.__leave_notify_cb)
@@ -69,14 +89,14 @@ class PathBar(gtk.DrawingArea):
 #        self.connect("key-release-event", self.__key_release_cb)
 
         self.connect("realize", self.__realize_cb)
-        self.connect("expose-event", self.__expose_cb)
+        self.connect("draw", self.__draw_cb)
         self.connect("style-set", self.__style_change_cb)
         self.connect("size-allocate", self.__allocation_change_cb)
 	self.last_label = None
         return
 
-    def set_active(self, part):	
-        part.set_state(gtk.STATE_ACTIVE)
+    def set_active(self, part):
+        part.set_state(Gtk.StateFlags.ACTIVE)
         prev, redraw = self.__set_active(part)
         if redraw:
             self.queue_draw_area(*prev.get_allocation_tuple())
@@ -122,7 +142,7 @@ class PathBar(gtk.DrawingArea):
             # begin scroll animation
             self.__hscroll_out_init(
                 part.get_width(),
-                gtk.gdk.Rectangle(x,y,w,h),
+                hack_new_GdkRectangle(x,y,w,h),
                 self.theme.scroll_duration_ms,
                 self.theme.scroll_fps
                 )
@@ -145,8 +165,8 @@ class PathBar(gtk.DrawingArea):
 
         self.__compose_parts(self.__parts[-1], False)
 
-        if old_w >= self.allocation.width:
-            self.__grow_check(old_w, self.allocation)
+        if old_w >= self.get_allocation().width:
+            self.__grow_check(old_w, self.get_allocation())
             self.queue_draw()
 
         else:
@@ -157,7 +177,7 @@ class PathBar(gtk.DrawingArea):
     def __set_active(self, part):
 
 	bigger = False
-	for i in self.id_to_part:	    
+	for i in self.id_to_part:
             apart = self.id_to_part[i]
 	    if bigger:
 		self.remove(apart)
@@ -169,7 +189,7 @@ class PathBar(gtk.DrawingArea):
         if part.callback:
             part.callback(self, part.obj)
         if prev_active and prev_active != part:
-            prev_active.set_state(gtk.STATE_NORMAL)
+            prev_active.set_state(Gtk.StateFlags.NORMAL)
             redraw = True
 
         self.__active_part = part
@@ -178,7 +198,7 @@ class PathBar(gtk.DrawingArea):
     def __append(self, part):
         # clean up any exisitng scroll callbacks
         if self.__scroller:
-            gobject.source_remove(self.__scroller)
+            GLib.source_remove(self.__scroller)
         self.__scroll_xO = 0
 
         # the basics
@@ -194,9 +214,9 @@ class PathBar(gtk.DrawingArea):
         part.set_x(x)
 
         # check parts fit to widgets allocated width
-        if x + part.get_width() > self.allocation.width  and \
-            self.allocation.width != 1:
-            self.__shrink_check(self.allocation)
+        if x + part.get_width() > self.get_allocation().width  and \
+            self.get_allocation().width != 1:
+            self.__shrink_check(self.get_allocation())
             return prev, True
 
         return prev, False
@@ -224,7 +244,7 @@ class PathBar(gtk.DrawingArea):
 
     def __shrink_check(self, allocation):
         path_w = self.__draw_width()
-        shrinkage = path_w - allocation.width
+        shrinkage = path_w - allocation.x
         mpw = self.theme.min_part_width
         xO = 0
 
@@ -318,15 +338,15 @@ class PathBar(gtk.DrawingArea):
         if l == 0:
             return 0
         a = self.__parts[-1].allocation
-        return a[0] + a[2]
+        return a.x + a.width
 
     def __hscroll_out_init(self, distance, draw_area, duration, fps):
-        self.__scroller = gobject.timeout_add(
+        self.__scroller = GLib.timeout_add(
             int(1000.0 / fps),  # interval
             self.__hscroll_out_cb,
             distance,
             duration*0.001,   # 1 over duration (converted to seconds)
-            gobject.get_current_time(),
+            GLib.get_current_time(),
             draw_area.x,
             draw_area.y,
             draw_area.width,
@@ -334,7 +354,7 @@ class PathBar(gtk.DrawingArea):
         return
 
     def __hscroll_out_cb(self, distance, duration, start_t, x, y, w, h):
-        cur_t = gobject.get_current_time()
+        cur_t = GLib.get_current_time()
         xO = distance - distance*((cur_t - start_t) / duration)
 
         if xO > 0:
@@ -352,9 +372,7 @@ class PathBar(gtk.DrawingArea):
     def __part_at_xy(self, x, y):
         for part in self.__parts:
             a = part.get_allocation()
-            region = gtk.gdk.region_rectangle(a)
-
-            if region.point_in(int(x), int(y)):
+            if (hack_point_in_rect(x, y, a)):
                 return part
         return None
 
@@ -366,7 +384,7 @@ class PathBar(gtk.DrawingArea):
         prev, last = self.__parts[-2:]
 
         # style theme stuff
-        style, r, aw, shapes = self.style, self.theme.curvature, \
+        style, r, aw, shapes = self.get_style_context(), self.theme.curvature, \
             self.theme.arrow_width, self.__shapes
 
         # draw part that need scrolling
@@ -387,12 +405,12 @@ class PathBar(gtk.DrawingArea):
                          shapes)
         return
 
-    def __draw_all(self, cr, event_area):
-        style = self.style
+    def __draw_all(self, cr):
+        event_area = cr.path_extents()
+        style = self.get_style_context()
         r = self.theme.curvature
         aw = self.theme.arrow_width
         shapes = self.__shapes
-        region = gtk.gdk.region_rectangle(event_area)
 
         # if a scroll is pending we want to not draw the final part,
         # as we don't want to prematurely reveal the part befor the
@@ -404,13 +422,13 @@ class PathBar(gtk.DrawingArea):
 
         parts.reverse()
         for part in parts:
-            if region.rect_in(part.get_allocation()) != gtk.gdk.OVERLAP_RECTANGLE_OUT:
+            if (hack_rect_in_rect (event_area, part.get_allocation())):
                 self.__draw_part(cr, part, style, r, aw, shapes)
         parts.reverse()
         return
 
     def __draw_part_ltr(self, cr, part, style, r, aw, shapes, sxO=0):
-        x, y, w, h = part.get_allocation()
+        x, y, w, h = part.get_allocation_tuple()
         shape = part.shape
         state = part.state
         icon_pb = part.icon.pixbuf
@@ -446,23 +464,14 @@ class PathBar(gtk.DrawingArea):
             layout = part.get_layout()
             lw, lh = layout.get_pixel_size()
             dst_x = x + margin - int(sxO)
-            dst_y = (self.allocation.height - lh)/2+1
-            style.paint_layout(
-                self.window,
-                self.theme.text_state[state],
-                False,
-                (dst_x, dst_y, lw+4, lh),   # clip area
-                self,
-                None,
-                dst_x,
-                dst_y,
-                layout)
+            dst_y = (self.get_allocation().height - lh)/2+1
+            Gtk.render_layout(style, cr, dst_x, dst_y, layout)
 
         cr.restore()
         return
 
     def __draw_part_rtl(self, cr, part, style, r, aw, shapes, sxO=0):
-        x, y, w, h = part.get_allocation()
+        x, y, w, h = part.get_allocation_tuple()
         shape = part.shape
         state = part.state
         icon_pb = part.icon.pixbuf
@@ -499,17 +508,8 @@ class PathBar(gtk.DrawingArea):
             layout = part.get_layout()
             lw, lh = layout.get_pixel_size()
             dst_x = x + part.get_width() - margin - lw + int(sxO)
-            dst_y = (self.allocation.height - lh)/2+1
-            style.paint_layout(
-                self.window,
-                self.theme.text_state[state],
-                False,
-                None,
-                self,
-                None,
-                dst_x,
-                dst_y,
-                layout)
+            dst_y = (self.get_allocation().height - lh)/2+1
+            Gtk.render_layout(style, cr, dst_x, dst_y, layout)
 
         cr.restore()
         return
@@ -526,7 +526,7 @@ class PathBar(gtk.DrawingArea):
         inner = self.theme.light_line_colors
 
         # bg linear vertical gradient
-        if state != gtk.STATE_PRELIGHT:
+        if state != Gtk.StateFlags.PRELIGHT:
             color1, color2 = bg[state]
         else:
             if part != self.get_active():
@@ -629,15 +629,15 @@ class PathBar(gtk.DrawingArea):
         # returns the idle state of the part depending on
         # whether part is active or not.
         if part == self.__active_part:
-            return gtk.STATE_ACTIVE
-        return gtk.STATE_NORMAL
+            return Gtk.StateFLags.ACTIVE
+        return Gtk.StateFlags.NORMAL
 
     def __tooltip_check(self, part):
         # only show a tooltip if part is truncated, i.e. not all label text is
         # visible.
         if part.is_truncated():
             self.set_has_tooltip(False)
-            gobject.timeout_add(50, self.__set_tooltip_cb, part.label)
+            GLib.timeout_add(50, self.__set_tooltip_cb, part.label)
         else:
             self.set_has_tooltip(False)
         return
@@ -650,7 +650,7 @@ class PathBar(gtk.DrawingArea):
         return False
 
     def __pick_theme(self, name=None):
-        name = name or gtk.settings_get_default().get_property("gtk-theme-name")
+        name = name or Gtk.Settings.get_default().get_property("gtk-theme-name")
         themes = PathBarThemes.DICT
         if themes.has_key(name):
             return themes[name]()
@@ -658,7 +658,7 @@ class PathBar(gtk.DrawingArea):
         return PathBarThemeHuman()
 
     def __init_drawing(self):
-        if self.get_direction() != gtk.TEXT_DIR_RTL:
+        if self.get_direction() != Gtk.TextDirection.RTL:
             self.__draw_part = self.__draw_part_ltr
             self.__shapes = {
                 self.SHAPE_RECTANGLE : self.__shape_rect,
@@ -688,9 +688,9 @@ class PathBar(gtk.DrawingArea):
             return
 
         self.__button_down = False
-        if part and part.state != gtk.STATE_PRELIGHT:
+        if part and part.state != Gtk.StateFlags.PRELIGHT:
             self.__tooltip_check(part)
-            part.set_state(gtk.STATE_PRELIGHT)
+            part.set_state(Gtk.StateFlags.PRELIGHT)
 
             if prev_focal:
                 prev_focal.set_state(self.__state(prev_focal))
@@ -718,7 +718,7 @@ class PathBar(gtk.DrawingArea):
         self.__button_down = True
         part = self.__part_at_xy(event.x, event.y)
         if part:
-            part.set_state(gtk.STATE_SELECTED)
+            part.set_state(Gtk.StateFlags.SELECTED)
             self.queue_draw_area(*part.get_allocation_tuple())
         return
 
@@ -730,7 +730,7 @@ class PathBar(gtk.DrawingArea):
         elif part and self.__button_down:
             self.grab_focus()
             prev_active, redraw = self.__set_active(part)
-            part.set_state(gtk.STATE_PRELIGHT)
+            part.set_state(Gtk.StateFlags.PRELIGHT)
             self.queue_draw_area(*part.get_allocation_tuple())
 
             if redraw:
@@ -760,12 +760,10 @@ class PathBar(gtk.DrawingArea):
 #        return
 
     def __realize_cb(self, widget):
-        self.theme.load(widget.style)
+        self.theme.load(widget.get_style())
         return
 
-    def __expose_cb(self, widget, event):
-        cr = widget.window.cairo_create()
-
+    def __draw_cb(self, widget, cr):
         if self.theme.base_hack:
             cr.set_source_rgb(*self.theme.base_hack)
             cr.paint()
@@ -773,19 +771,18 @@ class PathBar(gtk.DrawingArea):
         if self.__scroll_xO:
             self.__draw_hscroll(cr)
         else:
-            self.__draw_all(cr, event.area)
+            self.__draw_all(cr)
 
-        del cr
         return
 
     def __style_change_cb(self, widget, old_style):
         # when alloc.width == 1, this is typical of an unallocated widget,
         # lets not break a sweat for nothing...
-        if self.allocation.width == 1:
+        if self.get_allocation().width == 1:
             return
 
         self.theme = self.__pick_theme()
-        self.theme.load(widget.style)
+        self.theme.load(widget.get_style())
         # set height to 0 so that if part height has been reduced the widget will
         # shrink to an appropriate new height based on new font size
         self.set_size_request(-1, 28)
@@ -806,16 +803,16 @@ class PathBar(gtk.DrawingArea):
         return
 
     def __allocation_change_cb(self, widget, allocation):
-        if allocation.width == 1:
+        if allocation.x == 1:
             return
 
         path_w = self.__draw_width()
-        if path_w == allocation.width:
+        if path_w == allocation.x:
             return
-        elif path_w > allocation.width:
+        elif path_w > allocation.x:
             self.__shrink_check(allocation)
         else:
-            self.__grow_check(allocation.width, allocation)
+            self.__grow_check(allocation.x, allocation)
 
         self.queue_draw()
         return
@@ -828,10 +825,10 @@ class PathPart:
         self.__layout = None
         self.__pbar = None
 
-	self.id = id	
+	self.id = id
 
-        self.allocation = [0, 0, 0, 0]
-        self.state = gtk.STATE_NORMAL
+        self.allocation = hack_new_GdkRectangle(0,0,0,0)
+        self.state = Gtk.StateFlags.NORMAL
         self.shape = PathBar.SHAPE_RECTANGLE
 
         self.callback = callback
@@ -846,13 +843,13 @@ class PathPart:
 
     def set_label(self, label):
         # escape special characters
-        label = gobject.markup_escape_text(label.strip())
+        label = GLib.markup_escape_text(label.strip())
         # some hackery to preserve italics markup
         label = label.replace('&lt;i&gt;', '<i>').replace('&lt;/i&gt;', '</i>')
         self.label = label
         return
 
-    def set_icon(self, stock_icon, size=gtk.ICON_SIZE_BUTTON):
+    def set_icon(self, stock_icon, size=Gtk.IconSize.BUTTON):
         self.icon.specify(stock_icon, size)
         self.icon.load_pixbuf()
         return
@@ -866,12 +863,12 @@ class PathPart:
         return
 
     def set_x(self, x):
-        self.allocation[0] = int(x)
+        self.allocation.x = int(x)
         return
 
     def set_size(self, w, h):
-        if w != -1: self.allocation[2] = int(w)
-        if h != -1: self.allocation[3] = int(h)
+        if w != -1: self.allocation.width = int(w)
+        if h != -1: self.allocation.height = int(h)
         self.__calc_layout_width(self.__layout, self.shape, self.__pbar)
         return
 
@@ -880,25 +877,25 @@ class PathPart:
         return
 
     def get_x(self):
-        return self.allocation[0]
+        return self.allocation.x
 
     def get_width(self):
-        return self.allocation[2]
+        return self.allocation.width
 
     def get_height(self):
-        return self.allocation[3]
+        return self.allocation.height
 
     def get_label(self):
         return self.label
 
     def get_allocation(self):
-        return gtk.gdk.Rectangle(*self.get_allocation_tuple())
+        return hack_new_GdkRectangle(*self.get_allocation_tuple())
 
     def get_allocation_tuple(self):
-        if self.__pbar.get_direction() != gtk.TEXT_DIR_RTL:
-            return self.allocation
-        x, y, w, h = self.allocation
-        x = self.__pbar.allocation[2]-x-w
+        x, y, w, h = (self.allocation.x, self.allocation.y, self.allocation.width, self.allocation.height)
+        if self.__pbar.get_direction() != Gtk.TextDirection.RTL:
+            return x, y, w, h
+        x = self.__pbar.allocation.width-x-w
         return x, y, w, h
 
     def get_size_requisition(self):
@@ -919,8 +916,8 @@ class PathPart:
         extents = self.__layout.get_pixel_extents()
 
         # calc text width + 2 * padding, text height + 2 * ypadding
-        w = extents[1][2] + 2*pbar.theme.xpadding
-        h = max(extents[1][3] + 2*pbar.theme.ypadding, pbar.get_size_request()[1])
+        w = extents[1].width + 2*pbar.theme.xpadding
+        h = max(extents[1].height + 2*pbar.theme.ypadding, pbar.get_allocation().y)
 
         # if has icon add some more pixels on
         if self.icon.pixbuf:
@@ -938,19 +935,19 @@ class PathPart:
         # if height greater than current height request,
         # reset height request to higher value
         # i get the feeling this should be in set_size_request(), but meh
-        if h > pbar.get_size_request()[1]:
+        if h > pbar.get_allocation().y:
             pbar.set_size_request(-1, h)
 
         self.__requisition = (w,h)
         return w, h
 
     def is_truncated(self):
-        return self.__requisition[0] != self.allocation[2]
+        return self.__requisition[0] != self.allocation.width
 
     def __layout_text(self, text, pango_context):
-        layout = pango.Layout(pango_context)
+        layout = Pango.Layout(pango_context)
         layout.set_markup('%s' % text)
-        layout.set_ellipsize(pango.ELLIPSIZE_END)
+        layout.set_ellipsize(Pango.EllipsizeMode.END)
         return layout
 
     def __calc_layout_width(self, layout, shape, pbar):
@@ -960,17 +957,17 @@ class PathPart:
         else:
             icon_w = 0
 
-        w = self.allocation[2]
+        w = self.allocation.width
         if shape == PathBar.SHAPE_MID_ARROW:
             layout.set_width((w - 2*pbar.theme.arrow_width -
-                2*pbar.theme.xpadding - icon_w)*pango.SCALE)
+                2*pbar.theme.xpadding - icon_w)*Pango.SCALE)
 
         elif shape == PathBar.SHAPE_START_ARROW or \
             shape == PathBar.SHAPE_END_CAP:
             layout.set_width((w - pbar.theme.arrow_width - 2*pbar.theme.xpadding -
-                icon_w)*pango.SCALE)
+                icon_w)*Pango.SCALE)
         else:
-            layout.set_width((w - 2*pbar.theme.xpadding - icon_w)*pango.SCALE)
+            layout.set_width((w - 2*pbar.theme.xpadding - icon_w)*Pango.SCALE)
         return
 
 
@@ -997,18 +994,18 @@ class PathBarIcon:
         def render_icon(icon_set, name, size):
             self.pixbuf = icon_set.render_icon(
                 style,
-                gtk.TEXT_DIR_NONE,
-                gtk.STATE_NORMAL,
-                self.size or gtk.ICON_SIZE_BUTTON,
-                gtk.Image(),
+                Gtk.TextDirection.NONE,
+                Gtk.StateFlags.NORMAL,
+                self.size or Gtk.IconSize.BUTTON,
+                Gtk.Image(),
                 None)
             return
 
-        style = gtk.Style()
+        style = Gtk.StyleContext()
         icon_set = style.lookup_icon_set(self.name)
 
         if not icon_set:
-            t = gtk.icon_theme_get_default()
+            t = Gtk.IconTheme.get_default()
             self.pixbuf = t.lookup_icon(self.name, self.size, 0).load_icon()
         else:
             icon_set = style.lookup_icon_set(self.name)
@@ -1016,7 +1013,7 @@ class PathBarIcon:
 
         if not self.pixbuf:
             print 'Error: No name failed to match any installed icon set.'
-            self.name = gtk.STOCK_MISSING_IMAGE
+            self.name = Gtk.STOCK_MISSING_IMAGE
             icon_set = style.lookup_icon_set(self.name)
             render_icon(icon_set, self.name, self.size)
         return
@@ -1035,7 +1032,7 @@ class PathBarThemeHuman:
     arrow_width = 13
     scroll_duration_ms = 150
     scroll_fps = 50
-    animate = gtk.settings_get_default().get_property("gtk-enable-animations")
+    animate = Gtk.Settings.get_default().get_property("gtk-enable-animations")
 
     def __init__(self):
         return
@@ -1045,45 +1042,45 @@ class PathBarThemeHuman:
         dark = style.dark
         light = style.light
         text = style.text
-        active = rgb.mix_color(mid[gtk.STATE_NORMAL],
-                               mid[gtk.STATE_SELECTED], 0.25)
+        active = rgb.mix_color(mid[Gtk.StateFlags.NORMAL],
+                               mid[Gtk.StateFlags.SELECTED], 0.25)
 
         self.bg_colors = {
-            gtk.STATE_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.2)),
-                                f(mid[gtk.STATE_NORMAL])),
+            Gtk.StateFlags.NORMAL: (f(rgb.shade(mid[Gtk.StateFlags.NORMAL], 1.2)),
+                                f(mid[Gtk.StateFlags.NORMAL])),
 
-            gtk.STATE_ACTIVE: (f(rgb.shade(active, 1.2)),
+            Gtk.StateFlags.ACTIVE: (f(rgb.shade(active, 1.2)),
                                f(active)),
 
-            gtk.STATE_SELECTED: (f(mid[gtk.STATE_ACTIVE]),
-                                 f(mid[gtk.STATE_ACTIVE])),
+            Gtk.StateFlags.SELECTED: (f(mid[Gtk.StateFlags.ACTIVE]),
+                                 f(mid[Gtk.StateFlags.ACTIVE])),
 
-            self.PRELIT_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.25)),
-                                 f(rgb.shade(mid[gtk.STATE_NORMAL], 1.05))),
+            self.PRELIT_NORMAL: (f(rgb.shade(mid[Gtk.StateFlags.NORMAL], 1.25)),
+                                 f(rgb.shade(mid[Gtk.StateFlags.NORMAL], 1.05))),
 
             self.PRELIT_ACTIVE: (f(rgb.shade(active, 1.25)),
                                  f(rgb.shade(active, 1.05)))
             }
 
         self.dark_line_colors = {
-            gtk.STATE_NORMAL: f(dark[gtk.STATE_NORMAL]),
-            gtk.STATE_ACTIVE: f(dark[gtk.STATE_ACTIVE]),
-            gtk.STATE_SELECTED: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.9)),
-            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT])
+            Gtk.StateFlags.NORMAL: f(dark[Gtk.StateFlags.NORMAL]),
+            Gtk.StateFlags.ACTIVE: f(dark[Gtk.StateFlags.ACTIVE]),
+            Gtk.StateFlags.SELECTED: f(rgb.shade(dark[Gtk.StateFlags.ACTIVE], 0.9)),
+            Gtk.StateFlags.PRELIGHT: f(dark[Gtk.StateFlags.PRELIGHT])
             }
 
         self.light_line_colors = {
-            gtk.STATE_NORMAL: f(light[gtk.STATE_NORMAL]),
-            gtk.STATE_ACTIVE: f(light[gtk.STATE_ACTIVE]),
-            gtk.STATE_SELECTED: None,
-            gtk.STATE_PRELIGHT: f(light[gtk.STATE_PRELIGHT])
+            Gtk.StateFlags.NORMAL: f(light[Gtk.StateFlags.NORMAL]),
+            Gtk.StateFlags.ACTIVE: f(light[Gtk.StateFlags.ACTIVE]),
+            Gtk.StateFlags.SELECTED: None,
+            Gtk.StateFlags.PRELIGHT: f(light[Gtk.StateFlags.PRELIGHT])
             }
 
         self.text_state = {
-            gtk.STATE_NORMAL: gtk.STATE_NORMAL,
-            gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
-            gtk.STATE_SELECTED: gtk.STATE_ACTIVE,
-            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT
+            Gtk.StateFlags.NORMAL: Gtk.StateFlags.NORMAL,
+            Gtk.StateFlags.ACTIVE: Gtk.StateFlags.ACTIVE,
+            Gtk.StateFlags.SELECTED: Gtk.StateFlags.ACTIVE,
+            Gtk.StateFlags.PRELIGHT: Gtk.StateFlags.PRELIGHT
             }
 
         self.base_hack = None
@@ -1104,45 +1101,45 @@ class PathBarThemeHumanClearlooks(PathBarThemeHuman):
         dark = style.dark
         light = style.light
         text = style.text
-        active = rgb.mix_color(mid[gtk.STATE_NORMAL],
-                               mid[gtk.STATE_SELECTED], 0.25)
+        active = rgb.mix_color(mid[Gtk.StateFlags.NORMAL],
+                               mid[Gtk.StateFlags.SELECTED], 0.25)
 
         self.bg_colors = {
-            gtk.STATE_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.20)),
-                                f(rgb.shade(mid[gtk.STATE_NORMAL], 1.05))),
+            Gtk.StateFlags.NORMAL: (f(rgb.shade(mid[Gtk.StateFlags.NORMAL], 1.20)),
+                                f(rgb.shade(mid[Gtk.StateFlags.NORMAL], 1.05))),
 
-            gtk.STATE_ACTIVE: (f(rgb.shade(active, 1.20)),
+            Gtk.StateFlags.ACTIVE: (f(rgb.shade(active, 1.20)),
                                f(rgb.shade(active, 1.05))),
 
-            gtk.STATE_SELECTED: (f(rgb.shade(mid[gtk.STATE_ACTIVE], 1.15)),
-                                f(mid[gtk.STATE_ACTIVE])),
+            Gtk.StateFlags.SELECTED: (f(rgb.shade(mid[Gtk.StateFlags.ACTIVE], 1.15)),
+                                f(mid[Gtk.StateFlags.ACTIVE])),
 
-            self.PRELIT_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.35)),
-                                 f(rgb.shade(mid[gtk.STATE_NORMAL], 1.15))),
+            self.PRELIT_NORMAL: (f(rgb.shade(mid[Gtk.StateFlags.NORMAL], 1.35)),
+                                 f(rgb.shade(mid[Gtk.StateFlags.NORMAL], 1.15))),
 
             self.PRELIT_ACTIVE: (f(rgb.shade(active, 1.35)),
                                  f(rgb.shade(active, 1.15)))
             }
 
         self.dark_line_colors = {
-            gtk.STATE_NORMAL: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.975)),
-            gtk.STATE_ACTIVE: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.975)),
-            gtk.STATE_SELECTED: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
-            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT])
+            Gtk.StateFlags.NORMAL: f(rgb.shade(dark[Gtk.StateFlags.ACTIVE], 0.975)),
+            Gtk.StateFlags.ACTIVE: f(rgb.shade(dark[Gtk.StateFlags.ACTIVE], 0.975)),
+            Gtk.StateFlags.SELECTED: f(rgb.shade(dark[Gtk.StateFlags.ACTIVE], 0.95)),
+            Gtk.StateFlags.PRELIGHT: f(dark[Gtk.StateFlags.PRELIGHT])
             }
 
         self.light_line_colors = {
-            gtk.STATE_NORMAL: None,
-            gtk.STATE_ACTIVE: None,
-            gtk.STATE_SELECTED: f(mid[gtk.STATE_ACTIVE]),
-            gtk.STATE_PRELIGHT: f(light[gtk.STATE_PRELIGHT])
+            Gtk.StateFlags.NORMAL: None,
+            Gtk.StateFlags.ACTIVE: None,
+            Gtk.StateFlags.SELECTED: f(mid[Gtk.StateFlags.ACTIVE]),
+            Gtk.StateFlags.PRELIGHT: f(light[Gtk.StateFlags.PRELIGHT])
             }
 
         self.text_state = {
-            gtk.STATE_NORMAL: gtk.STATE_NORMAL,
-            gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
-            gtk.STATE_SELECTED: gtk.STATE_NORMAL,
-            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT
+            Gtk.StateFlags.NORMAL: Gtk.StateFlags.NORMAL,
+            Gtk.StateFlags.ACTIVE: Gtk.StateFlags.ACTIVE,
+            Gtk.StateFlags.SELECTED: Gtk.StateFlags.NORMAL,
+            Gtk.StateFlags.PRELIGHT: Gtk.StateFlags.PRELIGHT
             }
 
         self.base_hack = None
@@ -1160,45 +1157,45 @@ class PathBarThemeDust(PathBarThemeHuman):
         dark = style.dark
         light = style.light
         text = style.text
-        active = rgb.mix_color(mid[gtk.STATE_NORMAL],
-                               light[gtk.STATE_SELECTED], 0.3)
+        active = rgb.mix_color(mid[Gtk.StateFlags.NORMAL],
+                               light[Gtk.StateFlags.SELECTED], 0.3)
 
         self.bg_colors = {
-            gtk.STATE_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.3)),
-                                f(mid[gtk.STATE_NORMAL])),
+            Gtk.StateFlags.NORMAL: (f(rgb.shade(mid[Gtk.StateFlags.NORMAL], 1.3)),
+                                f(mid[Gtk.StateFlags.NORMAL])),
 
-            gtk.STATE_ACTIVE: (f(rgb.shade(active, 1.3)),
+            Gtk.StateFlags.ACTIVE: (f(rgb.shade(active, 1.3)),
                                f(active)),
 
-            gtk.STATE_SELECTED: (f(rgb.shade(mid[gtk.STATE_NORMAL], 0.95)),
-                                 f(rgb.shade(mid[gtk.STATE_NORMAL], 0.95))),
+            Gtk.StateFlags.SELECTED: (f(rgb.shade(mid[Gtk.StateFlags.NORMAL], 0.95)),
+                                 f(rgb.shade(mid[Gtk.StateFlags.NORMAL], 0.95))),
 
-            self.PRELIT_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.35)),
-                                 f(rgb.shade(mid[gtk.STATE_NORMAL], 1.15))),
+            self.PRELIT_NORMAL: (f(rgb.shade(mid[Gtk.StateFlags.NORMAL], 1.35)),
+                                 f(rgb.shade(mid[Gtk.StateFlags.NORMAL], 1.15))),
 
             self.PRELIT_ACTIVE: (f(rgb.shade(active, 1.35)),
                                  f(rgb.shade(active, 1.15)))
             }
 
         self.dark_line_colors = {
-            gtk.STATE_NORMAL: f(dark[gtk.STATE_ACTIVE]),
-            gtk.STATE_ACTIVE: f(dark[gtk.STATE_ACTIVE]),
-            gtk.STATE_SELECTED: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
-            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT])
+            Gtk.StateFlags.NORMAL: f(dark[Gtk.StateFlags.ACTIVE]),
+            Gtk.StateFlags.ACTIVE: f(dark[Gtk.StateFlags.ACTIVE]),
+            Gtk.StateFlags.SELECTED: f(rgb.shade(dark[Gtk.StateFlags.ACTIVE], 0.95)),
+            Gtk.StateFlags.PRELIGHT: f(dark[Gtk.StateFlags.PRELIGHT])
             }
 
         self.light_line_colors = {
-            gtk.STATE_NORMAL: f(light[gtk.STATE_NORMAL]),
-            gtk.STATE_ACTIVE: f(light[gtk.STATE_NORMAL]),
-            gtk.STATE_SELECTED: None,
-            gtk.STATE_PRELIGHT: f(light[gtk.STATE_PRELIGHT])
+            Gtk.StateFlags.NORMAL: f(light[Gtk.StateFlags.NORMAL]),
+            Gtk.StateFlags.ACTIVE: f(light[Gtk.StateFlags.NORMAL]),
+            Gtk.StateFlags.SELECTED: None,
+            Gtk.StateFlags.PRELIGHT: f(light[Gtk.StateFlags.PRELIGHT])
             }
 
         self.text_state = {
-            gtk.STATE_NORMAL: gtk.STATE_NORMAL,
-            gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
-            gtk.STATE_SELECTED: gtk.STATE_NORMAL,
-            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT
+            Gtk.StateFlags.NORMAL: Gtk.StateFlags.NORMAL,
+            Gtk.StateFlags.ACTIVE: Gtk.StateFlags.ACTIVE,
+            Gtk.StateFlags.SELECTED: Gtk.StateFlags.NORMAL,
+            Gtk.StateFlags.PRELIGHT: Gtk.StateFlags.PRELIGHT
             }
 
         self.base_hack = None
@@ -1218,45 +1215,45 @@ class PathBarThemeNewWave(PathBarThemeHuman):
         dark = style.dark
         light = style.light
         text = style.text
-        active = rgb.mix_color(mid[gtk.STATE_NORMAL],
-                               light[gtk.STATE_SELECTED], 0.5)
+        active = rgb.mix_color(mid[Gtk.StateFlags.NORMAL],
+                               light[Gtk.StateFlags.SELECTED], 0.5)
 
         self.bg_colors = {
-            gtk.STATE_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.01)),
-                                f(mid[gtk.STATE_NORMAL])),
+            Gtk.StateFlags.NORMAL: (f(rgb.shade(mid[Gtk.StateFlags.NORMAL], 1.01)),
+                                f(mid[Gtk.StateFlags.NORMAL])),
 
-            gtk.STATE_ACTIVE: (f(rgb.shade(active, 1.01)),
+            Gtk.StateFlags.ACTIVE: (f(rgb.shade(active, 1.01)),
                                f(active)),
 
-            gtk.STATE_SELECTED: (f(rgb.shade(mid[gtk.STATE_NORMAL], 0.95)),
-                                 f(rgb.shade(mid[gtk.STATE_NORMAL], 0.95))),
+            Gtk.StateFlags.SELECTED: (f(rgb.shade(mid[Gtk.StateFlags.NORMAL], 0.95)),
+                                 f(rgb.shade(mid[Gtk.StateFlags.NORMAL], 0.95))),
 
-            self.PRELIT_NORMAL: (f(rgb.shade(mid[gtk.STATE_NORMAL], 1.2)),
-                                 f(rgb.shade(mid[gtk.STATE_NORMAL], 1.15))),
+            self.PRELIT_NORMAL: (f(rgb.shade(mid[Gtk.StateFlags.NORMAL], 1.2)),
+                                 f(rgb.shade(mid[Gtk.StateFlags.NORMAL], 1.15))),
 
             self.PRELIT_ACTIVE: (f(rgb.shade(active, 1.2)),
                                  f(rgb.shade(active, 1.15)))
             }
 
         self.dark_line_colors = {
-            gtk.STATE_NORMAL: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
-            gtk.STATE_ACTIVE: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
-            gtk.STATE_SELECTED: f(rgb.shade(dark[gtk.STATE_ACTIVE], 0.95)),
-            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT])
+            Gtk.StateFlags.NORMAL: f(rgb.shade(dark[Gtk.StateFlags.ACTIVE], 0.95)),
+            Gtk.StateFlags.ACTIVE: f(rgb.shade(dark[Gtk.StateFlags.ACTIVE], 0.95)),
+            Gtk.StateFlags.SELECTED: f(rgb.shade(dark[Gtk.StateFlags.ACTIVE], 0.95)),
+            Gtk.StateFlags.PRELIGHT: f(dark[Gtk.StateFlags.PRELIGHT])
             }
 
         self.light_line_colors = {
-            gtk.STATE_NORMAL: f(rgb.shade(light[gtk.STATE_NORMAL], 1.2)),
-            gtk.STATE_ACTIVE: f(rgb.shade(light[gtk.STATE_NORMAL], 1.2)),
-            gtk.STATE_SELECTED: None,
-            gtk.STATE_PRELIGHT: f(rgb.shade(light[gtk.STATE_PRELIGHT], 1.2))
+            Gtk.StateFlags.NORMAL: f(rgb.shade(light[Gtk.StateFlags.NORMAL], 1.2)),
+            Gtk.StateFlags.ACTIVE: f(rgb.shade(light[Gtk.StateFlags.NORMAL], 1.2)),
+            Gtk.StateFlags.SELECTED: None,
+            Gtk.StateFlags.PRELIGHT: f(rgb.shade(light[Gtk.StateFlags.PRELIGHT], 1.2))
             }
 
         self.text_state = {
-            gtk.STATE_NORMAL: gtk.STATE_NORMAL,
-            gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
-            gtk.STATE_SELECTED: gtk.STATE_NORMAL,
-            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT
+            Gtk.StateFlags.NORMAL: Gtk.StateFlags.NORMAL,
+            Gtk.StateFlags.ACTIVE: Gtk.StateFlags.ACTIVE,
+            Gtk.StateFlags.SELECTED: Gtk.StateFlags.NORMAL,
+            Gtk.StateFlags.PRELIGHT: Gtk.StateFlags.PRELIGHT
             }
 
         self.base_hack = f(gtk.gdk.color_parse("#F2F2F2"))
@@ -1276,7 +1273,7 @@ class PathBarThemeHicolor:
     arrow_width = 15
     scroll_duration_ms = 150
     scroll_fps = 50
-    animate = gtk.settings_get_default().get_property("gtk-enable-animations")
+    animate = Gtk.Settings.get_default().get_property("gtk-enable-animations")
 
     def __init__(self):
         return
@@ -1288,41 +1285,41 @@ class PathBarThemeHicolor:
         text = style.text
 
         self.bg_colors = {
-            gtk.STATE_NORMAL: (f(mid[gtk.STATE_NORMAL]),
-                               f(mid[gtk.STATE_NORMAL])),
+            Gtk.StateFlags.NORMAL: (f(mid[Gtk.StateFlags.NORMAL]),
+                               f(mid[Gtk.StateFlags.NORMAL])),
 
-            gtk.STATE_ACTIVE: (f(mid[gtk.STATE_ACTIVE]),
-                               f(mid[gtk.STATE_ACTIVE])),
+            Gtk.StateFlags.ACTIVE: (f(mid[Gtk.StateFlags.ACTIVE]),
+                               f(mid[Gtk.StateFlags.ACTIVE])),
 
-            gtk.STATE_SELECTED: (f(mid[gtk.STATE_SELECTED]),
-                                 f(mid[gtk.STATE_SELECTED])),
+            Gtk.StateFlags.SELECTED: (f(mid[Gtk.StateFlags.SELECTED]),
+                                 f(mid[Gtk.StateFlags.SELECTED])),
 
-            self.PRELIT_NORMAL: (f(mid[gtk.STATE_PRELIGHT]),
-                                 f(mid[gtk.STATE_PRELIGHT])),
+            self.PRELIT_NORMAL: (f(mid[Gtk.StateFlags.PRELIGHT]),
+                                 f(mid[Gtk.StateFlags.PRELIGHT])),
 
-            self.PRELIT_ACTIVE: (f(mid[gtk.STATE_PRELIGHT]),
-                                 f(mid[gtk.STATE_PRELIGHT]))
+            self.PRELIT_ACTIVE: (f(mid[Gtk.StateFlags.PRELIGHT]),
+                                 f(mid[Gtk.StateFlags.PRELIGHT]))
             }
 
         self.dark_line_colors = {
-            gtk.STATE_NORMAL: f(dark[gtk.STATE_NORMAL]),
-            gtk.STATE_ACTIVE: f(dark[gtk.STATE_ACTIVE]),
-            gtk.STATE_SELECTED: f(dark[gtk.STATE_SELECTED]),
-            gtk.STATE_PRELIGHT: f(dark[gtk.STATE_PRELIGHT])
+            Gtk.StateFlags.NORMAL: f(dark[Gtk.StateFlags.NORMAL]),
+            Gtk.StateFlags.ACTIVE: f(dark[Gtk.StateFlags.ACTIVE]),
+            Gtk.StateFlags.SELECTED: f(dark[Gtk.StateFlags.SELECTED]),
+            Gtk.StateFlags.PRELIGHT: f(dark[Gtk.StateFlags.PRELIGHT])
             }
 
         self.light_line_colors = {
-            gtk.STATE_NORMAL: f(light[gtk.STATE_NORMAL]),
-            gtk.STATE_ACTIVE: f(light[gtk.STATE_ACTIVE]),
-            gtk.STATE_SELECTED: None,
-            gtk.STATE_PRELIGHT: f(light[gtk.STATE_PRELIGHT])
+            Gtk.StateFlags.NORMAL: f(light[Gtk.StateFlags.NORMAL]),
+            Gtk.StateFlags.ACTIVE: f(light[Gtk.StateFlags.ACTIVE]),
+            Gtk.StateFlags.SELECTED: None,
+            Gtk.StateFlags.PRELIGHT: f(light[Gtk.StateFlags.PRELIGHT])
             }
 
         self.text_state = {
-            gtk.STATE_NORMAL: gtk.STATE_NORMAL,
-            gtk.STATE_ACTIVE: gtk.STATE_ACTIVE,
-            gtk.STATE_SELECTED: gtk.STATE_SELECTED,
-            gtk.STATE_PRELIGHT: gtk.STATE_PRELIGHT
+            Gtk.StateFlags.NORMAL: Gtk.StateFlags.NORMAL,
+            Gtk.StateFlags.ACTIVE: Gtk.StateFlags.ACTIVE,
+            Gtk.StateFlags.SELECTED: Gtk.StateFlags.SELECTED,
+            Gtk.StateFlags.PRELIGHT: Gtk.StateFlags.PRELIGHT
             }
 
         self.base_hack = None
@@ -1346,7 +1343,7 @@ class NavigationBar(PathBar):
     def __init__(self, group=None):
         PathBar.__init__(self)
         self.set_size_request(-1, 28)
-        self.id_to_part = {}	
+        self.id_to_part = {}
         return
 
     def add_with_id(self, label, callback, id, obj, icon=None):
@@ -1372,11 +1369,11 @@ class NavigationBar(PathBar):
 			part = self.id_to_part[i]
 			if part.id >= id:
 				self.remove(part)
-        
+
 	part = PathPart(id, label, callback, obj)
         part.set_pathbar(self)
         self.id_to_part[id] = part
-        gobject.timeout_add(150, self.append, part)
+        GLib.timeout_add(150, self.append, part)
 
         if icon: part.set_icon(icon)
 	self.last_label = label
@@ -1414,4 +1411,3 @@ class NavigationBar(PathBar):
         """
         if not id in self.id_to_part:
             return
-

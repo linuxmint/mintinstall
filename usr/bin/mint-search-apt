@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
+from gi.repository import Gtk
+
 import os
 import sys
 import apt
 from user import home
 import gettext
-import gtk
-import gtk.glade
 import commands
 
-def addListColumn(view, title, columnId):	
+def addListColumn(view, title, columnId):
 	column = gtk.TreeViewColumn(title, gtk.CellRendererText(), text=columnId)
 	column.set_resizable(True)
 	column.set_sort_column_id(columnId)
@@ -26,13 +26,14 @@ gettext.install("mintinstall", "/usr/share/linuxmint/locale")
 
 suggestion = sys.argv[1]
 
-gladefile = "/usr/lib/linuxmint/mintInstall/suggestions.glade"
-wTree = gtk.glade.XML(gladefile,"window_dialog_list")
-wTree.get_widget("window_dialog_list").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
-wTree.get_widget("window_dialog_list").set_title("apt search " + suggestion)
-wTree.get_widget("window_dialog_list").connect("destroy", gtk.main_quit)
-wTree.get_widget("label_no_results").set_text(_("No results"))
-lview = wTree.get_widget("listview")
+gladefile = "/usr/lib/linuxmint/mintInstall/suggestions.ui"
+builder = Gtk.Builder()
+builder.add_from_file(gladefile)
+builder.get_object("window_dialog_list").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
+builder.get_object("window_dialog_list").set_title("apt search " + suggestion)
+builder.get_object("window_dialog_list").connect("destroy", gtk.main_quit)
+builder.get_object("label_no_results").set_text(_("No results"))
+lview = builder.get_object("listview")
 
 column = gtk.TreeViewColumn(_("Installed"), gtk.CellRendererToggle(), active=0)
 column.set_resizable(True)
@@ -61,13 +62,9 @@ for result in results:
 		lstore.append([state, package, description])
 if (not foundAny):
 	# Switch the notebook to show the "No results" page
-	wTree.get_widget("notebook_list").set_current_page(1)
+	builder.get_object("notebook_list").set_current_page(1)
 
 lview.connect("row-activated", onRowActivated);
-wTree.get_widget("window_dialog_list").show()
+builder.get_object("window_dialog_list").show()
 
 gtk.main()
-
-	
-
-

@@ -1,18 +1,18 @@
-import gtk
-import cairo
-import gobject
 
+from gi.repository import Gtk
+from gi.repository import GLib
+import cairo
 
 # pi constants
 M_PI = 3.1415926535897931
 PI_DIV_180 = M_PI/180.0
 
-class FancyProgress(gtk.DrawingArea):
+class FancyProgress(Gtk.DrawingArea):
 
     RADIUS = 36
 
     def __init__(self):
-        gtk.DrawingArea.__init__(self)
+        Gtk.DrawingArea.__init__(self)
         self._fraction = 0.0
         self._animator = None
         self.connect('expose-event', self._on_expose)
@@ -34,11 +34,11 @@ class FancyProgress(gtk.DrawingArea):
 
         self._step = (self.fraction-self._fraction)*0.25
         if not self._animator:
-            self._animator = gobject.timeout_add(20, self._animate_progress_cb, da)
+            self._animator = GLib.timeout_add(20, self._animate_progress_cb, da)
 
         if self.fraction >= 1.0:
             self._fraction = 1.0
-            gobject.source_remove(self._animator)
+            GLib.source_remove(self._animator)
             self._animator = None
             self.queue_draw_area(*da)
         return
@@ -233,6 +233,3 @@ class FancyProgress(gtk.DrawingArea):
 #        pb_iter.advance()
 #        self.queue_draw()
 #        return True
-
-
-
