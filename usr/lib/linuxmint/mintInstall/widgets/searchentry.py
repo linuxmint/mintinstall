@@ -1,6 +1,6 @@
 # coding: utf-8
 #
-# SearchEntry - An enhanced search entry with alternating background colouring 
+# SearchEntry - An enhanced search entry with alternating background colouring
 #               and timeout support
 #
 # Copyright (C) 2007 Sebastian Heinlein
@@ -22,10 +22,19 @@
 # this program; if not, write to the Free Software Foundation, Inc., 59 Temple
 # Place, Suite 330, Boston, MA 02111-1307 USA
 
-import gtk
+from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import GLib
+
+import gi.pygtkcompat
+
+# enable "gobject" and "glib" modules
+gi.pygtkcompat.enable()
+gi.pygtkcompat.enable_gtk(version='3.0')
+
 import gobject
 
-class SearchEntry(gtk.Entry):
+class SearchEntry(Gtk.Entry):
 
     # FIMXE: we need "can-undo", "can-redo" signals
     __gsignals__ = {'terms-changed':(gobject.SIGNAL_RUN_FIRST,
@@ -39,22 +48,22 @@ class SearchEntry(gtk.Entry):
         Creates an enhanced IconEntry that supports a time out when typing
         and uses a different background colour when the search is active
         """
-        gtk.Entry.__init__(self)
+        Gtk.Entry.__init__(self)
         if not icon_theme:
-            icon_theme = gtk.icon_theme_get_default()
+            icon_theme = Gtk.IconTheme.get_default()
         self._handler_changed = self.connect_after("changed",
                                                    self._on_changed)
         self.connect("icon-press", self._on_icon_pressed)
-        self.set_icon_from_stock(gtk.ENTRY_ICON_PRIMARY, gtk.STOCK_FIND)
+        self.set_icon_from_stock(Gtk.EntryIconPosition.PRIMARY, Gtk.STOCK_FIND)
 
         self.empty_image = None
-        self.clear_image = gtk.STOCK_CLEAR
-        self.set_icon_from_stock(gtk.ENTRY_ICON_SECONDARY, self.clear_image)
+        self.clear_image = Gtk.STOCK_CLEAR
+        self.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, self.clear_image)
         # FIXME: what did this do ?
         # self.set_icon_highlight(sexy.ICON_ENTRY_PRIMARY, True)
 
         # Do not draw a yellow bg if an a11y theme is used
-        settings = gtk.settings_get_default()
+        settings = Gtk.Settings.get_default()
         theme = settings.get_property("gtk-theme-name")
         self._a11y = (theme.startswith("HighContrast") or
                       theme.startswith("LowContrast"))
@@ -68,13 +77,13 @@ class SearchEntry(gtk.Entry):
         Emit the terms-changed signal without any time out when the clear
         button was clicked
         """
-        if icon == gtk.ENTRY_ICON_SECONDARY:
+        if icon == Gtk.EntryIconPosition.SECONDARY:
             # clear with no signal and emit manually to avoid the
             # search-timeout
             self.clear_with_no_signal()
             self.grab_focus()
             self.emit("terms-changed", "")
-        elif icon == gtk.ENTRY_ICON_PRIMARY:
+        elif icon == Gtk.EntryIconPosition.PRIMARY:
             self.select_region(0, -1)
             self.grab_focus()
 
@@ -88,7 +97,7 @@ class SearchEntry(gtk.Entry):
         text = self._undo_stack.pop()
         self.set_text(text)
         self.set_position(-1)
-    
+
     def redo(self):
         if not self._redo_stack:
             return
@@ -120,8 +129,8 @@ class SearchEntry(gtk.Entry):
         """
         self._check_style()
         if self._timeout_id > 0:
-            gobject.source_remove(self._timeout_id)
-        self._timeout_id = gobject.timeout_add(self.SEARCH_TIMEOUT,
+            GLib.source_remove(self._timeout_id)
+        self._timeout_id = GLib.timeout_add(self.SEARCH_TIMEOUT,
                                                self._emit_terms_changed)
 
     def _check_style(self):
@@ -130,31 +139,30 @@ class SearchEntry(gtk.Entry):
         """
         # show/hide icon
         if self.get_text() != "":
-            self.set_icon_from_stock(gtk.ENTRY_ICON_SECONDARY, self.clear_image)
+            self.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, self.clear_image)
         else:
-            self.set_icon_from_stock(gtk.ENTRY_ICON_SECONDARY, self.empty_image)
+            self.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, self.empty_image)
         # Based on the Rhythmbox code
-        yellowish = gtk.gdk.Color(63479, 63479, 48830)
+        yellowish = Gdk.Color(63479, 63479, 48830)
         if self._a11y == True:
             return
         if self.get_text() == "":
-            self.modify_base(gtk.STATE_NORMAL, None)
+            self.modify_base(Gtk.StateFlags.NORMAL, None)
         else:
-            self.modify_base(gtk.STATE_NORMAL, yellowish)
+            self.modify_base(Gtk.StateFlags.NORMAL, yellowish)
 
 def on_entry_changed(self, terms):
     print terms
 
 if __name__ == "__main__":
 
-    icons = gtk.icon_theme_get_default()
+    icons = Gtk.IconTheme.get_default()
     entry = SearchEntry(icons)
     entry.connect("terms-changed", on_entry_changed)
 
-    win = gtk.Window()
+    win = Gtk.Window()
     win.add(entry)
     win.set_size_request(400,400)
     win.show_all()
 
-    gtk.main()
-    
+    Gtk.main()

@@ -17,9 +17,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from gi.repository import Gdk
 import colorsys
-from gtk.gdk import Color
 
+Color = Gdk.Color
 
 def parse_colour_scheme(colour_scheme_str):
     scheme_dict = {}
@@ -31,9 +32,9 @@ def parse_colour_scheme(colour_scheme_str):
 
 def shade(color, k):
     # as seen in Murrine's cairo-support.c
-    r = color.red_float
-    g = color.green_float
-    b = color.blue_float
+    r = color.red/65535
+    g = color.green/65535
+    b = color.blue/65535
 
     if (k == 1.0):
         return color
@@ -58,10 +59,10 @@ def shade(color, k):
 
 def mix_color(color1, color2, mix_factor):
     # as seen in Murrine's cairo-support.c
-    r = color1.red_float*(1-mix_factor)+color2.red_float*mix_factor
-    g = color1.green_float*(1-mix_factor)+color2.green_float*mix_factor
-    b = color1.blue_float*(1-mix_factor)+color2.blue_float*mix_factor
+    r = color1.red/65535*(1-mix_factor)+color2.red/65535*mix_factor
+    g = color1.green/65535*(1-mix_factor)+color2.green/65535*mix_factor
+    b = color1.blue/65535*(1-mix_factor)+color2.blue/65535*mix_factor
     return Color(int(r*65535), int(g*65535), int(b*65535))
 
 def to_float(color):
-    return color.red_float, color.green_float, color.blue_float
+    return color.red/65535, color.green/65535, color.blue/65535

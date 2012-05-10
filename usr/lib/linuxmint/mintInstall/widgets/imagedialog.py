@@ -16,16 +16,17 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gconf
-import glib
+from gi.repository import GConf
+from gi.repository import GLib
+from gi.repository import Gtk
+from gi.repository import GdkPixbuf
+
 import gio
-import gtk
 import logging
 import tempfile
 import time
 import threading
 import urllib
-import gobject
 
 from softwarecenter.enums import *
 from softwarecenter.utils import get_http_proxy_string_from_gconf
@@ -54,11 +55,11 @@ class GnomeProxyURLopener(urllib.FancyURLopener):
         logging.debug("http_error_403: %s %s %s" % (url, errcode, errmsg))
         raise Url403Error, "403 %s" % url
 
-class ShowImageDialog(gtk.Dialog):
+class ShowImageDialog(Gtk.Dialog):
     """A dialog that shows a image """
 
     def __init__(self, title, url, loading_img, loading_img_size, missing_img, parent=None):
-        gtk.Dialog.__init__(self)
+        Gtk.Dialog.__init__(self)
         # find parent window for the dialog
         if not parent:
             parent = self.get_parent()
@@ -69,14 +70,14 @@ class ShowImageDialog(gtk.Dialog):
         self.image_filename = self._missing_img
         # image
             # loading
-        pixbuf_orig = gtk.gdk.pixbuf_new_from_file(loading_img)
+        pixbuf_orig = GdkPixbuf.Pixbuf.pixbuf_new_from_file(loading_img)
         self.x = self._get_loading_x_start(loading_img_size)
         self.y = 0
         self.pixbuf_count = 0
         pixbuf_buffer = pixbuf_orig.copy()
-        
+
         self.pixbuf_list = []
-                
+
         for f in range((pixbuf_orig.get_width() / loading_img_size) * (pixbuf_orig.get_height() / loading_img_size)):
             pixbuf_buffer = pixbuf_orig.subpixbuf(self.x, self.y, loading_img_size, loading_img_size)
             self.pixbuf_list.append(pixbuf_buffer)
@@ -88,29 +89,29 @@ class ShowImageDialog(gtk.Dialog):
                     self.y = 0
             else:
                 self.x += loading_img_size
-        
-        
-        
-        self.img = gtk.Image()
+
+
+
+        self.img = Gtk.Image()
         self.img.set_from_file(loading_img)
         self.img.show()
-        gobject.timeout_add(50, self._update_loading, pixbuf_orig, loading_img_size)
+        GLib.timeout_add(50, self._update_loading, pixbuf_orig, loading_img_size)
 
         # view port
-        scroll = gtk.ScrolledWindow()
-        scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        scroll = Gtk.ScrolledWindow()
+        scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scroll.add_with_viewport(self.img)
-        scroll.show() 
+        scroll.show()
 
         # box
-        vbox = gtk.VBox()
+        vbox = Gtk.VBox()
         vbox.pack_start(scroll)
         vbox.show()
         # dialog
         self.set_transient_for(parent)
-        self.set_position(gtk.WIN_POS_CENTER_ON_PARENT)
+        self.set_position(Gtk.WindowPosition.CENTER_ON_PARENT)
         self.get_content_area().add(vbox)
-        self.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
+        self.add_button(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE)
         self.set_default_size(850,650)
         self.set_title(title)
         self.connect("response", self._response)
@@ -127,18 +128,19 @@ class ShowImageDialog(gtk.Dialog):
             else:
                 self.pixbuf_count += 1
             return True
-            
+
     def _get_loading_x_start(self, loading_img_size):
-        if (gtk.settings_get_default().props.gtk_icon_theme_name in ICON_EXCEPTIONS) or (gtk.settings_get_default().props.gtk_fallback_icon_theme in ICON_EXCEPTIONS):
+        s = Gtk.Settings.get_default()
+        if (s.props.gtk_icon_theme_name in ICON_EXCEPTIONS) or (s.props.gtk_fallback_icon_theme in ICON_EXCEPTIONS):
             return loading_img_size
         else:
             return 0
-            
+
 
     def _response(self, dialog, reponse_id):
         self._finished = True
         self._abort = True
-        
+
     def run(self):
         self.show()
         # thread
@@ -151,28 +153,28 @@ class ShowImageDialog(gtk.Dialog):
         # wait for download to finish or for abort
         while not self._finished:
             time.sleep(0.1)
-            while gtk.events_pending():
-                gtk.main_iteration()
+            while Gtk.events_pending():
+                Gtk.main_iteration()
         # aborted
         if self._abort:
-            return gtk.RESPONSE_CLOSE
+            return Gtk.ResponseType.CLOSE
         # load into icon
         try:
-            pixbuf = gtk.gdk.pixbuf_new_from_file(self.image_filename)
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file(self.image_filename)
         except:
             logging.debug("The image format couldn't be determined")
-            pixbuf = gtk.gdk.pixbuf_new_from_file(self._missing_img)
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file(self._missing_img)
         self.img.set_from_pixbuf(pixbuf)
         # and run the real thing
-        gtk.Dialog.run(self)
+        Gtk.Dialog.run(self)
 
     def _fetch(self):
         "fetcher thread"
         logging.debug("_fetch: %s" % self.url)
         self.location = tempfile.NamedTemporaryFile()
         try:
-            (screenshot, info) = urllib.urlretrieve(self.url, 
-                                                    self.location.name, 
+            (screenshot, info) = urllib.urlretrieve(self.url,
+                                                    self.location.name,
                                                     self._progress)
             self.image_filename = self.location.name
         except (Url403Error, Url404Error), e:

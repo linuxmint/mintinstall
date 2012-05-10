@@ -16,9 +16,9 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gtk
+from gi.repository import Gtk
 
-class NavigationBar(gtk.HBox):
+class NavigationBar(Gtk.HBox):
     """A navigation bar using button (like nautilus)"""
 
     def __init__(self, group=None):
@@ -26,14 +26,14 @@ class NavigationBar(gtk.HBox):
         self.id_to_widget = {}
         self.id_to_callback = {}
         if not group:
-            self.group = gtk.RadioButton()
+            self.group = Gtk.RadioButton()
         else:
             self.group = group
 
     def add_with_id(self, label, callback, id):
         """
         Add a new button with the given label/callback
-        
+
         If there is the same id already, replace the existing one
         with the new one
         """
@@ -42,7 +42,7 @@ class NavigationBar(gtk.HBox):
             button = self.id_to_widget[id]
             button.disconnect(self.id_to_callback[id])
         else:
-            button = gtk.RadioButton(self.group)
+            button = Gtk.RadioButton(self.group)
             button.set_mode(False)
             self.pack_start(button, expand=False)
             self.id_to_widget[id] = button
@@ -72,7 +72,7 @@ class NavigationBar(gtk.HBox):
             self.remove(w)
         self.id_to_widget = {}
         self.id_to_callback = {}
-        
+
     def get_button_from_id(self, id):
         """
         return the button for the given id (or None)
@@ -88,5 +88,3 @@ class NavigationBar(gtk.HBox):
         if not id in self.id_to_widget:
             return
         return self.id_to_widget[id].get_label()
-
-    
