@@ -30,6 +30,11 @@ from widgets.searchentry import SearchEntry
 from user import home
 import base64
 
+# Don't let mintinstall run as root
+if os.getuid() == 0:
+    print "The software manager should not be run as root. Please run it in user mode."
+    sys.exit(1)
+
 pygtk.require("2.0")
 
 sys.path.append('/usr/lib/linuxmint/common')
