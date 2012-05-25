@@ -1,6 +1,7 @@
 mintinstall (7.3.7) maya; urgency=low
 
   * Don't accept to be run as root
+  * Don't crash when an icon can't be loaded (fixes Accessories and All Apps categories not showing in Maya)
 
  -- Clement Lefebvre <root@linuxmint.com>  Fri, 25 May 2012 10:06:44 +0100
 

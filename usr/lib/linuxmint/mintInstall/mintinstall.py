@@ -191,7 +191,11 @@ class TransactionLoop(threading.Thread):
                                             try:
                                                 model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon(package), 32, 32))
                                             except:
-                                                model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon_alternative(package), 32, 32))
+                                                try:
+                                                    model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon_alternative(package), 32, 32))
+                                                except:
+                                                    model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_fallback_icon(package), 32, 32))
+                                                
                                         iter_apps = model_apps.iter_next(iter_apps)
                                 gtk.gdk.threads_leave()
 
@@ -208,7 +212,10 @@ class TransactionLoop(threading.Thread):
                                             try:
                                                 model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon(package), 32, 32))
                                             except:
-                                                model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon_alternative(package), 32, 32))
+                                                try:
+                                                    model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon_alternative(package), 32, 32))
+                                                except:
+                                                    model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_fallback_icon(package), 32, 32))
                                         iter_apps = model_apps.iter_next(iter_apps)
                                 gtk.gdk.threads_leave()
                         else:
@@ -1204,7 +1211,10 @@ class Application():
             try:
                 model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file(self.find_app_icon(package)))
             except:
-                model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon_alternative(package), 32, 32))
+                try:                
+                    model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon_alternative(package), 32, 32))
+                except:
+                    model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_fallback_icon(package), 32, 32))
             summary = ""
             if package.pkg.candidate is not None:
                 summary = package.pkg.candidate.summary
@@ -1246,6 +1256,13 @@ class Application():
         else:
             self.navigation_bar.add_with_id(category.name, self.navigate, self.NAVIGATION_SUB_CATEGORY, category)
 
+    def find_fallback_icon(self, package):
+        if package.pkg.is_installed:
+            icon_path = "/usr/lib/linuxmint/mintInstall/data/installed.png"
+        else:
+            icon_path = "/usr/lib/linuxmint/mintInstall/data/available.png"
+        return icon_path
+            
     def find_app_icon_alternative(self, package):
         icon_path = None
         if package.pkg.is_installed:
@@ -1354,7 +1371,10 @@ class Application():
                 try:
                     model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon(package), 32, 32))
                 except:
-                    model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon_alternative(package), 32, 32))
+                    try:
+                        model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon_alternative(package), 32, 32))
+                    except:
+                        model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_fallback_icon(package), 32, 32))
                 summary = ""
                 if package.pkg.candidate is not None:
                     summary = package.pkg.candidate.summary
