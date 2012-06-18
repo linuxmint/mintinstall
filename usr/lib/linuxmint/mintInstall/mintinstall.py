@@ -21,6 +21,7 @@ import aptdaemon
 import urllib
 import thread
 import glib
+import gobject
 
 from aptdaemon import enums
 from datetime import datetime
@@ -176,6 +177,7 @@ class TransactionLoop(threading.Thread):
                                 for package in self.packages:
                                     if package.pkg.name == pkg_name:
                                         package.pkg = new_pkg
+                                        self.application.refresh = True
 
                                 # Update apps tree
                                 gtk.gdk.threads_enter()
@@ -541,6 +543,19 @@ class Application():
 
         wTree.get_widget("main_window").show_all()
         
+        # these vars are used to refresh the installed package's page
+        self.refresh = False
+        self.refresh_timer = gobject.timeout_add(1000, self.check_refresh)
+        self.curr_page = None
+        
+    def check_refresh(self):
+        if self.refresh:
+            if self.curr_page == self.current_package:
+                self.navigate(None, self.current_package)
+                self.show_package(self.current_package, None, True)
+                self.refresh = False
+        return True
+        
 
     def on_search_terms_changed(self, searchentry, terms):
         if terms != "":
@@ -813,7 +828,6 @@ class Application():
         self.selected_package = model.get_value(iter, 3)
 
     def navigate(self, button, destination):
-
         if (destination == "search"):
             self.notebook.set_current_page(self.PAGE_SEARCH)
         else:
@@ -834,6 +848,7 @@ class Application():
                 self.notebook.set_current_page(self.PAGE_REVIEWS)
             else:
                 self.notebook.set_current_page(self.PAGE_WEBSITE)
+        self.curr_page = destination # saves the current page so we don't refresh after an install if not still on the same page
 
 
     def close_application(self, window, event=None, exit_code=0):
@@ -1419,7 +1434,7 @@ class Application():
         return False
 
     @print_timing
-    def show_package(self, package, tree):
+    def show_package(self, package, tree, refresh=False):
 
         self.current_package = package
                 
@@ -1577,8 +1592,9 @@ class Application():
         
         self.loadHandlerID = self.packageBrowser.connect("load-finished", self._on_package_load_finished, package.reviews)       
 
-        # Update the navigation bar
-        self.navigation_bar.add_with_id(package.name, self.navigate, self.NAVIGATION_ITEM, package)
+        # Update the navigation bar unless we're only refreshing the current page
+        if not refresh:
+            self.navigation_bar.add_with_id(package.name, self.navigate, self.NAVIGATION_ITEM, package)
 
 
     def package_compare(self, x, y):
