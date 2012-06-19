@@ -21,7 +21,9 @@ import aptdaemon
 import urllib
 import thread
 import glib
+import dbus
 
+from aptdaemon import client
 from aptdaemon import enums
 from datetime import datetime
 from subprocess import Popen, PIPE
@@ -72,10 +74,11 @@ else:
 
 gtk.gdk.threads_init()
 
-global shutdown_flag
-shutdown_flag = False
-
 COMMERCIAL_APPS = ["chromium-browser"]
+
+def get_dbus_bus():
+   bus = dbus.SystemBus()
+   return bus
 
 class DownloadReviews(threading.Thread):
     def __init__(self, application):
@@ -102,7 +105,7 @@ class DownloadReviews(threading.Thread):
         except Exception, detail:
             print detail
 
-class TransactionLoop(threading.Thread):
+class APTProgressHandler(threading.Thread):
     def __init__(self, application, packages, wTree):
         threading.Thread.__init__(self)
         self.application = application
@@ -111,142 +114,126 @@ class TransactionLoop(threading.Thread):
         self.progressbar = wTree.get_widget("progressbar1")
         self.tree_transactions = wTree.get_widget("tree_transactions")
         self.packages = packages
-        from aptdaemon import client
-        self.apt_daemon = aptdaemon.client.get_aptdaemon()
+        self.model = gtk.TreeStore(str, str, str, float, object)
+        self.tree_transactions.set_model(self.model)
+        self.tree_transactions.connect( "button-release-event", self.menuPopup )
+                    
+        bus = get_dbus_bus()
+        self._owner_watcher = bus.watch_name_owner("org.debian.apt", self._register_active_transactions_watch)
 
+    def _register_active_transactions_watch(self, connection):
+        print "_register_active_transactions_watch", connection
+        bus = get_dbus_bus()        
+        apt_daemon = client.get_aptdaemon(bus=bus)
+        apt_daemon.connect_to_signal("ActiveTransactionsChanged", self._on_transactions_changed)
+        current, queued = apt_daemon.GetActiveTransactions()
+        self._on_transactions_changed(current, queued)
+        
+    def _on_transactions_changed(self, current, queued):            
+        num_transactions = 0
+        sum_progress = 0
+        tids = []
+        for tid in [current] + queued:
+            if not tid:
+                continue
+            tids.append(tid)            
+            try:
+                transaction = client.get_transaction(tid)
+            except dbus.DBusException:
+                break
+            num_transactions = num_transactions + 1
+            label = _("%s (running in the background)") % self.get_role_description(transaction)
+            if "mintinstall_label" in transaction.meta_data.keys():
+                label = transaction.meta_data["mintinstall_label"]
 
-    def run(self):
-        try:
-            from aptdaemon import client
-            model = gtk.TreeStore(str, str, str, float, object)
-            self.tree_transactions.set_model(model)
-            self.tree_transactions.connect( "button-release-event", self.menuPopup )
+            sum_progress = sum_progress + transaction.progress
 
-            global shutdown_flag
-            while not shutdown_flag:
-                try:
-                    time.sleep(1)
-                    #Get the list of active transactions
-                    current, pending = self.apt_daemon.GetActiveTransactions()
-                    num_transactions = 0
-                    sum_progress = 0
-                    tids = []
-                    for tid in [current] + pending:
-                        if not tid:
-                            continue
-                        tids.append(tid)
-                        num_transactions = num_transactions + 1
-                        transaction = client.get_transaction(tid, error_handler=lambda x: True)
-                        label = _("%s (running in the background)") % self.get_role_description(transaction)
-                        if "mintinstall_label" in transaction.meta_data.keys():
-                            label = transaction.meta_data["mintinstall_label"]
+            transaction_is_new = True
+            iter = self.model.get_iter_first()
+            while iter is not None:
+                if self.model.get_value(iter, 4).tid == transaction.tid:
+                    self.model.set_value(iter, 1, self.get_status_description(transaction))
+                    self.model.set_value(iter, 2, str(transaction.progress) + '%')
+                    self.model.set_value(iter, 3, transaction.progress)
+                    transaction_is_new = False
+                iter = self.model.iter_next(iter)
+            if transaction_is_new:
+                iter = self.model.insert_before(None, None)
+                self.model.set_value(iter, 0, label)
+                self.model.set_value(iter, 1, self.get_status_description(transaction))
+                self.model.set_value(iter, 2, str(transaction.progress) + '%')
+                self.model.set_value(iter, 3, transaction.progress)
+                self.model.set_value(iter, 4, transaction)
 
-                        sum_progress = sum_progress + transaction.progress
+        #Remove transactions in the tree not found in the daemon
+        iter = self.model.get_iter_first()
+        while iter is not None:
+            if self.model.get_value(iter, 4).tid not in tids:
+                transaction = self.model.get_value(iter, 4)
+                iter_to_be_removed = iter
+                iter = self.model.iter_next(iter)
+                self.model.remove(iter_to_be_removed)
+                if "mintinstall_pkgname" in transaction.meta_data.keys():
+                    pkg_name = transaction.meta_data["mintinstall_pkgname"]
+                    cache = apt.Cache()
+                    new_pkg = cache[pkg_name]
+                    # Update packages
+                    for package in self.packages:
+                        if package.pkg.name == pkg_name:
+                            package.pkg = new_pkg
 
-                        transaction_is_new = True
-                        iter = model.get_iter_first()
-                        while iter is not None:
-                            if model.get_value(iter, 4).tid == transaction.tid:
-                                model.set_value(iter, 1, self.get_status_description(transaction))
-                                model.set_value(iter, 2, str(transaction.progress) + '%')
-                                model.set_value(iter, 3, transaction.progress)
-                                transaction_is_new = False
-                            iter = model.iter_next(iter)
-                        if transaction_is_new:
-                            iter = model.insert_before(None, None)
-                            model.set_value(iter, 0, label)
-                            model.set_value(iter, 1, self.get_status_description(transaction))
-                            model.set_value(iter, 2, str(transaction.progress) + '%')
-                            model.set_value(iter, 3, transaction.progress)
-                            model.set_value(iter, 4, transaction)
+                    # Update apps tree                   
+                    model_apps = self.wTree.get_widget("tree_applications").get_model()
+                    if isinstance(model_apps, gtk.TreeModelFilter):
+                        model_apps = model_apps.get_model()
 
-                    #Remove transactions in the tree not found in the daemon
-                    iter = model.get_iter_first()
-                    while iter is not None:
-                        if model.get_value(iter, 4).tid not in tids:
-                            transaction = model.get_value(iter, 4)
-                            iter_to_be_removed = iter
-                            iter = model.iter_next(iter)
-                            model.remove(iter_to_be_removed)
-                            if "mintinstall_pkgname" in transaction.meta_data.keys():
-                                pkg_name = transaction.meta_data["mintinstall_pkgname"]
-                                cache = apt.Cache()
-                                new_pkg = cache[pkg_name]
-                                # Update packages
-                                for package in self.packages:
-                                    if package.pkg.name == pkg_name:
-                                        package.pkg = new_pkg
+                    if model_apps is not None:
+                        iter_apps = model_apps.get_iter_first()
+                        while iter_apps is not None:
+                            package = model_apps.get_value(iter_apps, 3)
+                            if package.pkg.name == pkg_name:
+                                try:
+                                    model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon(package), 32, 32))
+                                except:
+                                    try:
+                                        model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon_alternative(package), 32, 32))
+                                    except:
+                                        model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_fallback_icon(package), 32, 32))
+                                    
+                            iter_apps = model_apps.iter_next(iter_apps)                    
 
-                                # Update apps tree
-                                gtk.gdk.threads_enter()
-                                model_apps = self.wTree.get_widget("tree_applications").get_model()
-                                if isinstance(model_apps, gtk.TreeModelFilter):
-                                    model_apps = model_apps.get_model()
+                    # Update mixed apps tree                   
+                    model_apps = self.wTree.get_widget("tree_mixed_applications").get_model()
+                    if isinstance(model_apps, gtk.TreeModelFilter):
+                        model_apps = model_apps.get_model()
+                    if model_apps is not None:
+                        iter_apps = model_apps.get_iter_first()
+                        while iter_apps is not None:
+                            package = model_apps.get_value(iter_apps, 3)
+                            if package.pkg.name == pkg_name:
+                                try:
+                                    model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon(package), 32, 32))
+                                except:
+                                    try:
+                                        model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon_alternative(package), 32, 32))
+                                    except:
+                                        model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_fallback_icon(package), 32, 32))
+                            iter_apps = model_apps.iter_next(iter_apps)
+            else:
+                iter = self.model.iter_next(iter)
 
-                                if model_apps is not None:
-                                    iter_apps = model_apps.get_iter_first()
-                                    while iter_apps is not None:
-                                        package = model_apps.get_value(iter_apps, 3)
-                                        if package.pkg.name == pkg_name:
-                                            try:
-                                                model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon(package), 32, 32))
-                                            except:
-                                                try:
-                                                    model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon_alternative(package), 32, 32))
-                                                except:
-                                                    model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_fallback_icon(package), 32, 32))
-                                                
-                                        iter_apps = model_apps.iter_next(iter_apps)
-                                gtk.gdk.threads_leave()
+        if num_transactions > 0:
+            todo = 90 * num_transactions # because they only go to 90%
+            fraction = float(sum_progress) / float(todo)
+            progress = str(int(fraction * 100)) + '%'
+        else:
+            fraction = 0
+            progress = ""
 
-                                # Update mixed apps tree
-                                gtk.gdk.threads_enter()
-                                model_apps = self.wTree.get_widget("tree_mixed_applications").get_model()
-                                if isinstance(model_apps, gtk.TreeModelFilter):
-                                    model_apps = model_apps.get_model()
-                                if model_apps is not None:
-                                    iter_apps = model_apps.get_iter_first()
-                                    while iter_apps is not None:
-                                        package = model_apps.get_value(iter_apps, 3)
-                                        if package.pkg.name == pkg_name:
-                                            try:
-                                                model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon(package), 32, 32))
-                                            except:
-                                                try:
-                                                    model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon_alternative(package), 32, 32))
-                                                except:
-                                                    model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_fallback_icon(package), 32, 32))
-                                        iter_apps = model_apps.iter_next(iter_apps)
-                                gtk.gdk.threads_leave()
-                        else:
-                            iter = model.iter_next(iter)
-
-                    if num_transactions > 0:
-                        todo = 90 * num_transactions # because they only go to 90%
-                        fraction = float(sum_progress) / float(todo)
-                        progress = str(int(fraction * 100)) + '%'
-                    else:
-                        fraction = 0
-                        progress = ""
-
-                    #Update
-                    gtk.gdk.threads_enter()
-                    self.status_label.set_text(_("%d ongoing actions") % num_transactions)
-                    self.progressbar.set_text(progress)
-                    self.progressbar.set_fraction(fraction)
-                    gtk.gdk.threads_leave()
-                except Exception, detail:
-                    print detail
-                    import traceback
-                    traceback.print_exc(file=sys.stdout)
-                    self.apt_daemon = aptdaemon.client.get_aptdaemon()
-                    print "A problem occured but the transaction loop was kept running"
-            del model
-            return
-        except Exception, detail:
-            print detail
-            print "End of transaction loop..."
-
+        #Update
+        self.status_label.set_text(_("%d ongoing actions") % num_transactions)
+        self.progressbar.set_text(progress)
+        self.progressbar.set_fraction(fraction)
 
     def menuPopup( self, widget, event ):
         if event.button == 3:
@@ -372,10 +359,8 @@ class Application():
         
         self.main_window = wTree.get_widget("main_window")
 
-        self.transaction_loop = TransactionLoop(self, self.packages, wTree)
-        self.transaction_loop.setDaemon(True)
-        self.transaction_loop.start()
-
+        self.apt_progress_handler = APTProgressHandler(self, self.packages, wTree)
+        
         self.add_reviews()
         downloadReviews = DownloadReviews(self)
         downloadReviews.start()
@@ -386,7 +371,6 @@ class Application():
             sys.exit(0)
 
         self.prefs = self.read_configuration()
-
 
         # Build the menu
         fileMenu = gtk.MenuItem(_("_File"))
@@ -841,9 +825,7 @@ class Application():
             # Not happy with Python when it comes to closing threads, so here's a radical method to get what we want.
             pid = os.getpid()
             os.system("kill -9 %s &" % pid)
-        else:
-            global shutdown_flag
-            shutdown_flag = True
+        else:            
             gtk.main_quit()
             sys.exit(exit_code)
 
