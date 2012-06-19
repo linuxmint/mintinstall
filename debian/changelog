@@ -1,3 +1,10 @@
+mintinstall (7.3.8) maya; urgency=low
+
+  * Specify dbus bus when using aptd
+  * Use apt signals instead of a threaded transaction loop
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue, 19 Jun 2012 16:40:37 +0100
+
 mintinstall (7.3.7) maya; urgency=low
 
   * Don't accept to be run as root
