@@ -1191,7 +1191,7 @@ class Application():
             
             iter = model_applications.insert_before(None, None)
             try:
-                model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file(self.find_app_icon(package)))
+                model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon(package), 32, 32))
             except:
                 try:                
                     model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon_alternative(package), 32, 32))

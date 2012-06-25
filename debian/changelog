@@ -1,3 +1,9 @@
+mintinstall (7.3.9) maya; urgency=low
+
+  * Force icon size to 32px
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon, 25 Jun 2012 15:46:37 +0100
+
 mintinstall (7.3.8) maya; urgency=low
 
   * Specify dbus bus when using aptd
