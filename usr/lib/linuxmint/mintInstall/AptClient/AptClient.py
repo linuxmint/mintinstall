@@ -1,7 +1,7 @@
 # AptControl.py
 # -*- Mode: Python; indent-tabs-mode: nil; tab-width: 4; coding: utf-8 -*-
 
-import apt, apt.progress.base, logging, threading, gobject, time, sys
+import apt, apt.progress.base, logging, threading, gobject, time, sys, os
 from EventsObject import EventsObject
 from ThreadedVar import ThreadedVar
 
@@ -77,6 +77,8 @@ class AptClient(EventsObject):
     def __init__(self):
         EventsObject.__init__(self)
         
+        self._init_debconf()
+        
         logging.debug("Initializing cache")
         self._cache = apt.Cache()
         
@@ -89,6 +91,11 @@ class AptClient(EventsObject):
         self._running_lock = threading.Lock()
         
         self._apt_thread = None
+    
+    def _init_debconf(self):
+        # Need to find a way to detect available frontends and use the appropriate fallback
+        # Should we implement a custom debconf frontend for better integration ?
+        os.putenv("DEBIAN_FRONTEND", "gnome")
     
     def update_cache(self):
         return self._queue_task("update_cache")
