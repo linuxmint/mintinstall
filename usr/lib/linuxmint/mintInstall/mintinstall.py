@@ -144,6 +144,34 @@ class APTProgressHandler(threading.Thread):
         print
         print
         print
+        task_ids = []
+        for task in progress_info["tasks"]:
+            task_is_new = True
+            task_ids.append(task["task_id"])
+            iter = self.model.get_iter_first()
+            while iter is not None:
+                if self.model.get_value(iter, 4)["task_id"] == task["task_id"]:
+                    self.model.set_value(iter, 1, self.get_status_description2(task))
+                    self.model.set_value(iter, 2, "%d %%" % task["progress"])
+                    self.model.set_value(iter, 3, task["progress"])
+                    task_is_new = False
+                iter = self.model.iter_next(iter)
+            if task_is_new:
+                iter = self.model.insert_before(None, None)
+                self.model.set_value(iter, 0, self.get_role_description2(task))
+                self.model.set_value(iter, 1, self.get_status_description2(task))
+                self.model.set_value(iter, 2, "%d %%" % task["progress"])
+                self.model.set_value(iter, 3, task["progress"])
+                self.model.set_value(iter, 4, task)
+        iter = self.model.get_iter_first()
+        while iter is not None:
+            if self.model.get_value(iter, 4)["task_id"] not in task_ids:
+                task = self.model.get_value(iter, 4)
+                iter_to_be_removed = iter
+                iter = self.model.iter_next(iter)
+                self.model.remove(iter_to_be_removed)
+            else:
+                iter = self.model.iter_next(iter)
         if progress_info["nb_tasks"] > 0:
             fraction = progress_info["progress"]
             progress = str(int(fraction)) + '%'
@@ -162,7 +190,8 @@ class APTProgressHandler(threading.Thread):
         current, queued = apt_daemon.GetActiveTransactions()
         self._on_transactions_changed(current, queued)
         
-    def _on_transactions_changed(self, current, queued):            
+    def _on_transactions_changed(self, current, queued): 
+        return           
         num_transactions = 0
         sum_progress = 0
         tids = []
@@ -272,17 +301,18 @@ class APTProgressHandler(threading.Thread):
         if event.button == 3:
             model, iter = self.tree_transactions.get_selection().get_selected()
             if iter is not None:
-                transaction = model.get_value(iter, 4)
+                task = model.get_value(iter, 4)
                 menu = gtk.Menu()
                 cancelMenuItem = gtk.MenuItem(_("Cancel the task: %s") % model.get_value(iter, 0))
-                cancelMenuItem.set_sensitive(transaction.cancellable)
+                cancelMenuItem.set_sensitive(task["cancellable"])
                 menu.append(cancelMenuItem)
                 menu.show_all()
-                cancelMenuItem.connect( "activate", self.cancelTask, transaction)
+                cancelMenuItem.connect( "activate", self.cancelTask, task)
                 menu.popup( None, None, None, event.button, event.time )
 
-    def cancelTask(self, menu, transaction):
-        transaction.cancel()
+    def cancelTask(self, menu, task):
+        self.apt_client.cancel_task(task["task_id"])
+        self._update_display()
 
     def get_status_description(self, transaction):
         from aptdaemon.enums import *
@@ -291,6 +321,16 @@ class APTProgressHandler(threading.Thread):
             return descriptions[transaction.status]
         else:
             return transaction.status
+            
+    def get_status_description2(self, transaction):
+        descriptions = {"waiting":_("Waiting"), "downloading":_("Downloading"), "running":_("Running"), "finished":_("Finished")}
+        if "status" in transaction:
+            if transaction["status"] in descriptions.keys():
+                return descriptions[transaction["status"]]
+            else:
+                return transaction["status"]
+        else:
+            return ""
         
     def get_role_description(self, transaction):
         from aptdaemon.enums import *
@@ -299,6 +339,19 @@ class APTProgressHandler(threading.Thread):
             return roles[transaction.role]
         else:
             return transaction.role
+    
+    def get_role_description2(self, transaction):
+        if "role" in transaction:
+            if transaction["role"] == "install":
+                return _("Installing %s") % transaction["task_params"]["package_name"]
+            elif transaction["role"] == "remove":
+                return _("Removing %s") % transaction["task_params"]["package_name"]
+            elif transaction["role"] == "update_cache":
+                return _("Updating cache")
+            else:
+                return _("No role set")
+        else:
+            return _("No role set")
 
 class Category:
 
@@ -560,6 +613,10 @@ class Application():
         wTree.get_widget("main_window").show_all()
         self.apt_client.remove_package("gedit")
         self.apt_client.install_package("gedit")
+        self.apt_client.remove_package("gedit")
+        self.apt_client.install_package("gedit")
+        #~ os.system("/usr/lib/linuxmint/mintInstall/aptd_client.py remove gedit")
+        #~ os.system("/usr/lib/linuxmint/mintInstall/aptd_client.py install gedit")
         #~ os.system("/usr/lib/linuxmint/mintInstall/aptd_client.py remove gedit")
         #~ os.system("/usr/lib/linuxmint/mintInstall/aptd_client.py install gedit")
         

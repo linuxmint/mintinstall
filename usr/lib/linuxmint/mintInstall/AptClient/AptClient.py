@@ -24,7 +24,7 @@ class AptAcquireProgressMonitor(apt.progress.base.AcquireProgress):
         
     def pulse(self, owner):
         percent = 100. * self.current_bytes / self.total_bytes
-        self._thread.status.set_value((percent / 2., ""))
+        self._thread.status.set_value((percent / 2., "downloading"))
         self._thread.status_changed.set()
         return True
     
@@ -126,6 +126,14 @@ class AptClient(EventsObject):
         
         return res
     
+    def cancel_task(self, task_id):
+        self._queue_lock.acquire()
+        if task_id in self._tasks:
+            i = self._queue.index(task_id)
+            del self._queue[i]
+            del self._tasks[task_id]
+        self._queue_lock.release()
+    
     def _process_task(self, task_id, task_type, **params):
         logging.debug("Processing %s task with params %s" % (task_type, str(params)))
         
@@ -190,6 +198,7 @@ class AptClient(EventsObject):
         return self._queue_task("wait", delay = delay)
     
     def get_progress_info(self):
+        res = {"tasks": []}
         self._running_lock.acquire()
         self._queue_lock.acquire()
         nb_tasks = len(self._queue)
@@ -201,15 +210,21 @@ class AptClient(EventsObject):
             task_progress, status = self._apt_thread.status.get_value()
             task_progress = min(task_progress, 99) # Do not show 100% when the task isn't completed
             progress = (100. * self._completed_operations_count + task_progress) / total_nb_tasks
+            res["tasks"].append({"role": self._apt_thread.task_type, "status": status, "progress": task_progress, "task_id": self._apt_thread.task_id, "task_params": self._apt_thread.params, "cancellable": False})
         else:
             if total_nb_tasks > 0:
                 task_perc = 100. / total_nb_tasks
                 progress = (100. * self._completed_operations_count) / total_nb_tasks
             else:
                 progress = 0
+        for task_id in self._queue:
+            task_type, params = self._tasks[task_id]
+            res["tasks"].append({"role": task_type, "progress": 0, "task_id": task_id, "task_params": params, "status": "waiting", "cancellable": True})
         self._queue_lock.release()
         self._running_lock.release()
-        return {"nb_tasks": nb_tasks, "progress": progress}
+        res["nb_tasks"] = nb_tasks
+        res["progress"] = progress
+        return res
     
     def call_on_completion(self, callback, *args):
         self._running_lock.acquire()
