@@ -2,4 +2,4 @@
 
 sudo rm -rf /usr/lib/linuxmint/mintInstall
 sudo cp -R usr /
-mintinstall
+sudo mintinstall

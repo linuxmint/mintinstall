@@ -22,6 +22,7 @@ import urllib
 import thread
 import glib
 import dbus
+from AptClient.AptClient import AptClient
 
 from aptdaemon import client
 from aptdaemon import enums
@@ -33,8 +34,11 @@ from user import home
 import base64
 
 # Don't let mintinstall run as root
-if os.getuid() == 0:
-    print "The software manager should not be run as root. Please run it in user mode."
+#~ if os.getuid() == 0:
+    #~ print "The software manager should not be run as root. Please run it in user mode."
+    #~ sys.exit(1)
+if os.getuid() != 0:
+    print "The software manager should be run as root."
     sys.exit(1)
 
 pygtk.require("2.0")
@@ -106,9 +110,10 @@ class DownloadReviews(threading.Thread):
             print detail
 
 class APTProgressHandler(threading.Thread):
-    def __init__(self, application, packages, wTree):
+    def __init__(self, application, packages, wTree, apt_client):
         threading.Thread.__init__(self)
         self.application = application
+        self.apt_client = apt_client
         self.wTree = wTree
         self.status_label = wTree.get_widget("label_ongoing")
         self.progressbar = wTree.get_widget("progressbar1")
@@ -120,6 +125,34 @@ class APTProgressHandler(threading.Thread):
                     
         bus = get_dbus_bus()
         self._owner_watcher = bus.watch_name_owner("org.debian.apt", self._register_active_transactions_watch)
+        
+        self.apt_client.connect("progress", self._on_apt_client_progress)
+        self.apt_client.connect("task_ended", self._on_apt_client_task_ended)
+    
+    def _on_apt_client_progress(self, *args):
+        self._update_display()
+
+    def _on_apt_client_task_ended(self, *args):
+        self._update_display()
+    
+    def _update_display(self):
+        progress_info = self.apt_client.get_progress_info()
+        print
+        print
+        print
+        print progress_info
+        print
+        print
+        print
+        if progress_info["nb_tasks"] > 0:
+            fraction = progress_info["progress"]
+            progress = str(int(fraction)) + '%'
+        else:
+            fraction = 0
+            progress = ""
+        self.status_label.set_text(_("%d ongoing actions") % progress_info["nb_tasks"])
+        self.progressbar.set_text(progress)
+        self.progressbar.set_fraction(fraction / 100.)
 
     def _register_active_transactions_watch(self, connection):
         print "_register_active_transactions_watch", connection
@@ -359,7 +392,8 @@ class Application():
         
         self.main_window = wTree.get_widget("main_window")
 
-        self.apt_progress_handler = APTProgressHandler(self, self.packages, wTree)
+        self.apt_client = AptClient()
+        self.apt_progress_handler = APTProgressHandler(self, self.packages, wTree, self.apt_client)
         
         self.add_reviews()
         downloadReviews = DownloadReviews(self)
@@ -524,6 +558,10 @@ class Application():
         wTree.get_widget("button_transactions").connect("clicked", self.show_transactions)
 
         wTree.get_widget("main_window").show_all()
+        self.apt_client.remove_package("gedit")
+        self.apt_client.install_package("gedit")
+        #~ os.system("/usr/lib/linuxmint/mintInstall/aptd_client.py remove gedit")
+        #~ os.system("/usr/lib/linuxmint/mintInstall/aptd_client.py install gedit")
         
 
     def on_search_terms_changed(self, searchentry, terms):
@@ -821,6 +859,10 @@ class Application():
 
 
     def close_application(self, window, event=None, exit_code=0):
+        self.apt_client.call_on_completion(lambda c: self.do_close_application(c), exit_code)
+        window.hide()
+    
+    def do_close_application(self, exit_code):
         if exit_code == 0:
             # Not happy with Python when it comes to closing threads, so here's a radical method to get what we want.
             pid = os.getpid()
@@ -871,9 +913,11 @@ class Application():
         package = self.current_package
         if package is not None:             
             if package.pkg.is_installed:
-                os.system("/usr/lib/linuxmint/mintInstall/aptd_client.py remove %s" % package.pkg.name)
+                self.apt_client.remove_package(package.pkg.name)
+                #os.system("/usr/lib/linuxmint/mintInstall/aptd_client.py remove %s" % package.pkg.name)
             else:
-                os.system("/usr/lib/linuxmint/mintInstall/aptd_client.py install %s" % package.pkg.name)
+                self.apt_client.install_package(package.pkg.name)
+                #os.system("/usr/lib/linuxmint/mintInstall/aptd_client.py install %s" % package.pkg.name)
     
     def on_screenshot_clicked(self):
         package = self.current_package

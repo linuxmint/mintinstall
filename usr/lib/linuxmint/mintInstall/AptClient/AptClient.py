@@ -11,7 +11,10 @@ class AptInstallProgressMonitor(apt.progress.base.InstallProgress):
         self._thread = thread
         
     def status_change(self, pkg, percent, status):
-        self._thread.status.set_value((percent, status))
+        if self._thread.task_type == "install":
+            self._thread.status.set_value((50 + percent / 2., status))
+        else:
+            self._thread.status.set_value((percent, status))
         self._thread.status_changed.set()
         
 class AptAcquireProgressMonitor(apt.progress.base.AcquireProgress):
@@ -21,7 +24,7 @@ class AptAcquireProgressMonitor(apt.progress.base.AcquireProgress):
         
     def pulse(self, owner):
         percent = 100. * self.current_bytes / self.total_bytes
-        self._thread.status.set_value((percent, ""))
+        self._thread.status.set_value((percent / 2., ""))
         self._thread.status_changed.set()
         return True
     
@@ -55,6 +58,12 @@ class AptThread(threading.Thread, EventsObject):
                 cache = apt.Cache()
                 cache[params["package_name"]].mark_install(False)
                 cache.commit(acquire_progress_monitor, install_progress_monitor)
+            elif task_type == "remove":
+                acquire_progress_monitor = AptAcquireProgressMonitor(self)
+                install_progress_monitor = AptInstallProgressMonitor(self)
+                cache = apt.Cache()
+                cache[params["package_name"]].mark_delete()
+                cache.commit(acquire_progress_monitor, install_progress_monitor)
             elif task_type == "update_cache":
                 cache = apt.Cache()
                 cache.update()
@@ -86,6 +95,7 @@ class AptClient(EventsObject):
         self._queue = []
         self._task_id = 0
         self._queue_lock = threading.Lock()
+        self._completed_operations_count = 0
         
         self._running = False
         self._running_lock = threading.Lock()
@@ -129,6 +139,8 @@ class AptClient(EventsObject):
             self._running = False
             self._running_lock.release()
             
+            self._completed_operations_count += 1
+            
             self._trigger("task_ended", self._apt_thread.task_id, self._apt_thread.task_type, self._apt_thread.params, self._apt_thread.success.is_set(), self._apt_thread.error.get_value())
             self._process_queue()
             
@@ -136,7 +148,7 @@ class AptClient(EventsObject):
         else:
             if self._apt_thread.status_changed.is_set():
                 progress, status = self._apt_thread.status.get_value()
-                self._trigger("progress", progress, status)
+                self._trigger("progress", self._apt_thread.task_id, self._apt_thread.task_type, self._apt_thread.params, progress, status)
                 self._apt_thread.status_changed.clear()
             return True
     
@@ -162,12 +174,49 @@ class AptClient(EventsObject):
             if task_id != None:
                 self._running = True
                 self._process_task(task_id, task_type, **params)
+            else:
+                self._completed_operations_count = 0
             
         self._running_lock.release()
     
     def install_package(self, package_name):
         return self._queue_task("install", package_name = package_name)
     
+    def remove_package(self, package_name):
+        return self._queue_task("remove", package_name = package_name)
+    
     def wait(self, delay):
         # Debugging task
         return self._queue_task("wait", delay = delay)
+    
+    def get_progress_info(self):
+        self._running_lock.acquire()
+        self._queue_lock.acquire()
+        nb_tasks = len(self._queue)
+        total_nb_tasks = len(self._queue) + self._completed_operations_count
+        if self._running:
+            nb_tasks += 1
+            total_nb_tasks += 1
+            task_perc = 100. / total_nb_tasks
+            task_progress, status = self._apt_thread.status.get_value()
+            task_progress = min(task_progress, 99) # Do not show 100% when the task isn't completed
+            progress = (100. * self._completed_operations_count + task_progress) / total_nb_tasks
+        else:
+            if total_nb_tasks > 0:
+                task_perc = 100. / total_nb_tasks
+                progress = (100. * self._completed_operations_count) / total_nb_tasks
+            else:
+                progress = 0
+        self._queue_lock.release()
+        self._running_lock.release()
+        return {"nb_tasks": nb_tasks, "progress": progress}
+    
+    def call_on_completion(self, callback, *args):
+        self._running_lock.acquire()
+        self._queue_lock.acquire()
+        if self._running or len(self._queue) > 0:
+            self.connect("idle", lambda client, *a: callback(*a), *args)
+        else:
+            callback(*args)
+        self._queue_lock.release()
+        self._running_lock.release()
