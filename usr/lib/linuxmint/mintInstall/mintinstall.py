@@ -17,14 +17,12 @@ import StringIO
 import ImageFont, ImageDraw, ImageOps
 import time
 import apt
-import aptdaemon
 import urllib
 import thread
 import glib
 import dbus
+from AptClient.AptClient import AptClient
 
-from aptdaemon import client
-from aptdaemon import enums
 from datetime import datetime
 from subprocess import Popen, PIPE
 from widgets.pathbar2 import NavigationBar
@@ -33,8 +31,11 @@ from user import home
 import base64
 
 # Don't let mintinstall run as root
-if os.getuid() == 0:
-    print "The software manager should not be run as root. Please run it in user mode."
+#~ if os.getuid() == 0:
+    #~ print "The software manager should not be run as root. Please run it in user mode."
+    #~ sys.exit(1)
+if os.getuid() != 0:
+    print "The software manager should be run as root."
     sys.exit(1)
 
 pygtk.require("2.0")
@@ -106,9 +107,10 @@ class DownloadReviews(threading.Thread):
             print detail
 
 class APTProgressHandler(threading.Thread):
-    def __init__(self, application, packages, wTree):
+    def __init__(self, application, packages, wTree, apt_client):
         threading.Thread.__init__(self)
         self.application = application
+        self.apt_client = apt_client
         self.wTree = wTree
         self.status_label = wTree.get_widget("label_ongoing")
         self.progressbar = wTree.get_widget("progressbar1")
@@ -117,64 +119,46 @@ class APTProgressHandler(threading.Thread):
         self.model = gtk.TreeStore(str, str, str, float, object)
         self.tree_transactions.set_model(self.model)
         self.tree_transactions.connect( "button-release-event", self.menuPopup )
-                    
-        bus = get_dbus_bus()
-        self._owner_watcher = bus.watch_name_owner("org.debian.apt", self._register_active_transactions_watch)
-
-    def _register_active_transactions_watch(self, connection):
-        print "_register_active_transactions_watch", connection
-        bus = get_dbus_bus()        
-        apt_daemon = client.get_aptdaemon(bus=bus)
-        apt_daemon.connect_to_signal("ActiveTransactionsChanged", self._on_transactions_changed)
-        current, queued = apt_daemon.GetActiveTransactions()
-        self._on_transactions_changed(current, queued)
         
-    def _on_transactions_changed(self, current, queued):            
-        num_transactions = 0
-        sum_progress = 0
-        tids = []
-        for tid in [current] + queued:
-            if not tid:
-                continue
-            tids.append(tid)            
-            try:
-                transaction = client.get_transaction(tid)
-            except dbus.DBusException:
-                break
-            num_transactions = num_transactions + 1
-            label = _("%s (running in the background)") % self.get_role_description(transaction)
-            if "mintinstall_label" in transaction.meta_data.keys():
-                label = transaction.meta_data["mintinstall_label"]
+        self.apt_client.connect("progress", self._on_apt_client_progress)
+        self.apt_client.connect("task_ended", self._on_apt_client_task_ended)
+    
+    def _on_apt_client_progress(self, *args):
+        self._update_display()
 
-            sum_progress = sum_progress + transaction.progress
-
-            transaction_is_new = True
+    def _on_apt_client_task_ended(self, *args):
+        self._update_display()
+    
+    def _update_display(self):
+        progress_info = self.apt_client.get_progress_info()
+        task_ids = []
+        for task in progress_info["tasks"]:
+            task_is_new = True
+            task_ids.append(task["task_id"])
             iter = self.model.get_iter_first()
             while iter is not None:
-                if self.model.get_value(iter, 4).tid == transaction.tid:
-                    self.model.set_value(iter, 1, self.get_status_description(transaction))
-                    self.model.set_value(iter, 2, str(transaction.progress) + '%')
-                    self.model.set_value(iter, 3, transaction.progress)
-                    transaction_is_new = False
+                if self.model.get_value(iter, 4)["task_id"] == task["task_id"]:
+                    self.model.set_value(iter, 1, self.get_status_description(task))
+                    self.model.set_value(iter, 2, "%d %%" % task["progress"])
+                    self.model.set_value(iter, 3, task["progress"])
+                    task_is_new = False
                 iter = self.model.iter_next(iter)
-            if transaction_is_new:
+            if task_is_new:
                 iter = self.model.insert_before(None, None)
-                self.model.set_value(iter, 0, label)
-                self.model.set_value(iter, 1, self.get_status_description(transaction))
-                self.model.set_value(iter, 2, str(transaction.progress) + '%')
-                self.model.set_value(iter, 3, transaction.progress)
-                self.model.set_value(iter, 4, transaction)
-
-        #Remove transactions in the tree not found in the daemon
+                self.model.set_value(iter, 0, self.get_role_description(task))
+                self.model.set_value(iter, 1, self.get_status_description(task))
+                self.model.set_value(iter, 2, "%d %%" % task["progress"])
+                self.model.set_value(iter, 3, task["progress"])
+                self.model.set_value(iter, 4, task)
         iter = self.model.get_iter_first()
         while iter is not None:
-            if self.model.get_value(iter, 4).tid not in tids:
-                transaction = self.model.get_value(iter, 4)
+            if self.model.get_value(iter, 4)["task_id"] not in task_ids:
+                task = self.model.get_value(iter, 4)
                 iter_to_be_removed = iter
                 iter = self.model.iter_next(iter)
                 self.model.remove(iter_to_be_removed)
-                if "mintinstall_pkgname" in transaction.meta_data.keys():
-                    pkg_name = transaction.meta_data["mintinstall_pkgname"]
+                if task["role"] in ["install", "remove"]:
+                    pkg_name = task["task_params"]["package_name"]
                     cache = apt.Cache()
                     new_pkg = cache[pkg_name]
                     # Update packages
@@ -182,90 +166,96 @@ class APTProgressHandler(threading.Thread):
                         if package.pkg.name == pkg_name:
                             package.pkg = new_pkg
 
-                    # Update apps tree                   
-                    model_apps = self.wTree.get_widget("tree_applications").get_model()
-                    if isinstance(model_apps, gtk.TreeModelFilter):
-                        model_apps = model_apps.get_model()
+                    # Update apps tree  
+                    tree_applications = self.wTree.get_widget("tree_applications")
+                    if tree_applications:
+                        model_apps = tree_applications.get_model()
+                        if isinstance(model_apps, gtk.TreeModelFilter):
+                            model_apps = model_apps.get_model()
 
-                    if model_apps is not None:
-                        iter_apps = model_apps.get_iter_first()
-                        while iter_apps is not None:
-                            package = model_apps.get_value(iter_apps, 3)
-                            if package.pkg.name == pkg_name:
-                                try:
-                                    model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon(package), 32, 32))
-                                except:
+                        if model_apps is not None:
+                            iter_apps = model_apps.get_iter_first()
+                            while iter_apps is not None:
+                                package = model_apps.get_value(iter_apps, 3)
+                                if package.pkg.name == pkg_name:
                                     try:
-                                        model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon_alternative(package), 32, 32))
+                                        model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon(package), 32, 32))
                                     except:
-                                        model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_fallback_icon(package), 32, 32))
-                                    
-                            iter_apps = model_apps.iter_next(iter_apps)                    
+                                        try:
+                                            model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon_alternative(package), 32, 32))
+                                        except:
+                                            model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_fallback_icon(package), 32, 32))
+                                        
+                                iter_apps = model_apps.iter_next(iter_apps)                    
 
-                    # Update mixed apps tree                   
-                    model_apps = self.wTree.get_widget("tree_mixed_applications").get_model()
-                    if isinstance(model_apps, gtk.TreeModelFilter):
-                        model_apps = model_apps.get_model()
-                    if model_apps is not None:
-                        iter_apps = model_apps.get_iter_first()
-                        while iter_apps is not None:
-                            package = model_apps.get_value(iter_apps, 3)
-                            if package.pkg.name == pkg_name:
-                                try:
-                                    model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon(package), 32, 32))
-                                except:
+                        # Update mixed apps tree                   
+                        model_apps = self.wTree.get_widget("tree_mixed_applications").get_model()
+                        if isinstance(model_apps, gtk.TreeModelFilter):
+                            model_apps = model_apps.get_model()
+                        if model_apps is not None:
+                            iter_apps = model_apps.get_iter_first()
+                            while iter_apps is not None:
+                                package = model_apps.get_value(iter_apps, 3)
+                                if package.pkg.name == pkg_name:
                                     try:
-                                        model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon_alternative(package), 32, 32))
+                                        model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon(package), 32, 32))
                                     except:
-                                        model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_fallback_icon(package), 32, 32))
-                            iter_apps = model_apps.iter_next(iter_apps)
+                                        try:
+                                            model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon_alternative(package), 32, 32))
+                                        except:
+                                            model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_fallback_icon(package), 32, 32))
+                                iter_apps = model_apps.iter_next(iter_apps)
             else:
                 iter = self.model.iter_next(iter)
-
-        if num_transactions > 0:
-            todo = 90 * num_transactions # because they only go to 90%
-            fraction = float(sum_progress) / float(todo)
-            progress = str(int(fraction * 100)) + '%'
+        if progress_info["nb_tasks"] > 0:
+            fraction = progress_info["progress"]
+            progress = str(int(fraction)) + '%'
         else:
             fraction = 0
             progress = ""
-
-        #Update
-        self.status_label.set_text(_("%d ongoing actions") % num_transactions)
+        self.status_label.set_text(_("%d ongoing actions") % progress_info["nb_tasks"])
         self.progressbar.set_text(progress)
-        self.progressbar.set_fraction(fraction)
+        self.progressbar.set_fraction(fraction / 100.)
 
     def menuPopup( self, widget, event ):
         if event.button == 3:
             model, iter = self.tree_transactions.get_selection().get_selected()
             if iter is not None:
-                transaction = model.get_value(iter, 4)
+                task = model.get_value(iter, 4)
                 menu = gtk.Menu()
                 cancelMenuItem = gtk.MenuItem(_("Cancel the task: %s") % model.get_value(iter, 0))
-                cancelMenuItem.set_sensitive(transaction.cancellable)
+                cancelMenuItem.set_sensitive(task["cancellable"])
                 menu.append(cancelMenuItem)
                 menu.show_all()
-                cancelMenuItem.connect( "activate", self.cancelTask, transaction)
+                cancelMenuItem.connect( "activate", self.cancelTask, task)
                 menu.popup( None, None, None, event.button, event.time )
 
-    def cancelTask(self, menu, transaction):
-        transaction.cancel()
-
+    def cancelTask(self, menu, task):
+        self.apt_client.cancel_task(task["task_id"])
+        self._update_display()
+            
     def get_status_description(self, transaction):
-        from aptdaemon.enums import *
-        descriptions = {STATUS_SETTING_UP:_("Setting up"), STATUS_WAITING:_("Waiting"), STATUS_WAITING_MEDIUM:_("Waiting for medium"), STATUS_WAITING_CONFIG_FILE_PROMPT:_("Waiting for config file prompt"), STATUS_WAITING_LOCK:_("Waiting for lock"), STATUS_RUNNING:_("Running"), STATUS_LOADING_CACHE:_("Loading cache"), STATUS_DOWNLOADING:_("Downloading"), STATUS_COMMITTING:_("Committing"), STATUS_CLEANING_UP:_("Cleaning up"), STATUS_RESOLVING_DEP:_("Resolving dependencies"), STATUS_FINISHED:_("Finished"), STATUS_CANCELLING:_("Cancelling")}
-        if transaction.status in descriptions.keys():
-            return descriptions[transaction.status]
+        descriptions = {"waiting":_("Waiting"), "downloading":_("Downloading"), "running":_("Running"), "finished":_("Finished")}
+        if "status" in transaction:
+            if transaction["status"] in descriptions.keys():
+                return descriptions[transaction["status"]]
+            else:
+                return transaction["status"]
         else:
-            return transaction.status
-        
+            return ""
+    
     def get_role_description(self, transaction):
-        from aptdaemon.enums import *
-        roles = {ROLE_UNSET:_("No role set"), ROLE_INSTALL_PACKAGES:_("Installing package"), ROLE_INSTALL_FILE:_("Installing file"), ROLE_UPGRADE_PACKAGES:_("Upgrading package"), ROLE_UPGRADE_SYSTEM:_("Upgrading system"), ROLE_UPDATE_CACHE:_("Updating cache"), ROLE_REMOVE_PACKAGES:_("Removing package"), ROLE_COMMIT_PACKAGES:_("Committing package"), ROLE_ADD_VENDOR_KEY_FILE:_("Adding vendor key file"), ROLE_REMOVE_VENDOR_KEY:_("Removing vendor key"), ROLE_ADD_REPOSITORY: _("Adding repository"), ROLE_ADD_VENDOR_KEY_FROM_KEYSERVER: _("Adding vendor key from keyserver"), ROLE_ENABLE_DISTRO_COMP: _("Enabling distribution component"), ROLE_FIX_BROKEN_DEPENDS: _("Fixing broken dependencies"), ROLE_FIX_INCOMPLETE_INSTALL: _("Fixing incomplete installations")}
-        if transaction.role in roles.keys():
-            return roles[transaction.role]
+        if "role" in transaction:
+            if transaction["role"] == "install":
+                return _("Installing %s") % transaction["task_params"]["package_name"]
+            elif transaction["role"] == "remove":
+                return _("Removing %s") % transaction["task_params"]["package_name"]
+            elif transaction["role"] == "update_cache":
+                return _("Updating cache")
+            else:
+                return _("No role set")
         else:
-            return transaction.role
+            return _("No role set")
 
 class Category:
 
@@ -359,7 +349,8 @@ class Application():
         
         self.main_window = wTree.get_widget("main_window")
 
-        self.apt_progress_handler = APTProgressHandler(self, self.packages, wTree)
+        self.apt_client = AptClient()
+        self.apt_progress_handler = APTProgressHandler(self, self.packages, wTree, self.apt_client)
         
         self.add_reviews()
         downloadReviews = DownloadReviews(self)
@@ -821,6 +812,10 @@ class Application():
 
 
     def close_application(self, window, event=None, exit_code=0):
+        self.apt_client.call_on_completion(lambda c: self.do_close_application(c), exit_code)
+        window.hide()
+    
+    def do_close_application(self, exit_code):
         if exit_code == 0:
             # Not happy with Python when it comes to closing threads, so here's a radical method to get what we want.
             pid = os.getpid()
@@ -871,9 +866,9 @@ class Application():
         package = self.current_package
         if package is not None:             
             if package.pkg.is_installed:
-                os.system("/usr/lib/linuxmint/mintInstall/aptd_client.py remove %s" % package.pkg.name)
+                self.apt_client.remove_package(package.pkg.name)
             else:
-                os.system("/usr/lib/linuxmint/mintInstall/aptd_client.py install %s" % package.pkg.name)
+                self.apt_client.install_package(package.pkg.name)
     
     def on_screenshot_clicked(self):
         package = self.current_package
