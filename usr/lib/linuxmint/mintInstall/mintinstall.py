@@ -165,6 +165,10 @@ class APTProgressHandler(threading.Thread):
                     for package in self.packages:
                         if package.pkg.name == pkg_name:
                             package.pkg = new_pkg
+                            # If the user is currently viewing this package in the browser,
+                            # refresh the view to show that the package has been installed or uninstalled.
+                            if self.application.navigation_bar.get_active().get_label() == pkg_name:
+                                self.application.show_package(package, None)
 
                     # Update apps tree  
                     tree_applications = self.wTree.get_widget("tree_applications")
