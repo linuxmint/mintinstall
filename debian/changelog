@@ -1,3 +1,12 @@
+mintinstall (7.4.0) nadia; urgency=low
+
+  * New icon
+  * Refresh view after installation/removal
+  * Debconf support
+  * Aptclient replaces aptd
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue, 16 Oct 2012 15:28:20 +0100
+
 mintinstall (7.3.9) maya; urgency=low
 
   * Force icon size to 32px
