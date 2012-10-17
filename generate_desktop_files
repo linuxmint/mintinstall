@@ -21,8 +21,12 @@ menuComment = menuComment.replace(")", "")
 menuComment = menuComment.strip()
 
 desktopFile = open("usr/share/applications/mintInstall.desktop", "w")
+desktopFileKDE = open("usr/share/applications/mintInstall_kde.desktop", "w")
 desktopFile2 = open("usr/share/applications/mintInstall_mime.desktop", "w")
 desktopFile.writelines("""[Desktop Entry]
+Name=Software Manager
+""")
+desktopFileKDE.writelines("""[Desktop Entry]
 Name=Software Manager
 """)
 desktopFile2.writelines("""[Desktop Entry]
@@ -38,11 +42,13 @@ for directory in os.listdir("/usr/share/linuxmint/locale"):
 			language = gettext.translation('mintinstall', "/usr/share/linuxmint/locale", languages=[directory])
 			language.install()
 			desktopFile.writelines("Name[%s]=%s\n" % (directory, _(menuName)))
+			desktopFileKDE.writelines("Name[%s]=%s\n" % (directory, _(menuName)))
 			desktopFile2.writelines("Name[%s]=%s\n" % (directory, _(menuName)))
 		except:
 			pass
 
 desktopFile.writelines("Comment=Install new applications\n")
+desktopFileKDE.writelines("Comment=Install new applications\n")
 desktopFile2.writelines("Comment=Install new applications\n")
 
 for directory in os.listdir("/usr/share/linuxmint/locale"):
@@ -51,16 +57,26 @@ for directory in os.listdir("/usr/share/linuxmint/locale"):
 			language = gettext.translation('mintinstall', "/usr/share/linuxmint/locale", languages=[directory])
 			language.install()			
 			desktopFile.writelines("Comment[%s]=%s\n" % (directory, _(menuComment)))
+			desktopFileKDE.writelines("Comment[%s]=%s\n" % (directory, _(menuComment)))
 			desktopFile2.writelines("Comment[%s]=%s\n" % (directory, _(menuComment)))
 		except:
 			pass
 
-desktopFile.writelines("""Exec=mintinstall
+desktopFile.writelines("""Exec=gksu mintinstall
 Icon=/usr/lib/linuxmint/mintInstall/icon.svg
 Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Application;System;Settings
+NotShowIn=KDE;
+""")
+desktopFileKDE.writelines("""Exec=kdesudo mintinstall
+Icon=/usr/lib/linuxmint/mintInstall/icon.svg
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Application;System;Settings
+OnlyShowIn=KDE;
 """)
 desktopFile2.writelines("""Exec=mintInstall
 Icon=/usr/share/linuxmint/logo.png
