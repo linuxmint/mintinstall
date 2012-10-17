@@ -472,8 +472,7 @@ class Application():
         # Build the category browsers
         self.browser = webkit.WebView()
         template = open("/usr/lib/linuxmint/mintInstall/data/templates/CategoriesView.html").read()
-        subs = {'header': _("Categories")}
-        subs['title'] = _("Software Manager")
+        subs = {'header': _("Categories")}      
         subs['subtitle'] = _("Please choose a category")
         subs['package_num'] = _("%d packages are currently available") % len(self.packages)
         html = string.Template(template).safe_substitute(subs)
