@@ -1082,25 +1082,31 @@ class Application():
     @print_timing
     def add_reviews(self):
         reviews_path = home + "/.linuxmint/mintinstall/reviews.list"
-        if os.path.exists(reviews_path):
-            reviews = open(reviews_path)
-            last_package = None
-            for line in reviews:
-                elements = line.split("~~~")
-                if len(elements) == 5:
-                    review = Review(elements[0], float(elements[1]), elements[2], elements[3], elements[4])
-                    if last_package != None and last_package.name == elements[0]:
-                        #Comment is on the same package as previous comment.. no need to search for the package
-                        last_package.reviews.append(review)
-                        review.package = last_package
-                        last_package.update_stats()
-                    else:
-                        if elements[0] in self.packages_dict:
-                            package = self.packages_dict[elements[0]]
-                            last_package = package
-                            package.reviews.append(review)
-                            review.package = package
-                            package.update_stats()
+        if not os.path.exists(reviews_path):
+            # No reviews found, use the ones from the packages itself
+            os.system("cp /usr/lib/linuxmint/mintInstall/reviews.list %s" % reviews_path)
+            print "First run detected, initial set of reviews used"
+            
+        reviews = open(reviews_path)
+        last_package = None
+        for line in reviews:
+            elements = line.split("~~~")
+            if len(elements) == 5:
+                review = Review(elements[0], float(elements[1]), elements[2], elements[3], elements[4])
+                if last_package != None and last_package.name == elements[0]:
+                    #Comment is on the same package as previous comment.. no need to search for the package
+                    last_package.reviews.append(review)
+                    review.package = last_package
+                    last_package.update_stats()
+                else:
+                    if elements[0] in self.packages_dict:
+                        package = self.packages_dict[elements[0]]
+                        last_package = package
+                        package.reviews.append(review)
+                        review.package = package
+                        package.update_stats()
+        
+            
 
     @print_timing
     def update_reviews(self):

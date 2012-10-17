@@ -48,6 +48,7 @@ install: build
 
 	# Add here commands to install the package into debian/mintinstall.
 	#$(MAKE) install DESTDIR=$(CURDIR)/debian/mintinstall
+	wget http://community.linuxmint.com/data/reviews.list -O $(CURDIR)/usr/lib/linuxmint/mintInstall/reviews.list
 	mkdir -p $(CURDIR)/debian/mintinstall
 	cp -r $(CURDIR)/usr $(CURDIR)/debian/mintinstall/
 
