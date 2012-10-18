@@ -1,3 +1,12 @@
+mintinstall (7.4.1) nadia; urgency=low
+
+  * Ship an initial set of reviews by default
+  * Run mintinstall as root and use kdesudo in KDE
+  * Removed large-font "Software Manager" label in main window
+  * Replaced background "frise" with EEE->FFF gradient
+
+ -- Clement Lefebvre <root@linuxmint.com>  Thu, 18 Oct 2012 23:50:44 +0100
+
 mintinstall (7.4.0) nadia; urgency=low
 
   * New icon
