@@ -396,9 +396,14 @@ class Application():
         openLinkExternalMenuItem.set_active(self.prefs["external_browser"])
         openLinkExternalMenuItem.connect("toggled", self.set_external_browser)
 
+        searchWhileTypingMenuItem = gtk.CheckMenuItem(_("Search while typing"))
+        searchWhileTypingMenuItem.set_active(self.prefs["search_while_typing"])
+        searchWhileTypingMenuItem.connect("toggled", self.set_search_filter, "search_while_typing")
+
         prefsMenu.append(searchInSummaryMenuItem)
         prefsMenu.append(searchInDescriptionMenuItem)
         prefsMenu.append(openLinkExternalMenuItem)
+        prefsMenu.append(searchWhileTypingMenuItem)
 
         #prefsMenuItem.connect("activate", open_preferences, treeview_update, statusIcon, wTree)
         editSubmenu.append(prefsMenuItem)
@@ -459,6 +464,7 @@ class Application():
         self.navigation_bar = NavigationBar()
         self.searchentry = SearchEntry()
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
+        self.searchentry.connect("activate", self.on_search_entry_activated)
         top_hbox = gtk.HBox()
         top_hbox.pack_start(self.navigation_bar, padding=6)
         top_hbox.pack_start(self.searchentry, expand=False, padding=6)
@@ -520,8 +526,13 @@ class Application():
         wTree.get_widget("main_window").show_all()
         
 
-    def on_search_terms_changed(self, searchentry, terms):
+    def on_search_entry_activated(self, searchentry):
+        terms = searchentry.get_text()
         if terms != "":
+            self.show_search_results(terms)
+    
+    def on_search_terms_changed(self, searchentry, terms):
+        if terms != "" and self.prefs["search_while_typing"]:
             self.show_search_results(terms)
 
     def set_filter(self, checkmenuitem, configName):
@@ -587,6 +598,10 @@ class Application():
             prefs["search_in_description"] = (config['search']['search_in_description'] == "True")
         except:
             prefs["search_in_description"] = False
+        try:
+            prefs["search_while_typing"] = (config['search']['search_while_typing'] == "True")
+        except:
+            prefs["search_while_typing"] = True
 
         #External browser
         try:
