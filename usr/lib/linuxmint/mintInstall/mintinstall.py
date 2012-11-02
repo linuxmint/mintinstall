@@ -857,6 +857,7 @@ class Application():
                 comment = comment.replace("'", "\'")
                 comment = comment.replace('"', '\"')
                 comment = comment.capitalize()
+                comment = unicode(comment, 'UTF-8', 'replace')
                 review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
 
                 self.packageBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
@@ -869,6 +870,7 @@ class Application():
                 comment = comment.replace("'", "\'")
                 comment = comment.replace('"', '\"')
                 comment = comment.capitalize()
+                comment = unicode(comment, 'UTF-8', 'replace')
                 review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
 
                 self.packageBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
@@ -937,6 +939,7 @@ class Application():
             comment = comment.replace("'", "\'")
             comment = comment.replace('"', '\"')
             comment = comment.capitalize()
+            comment = unicode(comment, 'UTF-8', 'replace')
             review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
             self.reviewsBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
 
