@@ -1,3 +1,9 @@
+mintinstall (7.4.3) nadia; urgency=low
+
+  * Fixed segfault due to character encoding
+
+ -- Clement Lefebvre <root@linuxmint.com>  Fri, 02 Nov 2012 14:49:08 +0000
+
 mintinstall (7.4.2) nadia; urgency=low
 
   * Search while typing is now configurable
