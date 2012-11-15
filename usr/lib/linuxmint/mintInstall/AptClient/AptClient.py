@@ -56,7 +56,7 @@ class AptThread(threading.Thread, EventsObject):
                 acquire_progress_monitor = AptAcquireProgressMonitor(self)
                 install_progress_monitor = AptInstallProgressMonitor(self)
                 cache = apt.Cache()
-                cache[params["package_name"]].mark_install(False)
+                cache[params["package_name"]].mark_install()
                 cache.commit(acquire_progress_monitor, install_progress_monitor)
             elif task_type == "remove":
                 acquire_progress_monitor = AptAcquireProgressMonitor(self)
