@@ -6,6 +6,7 @@ import sys, os, commands
 import gtk
 import gtk.glade
 import pygtk
+import gobject
 import thread
 import gettext
 import tempfile
@@ -522,10 +523,13 @@ class Application():
         wTree.get_widget("progressbar1").hide_all()
 
         wTree.get_widget("button_transactions").connect("clicked", self.show_transactions)
+        
+        wTree.get_widget("tree_applications_scrolledview").get_vadjustment().connect("value-changed", self._on_tree_applications_scrolled)
+        self._load_more_timer = None
 
         wTree.get_widget("main_window").show_all()
-        
-
+    
+    
     def on_search_entry_activated(self, searchentry):
         terms = searchentry.get_text()
         if terms != "":
@@ -1159,6 +1163,68 @@ class Application():
                                 package.reviews.append(review)
                                 review.package = package
                                 package.update_stats()
+    
+    def _on_tree_applications_scrolled(self, adjustment):
+        if self._load_more_timer:
+            gobject.source_remove(self._load_more_timer)
+        self._load_more_timer = gobject.timeout_add(500, self._load_more_packages)
+    
+    def _load_more_packages(self):
+        self._load_more_timer = None
+        adjustment = self.tree_applications.get_vadjustment()
+        if adjustment.get_value() + adjustment.get_page_size() > 0.95 * adjustment.get_upper():
+            if len(self._listed_packages) > self._nb_displayed_packages:
+                packages_to_show = self._listed_packages[self._nb_displayed_packages:self._nb_displayed_packages+500]
+                self.display_packages_list(packages_to_show)
+                self._nb_displayed_packages = min(len(self._listed_packages), self._nb_displayed_packages + 500)
+        return False
+    
+    def display_packages_list(self, packages_list):
+        sans26  =  ImageFont.truetype ( self.FONT, 26 )
+        sans10  =  ImageFont.truetype ( self.FONT, 12 )
+        
+        for package in packages_list:
+            
+            if package.name in COMMERCIAL_APPS:
+                continue
+            
+            iter = self._model_applications.insert_before(None, None)
+            try:
+                self._model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon(package), 32, 32))
+            except:
+                try:                
+                    self._model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon_alternative(package), 32, 32))
+                except:
+                    self._model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_fallback_icon(package), 32, 32))
+            summary = ""
+            if package.pkg.candidate is not None:
+                summary = package.pkg.candidate.summary
+                summary = unicode(summary, 'UTF-8', 'replace')
+                summary = summary.replace("<", "&lt;")
+                summary = summary.replace("&", "&amp;")
+
+            self._model_applications.set_value(iter, 1, "%s\n<small><span foreground='#555555'>%s</span></small>" % (package.name, summary.capitalize()))
+
+            if package.num_reviews > 0:
+                image = "/usr/lib/linuxmint/mintInstall/data/" + str(package.avg_rating) + ".png"
+                im=Image.open(image)
+                draw = ImageDraw.Draw(im)
+
+                color = "#000000"
+                if package.score < 0:
+                    color = "#AA5555"
+                elif package.score > 0:
+                    color = "#55AA55"
+                draw.text((34, 2), str(package.score), font=sans26, fill="#AAAAAA")
+                draw.text((33, 1), str(package.score), font=sans26, fill="#555555")                 
+                draw.text((32, 0), str(package.score), font=sans26, fill=color)
+                draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
+                tmpFile = tempfile.NamedTemporaryFile(delete=False)
+                im.save (tmpFile.name + ".png")
+                self._model_applications.set_value(iter, 2, gtk.gdk.pixbuf_new_from_file(tmpFile.name + ".png"))
+
+            self._model_applications.set_value(iter, 3, package)
+    
     @print_timing
     def show_category(self, category):
         # Load subcategories
@@ -1196,61 +1262,19 @@ class Application():
         else:
             tree_applications = self.tree_mixed_applications
 
-        model_applications = gtk.TreeStore(gtk.gdk.Pixbuf, str, gtk.gdk.Pixbuf, object)
+        self._model_applications = gtk.TreeStore(gtk.gdk.Pixbuf, str, gtk.gdk.Pixbuf, object)
 
-        self.model_filter = model_applications.filter_new()
+        self.model_filter = self._model_applications.filter_new()
         self.model_filter.set_visible_func(self.visible_func)
 
-
-        sans26  =  ImageFont.truetype ( self.FONT, 26 )
-        sans10  =  ImageFont.truetype ( self.FONT, 12 )
-
-        category.packages.sort(self.package_compare)
-        for package in category.packages[0:500]:
-            
-            if package.name in COMMERCIAL_APPS:
-                continue
-            
-            iter = model_applications.insert_before(None, None)
-            try:
-                model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon(package), 32, 32))
-            except:
-                try:                
-                    model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon_alternative(package), 32, 32))
-                except:
-                    model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_fallback_icon(package), 32, 32))
-            summary = ""
-            if package.pkg.candidate is not None:
-                summary = package.pkg.candidate.summary
-                summary = unicode(summary, 'UTF-8', 'replace')
-                summary = summary.replace("<", "&lt;")
-                summary = summary.replace("&", "&amp;")
-
-            model_applications.set_value(iter, 1, "%s\n<small><span foreground='#555555'>%s</span></small>" % (package.name, summary.capitalize()))
-
-            if package.num_reviews > 0:
-                image = "/usr/lib/linuxmint/mintInstall/data/" + str(package.avg_rating) + ".png"
-                im=Image.open(image)
-                draw = ImageDraw.Draw(im)
-
-                color = "#000000"
-                if package.score < 0:
-                    color = "#AA5555"
-                elif package.score > 0:
-                    color = "#55AA55"
-                draw.text((34, 2), str(package.score), font=sans26, fill="#AAAAAA")
-                draw.text((33, 1), str(package.score), font=sans26, fill="#555555")                 
-                draw.text((32, 0), str(package.score), font=sans26, fill=color)
-                draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
-                tmpFile = tempfile.NamedTemporaryFile(delete=False)
-                im.save (tmpFile.name + ".png")
-                model_applications.set_value(iter, 2, gtk.gdk.pixbuf_new_from_file(tmpFile.name + ".png"))
-
-            model_applications.set_value(iter, 3, package)
+        
+        self._listed_packages = category.packages
+        self._listed_packages.sort(self.package_compare)
+        self._nb_displayed_packages = min(len(self._listed_packages), 500)
+        self.display_packages_list(self._listed_packages[0:500])
 
         tree_applications.set_model(self.model_filter)
-        first = model_applications.get_iter_first()
-        del model_applications
+        first = self._model_applications.get_iter_first()
 
         # Update the navigation bar
         if category == self.root_category:

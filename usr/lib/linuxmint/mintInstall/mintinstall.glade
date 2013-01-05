@@ -150,7 +150,7 @@
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkScrolledWindow" id="scrolledwindow5">
+                  <widget class="GtkScrolledWindow" id="tree_applications_scrolledview">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="hscrollbar_policy">automatic</property>
