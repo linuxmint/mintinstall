@@ -327,11 +327,13 @@ class Application():
     NAVIGATION_HOME = 1
     NAVIGATION_SEARCH = 2
     NAVIGATION_CATEGORY = 3
-    NAVIGATION_SUB_CATEGORY = 4
-    NAVIGATION_ITEM = 5
-    NAVIGATION_SCREENSHOT = 6
-    NAVIGATION_WEBSITE = 6
-    NAVIGATION_REVIEWS = 6
+    NAVIGATION_SEARCH_CATEGORY = 4
+    NAVIGATION_SUB_CATEGORY = 5
+    NAVIGATION_SEARCH_SUB_CATEGORY = 6
+    NAVIGATION_ITEM = 7
+    NAVIGATION_SCREENSHOT = 8
+    NAVIGATION_WEBSITE = 8
+    NAVIGATION_REVIEWS = 8
 
     if os.path.exists("/usr/share/fonts/truetype/wqy/wqy-microhei.ttc"):
         FONT = "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc"
@@ -470,6 +472,14 @@ class Application():
         top_hbox.pack_start(self.navigation_bar, padding=6)
         top_hbox.pack_start(self.searchentry, expand=False, padding=6)
         wTree.get_widget("toolbar").pack_start(top_hbox, expand=False, padding=6)
+        
+        self.search_in_category_hbox = wTree.get_widget("search_in_category_hbox")
+        self.message_search_in_category_label = wTree.get_widget("message_search_in_category_label")
+        wTree.get_widget("show_all_results_button").connect("clicked", lambda w: self._show_all_search_results())
+        wTree.get_widget("search_in_category_hbox_wrapper").modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#F5F5B5"))
+        
+        self._search_in_category = self.root_category
+        self._current_search_terms = ""
 
         self.notebook = wTree.get_widget("notebook1")
 
@@ -815,7 +825,9 @@ class Application():
             self.notebook.set_current_page(self.PAGE_SEARCH)
         else:
             self.searchentry.set_text("")
+            self._search_in_category = self.root_category
             if isinstance(destination, Category):
+                self._search_in_category = destination
                 if len(destination.subcategories) > 0:
                     if len(destination.packages) > 0:
                         self.notebook.set_current_page(self.PAGE_MIXED)
@@ -1227,6 +1239,7 @@ class Application():
     
     @print_timing
     def show_category(self, category):
+        self._search_in_category = category
         # Load subcategories
         if len(category.subcategories) > 0:
             if len(category.packages) == 0:
@@ -1371,8 +1384,13 @@ class Application():
     
         iconInfo = theme.lookup_icon("applications-other", 64, 0)       
         return iconInfo.get_filename()
+    
+    def _show_all_search_results(self):
+        self._search_in_category = self.root_category
+        self.show_search_results(self._current_search_terms)
 
     def show_search_results(self, terms):
+        self._current_search_terms = terms
         # Load packages into self.tree_search
         model_applications = gtk.TreeStore(gtk.gdk.Pixbuf, str, gtk.gdk.Pixbuf, object)
 
@@ -1381,9 +1399,12 @@ class Application():
 
         sans26  =  ImageFont.truetype ( self.FONT, 26 )
         sans10  =  ImageFont.truetype ( self.FONT, 12 )
-
-        self.packages.sort(self.package_compare)
-        for package in self.packages:
+        if self._search_in_category == self.root_category:
+            packages = self.packages
+        else:
+            packages = self._search_in_category.packages
+        packages.sort(self.package_compare)
+        for package in packages:
             visible = False
             if terms.upper() in package.pkg.name.upper():
                 visible = True
@@ -1434,7 +1455,20 @@ class Application():
 
         self.tree_search.set_model(self.model_filter)
         del model_applications
-        self.navigation_bar.add_with_id(_("Search results"), self.navigate, self.NAVIGATION_CATEGORY, "search")
+        if self._search_in_category != self.root_category:
+            self.search_in_category_hbox.show()
+            self.message_search_in_category_label.set_markup("<b>%s</b>" % (_("Only results in category \"%s\" are shown." % self._search_in_category.name)))
+        if self._search_in_category == self.root_category:
+            self.search_in_category_hbox.hide()
+            self.navigation_bar.add_with_id(self._search_in_category.name, self.navigate, self.NAVIGATION_HOME, self._search_in_category)
+            navigation_id = self.NAVIGATION_SEARCH
+        elif self._search_in_category.parent == self.root_category:
+            self.navigation_bar.add_with_id(self._search_in_category.name, self.navigate, self.NAVIGATION_CATEGORY, self._search_in_category)
+            navigation_id = self.NAVIGATION_SEARCH_CATEGORY
+        else:
+            self.navigation_bar.add_with_id(self._search_in_category.name, self.navigate, self.NAVIGATION_SUB_CATEGORY, self._search_in_category)
+            navigation_id = self.NAVIGATION_SEARCH_SUB_CATEGORY
+        self.navigation_bar.add_with_id(_("Search results"), self.navigate, navigation_id, "search")
 
     def visible_func(self, model, iter):
         package = model.get_value(iter, 3)
