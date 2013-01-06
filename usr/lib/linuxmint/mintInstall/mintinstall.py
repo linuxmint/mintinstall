@@ -1050,7 +1050,7 @@ class Application():
         subcat = Category(_("Science and Education"), "applications-science", ("science", "math", "education"), self.root_category, self.categories)
         subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/education.list")
 
-        Category(_("Programming"), "applications-development", ("devel"), self.root_category, self.categories)
+        Category(_("Programming"), "applications-development", ("devel", "java"), self.root_category, self.categories)
         #self.category_other = Category(_("Other"), "applications-other", None, self.root_category, self.categories)        
 
     def file_to_array(self, filename):
