@@ -1,3 +1,12 @@
+mintinstall (7.4.5) olivia; urgency=low
+
+  * Automatically load more packages when we get to the bottom of the list
+  * Fix score getting cut-off
+  * Search in category
+  * Include packages in the "java" section into the "Programming" category
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 13 Mar 2013 11:08:27 +0000
+
 mintinstall (7.4.4) nadia; urgency=low
 
   * Remove auto_fix=False parameter in mark_install (prevents ending up with broken packages when installing conflicting recommends)
