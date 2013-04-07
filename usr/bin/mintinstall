@@ -16,6 +16,6 @@ if len(sys.argv) > 1:
 else:
 	status = 9 # status code 9 is used to restart the app
 	while status == 9:
-		status = int(os.system("/usr/lib/linuxmint/mintInstall/mintinstall.py") / 256) # exit code is upper 8 bits
+		status = int(os.system("%s /usr/lib/linuxmint/mintInstall/mintinstall.py" % launcher) / 256) # exit code is upper 8 bits
 		
 
