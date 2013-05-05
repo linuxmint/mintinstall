@@ -15,6 +15,9 @@ if len(sys.argv) > 1:
 	os.system(command)
 else:
 	status = 9 # status code 9 is used to restart the app
+	if os.getuid() != 0:
+		os.system("%s mintinstall" % launcher)
+		status = 0 # Don't call mintinstall
 	while status == 9:
 		status = int(os.system("/usr/lib/linuxmint/mintInstall/mintinstall.py") / 256) # exit code is upper 8 bits
 		
