@@ -416,7 +416,7 @@ class Application():
         accountMenuItem.connect("activate", self.open_account_info)
         editSubmenu.append(accountMenuItem)
 
-        if os.path.exists("/usr/bin/software-properties-gtk") or os.path.exists("/usr/bin/software-properties-kde"):
+        if os.path.exists("/usr/bin/software-sources") or os.path.exists("/usr/bin/software-properties-gtk") or os.path.exists("/usr/bin/software-properties-kde"):
             sourcesMenuItem = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
             sourcesMenuItem.set_image(gtk.image_new_from_file("/usr/lib/linuxmint/mintUpdate/icons/software-properties.png"))
             sourcesMenuItem.get_child().set_text(_("Software sources"))
@@ -625,12 +625,13 @@ class Application():
 
         return prefs
 
-    def open_repositories(self, widget):
-        launcher = commands.getoutput("/usr/lib/linuxmint/common/mint-which-launcher.py")
-        if os.path.exists("/usr/bin/software-properties-gtk"):
-            os.system("%s /usr/bin/software-properties-gtk" % launcher)
+    def open_repositories(self, widget):        
+        if os.path.exists("/usr/bin/software-sources"):
+            os.system("/usr/bin/software-sources")
+        elif os.path.exists("/usr/bin/software-properties-gtk"):
+            os.system("/usr/bin/software-properties-gtk")
         elif os.path.exists("/usr/bin/software-properties-kde"):
-            os.system("%s /usr/bin/software-properties-kde" % launcher)
+            os.system("/usr/bin/software-properties-kde")
         self.close_application(None, None, 9) # Status code 9 means we want to restart ourselves
 
     def open_account_info(self, widget):
