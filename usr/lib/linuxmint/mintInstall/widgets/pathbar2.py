@@ -155,6 +155,11 @@ class PathBar(gtk.DrawingArea):
         return
 
     def __set_active(self, part):
+        for i in self.id_to_part:
+            apart = self.id_to_part[i]
+            if apart.id > part.id:
+                self.remove(apart)
+                
         prev_active = self.__active_part
         redraw = False
         if part.callback:
