@@ -72,16 +72,16 @@ class PathBar(gtk.DrawingArea):
         self.connect("expose-event", self.__expose_cb)
         self.connect("style-set", self.__style_change_cb)
         self.connect("size-allocate", self.__allocation_change_cb)
-	self.last_label = None
+        self.last_label = None
         return
 
-    def set_active(self, part):	
+    def set_active(self, part):
         part.set_state(gtk.STATE_ACTIVE)
         prev, redraw = self.__set_active(part)
         if redraw:
             self.queue_draw_area(*prev.get_allocation_tuple())
             self.queue_draw_area(*part.get_allocation_tuple())
-	self.last_label = None
+        self.last_label = None
         return
 
     def get_active(self):
@@ -138,10 +138,10 @@ class PathBar(gtk.DrawingArea):
         old_w = self.__draw_width()
 
         # remove part from interal part list
-	try:
-	        del self.__parts[self.__parts.index(part)]
-	except:
-		pass
+        try:
+            del self.__parts[self.__parts.index(part)]
+        except:
+            pass
 
         self.__compose_parts(self.__parts[-1], False)
 
@@ -156,13 +156,13 @@ class PathBar(gtk.DrawingArea):
 
     def __set_active(self, part):
 
-	bigger = False
-	for i in self.id_to_part:	    
+        bigger = False
+        for i in self.id_to_part:
             apart = self.id_to_part[i]
-	    if bigger:
-		self.remove(apart)
-	    if apart == part:
-		bigger = True
+            if bigger:
+                self.remove(apart)
+            if apart == part:
+                bigger = True
 
         prev_active = self.__active_part
         redraw = False
@@ -828,14 +828,14 @@ class PathPart:
         self.__layout = None
         self.__pbar = None
 
-	self.id = id	
+        self.id = id
 
         self.allocation = [0, 0, 0, 0]
         self.state = gtk.STATE_NORMAL
         self.shape = PathBar.SHAPE_RECTANGLE
 
         self.callback = callback
-	self.obj = obj
+        self.obj = obj
         self.set_label(label or "")
         self.icon = PathBarIcon()
         return
@@ -1346,7 +1346,7 @@ class NavigationBar(PathBar):
     def __init__(self, group=None):
         PathBar.__init__(self)
         self.set_size_request(-1, 28)
-        self.id_to_part = {}	
+        self.id_to_part = {}
         return
 
     def add_with_id(self, label, callback, id, obj, icon=None):
@@ -1356,30 +1356,30 @@ class NavigationBar(PathBar):
         If there is the same id already, replace the existing one
         with the new one
         """
-	if label == self.last_label:
-		#ignoring duplicate
-		return
+        if label == self.last_label:
+                #ignoring duplicate
+            return
 
-	#print "Adding %s(%d)" % (label, id)
+        #print "Adding %s(%d)" % (label, id)
 
 
         # check if we have the button of that id or need a new one
-	if id == 1 and len(self.id_to_part) > 0:
-		# We already have the first item, just don't do anything
-		return
-	else:
-		for i in self.id_to_part:
-			part = self.id_to_part[i]
-			if part.id >= id:
-				self.remove(part)
-        
-	part = PathPart(id, label, callback, obj)
+        if id == 1 and len(self.id_to_part) > 0:
+            # We already have the first item, just don't do anything
+            return
+        else:
+            for i in self.id_to_part:
+                part = self.id_to_part[i]
+                if part.id >= id:
+                    self.remove(part)
+
+        part = PathPart(id, label, callback, obj)
         part.set_pathbar(self)
         self.id_to_part[id] = part
         gobject.timeout_add(150, self.append, part)
 
         if icon: part.set_icon(icon)
-	self.last_label = label
+        self.last_label = label
         return
 
     def remove_id(self, id):
@@ -1389,7 +1389,7 @@ class NavigationBar(PathBar):
         part = self.id_to_part[id]
         del self.id_to_part[id]
         self.remove(part)
-	self.last_label = None
+        self.last_label = None
         return
 
     def remove_all(self):
@@ -1397,7 +1397,7 @@ class NavigationBar(PathBar):
         self.__parts = []
         self.id_to_part = {}
         self.queue_draw()
-	self.last_label = None
+        self.last_label = None
         return
 
     def get_button_from_id(self, id):
@@ -1414,4 +1414,3 @@ class NavigationBar(PathBar):
         """
         if not id in self.id_to_part:
             return
-
