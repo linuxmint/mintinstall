@@ -546,7 +546,7 @@ class Application():
             self.show_search_results(terms)
     
     def on_search_terms_changed(self, searchentry, terms):
-        if terms != "" and self.prefs["search_while_typing"]:
+        if terms != "" and self.prefs["search_while_typing"] and len(terms) >= 3:
             self.show_search_results(terms)
 
     def set_filter(self, checkmenuitem, configName):
