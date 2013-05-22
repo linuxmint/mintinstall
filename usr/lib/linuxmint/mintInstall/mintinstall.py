@@ -82,6 +82,19 @@ def get_dbus_bus():
    bus = dbus.SystemBus()
    return bus
 
+
+def convertImageToGtkPixbuf(image):
+    buf = StringIO.StringIO()
+    image.save (buf, format="PNG")
+    bufString=buf.getvalue()
+    loader = gtk.gdk.PixbufLoader('png')
+    loader.write(bufString, len(bufString))
+    pixbuf = loader.get_pixbuf()
+    loader.close()
+    buf.close()
+    return pixbuf;
+
+
 class DownloadReviews(threading.Thread):
     def __init__(self, application):
         threading.Thread.__init__(self)
@@ -183,14 +196,7 @@ class APTProgressHandler(threading.Thread):
                             while iter_apps is not None:
                                 package = model_apps.get_value(iter_apps, 3)
                                 if package.pkg.name == pkg_name:
-                                    try:
-                                        model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon(package), 32, 32))
-                                    except:
-                                        try:
-                                            model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon_alternative(package), 32, 32))
-                                        except:
-                                            model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_fallback_icon(package), 32, 32))
-                                        
+                                    model_apps.set_value(iter_apps, 0, self.get_package_pixbuf_icon(package))
                                 iter_apps = model_apps.iter_next(iter_apps)                    
 
                         # Update mixed apps tree                   
@@ -202,13 +208,8 @@ class APTProgressHandler(threading.Thread):
                             while iter_apps is not None:
                                 package = model_apps.get_value(iter_apps, 3)
                                 if package.pkg.name == pkg_name:
-                                    try:
-                                        model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon(package), 32, 32))
-                                    except:
-                                        try:
-                                            model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.application.find_app_icon_alternative(package), 32, 32))
-                                        except:
-                                            model_apps.set_value(iter_apps, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_fallback_icon(package), 32, 32))
+                                    
+                                    model_apps.set_value(iter_apps, 0, self.get_package_pixbuf_icon(package))
                                 iter_apps = model_apps.iter_next(iter_apps)
             else:
                 iter = self.model.iter_next(iter)
@@ -289,7 +290,15 @@ class Package:
         self.score = 0
         self.avg_rating = 0
         self.num_reviews = 0
-
+        
+        #search cache:
+        self.nameUpper = pkg.name.upper()
+        self.summaryUpper = None
+        self.descriptionUpper = None
+        if pkg.candidate is not None:
+            self.summaryUpper = pkg.candidate.summary.upper()
+            self.descriptionUpper = pkg.candidate.description.upper()
+            
     def update_stats(self):
         points = 0
         sum_rating = 0
@@ -535,8 +544,25 @@ class Application():
         
         wTree.get_widget("tree_applications_scrolledview").get_vadjustment().connect("value-changed", self._on_tree_applications_scrolled)
         self._load_more_timer = None
-
+        
+        
+        wTree.get_widget("scrolled_search").get_vadjustment().connect("value-changed", self._on_search_applications_scrolled)
+        self._load_more_search_timer = None
+        self.initial_search_display=200 #number of packages shown on first search
+        self.scroll_search_display=300 #number of packages added after scrolling
+        
+        
         wTree.get_widget("main_window").show_all()
+        
+        
+        self.generic_installed_icon_path = "/usr/lib/linuxmint/mintInstall/data/installed.png"
+        self.generic_available_icon_path = "/usr/lib/linuxmint/mintInstall/data/available.png"
+        
+        
+        self.generic_installed_icon_pixbuf=gtk.gdk.pixbuf_new_from_file_at_size(self.generic_installed_icon_path, 32, 32)
+        self.generic_available_icon_pixbuf=gtk.gdk.pixbuf_new_from_file_at_size(self.generic_available_icon_path, 32, 32)
+        
+        
     
     
     def on_search_entry_activated(self, searchentry):
@@ -1181,33 +1207,38 @@ class Application():
             gobject.source_remove(self._load_more_timer)
         self._load_more_timer = gobject.timeout_add(500, self._load_more_packages)
     
+    
     def _load_more_packages(self):
         self._load_more_timer = None
         adjustment = self.tree_applications.get_vadjustment()
-        if adjustment.get_value() + adjustment.get_page_size() > 0.95 * adjustment.get_upper():
+        if adjustment.get_value() + adjustment.get_page_size() > 0.90 * adjustment.get_upper():
             if len(self._listed_packages) > self._nb_displayed_packages:
                 packages_to_show = self._listed_packages[self._nb_displayed_packages:self._nb_displayed_packages+500]
-                self.display_packages_list(packages_to_show)
+                self.display_packages_list(packages_to_show, False)
                 self._nb_displayed_packages = min(len(self._listed_packages), self._nb_displayed_packages + 500)
         return False
     
-    def display_packages_list(self, packages_list):
+    def display_packages_list(self, packages_list, searchTree):
         sans26  =  ImageFont.truetype ( self.FONT, 26 )
         sans10  =  ImageFont.truetype ( self.FONT, 12 )
+        
+        model_applications=None
+        
+        if searchTree:
+            model_applications=self._model_applications_search
+        else:
+            model_applications=self._model_applications
+        
         
         for package in packages_list:
             
             if package.name in COMMERCIAL_APPS:
                 continue
             
-            iter = self._model_applications.insert_before(None, None)
-            try:
-                self._model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon(package), 32, 32))
-            except:
-                try:                
-                    self._model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon_alternative(package), 32, 32))
-                except:
-                    self._model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_fallback_icon(package), 32, 32))
+            iter = model_applications.insert_before(None, None)
+            
+            model_applications.set_value(iter, 0, self.get_package_pixbuf_icon(package))
+                    
             summary = ""
             if package.pkg.candidate is not None:
                 summary = package.pkg.candidate.summary
@@ -1215,7 +1246,7 @@ class Application():
                 summary = summary.replace("<", "&lt;")
                 summary = summary.replace("&", "&amp;")
 
-            self._model_applications.set_value(iter, 1, "%s\n<small><span foreground='#555555'>%s</span></small>" % (package.name, summary.capitalize()))
+            model_applications.set_value(iter, 1, "%s\n<small><span foreground='#555555'>%s</span></small>" % (package.name, summary.capitalize()))
 
             if package.num_reviews > 0:
                 image = "/usr/lib/linuxmint/mintInstall/data/" + str(package.avg_rating) + ".png"
@@ -1231,11 +1262,10 @@ class Application():
                 draw.text((33, 1), str(package.score), font=sans26, fill="#555555")                 
                 draw.text((32, 0), str(package.score), font=sans26, fill=color)
                 draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
-                tmpFile = tempfile.NamedTemporaryFile(delete=False)
-                im.save (tmpFile.name + ".png")
-                self._model_applications.set_value(iter, 2, gtk.gdk.pixbuf_new_from_file(tmpFile.name + ".png"))
+                
+                model_applications.set_value(iter, 2, convertImageToGtkPixbuf(im))
 
-            self._model_applications.set_value(iter, 3, package)
+            model_applications.set_value(iter, 3, package)
     
     @print_timing
     def show_category(self, category):
@@ -1284,7 +1314,7 @@ class Application():
         self._listed_packages = category.packages
         self._listed_packages.sort(self.package_compare)
         self._nb_displayed_packages = min(len(self._listed_packages), 500)
-        self.display_packages_list(self._listed_packages[0:500])
+        self.display_packages_list(self._listed_packages[0:500], False)
 
         tree_applications.set_model(self.model_filter)
         first = self._model_applications.get_iter_first()
@@ -1296,12 +1326,38 @@ class Application():
             self.navigation_bar.add_with_id(category.name, self.navigate, self.NAVIGATION_CATEGORY, category)
         else:
             self.navigation_bar.add_with_id(category.name, self.navigate, self.NAVIGATION_SUB_CATEGORY, category)
-
+    
+    
+    
+    
+    
+    
+    def get_package_pixbuf_icon(self, package):
+        icon_path=None
+        
+        try:
+            icon_path = self.find_app_icon(package)
+        except:
+            try:
+                icon_path = self.find_app_icon_alternative(package)
+            except:
+                icon_path = self.find_fallback_icon(package)
+        
+        #get cached generic icons, so they aren't converted repetitively
+        if icon_path==self.generic_installed_icon_path:
+            return self.generic_installed_icon_pixbuf
+        if icon_path==self.generic_available_icon_path:
+            return self.generic_available_icon_pixbuf
+        
+        return gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 32, 32)
+    
+    
+    
     def find_fallback_icon(self, package):
         if package.pkg.is_installed:
-            icon_path = "/usr/lib/linuxmint/mintInstall/data/installed.png"
+            icon_path = self.generic_installed_icon_path
         else:
-            icon_path = "/usr/lib/linuxmint/mintInstall/data/available.png"
+            icon_path = self.generic_available_icon_path
         return icon_path
             
     def find_app_icon_alternative(self, package):
@@ -1314,7 +1370,7 @@ class Application():
                 icon_path = icon_path + ".xpm"
             else:
                 # Else, default to generic icons
-                icon_path = "/usr/lib/linuxmint/mintInstall/data/installed.png"
+                icon_path = self.generic_installed_icon_path
         else:          
             # Try the Icon theme first
             theme = gtk.icon_theme_get_default()
@@ -1331,7 +1387,7 @@ class Application():
                     icon_path = icon_path + ".xpm"
                 else:
                     # Else, default to generic icons
-                    icon_path = "/usr/lib/linuxmint/mintInstall/data/available.png"
+                    icon_path = self.generic_available_icon_path
         return icon_path
     
     def find_app_icon(self, package):
@@ -1368,9 +1424,9 @@ class Application():
             else:
                 # Else, default to generic icons                
                 if package.pkg.is_installed:
-                    icon_path = "/usr/lib/linuxmint/mintInstall/data/installed.png"
+                    icon_path = self.generic_installed_icon_path
                 else:
-                    icon_path = "/usr/lib/linuxmint/mintInstall/data/available.png"
+                    icon_path = self.generic_available_icon_path
                                             
         return icon_path
     
@@ -1388,71 +1444,75 @@ class Application():
     def _show_all_search_results(self):
         self._search_in_category = self.root_category
         self.show_search_results(self._current_search_terms)
-
+	
+	
+	
+    
+    def _on_search_applications_scrolled(self, adjustment):
+        if self._load_more_search_timer:
+            gobject.source_remove(self._load_more_search_timer)
+        self._load_more_search_timer = gobject.timeout_add(500, self._load_more_search_packages)
+    
+    
+    def _load_more_search_packages(self):
+        self._load_more_search_timer = None
+        adjustment = self.tree_search.get_vadjustment()
+        if adjustment.get_value() + adjustment.get_page_size() > 0.90 * adjustment.get_upper():
+            if len(self._searched_packages) > self._nb_displayed_search_packages:
+                packages_to_show = self._searched_packages[self._nb_displayed_search_packages:self._nb_displayed_search_packages+self.scroll_search_display]
+                self.display_packages_list(packages_to_show, True)
+                self._nb_displayed_search_packages = min(len(self._searched_packages), self._nb_displayed_search_packages + self.scroll_search_display)
+        return False
+	
+	
+	
+    @print_timing
     def show_search_results(self, terms):
         self._current_search_terms = terms
         # Load packages into self.tree_search
         model_applications = gtk.TreeStore(gtk.gdk.Pixbuf, str, gtk.gdk.Pixbuf, object)
-
+        
+        self._model_applications_search=model_applications
+        
         self.model_filter = model_applications.filter_new()
         self.model_filter.set_visible_func(self.visible_func)
 
         sans26  =  ImageFont.truetype ( self.FONT, 26 )
         sans10  =  ImageFont.truetype ( self.FONT, 12 )
+        
+        
+        termsUpper=terms.upper()
+        
         if self._search_in_category == self.root_category:
             packages = self.packages
         else:
             packages = self._search_in_category.packages
-        packages.sort(self.package_compare)
+        
+        
+        self._searched_packages=[]
+        
         for package in packages:
             visible = False
-            if terms.upper() in package.pkg.name.upper():
+            if termsUpper in package.nameUpper:
                 visible = True
             else:
                 if (package.pkg.candidate is not None):
-                    if (self.prefs["search_in_summary"] and terms.upper() in package.pkg.candidate.summary.upper()):
+                    if (self.prefs["search_in_summary"] and termsUpper in package.summaryUpper):
                         visible = True
-                    elif(self.prefs["search_in_description"] and terms.upper() in package.pkg.candidate.description.upper()):
+                    elif(self.prefs["search_in_description"] and termsUpper in package.descriptionUpper):
                         visible = True
-
+            
             if visible:
-                iter = model_applications.insert_before(None, None)
-                try:
-                    model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon(package), 32, 32))
-                except:
-                    try:
-                        model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_app_icon_alternative(package), 32, 32))
-                    except:
-                        model_applications.set_value(iter, 0, gtk.gdk.pixbuf_new_from_file_at_size(self.find_fallback_icon(package), 32, 32))
-                summary = ""
-                if package.pkg.candidate is not None:
-                    summary = package.pkg.candidate.summary
-                    summary = unicode(summary, 'UTF-8', 'replace')
-                    summary = summary.replace("<", "&lt;")
-                    summary = summary.replace("&", "&amp;")
-
-                model_applications.set_value(iter, 1, "%s\n<small><span foreground='#555555'>%s</span></small>" % (package.name, summary.capitalize()))
-
-                if package.num_reviews > 0:
-                    image = "/usr/lib/linuxmint/mintInstall/data/" + str(package.avg_rating) + ".png"
-                    im=Image.open(image)
-                    draw = ImageDraw.Draw(im)
-
-                    color = "#000000"
-                    if package.score < 0:
-                        color = "#AA5555"
-                    elif package.score > 0:
-                        color = "#55AA55"
-                    draw.text((34, 2), str(package.score), font=sans26, fill="#AAAAAA")
-                    draw.text((33, 1), str(package.score), font=sans26, fill="#555555") 
-                    draw.text((32, 0), str(package.score), font=sans26, fill=color)
-                    draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
-                    tmpFile = tempfile.NamedTemporaryFile(delete=False)
-                    im.save (tmpFile.name + ".png")
-                    model_applications.set_value(iter, 2, gtk.gdk.pixbuf_new_from_file(tmpFile.name + ".png"))
-
-                model_applications.set_value(iter, 3, package)
-
+                self._searched_packages.append(package)
+        
+        
+        self._searched_packages.sort(self.package_compare)
+        
+        
+        self._nb_displayed_search_packages = min(len(self._searched_packages), self.initial_search_display)
+        self.display_packages_list(self._searched_packages[0:self.initial_search_display], True)
+        
+        
         self.tree_search.set_model(self.model_filter)
         del model_applications
         if self._search_in_category != self.root_category:
