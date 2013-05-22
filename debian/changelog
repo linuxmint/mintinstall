@@ -1,3 +1,9 @@
+mintinstall (7.4.8) olivia; urgency=low
+
+  * 7.4.8
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 22 May 2013 10:33:12 +0100
+
 mintinstall (7.4.7) olivia; urgency=low
 
   * 7.4.7
