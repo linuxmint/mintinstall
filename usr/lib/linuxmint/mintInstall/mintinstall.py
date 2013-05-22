@@ -343,6 +343,13 @@ class Application():
     
     @print_timing    
     def __init__(self):
+        self.browser = webkit.WebView()
+        self.browser2 = webkit.WebView()
+        self.packageBrowser = webkit.WebView()
+        self.screenshotBrowser = webkit.WebView()
+        self.websiteBrowser = webkit.WebView()
+        self.reviewsBrowser = webkit.WebView()
+
         self.add_categories()
         self.build_matched_packages()
         self.add_packages()
@@ -487,7 +494,6 @@ class Application():
         sans10  =  ImageFont.truetype ( self.FONT, 12 )
 
         # Build the category browsers
-        self.browser = webkit.WebView()
         template = open("/usr/lib/linuxmint/mintInstall/data/templates/CategoriesView.html").read()
         subs = {'header': _("Categories")}      
         subs['subtitle'] = _("Please choose a category")
@@ -498,7 +504,6 @@ class Application():
         self.browser.connect('title-changed', self._on_title_changed)
         wTree.get_widget("scrolled_categories").add(self.browser)
 
-        self.browser2 = webkit.WebView()
         template = open("/usr/lib/linuxmint/mintInstall/data/templates/SubCategoriesView.html").read()
         subs = {'header': _("Categories")}
         subs['subtitle'] = _("Please choose a sub-category")
@@ -507,18 +512,12 @@ class Application():
         self.browser2.connect('title-changed', self._on_title_changed)
         wTree.get_widget("scrolled_mixed_categories").add(self.browser2)
 
-        self.packageBrowser = webkit.WebView()
         wTree.get_widget("scrolled_details").add(self.packageBrowser)
 
         self.packageBrowser.connect('title-changed', self._on_title_changed)
 
-        self.screenshotBrowser = webkit.WebView()
         wTree.get_widget("scrolled_screenshot").add(self.screenshotBrowser)
-
-        self.websiteBrowser = webkit.WebView()
         wTree.get_widget("scrolled_website").add(self.websiteBrowser)
-
-        self.reviewsBrowser = webkit.WebView()
         wTree.get_widget("scrolled_reviews").add(self.reviewsBrowser)
 
         # kill right click menus in webkit views
