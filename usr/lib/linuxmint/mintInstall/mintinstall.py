@@ -1346,6 +1346,14 @@ class Application():
             if iconInfo and os.path.exists(iconInfo.get_filename()):
                 icon_path = iconInfo.get_filename()
 
+        # If - is in the name, try the first part of the name (for instance "steam" instead of "steam-launcher")
+        if icon_path is None and "-" in package.name:
+            name = package.name.split("-")[0]
+            if theme.has_icon(name):
+                iconInfo = theme.lookup_icon(name, 32, 0)
+                if iconInfo and os.path.exists(iconInfo.get_filename()):
+                    icon_path = iconInfo.get_filename()
+
         if icon_path is not None:
             if package.pkg.is_installed:
                 im=Image.open(icon_path)
