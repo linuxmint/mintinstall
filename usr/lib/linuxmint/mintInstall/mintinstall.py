@@ -536,6 +536,8 @@ class Application():
         wTree.get_widget("tree_applications_scrolledview").get_vadjustment().connect("value-changed", self._on_tree_applications_scrolled)
         self._load_more_timer = None
 
+        self.searchentry.grab_focus()
+
         wTree.get_widget("main_window").show_all()
     
     
