@@ -1383,7 +1383,15 @@ class Application():
             iconInfo = theme.lookup_icon(package.name, 64, 0)
             if iconInfo and os.path.exists(iconInfo.get_filename()):
                 return iconInfo.get_filename()
-    
+                
+        # If - is in the name, try the first part of the name (for instance "steam" instead of "steam-launcher")
+        if "-" in package.name:
+            name = package.name.split("-")[0]
+            if theme.has_icon(name):
+                iconInfo = theme.lookup_icon(name, 64, 0)
+                if iconInfo and os.path.exists(iconInfo.get_filename()):
+                    return iconInfo.get_filename()
+
         iconInfo = theme.lookup_icon("applications-other", 64, 0)       
         return iconInfo.get_filename()
     
