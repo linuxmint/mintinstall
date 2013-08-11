@@ -1306,7 +1306,7 @@ class Application():
             icon_path = "/usr/lib/linuxmint/mintInstall/data/available.png"
         return icon_path
             
-    def find_app_icon_alternative(self, package):
+    def find_app_icon_alternative(self, package):        
         icon_path = None
         if package.pkg.is_installed:
             icon_path = "/usr/share/linuxmint/mintinstall/installed/%s" % package.name
@@ -1344,7 +1344,7 @@ class Application():
             iconInfo = theme.lookup_icon(package.name, 32, 0)
             if iconInfo and os.path.exists(iconInfo.get_filename()):
                 icon_path = iconInfo.get_filename()
-            
+
         if icon_path is not None:
             if package.pkg.is_installed:
                 im=Image.open(icon_path)
@@ -1359,10 +1359,10 @@ class Application():
         else:
             # Try mintinstall-icons then
             if package.pkg.is_installed:
-                icon_path = "/usr/share/linuxmint/mintinstall/icons/installed/%s" % package.name
+                icon_path = "/usr/share/linuxmint/mintinstall/installed/%s" % package.name
             else:
                 icon_path = "/usr/share/linuxmint/mintinstall/icons/%s" % package.name
-                
+            
             if os.path.exists(icon_path + ".png"):
                 icon_path = icon_path + ".png"
             elif os.path.exists(icon_path + ".xpm"):
