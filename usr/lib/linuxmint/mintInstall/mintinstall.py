@@ -1028,6 +1028,7 @@ class Application():
         Category(_("Office"), "applications-office", ("office", "editors"), self.root_category, self.categories)
         
         games = Category(_("Games"), "applications-games", ("games"), self.root_category, self.categories)
+        games.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games.list")
         subcat = Category(_("Board games"), "applications-games", None, games, self.categories)
         subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-board.list")
         subcat = Category(_("First-person shooters"), "applications-games", None, games, self.categories)
