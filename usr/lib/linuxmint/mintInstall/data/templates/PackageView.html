@@ -70,6 +70,19 @@
 	var cell2 = row.insertCell(1);
 	cell2.innerHTML = comment + "<br/><small><i><font color='#777777'>" + username + " (" + mydate + ")</font></i></small>";            
   }
+
+  function addScreenshot(href, src) {     
+  var table = document.getElementById("screenshots");
+  var rowCount = table.rows.length;
+  var row = table.insertRow(rowCount);
+  var cell = row.insertCell(0);
+  newLink = document.createElement("a");
+  newLink.href = href;  
+  newImg = document.createElement("img");
+  newImg.src = src;
+  newLink.appendChild(newImg);
+  cell.appendChild(newLink);              
+  }
   
   function addLink(linkname) {
 	var table = document.getElementById("reviews");
@@ -88,6 +101,33 @@
 	}
   }
 
+  function clearScreenshots() {
+  var table = document.getElementById("screenshots");
+  for(var i = table.rows.length - 1; i >= 0; i--)
+  {
+      table.deleteRow(i);
+  }
+  }
+  
+  var image_array = ['http://community.linuxmint.com/thumbnail.php?w=250&pic=/var/www/community.linuxmint.com/img/screenshots/$appname.png', 'http://screenshots.debian.net/thumbnail/$appname' ];
+  function load_img(imgId, image, images, index) {
+    image.onerror = function() {
+      if (index > len(image_array)) {
+        element.style.display = 'none';
+      }
+      else {
+        load_img(imgId, this, images, index+1);
+      }
+    };
+    image.onload  = function() {
+      var element = document.getElementById(imgId); 
+      if (element) {
+        element.src = this.src; 
+        element.style.display = 'block';
+      }
+    };  
+    image.src = images[index];
+  }
   
  </script>
 
@@ -292,12 +332,14 @@
         <td valign="top">
             <div id="screenshot-wrap">
                 <div id="screenshot" class="screenshot">
-                    <a href="javascript:action_screenshot_clicked()"><img id="screenshot_thumbnail_img" class="screenshot_thumbnail" onerror="this.style.display='none'" src="http://community.linuxmint.com/thumbnail.php?w=250&pic=/var/www/community.linuxmint.com/img/screenshots/$appname.png"></a>
+                    <a href="javascript:action_screenshot_clicked()">
+                      <img id="id_1" alt="" style="display: none;">                      
                 </div>
             </div>
         </td>
     </tr>
 </table>    
+<table id="screenshots" cellpadding="5"></table>
                      	
 
 </div>
@@ -358,5 +400,8 @@
 
   
     </div>
-</body>
+</body> 
+<script>
+        load_img('id_1', new Image(), image_array, 0);
+  </script>
 </html>

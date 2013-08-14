@@ -18,7 +18,7 @@ import StringIO
 import ImageFont, ImageDraw, ImageOps
 import time
 import apt
-import urllib
+import urllib, urllib2
 import thread
 import glib
 import dbus
@@ -794,8 +794,8 @@ class Application():
         treeview.show()
 
     def show_selected(self, tree, path, column):
-        self.main_window.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))   
-        self.main_window.set_sensitive(False)
+        #self.main_window.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))   
+        #self.main_window.set_sensitive(False)
         model = tree.get_model()
         iter = model.get_iter(path)
 
@@ -864,8 +864,9 @@ class Application():
         # Get the categories
         self.show_category(self.root_category)
 
-    def _on_package_load_finished(self, view, frame, reviews):
+    def _on_package_load_finished(self, view, frame, package):        
         #Add the reviews
+        reviews = package.reviews
         self.packageBrowser.execute_script('clearReviews()')
         reviews.sort(key=lambda x: x.date, reverse=True)
         if len(reviews) > 10:
@@ -892,8 +893,18 @@ class Application():
                 review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
 
                 self.packageBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
-        self.main_window.set_sensitive(True)
-        self.main_window.window.set_cursor(None)
+        #self.main_window.set_sensitive(True)
+        #self.main_window.window.set_cursor(None)
+
+        # Add additional screenshots        
+        from BeautifulSoup import BeautifulSoup
+        page = BeautifulSoup(urllib2.urlopen("http://screenshots.debian.net/package/%s" % package.name))
+        images = page.findAll('img')
+        for image in images:            
+            if image['src'].startswith('/screenshots'):                
+                thumb = "http://screenshots.debian.net%s" % image['src']
+                link = thumb.replace("_small", "_large")
+                self.packageBrowser.execute_script('addScreenshot("%s", "%s")' % (link, thumb))
 
     def on_category_clicked(self, name):
         for category in self.categories:
@@ -1641,7 +1652,7 @@ class Application():
             draw.text((33, 1), str(package.score), font=sans26, fill="#555555")
             draw.text((32, 0), str(package.score), font=sans26, fill=color)         
             draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
-            tmpFile = tempfile.NamedTemporaryFile(delete=False)
+            tmpFile = tempfile.NamedTemporaryFile(delete=True)
             im.save (tmpFile.name + ".png")
             subs['rating'] = tmpFile.name + ".png"
             subs['reviews'] = "<b>" + _("Reviews:") + "</b>"
@@ -1649,14 +1660,15 @@ class Application():
             subs['rating'] = "/usr/lib/linuxmint/mintInstall/data/no-reviews.png"
             subs['reviews'] = ""
 
-        template = open("/usr/lib/linuxmint/mintInstall/data/templates/PackageView.html").read()
-        html = string.Template(template).safe_substitute(subs)
+        template = open("/usr/lib/linuxmint/mintInstall/data/templates/PackageView.html")        
+        html = string.Template(template.read()).safe_substitute(subs)
         self.packageBrowser.load_html_string(html, "file:/")
+        template.close()
         
         if self.loadHandlerID != -1:
             self.packageBrowser.disconnect(self.loadHandlerID)
         
-        self.loadHandlerID = self.packageBrowser.connect("load-finished", self._on_package_load_finished, package.reviews)       
+        self.loadHandlerID = self.packageBrowser.connect("load-finished", self._on_package_load_finished, package)       
 
         # Update the navigation bar
         self.navigation_bar.add_with_id(package.name, self.navigate, self.NAVIGATION_ITEM, package)
