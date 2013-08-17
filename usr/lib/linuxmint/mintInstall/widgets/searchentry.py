@@ -33,7 +33,7 @@ class SearchEntry(sexy.IconEntry):
                                      gobject.TYPE_NONE,
                                      (gobject.TYPE_STRING,))}
 
-    SEARCH_TIMEOUT = 1000
+    SEARCH_TIMEOUT = 400
 
     def __init__(self, icon_theme=None):
         """
