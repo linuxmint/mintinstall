@@ -280,8 +280,9 @@ class Category:
         while cat.parent is not None:
             cat = cat.parent
 
-class Package:
-
+class Package(object):
+    __slots__='name', 'pkg', 'reviews', 'categories','score','avg_rating','num_reviews','candidate','summary' #To remove __dict__ memory overhead
+    
     def __init__(self, name, pkg):
         self.name = name
         self.pkg = pkg
@@ -290,14 +291,12 @@ class Package:
         self.score = 0
         self.avg_rating = 0
         self.num_reviews = 0
+        self.candidate = pkg.candidate #cache, as the pkg.candidate call has a performance overhead
         
         #search cache:
-        self.nameUpper = pkg.name.upper()
-        self.summaryUpper = None
-        self.descriptionUpper = None
-        if pkg.candidate is not None:
-            self.summaryUpper = pkg.candidate.summary.upper()
-            self.descriptionUpper = pkg.candidate.description.upper()
+        self.summary = None
+        if self.candidate is not None:
+          self.summary = self.candidate.summary
             
     def update_stats(self):
         points = 0
@@ -311,8 +310,9 @@ class Package:
             self.avg_rating = int(round(sum_rating / self.num_reviews))
         self.score = points
 
-class Review:
-
+class Review(object):
+    __slots__='date','packagename','username','rating','comment','package' #To remove __dict__ memory overhead
+    
     def __init__(self, packagename, date, username, rating, comment):
         self.date = date
         self.packagename = packagename
@@ -569,7 +569,8 @@ class Application():
     
     def on_search_terms_changed(self, searchentry, terms):
         if terms != "" and self.prefs["search_while_typing"] and len(terms) >= 3:
-            self.show_search_results(terms)
+            if terms!=self._current_search_terms:
+              self.show_search_results(terms)
 
     def set_filter(self, checkmenuitem, configName):
         config = ConfigObj(home + "/.linuxmint/mintinstall.conf")
@@ -1155,24 +1156,24 @@ class Application():
             os.system("cp /usr/lib/linuxmint/mintInstall/reviews.list %s" % reviews_path)
             print "First run detected, initial set of reviews used"
             
-        reviews = open(reviews_path)
-        last_package = None
-        for line in reviews:
-            elements = line.split("~~~")
-            if len(elements) == 5:
-                review = Review(elements[0], float(elements[1]), elements[2], elements[3], elements[4])
-                if last_package != None and last_package.name == elements[0]:
-                    #Comment is on the same package as previous comment.. no need to search for the package
-                    last_package.reviews.append(review)
-                    review.package = last_package
-                    last_package.update_stats()
-                else:
-                    if elements[0] in self.packages_dict:
-                        package = self.packages_dict[elements[0]]
-                        last_package = package
-                        package.reviews.append(review)
-                        review.package = package
-                        package.update_stats()
+        with open(reviews_path) as reviews:
+          last_package = None
+          for line in reviews:
+              elements = line.split("~~~")
+              if len(elements) == 5:
+                  review = Review(elements[0], float(elements[1]), elements[2], elements[3], elements[4])
+                  if last_package != None and last_package.name == elements[0]:
+                      #Comment is on the same package as previous comment.. no need to search for the package
+                      last_package.reviews.append(review)
+                      review.package = last_package
+                      last_package.update_stats()
+                  else:
+                      if elements[0] in self.packages_dict:
+                          package = self.packages_dict[elements[0]]
+                          last_package = package
+                          package.reviews.append(review)
+                          review.package = package
+                          package.update_stats()
         
             
 
@@ -1249,8 +1250,8 @@ class Application():
             model_applications.set_value(iter, 0, self.get_package_pixbuf_icon(package))
                     
             summary = ""
-            if package.pkg.candidate is not None:
-                summary = package.pkg.candidate.summary
+            if package.candidate is not None:
+                summary = package.candidate.summary
                 summary = unicode(summary, 'UTF-8', 'replace')
                 summary = summary.replace("<", "&lt;")
                 summary = summary.replace("&", "&amp;")
@@ -1518,13 +1519,13 @@ class Application():
         
         for package in packages:
             visible = False
-            if termsUpper in package.nameUpper:
+            if termsUpper in package.name.upper():
                 visible = True
             else:
-                if (package.pkg.candidate is not None):
-                    if (self.prefs["search_in_summary"] and termsUpper in package.summaryUpper):
+                if (package.candidate is not None):
+                    if (self.prefs["search_in_summary"] and termsUpper in package.summary.upper()):
                         visible = True
-                    elif(self.prefs["search_in_description"] and termsUpper in package.descriptionUpper):
+                    elif(self.prefs["search_in_description"] and termsUpper in package.candidate.description.upper()):
                         visible = True
             
             if visible:
