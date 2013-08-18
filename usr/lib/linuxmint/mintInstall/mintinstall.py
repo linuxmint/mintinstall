@@ -140,9 +140,17 @@ class APTProgressHandler(threading.Thread):
     def _on_apt_client_progress(self, *args):
         self._update_display()
 
-    def _on_apt_client_task_ended(self, *args):
+    def _on_apt_client_task_ended(self,aptClient, task_id, task_type, params, success, error):
         self._update_display()
-    
+        
+        if error:
+          self.application.show_dialog_modal(title="Failed to install: "+str(params["package_name"]),
+                                            text="Make sure:\n-You have a connection to the internet\n-No other package managers are running\n\n"+"Error: "+str(error),
+                                            type=gtk.MESSAGE_ERROR,
+                                            buttons=gtk.BUTTONS_OK)
+          
+          
+          
     def _update_display(self):
         progress_info = self.apt_client.get_progress_info()
         task_ids = []
@@ -196,7 +204,7 @@ class APTProgressHandler(threading.Thread):
                             while iter_apps is not None:
                                 package = model_apps.get_value(iter_apps, 3)
                                 if package.pkg.name == pkg_name:
-                                    model_apps.set_value(iter_apps, 0, self.get_package_pixbuf_icon(package))
+                                    model_apps.set_value(iter_apps, 0, self.application.get_package_pixbuf_icon(package))
                                 iter_apps = model_apps.iter_next(iter_apps)                    
 
                         # Update mixed apps tree                   
@@ -209,7 +217,7 @@ class APTProgressHandler(threading.Thread):
                                 package = model_apps.get_value(iter_apps, 3)
                                 if package.pkg.name == pkg_name:
                                     
-                                    model_apps.set_value(iter_apps, 0, self.get_package_pixbuf_icon(package))
+                                    model_apps.set_value(iter_apps, 0, self.application.get_package_pixbuf_icon(package))
                                 iter_apps = model_apps.iter_next(iter_apps)
             else:
                 iter = self.model.iter_next(iter)
@@ -542,7 +550,9 @@ class Application():
 
         wTree.get_widget("button_transactions").connect("clicked", self.show_transactions)
         
-        wTree.get_widget("tree_applications_scrolledview").get_vadjustment().connect("value-changed", self._on_tree_applications_scrolled)
+        wTree.get_widget("tree_applications_scrolledview").get_vadjustment().connect("value-changed", self._on_tree_applications_scrolled, self.tree_applications)
+        wTree.get_widget("tree_mixed_applications_scrolledview").get_vadjustment().connect("value-changed", self._on_tree_applications_scrolled, self.tree_mixed_applications)
+        
         self._load_more_timer = None
 
         self.searchentry.grab_focus()
@@ -1018,8 +1028,10 @@ class Application():
             if f and callable(f):
                 f(*args_list)
             # now we need to reset the title
-            self.browser.execute_script('document.title = "nop"')
-
+            self.browser.execute_script('window.setTimeout(function(){document.title = "nop"},0);') #setTimeout workaround: otherwise title parameter doesn't upgrade in callback causing show_category to be called twice
+            return
+            
+            
     @print_timing
     def add_categories(self):
         self.categories = []
@@ -1212,15 +1224,29 @@ class Application():
                                 review.package = package
                                 package.update_stats()
     
-    def _on_tree_applications_scrolled(self, adjustment):
+    def _on_tree_applications_scrolled(self, adjustment, tree_applications):
         if self._load_more_timer:
             gobject.source_remove(self._load_more_timer)
-        self._load_more_timer = gobject.timeout_add(500, self._load_more_packages)
+        self._load_more_timer = gobject.timeout_add(500, self._load_more_packages, tree_applications)
     
     
-    def _load_more_packages(self):
+    def show_dialog_modal(self, title, text, type, buttons):
+        gobject.idle_add(self._show_dialog_modal_callback, title, text, type, buttons) #as this might not be called from the main thread
+         
+    def _show_dialog_modal_callback(self, title, text, type, buttons):
+        dialog=gtk.MessageDialog(self.main_window ,flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, type=type, buttons=buttons, message_format=title)
+        dialog.format_secondary_text(text)
+        dialog.connect('response', self._show_dialog_modal_clicked, dialog)
+        dialog.show()
+    
+    def _show_dialog_modal_clicked(self, dialog, *args):
+      dialog.destroy()
+      
+    
+    def _load_more_packages(self, tree_applications):
         self._load_more_timer = None
-        adjustment = self.tree_applications.get_vadjustment()
+        
+        adjustment = tree_applications.get_vadjustment()
         if adjustment.get_value() + adjustment.get_page_size() > 0.90 * adjustment.get_upper():
             if len(self._listed_packages) > self._nb_displayed_packages:
                 packages_to_show = self._listed_packages[self._nb_displayed_packages:self._nb_displayed_packages+500]
@@ -1323,8 +1349,8 @@ class Application():
         
         self._listed_packages = category.packages
         self._listed_packages.sort(self.package_compare)
-        self._nb_displayed_packages = min(len(self._listed_packages), 500)
-        self.display_packages_list(self._listed_packages[0:500], False)
+        self._nb_displayed_packages = min(len(self._listed_packages), 200)
+        self.display_packages_list(self._listed_packages[0:200], False)
 
         tree_applications.set_model(self.model_filter)
         first = self._model_applications.get_iter_first()
