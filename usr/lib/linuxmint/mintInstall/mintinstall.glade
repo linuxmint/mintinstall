@@ -114,7 +114,7 @@
                       </packing>
                     </child>
                     <child>
-                      <widget class="GtkScrolledWindow" id="scrolledwindow4">
+                      <widget class="GtkScrolledWindow" id="tree_mixed_applications_scrolledview">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="hscrollbar_policy">automatic</property>
