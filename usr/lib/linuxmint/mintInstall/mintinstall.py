@@ -144,8 +144,31 @@ class APTProgressHandler(threading.Thread):
         self._update_display()
         
         if error:
-          self.application.show_dialog_modal(title="Failed to install: "+str(params["package_name"]),
-                                            text="Make sure:\n-You have a connection to the internet\n-No other package managers are running\n\n"+"Error: "+str(error),
+            if task_type == "install":
+                title = _("The package '%s' could not be installed") % str(params["package_name"])
+            elif task_type == "remove":
+                title = _("The package '%s' could not be removed") % str(params["package_name"])
+            else:
+                # Fail silently for other task types (update, wait)
+                return
+
+            # By default assume there's a problem with the Internet connection
+            text=_("Please check your connection to the Internet")
+
+            # Check to see if no other APT process is running
+            p1 = Popen(['ps', '-U', 'root', '-o', 'comm'], stdout=PIPE)
+            p = p1.communicate()[0]
+            running = None
+            pslist = p.split('\n')
+            for process in pslist:
+                process_name = process.strip()
+                if process_name in ["dpkg", "apt-get", "aptitude", "synaptic","update-manager", "adept", "adept-notifier", "checkAPT.py"]:
+                    running = process_name                    
+                    text="%s\n\n    <b>%s</b>" % (_("Another application is using APT:"), process_name)
+                    break
+                                                    
+            self.application.show_dialog_modal(title=title,
+                                            text=text,
                                             type=gtk.MESSAGE_ERROR,
                                             buttons=gtk.BUTTONS_OK)
           
@@ -1235,7 +1258,7 @@ class Application():
          
     def _show_dialog_modal_callback(self, title, text, type, buttons):
         dialog=gtk.MessageDialog(self.main_window ,flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, type=type, buttons=buttons, message_format=title)
-        dialog.format_secondary_text(text)
+        dialog.format_secondary_markup(text)
         dialog.connect('response', self._show_dialog_modal_clicked, dialog)
         dialog.show()
     
