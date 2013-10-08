@@ -536,8 +536,8 @@ class Application():
         # Build the category browsers
         template = open("/usr/lib/linuxmint/mintInstall/data/templates/CategoriesView.html").read()
         subs = {'header': _("Categories")}      
-        subs['subtitle'] = _("Please choose a category")
-        subs['package_num'] = _("%d packages are currently available") % len(self.packages)
+        #subs['subtitle'] = _("Please choose a category")
+        #subs['package_num'] = _("%d packages are currently available") % len(self.packages)
         html = string.Template(template).safe_substitute(subs)
         self.browser.load_html_string(html, "file:/")
         self.browser.connect("load-finished", self._on_load_finished)
@@ -546,7 +546,7 @@ class Application():
 
         template = open("/usr/lib/linuxmint/mintInstall/data/templates/SubCategoriesView.html").read()
         subs = {'header': _("Categories")}
-        subs['subtitle'] = _("Please choose a sub-category")
+        #subs['subtitle'] = _("Please choose a sub-category")
         html = string.Template(template).safe_substitute(subs)
         self.browser2.load_html_string(html, "file:/")
         self.browser2.connect('title-changed', self._on_title_changed)
