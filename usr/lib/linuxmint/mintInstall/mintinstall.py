@@ -1099,7 +1099,7 @@ class Application():
         games.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games.list")
         subcat = Category(_("Board games"), "applications-games", None, games, self.categories)
         subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-board.list")
-        subcat = Category(_("First-person shooters"), "applications-games", None, games, self.categories)
+        subcat = Category(_("First-person games"), "applications-games", None, games, self.categories)
         subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-fps.list")
         subcat = Category(_("Real-time strategy"), "applications-games", None, games, self.categories)
         subcat.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/games-rts.list")
