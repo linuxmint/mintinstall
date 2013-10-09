@@ -1,8 +1,12 @@
 Mintinstall
 ===========
+-Remove button border when mouseover
+-Better Mouse Over Effects on buttons
+-Make the Categories Page more centred/nicer looking
 -Fix the buggy search when in category's
 -Port over application list to HTML
+-Allow insalation and removal of applications in the list view
 -Work on and add new subcategories 
 -Make better star rating icons
--(?) Make the featured category more interesting
--(?) Add a banner for a random featured or new package
+-(Mint 17) Make the featured category more interesting
+-(Mint 17) Add a banner for a random featured or new package
