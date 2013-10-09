@@ -1,3 +1,12 @@
+mintinstall (8.1.6) olivia; urgency=low
+
+  * 8.1.6
+  * Changed the HTML theme drasticaly
+  * Changed Icons
+  * Completly removed spash screen stuffs
+
+ -- Corbin Auriti <ravetcofx@gmail.com>  Tue, 08 Oct 2013 23:50:22 -0600 
+
 mintinstall (7.4.8) olivia; urgency=low
 
   * 7.4.8
