@@ -134,11 +134,11 @@
  /* .category_td {padding:8px; margin:8px; width:6em; display:inline-block; text-overflow: ellipsis;} */
 
     .category_td {
-      padding: 0 3px;
+      padding: 5 3px;
       margin-bottom: 10px;
-      display:inline-block;
+      display:inline-table;
       text-overflow: ellipsis;
-      vertical-align: top;
+      vertical-align: left;
       width: 7em !important;
     }
     .category_td:hover {cursor: pointer; }
@@ -151,18 +151,15 @@
  <style type="text/css">
     *{ -khtml-user-drag:none;}
     body {
-      background-color: #efefef;
-      background-image: url('/usr/lib/linuxmint/mintInstall/data/templates/bg-gradient.jpg');
-      background-repeat: repeat-x;        
-      margin-left: 5px; 
-      margin-right: 5px; 
-      padding: 1em 12px;   
+      background-color: #D6D6D6;
+      margin-left: 100px; 
+      margin-right: 50px; 
       font-family:${font_family};
       font-size:${font_size};
       font-weight:${font_weight};
       font-style:${font_style};
     }
-    #wrap{ margin:0 auto; padding: 0 15px 0 15px; }
+    #wrap{ margin:0 auto;}
     #header{ padding-left:76px }
    
     h1 { 
@@ -186,7 +183,6 @@
       -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,0)), to(rgba(0,0,0,0)));
       }
     h1:after {
-      content: "$title";
       color: #000;
       text-shadow: 3px 3px 1px #666;
       }
@@ -225,14 +221,6 @@
       -webkit-background-clip: border-box;
       -webkit-background-origin: border-box;
       -webkit-background-size: 32px 32px;
-    }
-    
-    .pod {
-        border: 1px solid #fff726;
-        background-color: #fffdbc;
-        margin-bottom: 1em;
-        _zoom: 100%;
-        *zoom: 100%;
     }
        
     #screenshot_wrap{
@@ -303,20 +291,30 @@
         background-color:#f7f7f7;        
         -webkit-box-shadow: rgba(0, 0, 0, 0.2) -1px 1px 4px;
     }
+	#wrapper2{
+        margin-top:1em;
+        clear:both;
+        border-radius: 5px;
+        background-color:#E8E8E8;        
+        -webkit-box-shadow: rgba(0, 0, 0, 0.2) -1px 1px 4px;
+    }
     #inner{
       padding:15px;
       font-size:70%; 
+    }
+    .pod2 {
+      background-color:#FCFCFC;
+      text-shadow: -3px 0 4px #000;  
+      margin:0 0 0.3em 0;
+      font-weight:normal;
     }
  </style>
  </head>
 
 <body>
-    
-    <i><small>$subtitle</small></i>    
-    <br/><br/>
-  <table id="categoriesTable">        
-    <tr></tr>
-  </table>
-  <div class="pod"><div style="font-size:70%">&nbsp;$package_num</div></div>
+	<div id="wrapper2"><center><h1>$titleMain</h1></center></div>
+	<div id="wrapper2"><table id="categoriesTable"></div>       
+    <tr><br></br></tr> 
+	</table>
 </body>
 </html>
