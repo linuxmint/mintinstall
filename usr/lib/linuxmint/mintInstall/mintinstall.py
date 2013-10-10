@@ -539,7 +539,7 @@ class Application():
         sans10  =  ImageFont.truetype ( self.FONT, 12 )
 
         # Build the category browsers
-        template = open("/usr/lib/linuxmint/mintInstall/data/templates/CategoriesView.html").read()
+        template = open("/usr/lib/linuxmint/mintInstall/data/CategoriesView.html").read()
         subs = {'header': _("Categories")}      
         subs['titleMain'] = _("Software") #Change to whatever
         subs['package_num'] = _("%d packages are currently available") % len(self.packages)
@@ -549,7 +549,7 @@ class Application():
         self.browser.connect('title-changed', self._on_title_changed)
         wTree.get_widget("scrolled_categories").add(self.browser)
 
-        template = open("/usr/lib/linuxmint/mintInstall/data/templates/SubCategoriesView.html").read()
+        template = open("/usr/lib/linuxmint/mintInstall/data/SubCategoriesView.html").read()
         subs = {'header': _("Categories")}
         subs['subtitle'] = _("Please choose a sub-category")
         html = string.Template(template).safe_substitute(subs)
@@ -982,7 +982,7 @@ class Application():
     def on_screenshot_clicked(self):
         package = self.current_package
         if package is not None:
-            template = open("/usr/lib/linuxmint/mintInstall/data/templates/ScreenshotView.html").read()
+            template = open("/usr/lib/linuxmint/mintInstall/data/ScreenshotView.html").read()
             subs = {}
             subs['appname'] = self.current_package.pkg.name
             html = string.Template(template).safe_substitute(subs)
@@ -1001,7 +1001,7 @@ class Application():
     def on_reviews_clicked(self):
         package = self.current_package
         if package is not None:
-            template = open("/usr/lib/linuxmint/mintInstall/data/templates/ReviewsView.html").read()
+            template = open("/usr/lib/linuxmint/mintInstall/data/ReviewsView.html").read()
             subs = {}
             subs['appname'] = self.current_package.pkg.name
             subs['reviewsLabel'] = _("Reviews")
@@ -1065,7 +1065,7 @@ class Application():
         self.categories = []
         self.root_category = Category(_("Categories"), "applications-other", None, None, self.categories)
         
-        featured = Category(_("Featured"), "/usr/lib/linuxmint/mintInstall/data/templates/featured.svg", None, self.root_category, self.categories)
+        featured = Category(_("Featured"), "/usr/lib/linuxmint/mintInstall/data/featured.svg", None, self.root_category, self.categories)
         featured.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/featured.list")
         
         cat = Category(_("Multimedia"), "applications-multimedia", ("multimedia", "video"), self.root_category, self.categories)
@@ -1769,7 +1769,7 @@ class Application():
             subs['rating'] = "/usr/lib/linuxmint/mintInstall/data/no-reviews.png"
             subs['reviews'] = ""
 
-        template = open("/usr/lib/linuxmint/mintInstall/data/templates/PackageView.html")        
+        template = open("/usr/lib/linuxmint/mintInstall/data/PackageView.html")        
         html = string.Template(template.read()).safe_substitute(subs)
         self.packageBrowser.load_html_string(html, "file:/")
         template.close()
