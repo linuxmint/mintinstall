@@ -140,9 +140,10 @@
       text-overflow: ellipsis;
       vertical-align: top;
       width: 7em !important;
+      outline: 0;
     }
-    .category_td:hover {cursor: pointer; }
-    .category_td:active {background-color: #EEEEEE; }
+    .category_td:hover {cursor: pointer; background-color: #ACCD8A;}
+    .category_td:active {background-color: #ACCD8A;  }
     .category_td p { font-size:90%; text-align:center; }
     .category_td div { font-size:90%; text-align:center; }
     .no_drag { -khtml-user-drag:none; }
@@ -290,18 +291,11 @@
        -webkit-border-top-left-radius: 5px;
        -webkit-border-top-right-radius: 5px;
     }
-    #wrapper{
-        margin-top:1em;
-        clear:both;
-        border-radius: 5px;
-        background-color:#f7f7f7;        
-        -webkit-box-shadow: rgba(0, 0, 0, 0.2) -1px 1px 4px;
-    }
     #inner{
       padding:15px;
       font-size:70%; 
     }
-	#wrapper2{
+	#wrapper{
         margin-top:1em;
         clear:both;
         border-radius: 5px;
@@ -312,8 +306,6 @@
  </head>
 
 <body>
-  <td nowrap><div id="wrapper2"><table id="categoriesTable"></div></td>     
-    <tr></tr>
-  </table>  
+  <td nowrap><div id="wrapper"><table id="categoriesTable"></div></td><tr></tr></table>  
 </body>
 </html>
