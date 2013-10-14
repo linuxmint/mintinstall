@@ -137,7 +137,7 @@ class APTProgressHandler(threading.Thread):
         self.apt_client.connect("progress", self._on_apt_client_progress)
         self.apt_client.connect("task_ended", self._on_apt_client_task_ended)
       
-	print '%d packages loaded by the power of RMS' % len(self.packages)
+	print '%d packages loaded by the power of Clem' % len(self.packages)
 
     
     def _on_apt_client_progress(self, *args):
@@ -1358,7 +1358,7 @@ class Application():
                         iconInfo = theme.lookup_icon("deb", size, 0)
                         if iconInfo and os.path.exists(iconInfo.get_filename()):
                             icon = iconInfo.get_filename()
-                browser.execute_script('addCategory("%s", "%s", "%s")' % (cat.name, _("%d items") % len(cat.packages), icon))
+                browser.execute_script('addCategory("%s", "%s", "tr", "%s")' % (cat.name, _("%d items") % len(cat.packages), icon))
 
         # Load packages into self.tree_applications
         if (len(category.subcategories) == 0):

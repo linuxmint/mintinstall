@@ -9,13 +9,13 @@
     document.title = title; 
     document.title = "nop"; 
   }
-  function addCategory(name, num_packages, img) {
+  function addCategory(name, num_packages, tr_name, img) {
     oT = document.getElementsByTagName("table")[0];
-    Tr = document.getElementsByTagName("tr")[0];
+    Tr = document.getElementsByTagName(tr_name)[0];
     newTd = document.createElement("td");
     newTd.setAttribute("tabindex", 0)
     newTd.className = "category_td";
-    // we need a <p> around the img so that we can align it
+        // we need a <p> around the img so that we can align it
     newTextAroundImg = document.createElement("div");
     newImg = document.createElement("img");
     newImg.src = img;
@@ -134,14 +134,15 @@
  /* .category_td {padding:8px; margin:8px; width:6em; display:inline-block; text-overflow: ellipsis;} */
 
     .category_td {
-      padding: 5 3px;
+      padding: 2px;
       margin-bottom: 0px;
-      display:inline-table;
+      display: inline-table;
       text-overflow: ellipsis;
       vertical-align: top;
       width: 7em !important;
+      outline: 0; <!-- Hell Yes, Removed that outline :D :D :D -->
     }
-    .category_td:hover {cursor: pointer; }
+    .category_td:hover {cursor: pointer; background-color: #ACCD8A; }
     .category_td:active {background-color: #ACCD8A;}
     .category_td p { font-size:90%; text-align:center; }
     .category_td div { font-size:90%; text-align:center; }
@@ -284,14 +285,7 @@
        -webkit-border-top-left-radius: 5px;
        -webkit-border-top-right-radius: 5px;
     }
-    #wrapper{
-        margin-top:1em;
-        clear:both;
-        border-radius: 5px;
-        background-color:#f7f7f7;        
-        -webkit-box-shadow: rgba(0, 0, 0, 0.2) -1px 1px 4px;
-    }
-	#wrapper2{
+	#wrapper{
         margin-top:1em;
         clear:both;
         border-radius: 5px;
@@ -312,9 +306,7 @@
  </head>
 
 <body>
-	<div id="wrapper2"><center><h1>$titleMain</h1></center></div>
-	<div id="wrapper2"><table id="categoriesTable"></div>       
-    <tr><br></br></tr> 
-	</table>
+	<div id="wrapper"><center><h1>$titleMain</h1></center></div>
+	<div id="wrapper"><table id="categoriesTable"></div><tr><br></br></tr></table>
 </body>
 </html>
