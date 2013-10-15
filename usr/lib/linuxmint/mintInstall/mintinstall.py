@@ -808,6 +808,9 @@ class Application():
         column0 = gtk.TreeViewColumn(_("Icon"), gtk.CellRendererPixbuf(), pixbuf=0)
         column0.set_sort_column_id(0)
         column0.set_resizable(True)
+        column0 = gtk.TreeViewColumn(_("Icon"), gtk.CellRendererPixbuf(), pixbuf=0)
+        column0.set_sort_column_id(0)
+        column0.set_resizable(True)
 
         column1 = gtk.TreeViewColumn(_("Application"), gtk.CellRendererText(), markup=1)
         column1.set_sort_column_id(1)
