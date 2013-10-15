@@ -141,8 +141,15 @@
       width: 8.3em;
       outline: 0; <!-- Hell Yes, Removed that outline :D :D :D -->
     }
-    .category_td:hover {cursor: pointer; background-color: #ACCD8A; }
-    .category_td:active {background-color: #ACCD8A;}
+    .category_td:hover {
+		cursor: pointer; 
+		background-color: #ACCD8A;
+		border-color: #000000;
+		border-width:1px;
+		border-style:solid;
+		border-color:
+	}     
+	.category_td:active {background-color: #ACCD8A;}
     .category_td p { font-size:90%; text-align:center; }
     .category_td div { font-size:90%; text-align:center; }
     .no_drag { -khtml-user-drag:none; }
@@ -185,7 +192,7 @@
       }
     h1:after {
       color: #000;
-      text-shadow: 3px 3px 1px #666;
+      text-shadow: 1px 3px 1px #666;
       }
   
     h2 {
@@ -295,12 +302,6 @@
     #inner{
       padding:15px;
       font-size:70%; 
-    }
-    .pod2 {
-      background-color:#FCFCFC;
-      text-shadow: -3px 0 4px #000;  
-      margin:0 0 0.3em 0;
-      font-weight:normal;
     }
  </style>
  </head>
