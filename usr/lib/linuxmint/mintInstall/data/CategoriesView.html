@@ -9,9 +9,9 @@
     document.title = title; 
     document.title = "nop"; 
   }
-  function addCategory(name, num_packages, tr_name, img) {
+  function addCategory(name, num_packages, img) {
     oT = document.getElementsByTagName("table")[0];
-    Tr = document.getElementsByTagName(tr_name)[0];
+    Tr = document.getElementsByTagName("tr")[0];
     newTd = document.createElement("td");
     newTd.setAttribute("tabindex", 0)
     newTd.className = "category_td";

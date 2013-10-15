@@ -446,7 +446,7 @@ class Application():
         searchInDescriptionMenuItem.connect("toggled", self.set_search_filter, "search_in_description")
 
         openLinkExternalMenuItem = gtk.CheckMenuItem(_("Open links using the web browser"))
-        openLinkExternalMenuItem.set_active(self.prefs["external_browser"]) #Toggled on because opening the browser in mintinstall does not allow flash and other features
+        openLinkExternalMenuItem.set_active(self.prefs["external_browser"])
         openLinkExternalMenuItem.connect("toggled", self.set_external_browser)
 
         searchWhileTypingMenuItem = gtk.CheckMenuItem(_("Search while typing"))
@@ -1358,7 +1358,7 @@ class Application():
                         iconInfo = theme.lookup_icon("deb", size, 0)
                         if iconInfo and os.path.exists(iconInfo.get_filename()):
                             icon = iconInfo.get_filename()
-                browser.execute_script('addCategory("%s", "%s", "tr", "%s")' % (cat.name, _("%d items") % len(cat.packages), icon))
+                browser.execute_script('addCategory("%s", "%s", "%s")' % (cat.name, _("%d items") % len(cat.packages), icon))
 
         # Load packages into self.tree_applications
         if (len(category.subcategories) == 0):
