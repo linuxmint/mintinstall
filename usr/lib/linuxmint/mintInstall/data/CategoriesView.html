@@ -28,20 +28,24 @@
 
     newSubText = document.createElement("font");
     newSubText.align = "center";
-    newSubText.setAttribute("size", 1);
+    newSubText.setAttribute("size", 2);
     newSubText.setAttribute("color", "#555555");
-    //newSubText2 = document.createElement("b");
-    newSubText.appendChild(document.createTextNode(num_packages))
-  //  newSubText.appendChild(newSubText2)
 
     click_cb = 'changeTitle("call:on_category_clicked:' + name + '");';
     newTd.setAttribute('onclick', click_cb);
     key_cb = 'if (event.which == 13) { changeTitle("call:on_category_clicked:' + name + '"); };'
     newTd.setAttribute('onkeydown', key_cb);
     newTd.id = "Category_"+ parseInt(categoryCount)
+    if(name == "All Packages") {
+	    newSubText.appendChild(document.createTextNode(num_packages))
+	}
     newText.appendChild(document.createTextNode(name))
     newText.appendChild(document.createElement("br"))
     newText.appendChild(newSubText)
+    newText.appendChild(document.createElement("br"))
+    if(name == "All Packages") {
+		newSubText.appendChild(document.createElement("br"))
+	}
     newTd.appendChild(newTextAroundImg);
     newTd.appendChild(newText);    
     Tr.appendChild(newTd);
@@ -117,24 +121,11 @@
   document.onkeyup = onKey;
  </script>
   <style type="text/css">
-   
-    h2 {
-      background-color: #7D91aa;
-      border-style: solid;
-      border-width: 0 0 1px 0;
-      border-color: #E2E7EC #404A57 #404a57 #E2E7EC;
-      color: #fff;
-      padding: 0.25em 0.5em;
-      margin: 0;
-      text-shadow: #404a57 0 -1px 1px;
-    }
- /* debug border */
- /* .category_td {border-width:1px;border-style:solid;} */
- /* fixed width does not work, it does not ellipsis but overflows the box */
- /* .category_td {padding:8px; margin:8px; width:6em; display:inline-block; text-overflow: ellipsis;} */
-
     .category_td {
-      padding: 10 3px;
+	  background-color: #E8E8E8; 
+	  -webkit-transition: all 0.2s ease;     
+	  border-radius: 8px;
+      padding: 11 3px;
       display: inline-block;
       text-overflow: ellipsis;
       vertical-align: top;
@@ -144,9 +135,7 @@
     .category_td:hover {
 		cursor: pointer; 
 		background-color: #ACCD8A;
-		/*border-color: #000000;*/
-		/*border-width:1px;*/
-		/*border-style:solid;*/
+		-webkit-transition: all 0.4s ease;
 	}     
 	.category_td:active {background-color: #ACCD8A;}
     .category_td p { font-size:90%; text-align:center; }
@@ -170,29 +159,28 @@
     #header{ padding-left:76px }
    
     h1 { 
+	  color: #4a4a4a;
       position: relative;
       top: 0;
       left: 0;
       font-size: 50px;
       #line-height: 50px;
-      text-shadow: -1px 0 1px #000;
       margin-bottom: 0px;
 	  padding-bottom: 0px;
+	  /.-webkit-box-reflect: below 0px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(1.1, transparent), to(rgba(0,0,0,0.3)));./
       }
 
     h1 a:link,
     h1 a:visited,
-    h1 a:hover,
-    h1 a:active {
-      position: absolute;
-      top: 0; z-index: 2;
-      color: #000;
-      -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,0)), to(rgba(0,0,0,0)));
-      }
-    h1:after {
-      color: #000;
-      text-shadow: 1px 3px 1px #666;
-      }
+    h1 a:hover
+      
+	.glow {
+	  -webkit-transition: all 0.3s ease;
+	}
+	.glow:hover {
+	   text-shadow: 0 0 20px #484848;
+	   -webkit-transition: all 0.4s ease;
+	}
   
     h2 {
       font-size:80%;
@@ -237,17 +225,13 @@
     .screenshot {
       overflow:hidden;
       -webkit-box-shadow: rgba(0, 0, 0, 0.4) -4px 2px 10px;
-      
       display:inline-block;
       max-width:500px;
       max-height:375px;
-      
       cursor: -webkit-zoom-in;
-      
       text-align:center;
       -khtml-user-drag:none;
     }
-    
     
     #text {
       float:left; 
@@ -282,14 +266,13 @@
     #wrapper h2{
       padding:-15px;
       color: #4a4a4a;
-      font-weight:normal;
+      font-weight:bold;
       font-size:1em;      
       padding:0.2em  0.8em;
       margin: .25em 0;
-     
-      background-color:#dad7d3;
-       -webkit-border-top-left-radius: 5px;
-       -webkit-border-top-right-radius: 5px;
+      background-color:#BFBFBF;
+      -webkit-border-top-left-radius: 5px;
+      -webkit-border-top-right-radius: 5px;
     }
 	#wrapper{
         margin-top:1em;
@@ -306,7 +289,12 @@
  </head>
 
 <body>
-	<div id="wrapper"><center><h1>$titleMain</h1></center></div>
-	<div id="wrapper"><table id="categoriesTable"></div><tr><br></br></tr></table>
+	<center>
+		<div>
+		<h1><img style="width:64px;height:64px;vertical-align:top" src="/usr/lib/linuxmint/mintInstall/icon.svg">
+		<span style="">$titleMain</h1></span>
+		</div>
+	</center>
+	<div id="wrapper"><table id="categoriesTable"></div><tr><h2><center>Categories</center></h2></tr></table>
 </body>
 </html>
