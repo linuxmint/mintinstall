@@ -1,12 +1,11 @@
 Mintinstall
 ===========
--Make the Categories Page more centred/nicer looking
--Port over application list to HTML
--Allow installation and removal of applications in the list view
--Work on and add new subcategories 
--Make better star rating icons
--Shorten time for add_packages
--Fix the buggy search when in category's
--(Mint 17) Make the featured category more interesting
--(Mint 17) Add a banner for a random featured or new package
--(Mint 17)(?) Make the css have colours/themes from the main GTK theme
+-(8.3) Port over application list to HTML
+-(8.3) Allow installation and removal of applications in the list view
+-(8.3) Work on and add new subcategories 
+-(8.3) Make better star rating icons
+-(8.3) Shorten time for add_packages
+-(8.3) Fix the buggy search when in category's
+-(8.3)(?) Make the featured category more interesting
+-(9.x) Add a banner for a random featured or new package
+-(9.x)(?) Make the css have colours/themes from the main GTK theme
