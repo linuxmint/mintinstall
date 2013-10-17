@@ -151,18 +151,16 @@
       font-weight:${font_weight};
       font-style:${font_style};
     }
-    #header{ padding-left:0px }
    
     h1 { 
 	  color: #4a4a4a;
       position: relative;
-      top: 0;
       left: 0;
       font-size: 50px;
       #line-height: 50px;
       margin-bottom: 0px;
 	  padding-bottom: 0px;
-	  /.-webkit-box-reflect: below 0px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(1.1, transparent), to(rgba(0,0,0,0.3)));./
+	  -webkit-box-reflect: below 0px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(.8, transparent), to(rgba(0,0,0,0.3)));
       }
 
     h1 a:link,
@@ -286,11 +284,10 @@
 <body>
 	<center>
 		<div>
-		<div id="wrapper"><h1><img style="width:64px;height:64px;vertical-align:top" src="/usr/lib/linuxmint/mintInstall/icon.svg">
-		<span style="">$titleMain</h1>$package_num_2</span>
-		</div>
+		<h1><img style="width:64px;height:64px;vertical-align:top" src="/usr/lib/linuxmint/mintInstall/icon.svg">
+		<span style="">$titleMain</h1><center>$package_num_2</center></span>
 		</div>
 	</center>
-	<div id="wrapper"><table id="categoriesTable"></div><tr><h2><center>Categories</center></h2></tr></table>
+	<div id="wrapper"><table id="categoriesTable"></div><tr><h2><center>$header</center></h2></tr></table>
 </body>
 </html>

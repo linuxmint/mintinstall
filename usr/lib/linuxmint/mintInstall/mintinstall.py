@@ -542,7 +542,8 @@ class Application():
         # Build the category browsers
         template = open("/usr/lib/linuxmint/mintInstall/data/CategoriesView.html").read()
         subs = {'header': _("Categories")}      
-        subs['titleMain'] = _("Software") #Change to whatever
+        subs['titleMain'] = _("Software") #Change to whatever is better ~Corbin
+        subs['header'] = _("Categories")
         subs['package_num'] = _("%d packages are currently available") % len(self.packages)
         subs['package_num_2'] = _("Now serving %d packages") % len(self.packages)
         html = string.Template(template).safe_substitute(subs)
