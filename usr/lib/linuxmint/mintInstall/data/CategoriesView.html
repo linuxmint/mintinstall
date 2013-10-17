@@ -36,9 +36,6 @@
     key_cb = 'if (event.which == 13) { changeTitle("call:on_category_clicked:' + name + '"); };'
     newTd.setAttribute('onkeydown', key_cb);
     newTd.id = "Category_"+ parseInt(categoryCount)
-    if(name == "All Packages") {
-	    newSubText.appendChild(document.createTextNode(num_packages))
-	}
     newText.appendChild(document.createTextNode(name))
     newText.appendChild(document.createElement("br"))
     newText.appendChild(newSubText)
