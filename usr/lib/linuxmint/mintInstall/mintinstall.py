@@ -528,6 +528,7 @@ class Application():
         wTree.get_widget("show_all_results_button").connect("clicked", lambda w: self._show_all_search_results())
         
         # Temporary, until we get the package list ported over to html, then match it to #D6D6D6
+        #Color for the search bar gradiant
         wTree.get_widget("search_in_category_hbox_wrapper").modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#FFFFFF"))
         
         self._search_in_category = self.root_category
@@ -808,20 +809,22 @@ class Application():
         column0 = gtk.TreeViewColumn(_("Icon"), gtk.CellRendererPixbuf(), pixbuf=0)
         column0.set_sort_column_id(0)
         column0.set_resizable(True)
-        column0 = gtk.TreeViewColumn(_("Icon"), gtk.CellRendererPixbuf(), pixbuf=0)
-        column0.set_sort_column_id(0)
-        column0.set_resizable(True)
+        
 
         column1 = gtk.TreeViewColumn(_("Application"), gtk.CellRendererText(), markup=1)
         column1.set_sort_column_id(1)
         column1.set_resizable(True)
         column1.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
-        column1.set_min_width(350)
+        column1.set_min_width(200)
         column1.set_max_width(350)
 
         column2 = gtk.TreeViewColumn(_("Score"), gtk.CellRendererPixbuf(), pixbuf=2)
         column2.set_sort_column_id(2)
         column2.set_resizable(True)
+        
+        column3 = gtk.TreeViewColumn(_("Button"), gtk.CellRendererPixbuf(), pixbuf=3)
+        column3.set_sort_column_id(3)
+        column3.set_resizable(True)
         
         #prevents multiple load finished handlers being hooked up to packageBrowser in show_package
         self.loadHandlerID = -1
