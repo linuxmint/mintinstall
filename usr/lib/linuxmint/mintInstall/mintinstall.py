@@ -544,6 +544,7 @@ class Application():
         subs = {'header': _("Categories")}      
         subs['titleMain'] = _("Software") #Change to whatever
         subs['package_num'] = _("%d packages are currently available") % len(self.packages)
+        subs['package_num_2'] = _("Now serving %d packages") % len(self.packages)
         html = string.Template(template).safe_substitute(subs)
         self.browser.load_html_string(html, "file:/")
         self.browser.connect("load-finished", self._on_load_finished)

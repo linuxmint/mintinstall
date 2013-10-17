@@ -19,8 +19,8 @@
     newTextAroundImg = document.createElement("div");
     newImg = document.createElement("img");
     newImg.src = img;
-    newImg.setAttribute("width", 64);
-    newImg.setAttribute("height", 64);
+    newImg.setAttribute("width", 72);
+    newImg.setAttribute("height", 72);
     newImg.className = "no_drag";
     newTextAroundImg.appendChild(newImg);
     newText = document.createElement("div");
@@ -124,12 +124,11 @@
     .category_td {
 	  background-color: #E8E8E8; 
 	  -webkit-transition: all 0.2s ease;     
-	  border-radius: 8px;
-      padding: 11 3px;
+	  border-radius: 5px;
       display: inline-block;
       text-overflow: ellipsis;
       vertical-align: top;
-      width: 8.3em;
+      width: 10.9em;
       outline: 0; <!-- Hell Yes, Removed that outline :D :D :D -->
     }
     .category_td:hover {
@@ -147,16 +146,15 @@
     *{ -khtml-user-drag:none;}
     body {
       background-color: #D6D6D6;
-      margin-left: 100px; 
-      margin-right: 100px; 
+      margin-left: 10px; 
+      margin-right: 10px; 
+      margin-bottom: 10px;
       font-family:${font_family};
       font-size:${font_size};
       font-weight:${font_weight};
       font-style:${font_style};
-      padding: 0em 2px;
     }
-    #wrap{ margin:0 auto;}
-    #header{ padding-left:76px }
+    #header{ padding-left:0px }
    
     h1 { 
 	  color: #4a4a4a;
@@ -291,8 +289,9 @@
 <body>
 	<center>
 		<div>
-		<h1><img style="width:64px;height:64px;vertical-align:top" src="/usr/lib/linuxmint/mintInstall/icon.svg">
-		<span style="">$titleMain</h1></span>
+		<div id="wrapper"><h1><img style="width:64px;height:64px;vertical-align:top" src="/usr/lib/linuxmint/mintInstall/icon.svg">
+		<span style="">$titleMain</h1>$package_num_2</span>
+		</div>
 		</div>
 	</center>
 	<div id="wrapper"><table id="categoriesTable"></div><tr><h2><center>Categories</center></h2></tr></table>
