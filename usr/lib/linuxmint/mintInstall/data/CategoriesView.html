@@ -19,8 +19,8 @@
     newTextAroundImg = document.createElement("div");
     newImg = document.createElement("img");
     newImg.src = img;
-    newImg.setAttribute("width", 48);
-    newImg.setAttribute("height", 48);
+    newImg.setAttribute("width", 64);
+    newImg.setAttribute("height", 64);
     newImg.className = "no_drag";
     newTextAroundImg.appendChild(newImg);
     newText = document.createElement("div");
@@ -122,7 +122,7 @@
       background-color: #7D91aa;
       border-style: solid;
       border-width: 0 0 1px 0;
-      border-color: #E2E7EC #404a57 #404a57 #E2E7EC;
+      border-color: #E2E7EC #404A57 #404a57 #E2E7EC;
       color: #fff;
       padding: 0.25em 0.5em;
       margin: 0;
@@ -134,15 +134,21 @@
  /* .category_td {padding:8px; margin:8px; width:6em; display:inline-block; text-overflow: ellipsis;} */
 
     .category_td {
-      padding: 0 3px;
-      margin-bottom: 10px;
-      display:inline-block;
+      padding: 10 3px;
+      display: inline-block;
       text-overflow: ellipsis;
       vertical-align: top;
-      width: 7em !important;
+      width: 8.3em;
+      outline: 0; <!-- Hell Yes, Removed that outline :D :D :D -->
     }
-    .category_td:hover {cursor: pointer; }
-    .category_td:active {background-color: #EEEEEE; }
+    .category_td:hover {
+		cursor: pointer; 
+		background-color: #ACCD8A;
+		/*border-color: #000000;*/
+		/*border-width:1px;*/
+		/*border-style:solid;*/
+	}     
+	.category_td:active {background-color: #ACCD8A;}
     .category_td p { font-size:90%; text-align:center; }
     .category_td div { font-size:90%; text-align:center; }
     .no_drag { -khtml-user-drag:none; }
@@ -151,18 +157,16 @@
  <style type="text/css">
     *{ -khtml-user-drag:none;}
     body {
-      background-color: #efefef;
-      background-image: url('/usr/lib/linuxmint/mintInstall/data/templates/bg-gradient.jpg');
-      background-repeat: repeat-x;        
-      margin-left: 5px; 
-      margin-right: 5px; 
-      padding: 1em 12px;   
+      background-color: #D6D6D6;
+      margin-left: 100px; 
+      margin-right: 100px; 
       font-family:${font_family};
       font-size:${font_size};
       font-weight:${font_weight};
       font-style:${font_style};
+      padding: 0em 2px;
     }
-    #wrap{ margin:0 auto; padding: 0 15px 0 15px; }
+    #wrap{ margin:0 auto;}
     #header{ padding-left:76px }
    
     h1 { 
@@ -171,9 +175,9 @@
       left: 0;
       font-size: 50px;
       #line-height: 50px;
-      text-shadow: -3px 0 4px #000;
+      text-shadow: -1px 0 1px #000;
       margin-bottom: 0px;
-    padding-bottom: 0px;
+	  padding-bottom: 0px;
       }
 
     h1 a:link,
@@ -185,7 +189,10 @@
       color: #000;
       -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,0)), to(rgba(0,0,0,0)));
       }
- 
+    h1:after {
+      color: #000;
+      text-shadow: 1px 3px 1px #666;
+      }
   
     h2 {
       font-size:80%;
@@ -214,21 +221,13 @@
     }
     #icon {
       margin-left:-76px;
-      width:48px;
-      height:48px;
+      width:64px;
+      height:64px;
       z-index:-1;      
       position:absolute;
       -webkit-background-clip: border-box;
       -webkit-background-origin: border-box;
       -webkit-background-size: 32px 32px;
-    }
-    
-    .pod {
-        border: 1px solid #fff726;
-        background-color: #fffdbc;
-        margin-bottom: 1em;
-        _zoom: 100%;
-        *zoom: 100%;
     }
        
     #screenshot_wrap{
@@ -292,11 +291,11 @@
        -webkit-border-top-left-radius: 5px;
        -webkit-border-top-right-radius: 5px;
     }
-    #wrapper{
+	#wrapper{
         margin-top:1em;
         clear:both;
         border-radius: 5px;
-        background-color:#f7f7f7;        
+        background-color:#E8E8E8;        
         -webkit-box-shadow: rgba(0, 0, 0, 0.2) -1px 1px 4px;
     }
     #inner{
@@ -307,10 +306,7 @@
  </head>
 
 <body>
-  <i><small>$subtitle</small></i>
-  <br/><br/>
-  <table id="categoriesTable">        
-    <tr></tr>
-  </table>  
+	<div id="wrapper"><center><h1>$titleMain</h1></center></div>
+	<div id="wrapper"><table id="categoriesTable"></div><tr><br></br></tr></table>
 </body>
 </html>

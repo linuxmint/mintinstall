@@ -1,0 +1,11 @@
+Mintinstall
+===========
+-(8.3) Port over application list to HTML
+-(8.3) Allow installation and removal of applications in the list view
+-(8.3) Work on and add new subcategories 
+-(8.3) Make better star rating icons
+-(8.3) Shorten time for add_packages
+-(8.3) Fix the buggy search when in category's
+-(8.3)(?) Make the featured category more interesting
+-(9.x) Add a banner for a random featured or new package
+-(9.x)(?) Make the css have colours/themes from the main GTK theme

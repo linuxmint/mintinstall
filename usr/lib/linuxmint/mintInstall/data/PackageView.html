@@ -1,0 +1,390 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US" xml:lang="en">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+      <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
+      <title></title>
+      <script type="text/javascript">
+         function changeTitle(title) { 
+           document.title = title; 
+         }
+         function fadeIn(objId,opacity) {
+           if (document.getElementById) {
+             obj = document.getElementById(objId);
+             if (opacity <= 100) {
+               setOpacity(obj, opacity);
+               opacity += 10;
+               window.setTimeout("fadeIn('"+objId+"',"+opacity+")", 100);
+             }
+           }
+         }
+                   
+         function setOpacity(obj, opacity) {
+           opacity = (opacity == 100)?99.999:opacity;
+           obj.style.opacity = opacity/100;
+         }
+         function initElement(id) {
+           element = document.getElementById(id);
+           setOpacity(element, 0);
+           element.style.visibility = 'visible';
+           fadeIn(id,0);
+         }
+         function action_button_clicked() {
+           //document.getElementById("button_$action_button_value").disabled = true;
+           document.getElementById("button_$action_button_value").style.visibility = "hidden";
+           changeTitle("call:on_button_clicked");
+         }
+         function action_screenshot_clicked() {   
+           changeTitle("call:on_screenshot_clicked");
+           changeTitle("nop");
+         }
+         function action_website_clicked() {   
+           changeTitle("call:on_website_clicked");
+           changeTitle("nop");
+         }
+         function action_reviews_clicked() {   
+           changeTitle("call:on_reviews_clicked");
+           changeTitle("nop");
+         }
+         function enable_action_button() {
+           document.getElementById("button_$action_button_value").disabled = false;
+         }
+         function disable_action_button() {
+           document.getElementById("button_$action_button_value").disabled = true;
+         }
+         
+         function addReview(mydate, username, rating, comment) { 
+           
+           var table = document.getElementById("reviews");
+         var rowCount = table.rows.length;
+         var row = table.insertRow(rowCount);
+         
+         var cell1 = row.insertCell(0);
+         newImg = document.createElement("img");
+         newImg.src = rating;
+         cell1.appendChild(newImg);
+           
+         var cell2 = row.insertCell(1);
+         cell2.innerHTML = comment + "<br/><small><i><font color='#777777'>" + username + " (" + mydate + ")</font></i></small>";            
+         }
+         
+         function addScreenshot(href, src) {     
+         var table = document.getElementById("screenshots");
+         var rowCount = table.rows.length;
+         var row = table.insertRow(rowCount);
+         var cell = row.insertCell(0);
+         newLink = document.createElement("a");
+         newLink.href = href;  
+         newImg = document.createElement("img");
+         newImg.src = src;
+         newLink.appendChild(newImg);
+         cell.appendChild(newLink);              
+         }
+         
+         function addLink(linkname) {
+         var table = document.getElementById("reviews");
+         var rowCount = table.rows.length;
+         var row = table.insertRow(rowCount);
+         var cell1 = row.insertCell(0);
+         cell1.colSpan="3";		
+         cell1.innerHTML=  '<a href="javascript:action_reviews_clicked()" style="color: black;">'+linkname+'</a>';
+         }
+         
+         function clearReviews() {
+         var table = document.getElementById("reviews");
+         for(var i = table.rows.length - 1; i >= 0; i--)
+         {
+            table.deleteRow(i);
+         }
+         }
+         
+         function clearScreenshots() {
+         var table = document.getElementById("screenshots");
+         for(var i = table.rows.length - 1; i >= 0; i--)
+         {
+             table.deleteRow(i);
+         }
+         }
+         
+         var image_array = ['http://community.linuxmint.com/thumbnail.php?w=250&pic=/var/www/community.linuxmint.com/img/screenshots/$appname.png', 'http://screenshots.debian.net/thumbnail/$appname' ];
+         function load_img(imgId, image, images, index) {
+           image.onerror = function() {
+             if (index > len(image_array)) {
+               element.style.display = 'none';
+             }
+             else {
+               load_img(imgId, this, images, index+1);
+             }
+           };
+           image.onload  = function() {
+             var element = document.getElementById(imgId); 
+             if (element) {
+               element.src = this.src; 
+               element.style.display = 'block';
+             }
+           };  
+           image.src = images[index];
+         }
+         
+      </script>
+      <style type="text/css">
+         *{ -khtml-user-drag:none;}
+         body {
+         background-color: #D6D6D6;  
+         margin-left: 20px; 
+         margin-right: 20px; 
+         padding: 1em 12px;   
+         font-family:${font_family};
+         font-size:${font_size};
+         font-weight:${font_weight};
+         font-style:${font_style};
+         }
+         
+         #wrap{ margin:0 auto; padding: 0 15px 0 15px; }
+         
+         #header{ padding-left:76px }
+         
+         h1 { 
+         position: relative;
+         top: 0;
+         left: 0;
+         font-size: 50px;
+         #line-height: 50px;
+         text-shadow: -3px 0 4px #000;
+         margin-bottom: 0px;
+         padding-bottom: 0px;
+         }
+         h1 a:link,
+         h1 a:visited,
+         h1 a:hover,
+         h1 a:active {
+         position: absolute;
+         top: 0; z-index: 2;
+         color: #000;
+         -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,0)), to(rgba(0,0,0,0)));
+         }
+         
+         h1:after {
+         content: "$appname";
+         color: #000;
+         text-shadow: 3px 3px 1px #666;
+         }
+         
+         h2 {
+         font-size:80%;
+         margin:0 0 0.3em 0;
+         font-weight:normal;
+         }
+         
+         #error {
+         font-size: 80%;
+         clear:left;
+         border-left: 5px solid #ea2824;
+         border-right: 5px solid #ea2824;
+         background-color: #fcb9b8;
+         padding: 0 5px;
+         }
+         
+         #warning {
+         font-size: 80%;
+         clear:left;
+         border-left: 5px solid #fc9518;
+         border-right: 5px solid #fc9518;
+         background-color: #feeecc;
+         padding: 0 5px;
+         }
+         
+         #description {
+         font-size: 80%;
+         clear:left;
+         }
+         
+         #icon {
+         margin-left:-76px;
+         width:64px;
+         height:64px;
+         z-index:-1;      
+         position:absolute;
+         -webkit-background-clip: border-box;
+         -webkit-background-origin: border-box;
+         -webkit-background-size: 32px 32px;
+         }
+         
+         .pod {
+         background-color: #ACCD8A;
+         margin-bottom: 1em;
+         _zoom: 100%;
+         *zoom: 100%;
+         }
+         
+         #screenshot_wrap{
+         display:block;
+         }
+         
+         .screenshot {
+         overflow:hidden;
+         -webkit-box-shadow: rgba(0, 0, 0, 0.4) -4px 2px 10px;
+         display:inline-block;
+         max-width:500px;
+         max-height:375px;
+         cursor: -webkit-zoom-in;
+         text-align:center;
+         -khtml-user-drag:none;
+         }
+         
+         #text {
+         float:left; 
+         padding-left:86px;
+         }   
+         
+         #package_information { 
+         font-size:70%; 
+         }
+         
+         #maintainance_time { 
+         font-size:70%; 
+         }
+         
+         #license { 
+         font-size:70%; 
+         }
+         
+         #price { 
+         font-size:70%; 
+         } 
+         
+         #action_button_description { 
+         font-size:70%; 
+         } 
+         
+         #reviewsTable { 
+         font-size:90%; 
+         #float:left; 
+         padding-left:30px;
+         }  
+         
+         #infoTable { 
+         font-size:70%; 
+         float:left; 
+         padding-left:86px;
+         padding-bottom:20px;
+         }  
+         
+         #wrapper h2{
+         padding:-15px;
+         color: #4a4a4a;
+         font-weight:normal;
+         font-size:1em;      
+         padding:0.2em  0.8em;
+         margin: .25em 0;
+         background-color:#dad7d3;
+         -webkit-border-top-left-radius: 5px;
+         -webkit-border-top-right-radius: 5px;
+         }
+         
+         #wrapper{
+         margin-top:1em;
+         clear:both;
+         border-radius: 5px;
+         background-color:#E8E8E8;        
+         -webkit-box-shadow: rgba(0, 0, 0, 0.2) -1px 1px 4px;
+         }
+         
+         #inner{
+         padding:10px;
+         font-size:70%; 
+         }
+      </style>
+   </head>
+   
+   <body class="${body_class}">
+      <table width="100%">
+         <tr>
+            <td valign="absmiddle" align="center"><img src="$iconbig"/></td>
+            <td valign="absmiddle" align="left" nowrap>
+               <h1><a href="#">$appname</a></h1>
+               <i><small>$summary</small></i>
+            </td>
+            <td width="100%">&nbsp;</td>
+            <td valign="absmiddle" align="right">
+               <br/><img src="$rating"/>
+            </td>
+         </tr>
+      </table>
+      <br/>
+      <div id="wrapper">
+         <table width="100%">
+            <tr>
+               <td align="left" valign="absmiddle">&nbsp;$action_button_description</td>
+               <td align="right" valign="absmiddle">
+                  <input type="button" id="button_${action_button_value}" 
+                     class="action_button"
+                     alt="$action_button_label"
+                     value="$action_button_label"
+                     onclick='action_button_clicked()'
+                     />
+               </td>
+            </tr>
+         </table>
+      </div>
+      <p>
+      <div id="description">
+         <table width="100%" cellpadding="3">
+            <tr>
+               <td valign="top">$description<br/><br/><i><a href="javascript:action_website_clicked()">$homepage</a></i></td>
+               <td valign="top">
+                  <div id="screenshot-wrap">
+                     <div id="screenshot" class="screenshot">
+                        <a href="javascript:action_screenshot_clicked()">
+                        <img id="id_1" alt="" style="display: none;">                      
+                     </div>
+                  </div>
+               </td>
+            </tr>
+         </table>
+         <!--<table id="screenshots" cellpadding="5"></table>-->
+      </div>
+      </p>
+      <div id="wrapper">
+         <h2>$detailsLabel</h2>
+         <div id="inner">
+            <p><b>$versionLabel</b> $version</p>
+            <p><b>$sizeLabel</b> $sizeinfo</p>
+            <p><b>$impactLabel</b> $packagesinfo</p>
+         </div>
+      </div>
+      <div id="wrapper">
+         <h2>$reviewsLabel</h2>
+         <form action="http://community.linuxmint.com/index.php/software/remote_review" method="post">
+            <input type="hidden" name="username" value="$username">
+            <input type="hidden" name="password" value="$password">
+            <input type="hidden" name="package" value="$appname">
+            <table width="100%" cellpadding="1">
+               <tr>
+                  <td nowrap><b>$yourReviewLabel</b></td>
+                  <td>                                                          
+                     <select name="score">
+                     $score_options
+                     </select>
+                  </td>
+                  <td width="100%">
+                     <input type="text" name="comment" style="width:100%" value="$comment"/>
+                  </td>
+                  <td>
+                     <input type="submit" value="$label_submit"/>                                
+                  </td>
+               </tr>
+            </table>
+         </form>
+         <div id="inner">
+            <table id="reviews" cellpadding="1"></table>
+         </div>
+      </div>
+      </div>
+      </div>
+      </div>
+   </body>
+   <script>
+      load_img('id_1', new Image(), image_array, 0);
+   </script>
+</html>
