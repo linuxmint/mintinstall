@@ -1,3 +1,10 @@
+mintinstall (8.5) olivia; urgency=low
+
+  * 8.5.0
+  * Polish
+
+ -- Corbin Auriti <ravetcofx@gmail.com>  Thu, 17 Oct 2013 16:25:55 -0600  
+
 mintinstall (8.1.6) olivia; urgency=low
 
   * 8.1.6
