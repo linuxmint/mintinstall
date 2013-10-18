@@ -22,6 +22,7 @@
     newImg.setAttribute("width", 72);
     newImg.setAttribute("height", 72);
     newImg.className = "no_drag";
+    newImg.className = "reflect";
     newTextAroundImg.appendChild(newImg);
     newText = document.createElement("div");
     newText.align = "center";
@@ -40,9 +41,6 @@
     newText.appendChild(document.createElement("br"))
     newText.appendChild(newSubText)
     newText.appendChild(document.createElement("br"))
-    if(name == "All Packages") {
-		newSubText.appendChild(document.createElement("br"))
-	}
     newTd.appendChild(newTextAroundImg);
     newTd.appendChild(newText);    
     Tr.appendChild(newTd);
@@ -119,8 +117,6 @@
  </script>
   <style type="text/css">
     .category_td {
-	  background-color: #E8E8E8; 
-	  -webkit-transition: all 0.2s ease;     
 	  border-radius: 5px;
       display: inline-block;
       text-overflow: ellipsis;
@@ -136,7 +132,9 @@
 	.category_td:active {background-color: #ACCD8A;}
     .category_td p { font-size:90%; text-align:center; }
     .category_td div { font-size:90%; text-align:center; }
-    .no_drag { -khtml-user-drag:none; }
+    .no_drag { -webkit-user-drag:none; }
+    .reflect { -webkit-box-reflect: below 13px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(.7, transparent), to(rgba(0,0,0,0.7))); }
+
  </style>
  
  <style type="text/css">
@@ -160,7 +158,7 @@
       #line-height: 50px;
       margin-bottom: 0px;
 	  padding-bottom: 0px;
-	  -webkit-box-reflect: below 0px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(.8, transparent), to(rgba(0,0,0,0.3)));
+	  -webkit-box-reflect: below 0px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(.7, transparent), to(rgba(0,0,0,0.7)));
       }
 
     h1 a:link,
