@@ -19,9 +19,9 @@
     newTextAroundImg = document.createElement("div");
     newImg = document.createElement("img");
     newImg.src = img;
-    newImg.setAttribute("width", 64);
-    newImg.setAttribute("height", 64);
-    newImg.className = "no_drag";
+    newImg.setAttribute("width", 45);
+    newImg.setAttribute("height", 45);
+    newImg.className = "no_drag glow";
     newTextAroundImg.appendChild(newImg);
     newText = document.createElement("div");
     newText.align = "center";
@@ -128,13 +128,24 @@
     }
     .category_td:hover {
 		cursor: pointer; 
-		background-color: #ACCD8A;
 		-webkit-transition: all 0.4s ease;
 	}     
 	.category_td:active {background-color: #ACCD8A;}
     .category_td p { font-size:90%; text-align:center; }
     .category_td div { font-size:90%; text-align:center; }
     .no_drag { -webkit-user-drag:none; }
+    
+    .glow {
+		-webkit-border-radius: 8px;
+		-webkit-transition: all 0.3s ease;
+	}
+	.glow:hover {
+		background-color: #ACCD8A;
+		-webkit-transition: all 0.3s ease;
+		-webkit-border-radius: 8px;
+		-webkit-box-shadow: 0px 0px 15px #ACCD8A;
+	}
+
  </style>
  
  <style type="text/css">
