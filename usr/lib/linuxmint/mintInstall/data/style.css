@@ -1210,7 +1210,6 @@ input, select
 	position:absolute;
 	z-index:-1;
 	height: 99px;
-	background-image: url('/usr/lib/linuxmint/mintInstall/data/templates/Button.png');
 }
 
 .art-button-wrapper .l

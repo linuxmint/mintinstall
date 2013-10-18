@@ -1,9 +1,9 @@
 Source: mintinstall
 Section: admin
 Priority: optional
-Maintainer: clem <root@linuxmint.com>
+Maintainer: clem <root@linuxmint.com>, RavetcoFX <ravetcofx@gmail.com>
 Build-Depends: debhelper (>= 5)
-Standards-Version: 3.7.2
+Standards-Version: 8.1.6
 
 Package: mintinstall
 Architecture: all

@@ -1,3 +1,19 @@
+mintinstall (8.5) olivia; urgency=low
+
+  * 8.5.0
+  * Polish
+
+ -- Corbin Auriti <ravetcofx@gmail.com>  Thu, 17 Oct 2013 16:25:55 -0600  
+
+mintinstall (8.1.6) olivia; urgency=low
+
+  * 8.1.6
+  * Changed the overall feeling
+  * Changed Icons
+  * Completly removed spash screen stuffs
+
+ -- Corbin Auriti <ravetcofx@gmail.com>  Tue, 08 Oct 2013 23:50:22 -0600 
+
 mintinstall (7.4.8) olivia; urgency=low
 
   * 7.4.8
