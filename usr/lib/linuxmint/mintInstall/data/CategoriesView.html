@@ -160,7 +160,7 @@
       #line-height: 50px;
       margin-bottom: 0px;
 	  padding-bottom: 0px;
-	  -webkit-box-reflect: below 0px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(.7, transparent), to(rgba(0,0,0,0.5)));
+	  -webkit-box-reflect: below 3px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(.7, transparent), to(rgba(0,0,0,0.5)));
       }
 
     h1 a:link,
@@ -278,6 +278,10 @@
       padding:15px;
       font-size:70%; 
     }
+    #num{
+		float: center;
+		padding-left:85px;
+	}
  </style>
  </head>
 
@@ -285,7 +289,7 @@
 	<center>
 		<div>
 		<h1><img style="width:64px;height:64px;vertical-align:top" src="/usr/lib/linuxmint/mintInstall/icon.svg">
-		<span style="">$titleMain</h1><center>$package_num_2</center></span>
+		<span style="">$titleMain</h1><div id="num">$package_num_2</div></span>
 		</div>
 	</center>
 	<div id="wrapper"><table id="categoriesTable"></div><tr><h2><center>$header</center></h2></tr></table>
