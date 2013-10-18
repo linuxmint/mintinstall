@@ -21,8 +21,10 @@
     newImg.src = img;
     newImg.setAttribute("width", 72);
     newImg.setAttribute("height", 72);
-    newImg.className = "no_drag";
-    newImg.className = "reflect";
+	newImg.className = "no_drag reflect";
+    if(name == "Multimedia" || name == "Office" || name == "Graphics" || name == "Programming" || name == "System tools" || name == "All Packages") {
+		newImg.className += " rot";
+	} else { newImg.className += " rot2"; }
     newTextAroundImg.appendChild(newImg);
     newText = document.createElement("div");
     newText.align = "center";
@@ -129,13 +131,27 @@
     .category_td:hover {
 		cursor: pointer; 
 		background-color: #ACCD8A;
-		-webkit-transition: all 0.4s ease;
+		-webkit-transition: all 0.3s ease;
 	}     
 	.category_td:active {background-color: #ACCD8A;}
     .category_td p { font-size:90%; text-align:center; }
     .category_td div { font-size:90%; text-align:center; }
     .no_drag { -webkit-user-drag: auto; }
     .reflect { -webkit-box-reflect: below 13px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(.7, transparent), to(rgba(0,0,0,0.5))); }
+    .rot {
+		-webkit-transition: all 0.4s ease-out;
+	}
+    .rot:hover { 
+		-webkit-transform: rotate(-7deg);
+		-webkit-transition: all 0.4s ease-out;
+	}
+	.rot2 {
+		-webkit-transition: all 0.4s ease-out;
+	}
+    .rot2:hover { 
+		-webkit-transform: rotate(7deg);
+		-webkit-transition: all 0.4s ease-out;
+	}
 
  </style>
  
