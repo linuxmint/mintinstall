@@ -22,6 +22,7 @@ import urllib, urllib2
 import thread
 import glib
 import dbus
+import webbrowser
 from AptClient.AptClient import AptClient
 
 from datetime import datetime
@@ -75,8 +76,6 @@ else:
         libc.call('prctl', 15, 'mintinstall', 0, 0, 0)
 
 gtk.gdk.threads_init()
-
-COMMERCIAL_APPS = ["chromium-browser"]
 
 def get_dbus_bus():
    bus = dbus.SystemBus()
@@ -392,11 +391,8 @@ class Application():
         self.screenshotBrowser = webkit.WebView()
         self.websiteBrowser = webkit.WebView()
         self.reviewsBrowser = webkit.WebView()
-
         self.add_categories()
-        self.build_matched_packages()
-        self.add_packages()
-                    
+ 
         # Build the GUI
         gladefile = "/usr/lib/linuxmint/mintInstall/mintinstall.glade"
         wTree = gtk.glade.XML(gladefile, "main_window")
@@ -405,13 +401,15 @@ class Application():
         wTree.get_widget("main_window").connect("delete_event", self.close_application)
         
         self.main_window = wTree.get_widget("main_window")
-
-        self.apt_client = AptClient()
-        self.apt_progress_handler = APTProgressHandler(self, self.packages, wTree, self.apt_client)
         
+        self.build_matched_packages()
+        self.add_packages()
         self.add_reviews()
         downloadReviews = DownloadReviews(self)
         downloadReviews.start()
+
+        self.apt_client = AptClient()
+        self.apt_progress_handler = APTProgressHandler(self, self.packages, wTree, self.apt_client)
 
         if len(sys.argv) > 1 and sys.argv[1] == "list":
             # Print packages and their categories and exit
@@ -685,7 +683,7 @@ class Application():
         try:
             prefs["external_browser"] = (config['external_browser'] == "True")
         except:
-            prefs["external_browser"] = False
+            prefs["external_browser"] = True
 
         return prefs
 
@@ -948,7 +946,7 @@ class Application():
                 review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
 
                 self.packageBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
-            self.packageBrowser.execute_script('addLink("%s")' % _("See more reviews"))
+                self.packageBrowser.execute_script('addLink("%s")' % _("See more reviews"))
 
         else:
             for review in reviews:
@@ -961,8 +959,6 @@ class Application():
                 review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
 
                 self.packageBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
-        #self.main_window.set_sensitive(True)
-        #self.main_window.window.set_cursor(None)
 
         # Add additional screenshots        
         from BeautifulSoup import BeautifulSoup
@@ -1001,7 +997,8 @@ class Application():
         package = self.current_package
         if package is not None:
             if self.prefs['external_browser']:
-                os.system("xdg-open " + self.current_package.pkg.candidate.homepage + " &")
+                #os.system("sudo xdg-open " + self.current_package.pkg.candidate.homepage) ///Silly way of doing that ~Corbin
+                webbrowser.open(self.current_package.pkg.candidate.homepage)
             else:
                 self.websiteBrowser.open(self.current_package.pkg.candidate.homepage)
                 self.navigation_bar.add_with_id(_("Website"), self.navigate, self.NAVIGATION_WEBSITE, "website")
@@ -1303,9 +1300,6 @@ class Application():
         
         for package in packages_list:
             
-            if package.name in COMMERCIAL_APPS:
-                continue
-            
             iter = model_applications.insert_before(None, None)
             
             model_applications.set_value(iter, 0, self.get_package_pixbuf_icon(package))
@@ -1317,24 +1311,8 @@ class Application():
                 summary = summary.replace("<", "&lt;")
                 summary = summary.replace("&", "&amp;")
 
-            model_applications.set_value(iter, 1, "%s\n<small><span foreground='#555555'>%s</span></small>" % (package.name, summary.capitalize()))
-
-            if package.num_reviews > 0:
-                image = "/usr/lib/linuxmint/mintInstall/data/" + str(package.avg_rating) + ".png"
-                im=Image.open(image)
-                draw = ImageDraw.Draw(im)
-
-               # if package.score < 0:
-                #    color = "#AA5555"
-               # elif package.score > 0:
-                #    color = "#55AA55"
-               # draw.text((34, 2), str(package.score), font=sans26, fill="#AAAAAA")
-               # draw.text((33, 1), str(package.score), font=sans26 fill="#555555")                 
-               # draw.text((25, 0), str(package.score), font=sans26, fill="#404040")
-                draw.text((0, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
-                
-                model_applications.set_value(iter, 2, convertImageToGtkPixbuf(im))
-
+            model_applications.set_value(iter, 1, "%s\n<small><span foreground='#555555'>%s</span></small>" % (package.name.capitalize(), summary.capitalize()))
+            model_applications.set_value(iter, 2, None)
             model_applications.set_value(iter, 3, package)
     
     @print_timing
@@ -1438,6 +1416,8 @@ class Application():
                 icon_path = icon_path + ".png"
             elif os.path.exists(icon_path + ".xpm"):
                 icon_path = icon_path + ".xpm"
+            elif os.path.exists(icon_path + ".svg"):
+                icon_path = icon_path + ".svg"
             else:
                 # Else, default to generic icons
                 icon_path = self.generic_installed_icon_path
@@ -1636,7 +1616,7 @@ class Application():
         subs['username'] = self.prefs["username"]
         subs['password'] = self.prefs["password"]
         subs['comment'] = ""
-        subs['score'] = 0
+        subs['score'] = 3
         
         font_description = gtk.Label("pango").get_pango_context().get_font_description()
         subs['font_family'] = font_description.get_family()
@@ -1653,7 +1633,7 @@ class Application():
                     subs['comment'] = review.comment
                     subs['score'] = review.rating
 
-        score_options = ["", _("Hate it"), _("Dislike it"), _("Meh..."), _("Like it"), _("Amazing")]
+        score_options = ["", _("1 - Hate it"), _("2 - Dislike it"), _("3 - Acceptable"), _("4 - Like it"), _("5 - It's Awsome")]
         subs['score_options'] = ""
         for score in range(6):
             if (score == subs['score']):
@@ -1665,12 +1645,19 @@ class Application():
 
         subs['iconbig'] = self.find_large_app_icon(package)
 
-        subs['appname'] = package.name
-        subs['pkgname'] = package.pkg.name
+        subs['appname'] = package.name.capitalize()
+        subs['pkgname'] = package.pkg.name.capitalize()
+        subs['label_score'] = _("Score:")
+        subs['score'] = package.score
+        subs['screen_label'] = _("Screenshots")
+        subs['screen_label2'] = _("Screenshot")
+        subs['linkname'] = _("See Reviews")
+        subs['num_reviews'] = package.num_reviews
+        subs['reviews_label'] = _("Number of Reviews: ")
         subs['description'] = package.pkg.candidate.description
         subs['description'] = subs['description'].replace('\n','<br />\n')
         subs['summary'] = package.pkg.candidate.summary.capitalize()
-        #subs['label_score'] = _("Score:")
+        subs['label_submit'] = _("Submit")
         subs['label_submit'] = _("Submit")
         subs['label_your_review'] = _("Your review")
 
@@ -1756,26 +1743,25 @@ class Application():
         if package.num_reviews > 0:
             sans26 = ImageFont.truetype(self.FONT, 26)
             sans10 = ImageFont.truetype(self.FONT, 12)
-            image = "/usr/lib/linuxmint/mintInstall/data/" + str(package.avg_rating) + ".png"
-            im=Image.open(image)
-            draw = ImageDraw.Draw(im)
-            
-           # color = "#000000"
-           # if package.score < 0:
-            #    color = "#000000"
-           # elif package.score > 0:
-            #    color = "#000000"
-            #draw.text((34, 2), str(package.score), font=sans26, fill="#AAAAAA")
-            #draw.text((33, 1), str(package.score), font=sans26, fill="#555555")
-            #draw.text((32, 0), str(package.score), font=sans26, fill=color)         
-            draw.text((0, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
-            tmpFile = tempfile.NamedTemporaryFile(delete=True)
-            im.save (tmpFile.name + ".png")
-            subs['rating'] = tmpFile.name + ".png"
-            subs['reviews'] = "<b>" + _("Reviews:") + "</b>"
-        else:
-            subs['rating'] = "/usr/lib/linuxmint/mintInstall/data/no-reviews.png"
-            subs['reviews'] = ""
+                #image = "/usr/lib/linuxmint/mintInstall/data/" + str(package.avg_rating) + ".png"
+                #im=Image.open(image)
+                #draw = ImageDraw.Draw(im)
+
+                #if package.score < 0:
+                #    color = "#AA5555"
+                #elif package.score > 0:
+                #    color = "#55AA55"
+                #draw.text((34, 2), str(package.score), font=sans26, fill="#AAAAAA")
+                #draw.text((33, 1), str(package.score), font=sans26 fill="#555555")                 
+                #draw.text((25, 0), str(package.score), font=sans26, fill="#404040")
+                #draw.text((0, 22), u"%s" % (_("Score: %d") % package.score), font=sans15, fill="#555555")
+            #tmpFile = tempfile.NamedTemporaryFile(delete=True)
+            #im.save (tmpFile.name + ".png")
+            #subs['rating'] = tmpFile.name + ".png"
+            #subs['reviews'] = "<b>" + _("Reviews:") + "</b>"
+        #else:
+            #subs['rating'] = "/usr/lib/linuxmint/mintInstall/data/no-reviews.png"
+            #subs['reviews'] = ""
 
         template = open("/usr/lib/linuxmint/mintInstall/data/PackageView.html")        
         html = string.Template(template.read()).safe_substitute(subs)
@@ -1783,12 +1769,12 @@ class Application():
         template.close()
         
         if self.loadHandlerID != -1:
-            self.packageBrowser.disconnect(self.loadHandlerID)
-        
+			self.packageBrowser.disconnect(self.loadHandlerID)
+			
         self.loadHandlerID = self.packageBrowser.connect("load-finished", self._on_package_load_finished, package)       
 
         # Update the navigation bar
-        self.navigation_bar.add_with_id(package.name, self.navigate, self.NAVIGATION_ITEM, package)
+        self.navigation_bar.add_with_id(package.name.capitalize(), self.navigate, self.NAVIGATION_ITEM, package)
 
 
     def package_compare(self, x, y):

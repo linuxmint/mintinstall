@@ -21,10 +21,7 @@
     newImg.src = img;
     newImg.setAttribute("width", 72);
     newImg.setAttribute("height", 72);
-	newImg.className = "no_drag reflect";
-    if(name == "Multimedia" || name == "Office" || name == "Graphics" || name == "Programming" || name == "System tools" || name == "All Packages") {
-		newImg.className += " rot";
-	} else { newImg.className += " rot2"; }
+	newImg.className = "no_drag reflect grow";
     newTextAroundImg.appendChild(newImg);
     newText = document.createElement("div");
     newText.align = "center";
@@ -44,7 +41,8 @@
     newText.appendChild(newSubText)
     newText.appendChild(document.createElement("br"))
     newTd.appendChild(newTextAroundImg);
-    newTd.appendChild(newText);    
+    newTd.appendChild(newText);
+    newTd.appendChild(document.createElement("br"))
     Tr.appendChild(newTd);
     categoryCount += 1;
   }
@@ -138,6 +136,18 @@
     .category_td div { font-size:90%; text-align:center; }
     .no_drag { -webkit-user-drag: auto; }
     .reflect { -webkit-box-reflect: below 13px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(.7, transparent), to(rgba(0,0,0,0.5))); }
+
+    .grow {
+		-webkit-transition: all 0.7s ease;
+		width: 72px;
+		height: 72px;
+	}
+	.grow:hover {
+		-webkit-transition: all 0.7s ease;
+		width: 82px;
+		height: 82px;
+	}
+        
     .rot {
 		-webkit-transition: all 0.4s ease-out;
 	}
@@ -308,6 +318,6 @@
 		<span style="">$titleMain</h1><div id="num">$package_num_2</div></span>
 		</div>
 	</center>
-	<div id="wrapper"><table id="categoriesTable"></div><tr><h2><center>$header</center></h2></tr></table>
+	<div id="wrapper"><table id="categoriesTable"><tr></tr></table>
 </body>
 </html>

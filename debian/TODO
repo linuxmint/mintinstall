@@ -1,5 +1,6 @@
 Mintinstall
 ===========
+- FIX the Laggy PackageView when loading
 -(8.6) Port over application list to HTML
 -(8.6) Allow installation and removal of applications in the list view
 -(8.6) Work on and add new subcategories 
