@@ -30,7 +30,7 @@
     <property name="can_focus">False</property>
     <property name="window_position">center</property>
     <property name="default_width">760</property>
-    <property name="default_height">600</property>
+    <property name="default_height">665</property>
     <child>
       <widget class="GtkVBox" id="vbox1">
         <property name="visible">True</property>

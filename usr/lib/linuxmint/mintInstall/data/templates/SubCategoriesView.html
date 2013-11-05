@@ -19,9 +19,9 @@
     newTextAroundImg = document.createElement("div");
     newImg = document.createElement("img");
     newImg.src = img;
-    newImg.setAttribute("width", 48);
-    newImg.setAttribute("height", 48);
-    newImg.className = "no_drag";
+    newImg.setAttribute("width", 45);
+    newImg.setAttribute("height", 45);
+    newImg.className = "no_drag glow";
     newTextAroundImg.appendChild(newImg);
     newText = document.createElement("div");
     newText.align = "center";
@@ -30,9 +30,7 @@
     newSubText.align = "center";
     newSubText.setAttribute("size", 1);
     newSubText.setAttribute("color", "#555555");
-    //newSubText2 = document.createElement("b");
-    newSubText.appendChild(document.createTextNode(num_packages))
-  //  newSubText.appendChild(newSubText2)
+   // newSubText.appendChild(document.createTextNode(num_packages))
 
     click_cb = 'changeTitle("call:on_category_clicked:' + name + '");';
     newTd.setAttribute('onclick', click_cb);
@@ -116,76 +114,78 @@
   // global key handler for the arrow keys
   document.onkeyup = onKey;
  </script>
-  <style type="text/css">
-   
-    h2 {
-      background-color: #7D91aa;
-      border-style: solid;
-      border-width: 0 0 1px 0;
-      border-color: #E2E7EC #404a57 #404a57 #E2E7EC;
-      color: #fff;
-      padding: 0.25em 0.5em;
-      margin: 0;
-      text-shadow: #404a57 0 -1px 1px;
-    }
- /* debug border */
- /* .category_td {border-width:1px;border-style:solid;} */
- /* fixed width does not work, it does not ellipsis but overflows the box */
- /* .category_td {padding:8px; margin:8px; width:6em; display:inline-block; text-overflow: ellipsis;} */
-
+ <style type="text/css">
     .category_td {
+	  background-color: #E8E8E8; 
+	  -webkit-transition: all 0.2s ease;     
+	  border-radius: 8px;
       padding: 0 3px;
-      margin-bottom: 10px;
-      display:inline-block;
+      display: inline-block;
       text-overflow: ellipsis;
       vertical-align: top;
-      width: 7em !important;
+      width: 7em;
+      outline: 0; <!-- Hell Yes, Removed that outline :D :D :D -->
     }
-    .category_td:hover {cursor: pointer; }
-    .category_td:active {background-color: #EEEEEE; }
+    .category_td:hover {
+		cursor: pointer; 
+		-webkit-transition: all 0.4s ease;
+	}     
+	.category_td:active {background-color: #ACCD8A;}
     .category_td p { font-size:90%; text-align:center; }
     .category_td div { font-size:90%; text-align:center; }
-    .no_drag { -khtml-user-drag:none; }
+    .no_drag { -webkit-user-drag:none; }
+    
+    .glow {
+		-webkit-border-radius: 8px;
+		-webkit-transition: all 0.3s ease;
+	}
+	.glow:hover {
+		background-color: #ACCD8A;
+		-webkit-transition: all 0.3s ease;
+		-webkit-border-radius: 8px;
+		-webkit-box-shadow: 0px 0px 15px #ACCD8A;
+	}
+
  </style>
  
  <style type="text/css">
     *{ -khtml-user-drag:none;}
     body {
-      background-color: #efefef;
-      background-image: url('/usr/lib/linuxmint/mintInstall/data/templates/bg-gradient.jpg');
-      background-repeat: repeat-x;        
+      background-color: #D6D6D6;
       margin-left: 5px; 
       margin-right: 5px; 
-      padding: 1em 12px;   
       font-family:${font_family};
       font-size:${font_size};
       font-weight:${font_weight};
       font-style:${font_style};
+      padding: 0em 0px;
     }
-    #wrap{ margin:0 auto; padding: 0 15px 0 15px; }
+    #wrap{ margin:0 auto;}
     #header{ padding-left:76px }
    
     h1 { 
+	  color: #4a4a4a;
       position: relative;
       top: 0;
       left: 0;
       font-size: 50px;
       #line-height: 50px;
-      text-shadow: -3px 0 4px #000;
       margin-bottom: 0px;
-    padding-bottom: 0px;
+	  padding-bottom: 0px;
+	  /.-webkit-box-reflect: below 0px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(1.1, transparent), to(rgba(0,0,0,0.3)));./
       }
 
     h1 a:link,
     h1 a:visited,
-    h1 a:hover,
-    h1 a:active {
-      position: absolute;
-      top: 0; z-index: 2;
-      color: #000;
-      -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,0)), to(rgba(0,0,0,0)));
-      }
- 
+    h1 a:hover
+      
+	.glow {
+	  -webkit-transition: all 0.3s ease;
+	}
+	.glow:hover {
+	   text-shadow: 0 0 20px #484848;
+	   -webkit-transition: all 0.4s ease;
+	}
   
     h2 {
       font-size:80%;
@@ -214,21 +214,13 @@
     }
     #icon {
       margin-left:-76px;
-      width:48px;
-      height:48px;
+      width:64px;
+      height:64px;
       z-index:-1;      
       position:absolute;
       -webkit-background-clip: border-box;
       -webkit-background-origin: border-box;
       -webkit-background-size: 32px 32px;
-    }
-    
-    .pod {
-        border: 1px solid #fff726;
-        background-color: #fffdbc;
-        margin-bottom: 1em;
-        _zoom: 100%;
-        *zoom: 100%;
     }
        
     #screenshot_wrap{
@@ -238,17 +230,13 @@
     .screenshot {
       overflow:hidden;
       -webkit-box-shadow: rgba(0, 0, 0, 0.4) -4px 2px 10px;
-      
       display:inline-block;
       max-width:500px;
       max-height:375px;
-      
       cursor: -webkit-zoom-in;
-      
       text-align:center;
       -khtml-user-drag:none;
     }
-    
     
     #text {
       float:left; 
@@ -283,20 +271,19 @@
     #wrapper h2{
       padding:-15px;
       color: #4a4a4a;
-      font-weight:normal;
+      font-weight:bold;
       font-size:1em;      
       padding:0.2em  0.8em;
       margin: .25em 0;
-     
-      background-color:#dad7d3;
-       -webkit-border-top-left-radius: 5px;
-       -webkit-border-top-right-radius: 5px;
+      background-color:#BFBFBF;
+      -webkit-border-top-left-radius: 5px;
+      -webkit-border-top-right-radius: 5px;
     }
-    #wrapper{
+	#wrapper{
         margin-top:1em;
         clear:both;
         border-radius: 5px;
-        background-color:#f7f7f7;        
+        background-color:#E8E8E8;        
         -webkit-box-shadow: rgba(0, 0, 0, 0.2) -1px 1px 4px;
     }
     #inner{
@@ -307,10 +294,6 @@
  </head>
 
 <body>
-  <i><small>$subtitle</small></i>
-  <br/><br/>
-  <table id="categoriesTable">        
-    <tr></tr>
-  </table>  
+	<td nowrap><div id="wrapper"><table id="categoriesTable"></div></td><tr></tr></table>
 </body>
 </html>

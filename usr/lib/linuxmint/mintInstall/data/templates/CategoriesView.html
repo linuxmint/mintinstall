@@ -19,20 +19,17 @@
     newTextAroundImg = document.createElement("div");
     newImg = document.createElement("img");
     newImg.src = img;
-    newImg.setAttribute("width", 64);
-    newImg.setAttribute("height", 64);
-    newImg.className = "no_drag";
+    newImg.setAttribute("width", 72);
+    newImg.setAttribute("height", 72);
+	newImg.className = "no_drag glow reflect";
     newTextAroundImg.appendChild(newImg);
     newText = document.createElement("div");
     newText.align = "center";
 
     newSubText = document.createElement("font");
     newSubText.align = "center";
-    newSubText.setAttribute("size", 1);
+    newSubText.setAttribute("size", 2);
     newSubText.setAttribute("color", "#555555");
-    //newSubText2 = document.createElement("b");
-    newSubText.appendChild(document.createTextNode(num_packages))
-  //  newSubText.appendChild(newSubText2)
 
     click_cb = 'changeTitle("call:on_category_clicked:' + name + '");';
     newTd.setAttribute('onclick', click_cb);
@@ -42,8 +39,10 @@
     newText.appendChild(document.createTextNode(name))
     newText.appendChild(document.createElement("br"))
     newText.appendChild(newSubText)
+    newText.appendChild(document.createElement("br"))
     newTd.appendChild(newTextAroundImg);
-    newTd.appendChild(newText);    
+    newTd.appendChild(newText);
+    newTd.appendChild(document.createElement("br"))
     Tr.appendChild(newTd);
     categoryCount += 1;
   }
@@ -117,79 +116,76 @@
   document.onkeyup = onKey;
  </script>
   <style type="text/css">
-   
-    h2 {
-      background-color: #7D91aa;
-      border-style: solid;
-      border-width: 0 0 1px 0;
-      border-color: #E2E7EC #404a57 #404a57 #E2E7EC;
-      color: #fff;
-      padding: 0.25em 0.5em;
-      margin: 0;
-      text-shadow: #404a57 0 -1px 1px;
-    }
- /* debug border */
- /* .category_td {border-width:1px;border-style:solid;} */
- /* fixed width does not work, it does not ellipsis but overflows the box */
- /* .category_td {padding:8px; margin:8px; width:6em; display:inline-block; text-overflow: ellipsis;} */
-
     .category_td {
-      padding: 0 3px;
-      margin-bottom: 10px;
-      display:inline-block;
+	  -webkit-transition: all 0.3s ease;
+	  border-radius: 5px;
+      display: inline-block;
       text-overflow: ellipsis;
       vertical-align: top;
-      width: 7em !important;
+      width: 10.9em;
+      outline: 0; <!-- Hell Yes, Removed that outline :D :D :D -->
     }
-    .category_td:hover {cursor: pointer; }
-    .category_td:active {background-color: #EEEEEE;}
+    .category_td:hover {
+		cursor: pointer; 
+		<!--background-color: #ACCD8A;
+		-webkit-transition: all 0.3s ease; -->
+	}     
     .category_td p { font-size:90%; text-align:center; }
     .category_td div { font-size:90%; text-align:center; }
-    .no_drag { -khtml-user-drag:none; }
+    .no_drag { -webkit-user-drag: auto; }
+    .reflect { 
+		-webkit-box-reflect: below 13px  -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(.7, transparent), to(rgba(0,0,0,0.5))); 
+		<!--webkit-filter:blur(4px); -->
+	}
+
+    .glow {
+		-webkit-border-radius: 8px;
+		-webkit-transition: all 0.3s ease;
+	}
+	.glow:hover {
+		background-color: #ACCD8A;
+		-webkit-transition: all 0.3s ease;
+		-webkit-border-radius: 8px;
+		-webkit-box-shadow: 0px 0px 15px #ACCD8A;
+	}
+
  </style>
  
  <style type="text/css">
     *{ -khtml-user-drag:none;}
     body {
-      background-color: #efefef;
-      background-image: url('/usr/lib/linuxmint/mintInstall/data/templates/bg-gradient.jpg');
-      background-repeat: repeat-x;        
-      margin-left: 5px; 
-      margin-right: 5px; 
-      padding: 1em 12px;   
+      background-color: #D6D6D6;
+      margin-left: 10px; 
+      margin-right: 10px; 
+      margin-bottom: 10px;
       font-family:${font_family};
       font-size:${font_size};
       font-weight:${font_weight};
       font-style:${font_style};
     }
-    #wrap{ margin:0 auto; padding: 0 15px 0 15px; }
-    #header{ padding-left:76px }
    
     h1 { 
+	  color: #4a4a4a;
       position: relative;
-      top: 0;
       left: 0;
       font-size: 50px;
       #line-height: 50px;
-      text-shadow: -3px 0 4px #000;
       margin-bottom: 0px;
-    padding-bottom: 0px;
+	  padding-bottom: 0px;
+	  -webkit-box-reflect: below 3px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(.7, transparent), to(rgba(0,0,0,0.5)));
       }
 
     h1 a:link,
     h1 a:visited,
-    h1 a:hover,
-    h1 a:active {
-      position: absolute;
-      top: 0; z-index: 2;
-      color: #000;
-      -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,0)), to(rgba(0,0,0,0)));
-      }
-    h1:after {
-      content: "$title";
-      color: #000;
-      text-shadow: 3px 3px 1px #666;
-      }
+    h1 a:hover
+      
+	.glow {
+	  -webkit-transition: all 0.3s ease;
+	}
+	.glow:hover {
+	   text-shadow: 0 0 20px #484848;
+	   -webkit-transition: all 0.4s ease;
+	}
   
     h2 {
       font-size:80%;
@@ -226,14 +222,6 @@
       -webkit-background-origin: border-box;
       -webkit-background-size: 32px 32px;
     }
-    
-    .pod {
-        border: 1px solid #fff726;
-        background-color: #fffdbc;
-        margin-bottom: 1em;
-        _zoom: 100%;
-        *zoom: 100%;
-    }
        
     #screenshot_wrap{
       display:block;
@@ -242,17 +230,13 @@
     .screenshot {
       overflow:hidden;
       -webkit-box-shadow: rgba(0, 0, 0, 0.4) -4px 2px 10px;
-      
       display:inline-block;
       max-width:500px;
       max-height:375px;
-      
       cursor: -webkit-zoom-in;
-      
       text-align:center;
       -khtml-user-drag:none;
     }
-    
     
     #text {
       float:left; 
@@ -287,36 +271,43 @@
     #wrapper h2{
       padding:-15px;
       color: #4a4a4a;
-      font-weight:normal;
+      font-weight:bold;
       font-size:1em;      
       padding:0.2em  0.8em;
       margin: .25em 0;
-     
-      background-color:#dad7d3;
-       -webkit-border-top-left-radius: 5px;
-       -webkit-border-top-right-radius: 5px;
+      background-color:#BFBFBF;
+      -webkit-border-top-left-radius: 5px;
+      -webkit-border-top-right-radius: 5px;
     }
-    #wrapper{
+	#wrapper{
         margin-top:1em;
         clear:both;
         border-radius: 5px;
-        background-color:#f7f7f7;        
+        background-color:#E8E8E8;        
         -webkit-box-shadow: rgba(0, 0, 0, 0.2) -1px 1px 4px;
     }
     #inner{
       padding:15px;
       font-size:70%; 
     }
+    #num{
+		float: center;
+		padding-left:85px;
+	}
+	::selection
+	{
+		color:#000000;
+	}
  </style>
  </head>
 
 <body>
-    
-    <i><small>$subtitle</small></i>    
-    <br/><br/>
-  <table id="categoriesTable">        
-    <tr></tr>
-  </table>
-  <div class="pod"><div style="font-size:70%">&nbsp;$package_num</div></div>
+	<center>
+		<div>
+		<h1><img style="width:64px;height:64px;vertical-align:top" src="/usr/lib/linuxmint/mintInstall/icon.svg">
+		<span style="">$titleMain</h1><div id="num">$package_num_2</div></span>
+		</div>
+	</center>
+	<div id="wrapper"><table id="categoriesTable"><tr></tr></table>
 </body>
 </html>
