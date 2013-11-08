@@ -1,3 +1,9 @@
+mintinstall (7.4.9) petra; urgency=low
+
+  * Fix desktop file
+
+ -- Frédéric Gaudet <fred@linuxmint.com>  Fri, 08 Nov 2013 09:53:36 +0100
+
 mintinstall (7.4.8) olivia; urgency=low
 
   * 7.4.8
