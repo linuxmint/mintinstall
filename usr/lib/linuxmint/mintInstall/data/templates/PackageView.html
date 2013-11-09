@@ -37,8 +37,8 @@
     document.getElementById("button_$action_button_value").style.visibility = "hidden";
     changeTitle("call:on_button_clicked");
   }
-  function action_screenshot_clicked() {   
-    changeTitle("call:on_screenshot_clicked");
+  function action_screenshot_clicked(url) {   
+    changeTitle("call:on_screenshot_clicked:" + url);
     changeTitle("nop");
   }
   function action_website_clicked() {   
@@ -72,16 +72,14 @@
   }
 
   function addScreenshot(href, src) {     
-  var table = document.getElementById("screenshots");
-  var rowCount = table.rows.length;
-  var row = table.insertRow(rowCount);
-  var cell = row.insertCell(0);
-  newLink = document.createElement("a");
-  newLink.href = href;  
-  newImg = document.createElement("img");
-  newImg.src = src;
-  newLink.appendChild(newImg);
-  cell.appendChild(newLink);              
+    var screenshots = document.getElementById("screenshots");
+    newLink = document.createElement("a");
+    newLink.href = "javascript:action_screenshot_clicked('" + href + "');";
+    newImg = document.createElement("img");
+    newImg.className = "screenshot";
+    newImg.src = src;
+    newLink.appendChild(newImg);
+    screenshots.appendChild(newLink);               
   }
   
   function addLink(linkname) {
@@ -100,35 +98,7 @@
 	    table.deleteRow(i);
 	}
   }
-
-  function clearScreenshots() {
-  var table = document.getElementById("screenshots");
-  for(var i = table.rows.length - 1; i >= 0; i--)
-  {
-      table.deleteRow(i);
-  }
-  }
-  
-  var image_array = ['http://community.linuxmint.com/thumbnail.php?w=250&pic=/var/www/community.linuxmint.com/img/screenshots/$appname.png', 'http://screenshots.debian.net/thumbnail/$appname' ];
-  function load_img(imgId, image, images, index) {
-    image.onerror = function() {
-      if (index > len(image_array)) {
-        element.style.display = 'none';
-      }
-      else {
-        load_img(imgId, this, images, index+1);
-      }
-    };
-    image.onload  = function() {
-      var element = document.getElementById(imgId); 
-      if (element) {
-        element.src = this.src; 
-        element.style.display = 'block';
-      }
-    };  
-    image.src = images[index];
-  }
-  
+    
  </script>
 
   <style type="text/css">
@@ -209,6 +179,14 @@
       -webkit-background-origin: border-box;
       -webkit-background-size: 32px 32px;
     }
+
+    #screenshots {
+      position: relative;
+    }
+
+    #screenshots a {
+      outline: 0px;
+    }
     
     .pod {
         border: 1px solid #6aa5d7;
@@ -217,23 +195,35 @@
         _zoom: 100%;
         *zoom: 100%;
     }
-       
-    #screenshot_wrap{
-      display:block;
-    }
-    
+     
     .screenshot {
+      height: 100px;
+      margin-right: 10px;
+      outline: 0px;
       overflow:hidden;
-      -webkit-box-shadow: rgba(0, 0, 0, 0.4) -4px 2px 10px;
-      
+      -webkit-box-shadow: rgba(0, 0, 0, 0.4) -4px 2px 10px;      
       display:inline-block;
       max-width:500px;
-      max-height:375px;
-      
-      cursor: -webkit-zoom-in;
-      
+      max-height:375px;      
+      cursor: pointer;      
       text-align:center;
       -khtml-user-drag:none;
+
+      margin-bottom: 20px;
+    }
+
+    .screenshot:hover {   
+      -webkit-filter: contrast(120%);
+      -webkit-filter: brightness(95%);
+    } 
+
+    #homepage {
+      margin-top: 20px;
+    }
+
+    #homepage a {
+      color: #3c3c3c;      
+      font-size:70%;
     }
     
     
@@ -325,22 +315,9 @@
     </div>
 
 <p>
-<div id="description">
-<table width="100%" cellpadding="3">
-    <tr>
-        <td valign="top">$description<br/><br/><i><a href="javascript:action_website_clicked()">$homepage</a></i></td>
-        <td valign="top">
-            <div id="screenshot-wrap">
-                <div id="screenshot" class="screenshot">
-                    <a href="javascript:action_screenshot_clicked()">
-                      <img id="id_1" alt="" style="display: none;">                      
-                </div>
-            </div>
-        </td>
-    </tr>
-</table>    
-<table id="screenshots" cellpadding="5"></table>
-                     	
+<div id="screenshots"></div>  
+<div id="description">$description</div>
+<div id="homepage"><i><a href="javascript:action_website_clicked()">$homepage</a></i></div>                
 
 </div>
 </p>
@@ -401,7 +378,5 @@
   
     </div>
 </body> 
-<script>
-        load_img('id_1', new Image(), image_array, 0);
-  </script>
+
 </html>

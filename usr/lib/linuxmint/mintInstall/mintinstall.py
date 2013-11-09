@@ -22,6 +22,9 @@ import urllib, urllib2
 import thread
 import glib
 import dbus
+import httplib
+from urlparse import urlparse
+
 from AptClient.AptClient import AptClient
 
 from datetime import datetime
@@ -951,15 +954,36 @@ class Application():
         #self.main_window.set_sensitive(True)
         #self.main_window.window.set_cursor(None)
 
-        # Add additional screenshots        
-        from BeautifulSoup import BeautifulSoup
-        page = BeautifulSoup(urllib2.urlopen("http://screenshots.debian.net/package/%s" % package.name))
-        images = page.findAll('img')
-        for image in images:            
-            if image['src'].startswith('/screenshots'):                
-                thumb = "http://screenshots.debian.net%s" % image['src']
-                link = thumb.replace("_small", "_large")
-                self.packageBrowser.execute_script('addScreenshot("%s", "%s")' % (link, thumb))
+        num_screenshots = 0;
+        # Add main screenshot
+        try:
+            thumb = "http://community.linuxmint.com/thumbnail.php?w=250&pic=/var/www/community.linuxmint.com/img/screenshots/%s.png" % package.name
+            link = "http://community.linuxmint.com/img/screenshots/%s.png" % package.name
+            p = urlparse(link)
+            conn = httplib.HTTPConnection(p.netloc)
+            conn.request('HEAD', p.path)
+            resp = conn.getresponse()
+            if resp.status < 400:
+                num_screenshots+=1;
+                self.packageBrowser.execute_script('addScreenshot("%s", "%s")' % (link, thumb))       
+        except:
+            pass
+
+        try:
+            # Add additional screenshots
+            from BeautifulSoup import BeautifulSoup
+            page = BeautifulSoup(urllib2.urlopen("http://screenshots.debian.net/package/%s" % package.name))
+            images = page.findAll('img')
+            for image in images:
+                if num_screenshots >= 4:
+                    return
+                if image['src'].startswith('/screenshots'):                
+                    thumb = "http://screenshots.debian.net%s" % image['src']
+                    link = thumb.replace("_small", "_large")
+                    num_screenshots+=1;
+                    self.packageBrowser.execute_script('addScreenshot("%s", "%s")' % (link, thumb))
+        except:
+            pass
 
     def on_category_clicked(self, name):
         for category in self.categories:
@@ -974,12 +998,13 @@ class Application():
             else:
                 self.apt_client.install_package(package.pkg.name)
     
-    def on_screenshot_clicked(self):
+    def on_screenshot_clicked(self, url):
         package = self.current_package
         if package is not None:
             template = open("/usr/lib/linuxmint/mintInstall/data/templates/ScreenshotView.html").read()
             subs = {}
-            subs['appname'] = self.current_package.pkg.name
+            subs['url'] = url
+            print "loading: '%s'" % url
             html = string.Template(template).safe_substitute(subs)
             self.screenshotBrowser.load_html_string(html, "file:/")
             self.navigation_bar.add_with_id(_("Screenshot"), self.navigate, self.NAVIGATION_SCREENSHOT, "screenshot")
@@ -1038,22 +1063,26 @@ class Application():
         if title.startswith("call:"):
             args_str = ""
             args_list = []
-            # try long form (with arguments) first
-            try:
-                (t,funcname,args_str) = title.split(":")
-            except ValueError:
-                # now try short (without arguments)
-                (t,funcname) = title.split(":")
-            if args_str:
-                args_list = args_str.split(",")
-            # see if we have it and if it can be called
-            f = getattr(self, funcname)
-            if f and callable(f):
-                f(*args_list)
-            # now we need to reset the title
-            self.browser.execute_script('window.setTimeout(function(){document.title = "nop"},0);') #setTimeout workaround: otherwise title parameter doesn't upgrade in callback causing show_category to be called twice
-            return
+            # try long form (with arguments) first            
+            try:                
+                elements = title.split(":")
+                t = elements[0]
+                funcname = elements[1]
+                if len(elements) > 2:
+                    args_str = ':'.join(elements[2:])
+                    if args_str:
+                        args_list = args_str.split(",")
             
+                # see if we have it and if it can be called
+                f = getattr(self, funcname)
+                if f and callable(f):
+                    f(*args_list)
+                # now we need to reset the title
+                self.browser.execute_script('window.setTimeout(function(){document.title = "nop"},0);') #setTimeout workaround: otherwise title parameter doesn't upgrade in callback causing show_category to be called twice
+            except Exception, detail:
+                print detail
+                pass
+            return            
             
     @print_timing
     def add_categories(self):
