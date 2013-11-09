@@ -1,3 +1,10 @@
+mintinstall (7.5.0) petra; urgency=low
+
+  * Various UI improvements
+  * Various speed improvements
+
+ -- Clement Lefebvre <root@linuxmint.com>  Sat, 09 Nov 2013 15:41:26 +0000
+
 mintinstall (7.4.9) petra; urgency=low
 
   * Fix desktop file
