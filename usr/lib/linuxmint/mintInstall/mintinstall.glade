@@ -30,7 +30,7 @@
     <property name="can_focus">False</property>
     <property name="window_position">center</property>
     <property name="default_width">780</property>
-    <property name="default_height">600</property>
+    <property name="default_height">630</property>
     <child>
       <widget class="GtkVBox" id="vbox1">
         <property name="visible">True</property>
@@ -96,7 +96,7 @@
                   <widget class="GtkVPaned" id="vpaned1">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="position">160</property>
+                    <property name="position">155</property>
                     <property name="position_set">True</property>
                     <child>
                       <widget class="GtkScrolledWindow" id="scrolled_mixed_categories">

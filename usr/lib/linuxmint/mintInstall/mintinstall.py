@@ -1363,17 +1363,17 @@ class Application():
             if len(category.packages) == 0:
                 # Show categories page
                 browser = self.browser
-                size = 64
+                size = 96
             else:
                 # Show mixed page
                 browser = self.browser2
-                size = 48
+                size = 64
 
             browser.execute_script('clearCategories()')
             theme = gtk.icon_theme_get_default()
             for cat in category.subcategories:
-                icon = None
-                if theme.has_icon(cat.icon):
+                icon = None               
+                if theme.has_icon(cat.icon):                   
                     iconInfo = theme.lookup_icon(cat.icon, size, 0)
                     if iconInfo and os.path.exists(iconInfo.get_filename()):
                         icon = iconInfo.get_filename()              
