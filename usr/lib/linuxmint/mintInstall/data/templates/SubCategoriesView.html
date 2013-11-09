@@ -21,7 +21,7 @@
     newImg.src = img;
     newImg.setAttribute("width", 48);
     newImg.setAttribute("height", 48);
-    newImg.className = "no_drag";
+    newImg.className = "category_img";
     newTextAroundImg.appendChild(newImg);
     newText = document.createElement("div");
     newText.align = "center";
@@ -142,11 +142,21 @@
       width: 7em !important;
       outline: 0;
     }
+
+    .category_img {                  
+      -khtml-user-drag:none;    
+    }
+
+    .category_img:hover {   
+      -webkit-filter: contrast(150%);
+      
+    }  
+
     .category_td:hover {cursor: pointer; }
     .category_td:active {background-color: #EEEEEE; }
     .category_td p { font-size:90%; text-align:center; }
     .category_td div { font-size:90%; text-align:center; }
-    .no_drag { -khtml-user-drag:none; }
+    
  </style>
  
  <style type="text/css">
