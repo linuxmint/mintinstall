@@ -29,7 +29,7 @@
   <widget class="GtkWindow" id="main_window">
     <property name="can_focus">False</property>
     <property name="window_position">center</property>
-    <property name="default_width">760</property>
+    <property name="default_width">780</property>
     <property name="default_height">600</property>
     <child>
       <widget class="GtkVBox" id="vbox1">
@@ -96,7 +96,7 @@
                   <widget class="GtkVPaned" id="vpaned1">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="position">200</property>
+                    <property name="position">160</property>
                     <property name="position_set">True</property>
                     <child>
                       <widget class="GtkScrolledWindow" id="scrolled_mixed_categories">
@@ -262,7 +262,6 @@
                   <widget class="GtkVBox" id="vbox2">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="orientation">vertical</property>
                     <child>
                       <widget class="GtkEventBox" id="search_in_category_hbox_wrapper">
                         <property name="visible">True</property>
@@ -281,6 +280,8 @@
                                 <property name="label" translatable="yes">Only results</property>
                               </widget>
                               <packing>
+                                <property name="expand">True</property>
+                                <property name="fill">True</property>
                                 <property name="position">0</property>
                               </packing>
                             </child>
@@ -290,9 +291,11 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
+                                <property name="use_action_appearance">False</property>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
+                                <property name="fill">True</property>
                                 <property name="position">1</property>
                               </packing>
                             </child>
@@ -301,6 +304,7 @@
                       </widget>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="fill">True</property>
                         <property name="position">0</property>
                       </packing>
                     </child>
@@ -318,6 +322,11 @@
                           </widget>
                         </child>
                       </widget>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
                     </child>
                   </widget>
                   <packing>
