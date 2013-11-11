@@ -1,3 +1,9 @@
+mintinstall (7.5.1) petra; urgency=low
+
+  * Download screenshots asynchronously
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon, 11 Nov 2013 17:53:47 +0000
+
 mintinstall (7.5.0) petra; urgency=low
 
   * Various UI improvements

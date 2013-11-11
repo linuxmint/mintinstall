@@ -97,7 +97,6 @@ def convertImageToGtkPixbuf(image):
     buf.close()
     return pixbuf;
 
-
 class DownloadReviews(threading.Thread):
     def __init__(self, application):
         threading.Thread.__init__(self)
@@ -122,6 +121,51 @@ class DownloadReviews(threading.Thread):
                 self.application.update_reviews()
         except Exception, detail:
             print detail
+
+class ScreenshotDownloader(threading.Thread):
+    def __init__(self, application, pkg_name):        
+        threading.Thread.__init__(self)
+        self.application = application
+        self.pkg_name = pkg_name
+
+    def run(self):        
+        num_screenshots = 0;
+        self.application.screenshots = []
+        # Add main screenshot
+        try:
+            thumb = "http://community.linuxmint.com/thumbnail.php?w=250&pic=/var/www/community.linuxmint.com/img/screenshots/%s.png" % self.pkg_name
+            link = "http://community.linuxmint.com/img/screenshots/%s.png" % self.pkg_name            
+            p = urlparse(link)
+            conn = httplib.HTTPConnection(p.netloc)
+            conn.request('HEAD', p.path)
+            resp = conn.getresponse()
+            if resp.status < 400:
+                num_screenshots+=1;
+                self.application.screenshots.append('addScreenshot("%s", "%s")' % (link, thumb))
+        except Exception, detail:
+            print detail
+
+        try:
+            # Add additional screenshots
+            from BeautifulSoup import BeautifulSoup
+            page = BeautifulSoup(urllib2.urlopen("http://screenshots.debian.net/package/%s" % self.pkg_name))
+            images = page.findAll('img')
+            for image in images:
+                if num_screenshots >= 4:
+                    break
+                if image['src'].startswith('/screenshots'):
+                    thumb = "http://screenshots.debian.net%s" % image['src']
+                    link = thumb.replace("_small", "_large")
+                    num_screenshots+=1;
+                    self.application.screenshots.append('addScreenshot("%s", "%s")' % (link, thumb))
+        except Exception, detail:
+            print detail 
+
+        try:
+            gobject.idle_add(self.application.show_screenshots, self.pkg_name)
+        except Exception, detail:
+            print detail 
+   
 
 class APTProgressHandler(threading.Thread):
     def __init__(self, application, packages, wTree, apt_client):
@@ -397,6 +441,9 @@ class Application():
         self.build_matched_packages()
         self.add_packages()
                     
+
+        self.screenshots = []        
+
         # Build the GUI
         gladefile = "/usr/lib/linuxmint/mintInstall/mintinstall.glade"
         wTree = gtk.glade.XML(gladefile, "main_window")
@@ -597,6 +644,10 @@ class Application():
         self.generic_available_icon_pixbuf=gtk.gdk.pixbuf_new_from_file_at_size(self.generic_available_icon_path, 32, 32)        
         
     
+    def show_screenshots(self, pkg_name):
+        if self.navigation_bar.get_active().get_label() == pkg_name:
+            for screenshot_cmd in self.screenshots:
+                self.packageBrowser.execute_script(screenshot_cmd)
     
     def on_search_entry_activated(self, searchentry):
         terms = searchentry.get_text()
@@ -922,6 +973,7 @@ class Application():
         # Get the categories
         self.show_category(self.root_category)
 
+    @print_timing
     def _on_package_load_finished(self, view, frame, package):        
         #Add the reviews
         reviews = package.reviews
@@ -954,36 +1006,8 @@ class Application():
         #self.main_window.set_sensitive(True)
         #self.main_window.window.set_cursor(None)
 
-        num_screenshots = 0;
-        # Add main screenshot
-        try:
-            thumb = "http://community.linuxmint.com/thumbnail.php?w=250&pic=/var/www/community.linuxmint.com/img/screenshots/%s.png" % package.name
-            link = "http://community.linuxmint.com/img/screenshots/%s.png" % package.name
-            p = urlparse(link)
-            conn = httplib.HTTPConnection(p.netloc)
-            conn.request('HEAD', p.path)
-            resp = conn.getresponse()
-            if resp.status < 400:
-                num_screenshots+=1;
-                self.packageBrowser.execute_script('addScreenshot("%s", "%s")' % (link, thumb))       
-        except:
-            pass
-
-        try:
-            # Add additional screenshots
-            from BeautifulSoup import BeautifulSoup
-            page = BeautifulSoup(urllib2.urlopen("http://screenshots.debian.net/package/%s" % package.name))
-            images = page.findAll('img')
-            for image in images:
-                if num_screenshots >= 4:
-                    return
-                if image['src'].startswith('/screenshots'):                
-                    thumb = "http://screenshots.debian.net%s" % image['src']
-                    link = thumb.replace("_small", "_large")
-                    num_screenshots+=1;
-                    self.packageBrowser.execute_script('addScreenshot("%s", "%s")' % (link, thumb))
-        except:
-            pass
+        downloadScreenshots = ScreenshotDownloader(self, package.name)
+        downloadScreenshots.start()
 
     def on_category_clicked(self, name):
         for category in self.categories:
