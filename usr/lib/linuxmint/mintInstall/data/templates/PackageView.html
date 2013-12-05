@@ -169,15 +169,8 @@
       font-size: 80%;
       clear:left;
     }
-    #icon {
-      margin-left:-76px;
-      width:64px;
-      height:64px;
-      z-index:-1;      
-      position:absolute;
-      -webkit-background-clip: border-box;
-      -webkit-background-origin: border-box;
-      -webkit-background-size: 32px 32px;
+    #icon {      
+      width:64px;      
     }
 
     #screenshots {
@@ -288,7 +281,7 @@
 
 <table width="100%">
     <tr>
-    <td valign="absmiddle" align="center"><img src="$iconbig"/></td>
+    <td valign="absmiddle" align="center"><img id="icon" src="$iconbig"/></td>
     <td valign="absmiddle" align="left" nowrap><h1><a href="#">$appname</a></h1><i><small>$summary</small></i></td>
     <td width="100%">&nbsp;</td>
     <td valign="absmiddle" align="right">
