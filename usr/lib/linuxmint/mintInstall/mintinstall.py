@@ -79,7 +79,9 @@ else:
 
 gtk.gdk.threads_init()
 
-COMMERCIAL_APPS = ["chromium-browser"]
+COMMERCIAL_APPS = ["chromium-browser", "chromium-browser-l10n", "chromium-codecs-ffmpeg", 
+                  "chromium-codecs-ffmpeg-extra", "chromium-codecs-ffmpeg-extra", 
+                  "chromium-browser-dbg", "chromium-chromedriver", "chromium-chromedriver-dbg"]
 
 def get_dbus_bus():
    bus = dbus.SystemBus()
@@ -1344,7 +1346,7 @@ class Application():
         
         for package in packages_list:
             
-            if package.name in COMMERCIAL_APPS:
+            if (not searchTree and package.name in COMMERCIAL_APPS):
                 continue
             
             iter = model_applications.insert_before(None, None)
