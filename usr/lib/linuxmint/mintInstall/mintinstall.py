@@ -1372,9 +1372,9 @@ class Application():
                     color = "#AA5555"
                 elif package.score > 0:
                     color = "#55AA55"
-                draw.text((34, 2), str(package.score), font=sans26, fill="#AAAAAA")
-                draw.text((33, 1), str(package.score), font=sans26, fill="#555555")                 
-                draw.text((32, 0), str(package.score), font=sans26, fill=color)
+                draw.text((87, 9), str(package.score), font=sans26, fill="#AAAAAA")
+                draw.text((86, 8), str(package.score), font=sans26, fill="#555555")
+                draw.text((85, 7), str(package.score), font=sans26, fill=color)
                 draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
                 
                 model_applications.set_value(iter, 2, convertImageToGtkPixbuf(im))
@@ -1808,9 +1808,9 @@ class Application():
                 color = "#AA5555"
             elif package.score > 0:
                 color = "#55AA55"
-            draw.text((34, 2), str(package.score), font=sans26, fill="#AAAAAA")
-            draw.text((33, 1), str(package.score), font=sans26, fill="#555555")
-            draw.text((32, 0), str(package.score), font=sans26, fill=color)         
+            draw.text((87, 9), str(package.score), font=sans26, fill="#AAAAAA")
+            draw.text((86, 8), str(package.score), font=sans26, fill="#555555")
+            draw.text((85, 7), str(package.score), font=sans26, fill=color)
             draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
             tmpFile = tempfile.NamedTemporaryFile(delete=True)
             im.save (tmpFile.name + ".png")
