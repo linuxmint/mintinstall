@@ -59,10 +59,6 @@ def print_timing(func):
 # i18n
 gettext.install("mintinstall", "/usr/share/linuxmint/locale")
 
-# i18n for menu item
-menuName = _("Software Manager")
-menuComment = _("Install new applications")
-
 architecture = commands.getoutput("uname -a")
 if (architecture.find("x86_64") >= 0):
     import ctypes

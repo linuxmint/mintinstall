@@ -1,84 +1,40 @@
 #!/usr/bin/python
 
-import commands, os
+DOMAIN = "mintinstall"
+PATH = "/usr/share/linuxmint/locale"
 
-sourceFile = "usr/lib/linuxmint/mintInstall/mintinstall.py"
+import os, gettext, sys
+sys.path.append('/usr/lib/linuxmint/common')
+import additionalfiles
 
-menuName = commands.getoutput("cat " + sourceFile + " | grep menuName")
-menuName = menuName.replace("menuName", "")
-menuName = menuName.replace("=", "")
-menuName = menuName.replace("_(", "")
-menuName = menuName.replace("\"", "")
-menuName = menuName.replace(")", "")
-menuName = menuName.strip()
+os.environ['LANG'] = "en_US.UTF-8"
+gettext.install(DOMAIN, PATH)
 
-menuComment = commands.getoutput("cat " + sourceFile + " | grep menuComment")
-menuComment = menuComment.replace("menuComment", "")
-menuComment = menuComment.replace("=", "")
-menuComment = menuComment.replace("_(", "")
-menuComment = menuComment.replace("\"", "")
-menuComment = menuComment.replace(")", "")
-menuComment = menuComment.strip()
+prefix = "[Desktop Entry]\n"
 
-desktopFile = open("usr/share/applications/mintInstall.desktop", "w")
-desktopFileKDE = open("usr/share/applications/mintInstall_kde.desktop", "w")
-desktopFile2 = open("usr/share/applications/mintInstall_mime.desktop", "w")
-desktopFile.writelines("""[Desktop Entry]
-Name=Software Manager
-""")
-desktopFileKDE.writelines("""[Desktop Entry]
-Name=Software Manager
-""")
-desktopFile2.writelines("""[Desktop Entry]
-Name=Software Manager
-""")
-
-import gettext
-gettext.install("mintinstall", "/usr/share/linuxmint/locale")
-
-for directory in os.listdir("/usr/share/linuxmint/locale"):
-	if os.path.isdir(os.path.join("/usr/share/linuxmint/locale", directory)):
-		try:
-			language = gettext.translation('mintinstall', "/usr/share/linuxmint/locale", languages=[directory])
-			language.install()
-			desktopFile.writelines("Name[%s]=%s\n" % (directory, _(menuName)))
-			desktopFileKDE.writelines("Name[%s]=%s\n" % (directory, _(menuName)))
-			desktopFile2.writelines("Name[%s]=%s\n" % (directory, _(menuName)))
-		except:
-			pass
-
-desktopFile.writelines("Comment=Install new applications\n")
-desktopFileKDE.writelines("Comment=Install new applications\n")
-desktopFile2.writelines("Comment=Install new applications\n")
-
-for directory in os.listdir("/usr/share/linuxmint/locale"):
-	if os.path.isdir(os.path.join("/usr/share/linuxmint/locale", directory)):
-		try:
-			language = gettext.translation('mintinstall', "/usr/share/linuxmint/locale", languages=[directory])
-			language.install()			
-			desktopFile.writelines("Comment[%s]=%s\n" % (directory, _(menuComment)))
-			desktopFileKDE.writelines("Comment[%s]=%s\n" % (directory, _(menuComment)))
-			desktopFile2.writelines("Comment[%s]=%s\n" % (directory, _(menuComment)))
-		except:
-			pass
-
-desktopFile.writelines("""Exec=gksu mintinstall
+suffix = """Exec=gksu mintinstall
 Icon=/usr/lib/linuxmint/mintInstall/icon.svg
 Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Application;System;Settings
 NotShowIn=KDE;
-""")
-desktopFileKDE.writelines("""Exec=kdesudo mintinstall
-Icon=/usr/lib/linuxmint/mintInstall/icon.svg
+"""
+
+additionalfiles.generate(DOMAIN, PATH, "usr/share/applications/mintInstall.desktop", prefix, _("Software Manager"), _("Install new applications"), suffix)
+
+suffix = """Exec=kdesudo -i /usr/share/icons/hicolors/48x48/apps/software-properties-mint.png -d --comment "<b>Please enter your password to start the software manager</b>" mintinstall
+Icon=software-properties-mint
 Terminal=false
 Type=Application
 Encoding=UTF-8
 Categories=Application;System;Settings
 OnlyShowIn=KDE;
-""")
-desktopFile2.writelines("""Exec=mintInstall
+"""
+
+additionalfiles.generate(DOMAIN, PATH, "usr/share/applications/mintInstall_kde.desktop", prefix, _("Software Manager"), _("Install new applications"), suffix, genericName=_("Install new applications"))
+
+suffix = """Exec=mintInstall
 Icon=/usr/share/linuxmint/logo.png
 Terminal=false
 Type=Application
@@ -86,5 +42,6 @@ Encoding=UTF-8
 Categories=Application;System;Settings
 NoDisplay=true
 MimeType=application/x-mint;
-""")
+"""
 
+additionalfiles.generate(DOMAIN, PATH, "usr/share/applications/mintInstall_mime.desktop", prefix, _("Software Manager"), _("Install new applications"), suffix)
