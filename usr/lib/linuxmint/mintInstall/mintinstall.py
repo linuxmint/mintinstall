@@ -79,6 +79,9 @@ COMMERCIAL_APPS = ["chromium-browser", "chromium-browser-l10n", "chromium-codecs
                   "chromium-codecs-ffmpeg-extra", "chromium-codecs-ffmpeg-extra", 
                   "chromium-browser-dbg", "chromium-chromedriver", "chromium-chromedriver-dbg"]
 
+# List of packages which are either broken or do not install properly in mintinstall
+BROKEN_PACKAGES = ['pepperflashplugin-nonfree']
+
 def get_dbus_bus():
    bus = dbus.SystemBus()
    return bus
@@ -1018,7 +1021,8 @@ class Application():
             if package.pkg.is_installed:
                 self.apt_client.remove_package(package.pkg.name)
             else:
-                self.apt_client.install_package(package.pkg.name)
+                if package.pkg.name not in BROKEN_PACKAGES:
+                    self.apt_client.install_package(package.pkg.name)
     
     def on_screenshot_clicked(self, url):
         package = self.current_package
@@ -1787,11 +1791,18 @@ class Application():
             subs['action_button_description'] = _("Installed")
             subs['iconstatus'] = "/usr/lib/linuxmint/mintInstall/data/installed.png"
         else:
-            subs['action_button_label'] = _("Install")
-            subs['action_button_value'] = "install"
-            subs['version'] = package.pkg.candidate.version
-            subs['action_button_description'] = _("Not installed")
-            subs['iconstatus'] = "/usr/lib/linuxmint/mintInstall/data/available.png"
+            if package.pkg.name in BROKEN_PACKAGES:           
+                subs['action_button_label'] = _("Not available")
+                subs['action_button_value'] = "remove"
+                subs['version'] = package.pkg.candidate.version
+                subs['action_button_description'] = _("Please use apt-get to install this package.")
+                subs['iconstatus'] = "/usr/lib/linuxmint/mintInstall/data/available.png"
+            else:
+                subs['action_button_label'] = _("Install")
+                subs['action_button_value'] = "install"
+                subs['version'] = package.pkg.candidate.version
+                subs['action_button_description'] = _("Not installed")
+                subs['iconstatus'] = "/usr/lib/linuxmint/mintInstall/data/available.png"
 
         if package.num_reviews > 0:
             sans26 = ImageFont.truetype(self.FONT, 26)
