@@ -1,3 +1,9 @@
+mintinstall (7.5.5) qiana; urgency=medium
+
+  * Remove hardcoded width of main category view, this lets the view re-flow when the window size is changed.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 21 May 2014 11:22:44 +0100
+
 mintinstall (7.5.4) qiana; urgency=medium
 
   * Updated desktop files
