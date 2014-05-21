@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # mintInstall
-#	No Copyright (What for?) Clem <root@linuxmint.com>
+#	Copyright Clem <root@linuxmint.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License

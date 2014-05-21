@@ -1,0 +1,3 @@
+/usr/bin/mintInstall   usr/bin/mintinstall
+/usr/share/linuxmint/mintInstall/data           usr/lib/linuxmint/mintInstall/data
+/usr/share/linuxmint/mintInstall/status-icons   usr/lib/linuxmint/mintInstall/status-icons
