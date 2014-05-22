@@ -446,7 +446,7 @@ class Application():
         gladefile = "/usr/lib/linuxmint/mintInstall/mintinstall.glade"
         wTree = gtk.glade.XML(gladefile, "main_window")
         wTree.get_widget("main_window").set_title(_("Software Manager"))
-        wTree.get_widget("main_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
+        wTree.get_widget("main_window").set_icon_from_file("/usr/share/linuxmint/mintInstall/icon.svg")
         wTree.get_widget("main_window").connect("delete_event", self.close_application)
         
         self.main_window = wTree.get_widget("main_window")
@@ -582,7 +582,7 @@ class Application():
         sans10  =  ImageFont.truetype ( self.FONT, 12 )
 
         # Build the category browsers
-        template = open("/usr/lib/linuxmint/mintInstall/data/templates/CategoriesView.html").read()
+        template = open("/usr/share/linuxmint/mintInstall/data/templates/CategoriesView.html").read()
         subs = {'header': _("Categories")}      
         subs['subtitle'] = _("Please choose a category")
         subs['package_num'] = _("%d packages are currently available") % len(self.packages)
@@ -592,7 +592,7 @@ class Application():
         self.browser.connect('title-changed', self._on_title_changed)
         wTree.get_widget("scrolled_categories").add(self.browser)
 
-        template = open("/usr/lib/linuxmint/mintInstall/data/templates/SubCategoriesView.html").read()
+        template = open("/usr/share/linuxmint/mintInstall/data/templates/SubCategoriesView.html").read()
         subs = {'header': _("Categories")}
         subs['subtitle'] = _("Please choose a sub-category")
         html = string.Template(template).safe_substitute(subs)
@@ -635,8 +635,8 @@ class Application():
         
         wTree.get_widget("main_window").show_all()        
         
-        self.generic_installed_icon_path = "/usr/lib/linuxmint/mintInstall/data/installed.png"
-        self.generic_available_icon_path = "/usr/lib/linuxmint/mintInstall/data/available.png"        
+        self.generic_installed_icon_path = "/usr/share/linuxmint/mintInstall/data/installed.png"
+        self.generic_available_icon_path = "/usr/share/linuxmint/mintInstall/data/available.png"        
         
         self.generic_installed_icon_pixbuf=gtk.gdk.pixbuf_new_from_file_at_size(self.generic_installed_icon_path, 32, 32)
         self.generic_available_icon_pixbuf=gtk.gdk.pixbuf_new_from_file_at_size(self.generic_available_icon_path, 32, 32)        
@@ -746,7 +746,7 @@ class Application():
         gladefile = "/usr/lib/linuxmint/mintInstall/mintinstall.glade"
         wTree = gtk.glade.XML(gladefile, "window_account")
         wTree.get_widget("window_account").set_title(_("Account information"))
-        wTree.get_widget("window_account").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
+        wTree.get_widget("window_account").set_icon_from_file("/usr/share/linuxmint/mintInstall/icon.svg")
         wTree.get_widget("label1").set_label("<b>%s</b>" % _("Your community account"))
         wTree.get_widget("label1").set_use_markup(True)
         wTree.get_widget("label2").set_label("<i><small>%s</small></i>" % _("Fill in your account info to review applications"))
@@ -799,8 +799,8 @@ class Application():
             print detail
 
         dlg.set_authors(["Clement Lefebvre <root@linuxmint.com>"])
-        dlg.set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
-        dlg.set_logo(gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/icon.svg"))
+        dlg.set_icon_from_file("/usr/share/linuxmint/mintInstall/icon.svg")
+        dlg.set_logo(gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/icon.svg"))
         def close(w, res):
             if res == gtk.RESPONSE_CANCEL:
                 w.hide()
@@ -979,7 +979,7 @@ class Application():
         reviews.sort(key=lambda x: x.date, reverse=True)
         if len(reviews) > 10:
             for review in reviews[0:10]:
-                rating = "/usr/lib/linuxmint/mintInstall/data/small_" + str(review.rating) + ".png"
+                rating = "/usr/share/linuxmint/mintInstall/data/small_" + str(review.rating) + ".png"
                 comment = review.comment.strip()
                 comment = comment.replace("'", "\'")
                 comment = comment.replace('"', '\"')
@@ -992,7 +992,7 @@ class Application():
 
         else:
             for review in reviews:
-                rating = "/usr/lib/linuxmint/mintInstall/data/small_" + str(review.rating) + ".png"
+                rating = "/usr/share/linuxmint/mintInstall/data/small_" + str(review.rating) + ".png"
                 comment = review.comment.strip()
                 comment = comment.replace("'", "\'")
                 comment = comment.replace('"', '\"')
@@ -1023,7 +1023,7 @@ class Application():
     def on_screenshot_clicked(self, url):
         package = self.current_package
         if package is not None:
-            template = open("/usr/lib/linuxmint/mintInstall/data/templates/ScreenshotView.html").read()
+            template = open("/usr/share/linuxmint/mintInstall/data/templates/ScreenshotView.html").read()
             subs = {}
             subs['url'] = url
             print "loading: '%s'" % url
@@ -1043,7 +1043,7 @@ class Application():
     def on_reviews_clicked(self):
         package = self.current_package
         if package is not None:
-            template = open("/usr/lib/linuxmint/mintInstall/data/templates/ReviewsView.html").read()
+            template = open("/usr/share/linuxmint/mintInstall/data/templates/ReviewsView.html").read()
             subs = {}
             subs['appname'] = self.current_package.pkg.name
             subs['reviewsLabel'] = _("Reviews")
@@ -1065,7 +1065,7 @@ class Application():
         self.reviewsBrowser.execute_script('clearReviews()')
         reviews.sort(key=lambda x: x.date, reverse=True)
         for review in reviews:
-            rating = "/usr/lib/linuxmint/mintInstall/data/small_" + str(review.rating) + ".png"
+            rating = "/usr/share/linuxmint/mintInstall/data/small_" + str(review.rating) + ".png"
             comment = review.comment.strip()
             comment = comment.replace("'", "\'")
             comment = comment.replace('"', '\"')
@@ -1111,7 +1111,7 @@ class Application():
         self.categories = []
         self.root_category = Category(_("Categories"), "applications-other", None, None, self.categories)
         
-        featured = Category(_("Featured"), "/usr/lib/linuxmint/mintInstall/data/templates/featured.svg", None, self.root_category, self.categories)
+        featured = Category(_("Featured"), "/usr/share/linuxmint/mintInstall/data/templates/featured.svg", None, self.root_category, self.categories)
         featured.matchingPackages = self.file_to_array("/usr/lib/linuxmint/mintInstall/categories/featured.list")
         
         self.category_all = Category(_("All Packages"), "applications-other", None, self.root_category, self.categories)
@@ -1359,7 +1359,7 @@ class Application():
             model_applications.set_value(iter, 1, "%s\n<small><span foreground='#555555'>%s</span></small>" % (package.name, summary.capitalize()))
 
             if package.num_reviews > 0:
-                image = "/usr/lib/linuxmint/mintInstall/data/" + str(package.avg_rating) + ".png"
+                image = "/usr/share/linuxmint/mintInstall/data/" + str(package.avg_rating) + ".png"
                 im=Image.open(image)
                 draw = ImageDraw.Draw(im)
 
@@ -1521,7 +1521,7 @@ class Application():
             if package.pkg.is_installed:
                 im=Image.open(icon_path)
                 bg_w,bg_h=im.size
-                im2=Image.open("/usr/lib/linuxmint/mintInstall/data/emblem-installed.png")
+                im2=Image.open("/usr/share/linuxmint/mintInstall/data/emblem-installed.png")
                 img_w,img_h=im2.size 
                 offset=(17,17)         
                 im.paste(im2, offset,im2)
@@ -1785,18 +1785,18 @@ class Application():
             subs['action_button_value'] = "remove"
             subs['version'] = package.pkg.installed.version
             subs['action_button_description'] = _("Installed")
-            subs['iconstatus'] = "/usr/lib/linuxmint/mintInstall/data/installed.png"
+            subs['iconstatus'] = "/usr/share/linuxmint/mintInstall/data/installed.png"
         else:
             subs['action_button_label'] = _("Install")
             subs['action_button_value'] = "install"
             subs['version'] = package.pkg.candidate.version
             subs['action_button_description'] = _("Not installed")
-            subs['iconstatus'] = "/usr/lib/linuxmint/mintInstall/data/available.png"
+            subs['iconstatus'] = "/usr/share/linuxmint/mintInstall/data/available.png"
 
         if package.num_reviews > 0:
             sans26 = ImageFont.truetype(self.FONT, 26)
             sans10 = ImageFont.truetype(self.FONT, 12)
-            image = "/usr/lib/linuxmint/mintInstall/data/" + str(package.avg_rating) + ".png"
+            image = "/usr/share/linuxmint/mintInstall/data/" + str(package.avg_rating) + ".png"
             im=Image.open(image)
             draw = ImageDraw.Draw(im)
             color = "#000000"
@@ -1813,10 +1813,10 @@ class Application():
             subs['rating'] = tmpFile.name + ".png"
             subs['reviews'] = "<b>" + _("Reviews:") + "</b>"
         else:
-            subs['rating'] = "/usr/lib/linuxmint/mintInstall/data/no-reviews.png"
+            subs['rating'] = "/usr/share/linuxmint/mintInstall/data/no-reviews.png"
             subs['reviews'] = ""
 
-        template = open("/usr/lib/linuxmint/mintInstall/data/templates/PackageView.html")        
+        template = open("/usr/share/linuxmint/mintInstall/data/templates/PackageView.html")        
         html = string.Template(template.read()).safe_substitute(subs)
         self.packageBrowser.load_html_string(html, "file:/")
         template.close()

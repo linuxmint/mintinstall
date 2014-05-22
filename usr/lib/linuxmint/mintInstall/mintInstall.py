@@ -189,7 +189,7 @@ class mintInstallWindow:
         #Set the Glade file
         self.gladefile = "/usr/lib/linuxmint/mintInstall/mintInstall.glade"
         wTree = gtk.glade.XML(self.gladefile,"main_window")
-	wTree.get_widget("main_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
+	wTree.get_widget("main_window").set_icon_from_file("/usr/share/linuxmint/mintInstall/icon.svg")
 	wTree.get_widget("main_window").set_title("")
 
 	wTree.get_widget("main_window").connect("destroy", self.giveUp)
@@ -430,7 +430,7 @@ if __name__ == "__main__":
 	wTree.get_widget("txt_search_mint").connect("changed", updateEntries, wTree)
 	wTree.get_widget("txt_search_getdeb").connect("changed", updateEntries, wTree)
 	wTree.get_widget("txt_apt").connect("changed", updateEntries, wTree)
-	wTree.get_widget("window_menu").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
+	wTree.get_widget("window_menu").set_icon_from_file("/usr/share/linuxmint/mintInstall/icon.svg")
 	wTree.get_widget("window_menu").set_title(_("Find Software"))
 
 	#i18n
