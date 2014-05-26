@@ -1720,10 +1720,13 @@ class Application():
 
         impacted_packages = []    
         pkg = self.cache[package.name]
-        if package.pkg.is_installed:
-            pkg.mark_delete(True, True)
-        else:
-            pkg.mark_install()
+        try:
+            if package.pkg.is_installed:
+                pkg.mark_delete(True, True)
+            else:
+                pkg.mark_install()
+        except:
+            pass
     
         changes = self.cache.get_changes()
         for pkg in changes:
