@@ -726,7 +726,7 @@ class Application():
         try:
             prefs["search_while_typing"] = (config['search']['search_while_typing'] == "True")
         except:
-            prefs["search_while_typing"] = True
+            prefs["search_while_typing"] = False
 
         #External browser
         try:
