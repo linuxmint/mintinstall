@@ -935,8 +935,7 @@ class Application():
 
         if (destination == "search"):
             self.notebook.set_current_page(self.PAGE_SEARCH)
-        else:
-            self.searchentry.set_text("")
+        else:            
             self._search_in_category = self.root_category
             if isinstance(destination, Category):
                 self._search_in_category = destination
@@ -945,6 +944,7 @@ class Application():
                         self.notebook.set_current_page(self.PAGE_MIXED)
                     else:
                         self.notebook.set_current_page(self.PAGE_CATEGORIES)
+                        self.searchentry.set_text("")
                 else:
                     self.notebook.set_current_page(self.PAGE_PACKAGES)
             elif isinstance(destination, Package):
@@ -1383,6 +1383,7 @@ class Application():
     
     @print_timing
     def show_category(self, category):
+        self.searchentry.set_text("")
         self._search_in_category = category
         # Load subcategories
         if len(category.subcategories) > 0:
@@ -1672,7 +1673,7 @@ class Application():
 
     @print_timing
     def show_package(self, package, tree):
-
+        self.searchentry.set_text("")
         self.current_package = package
                 
         # Load package info
