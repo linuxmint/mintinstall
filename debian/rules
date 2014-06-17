@@ -5,8 +5,7 @@
 	dh ${@} --with python2
 
 override_dh_install:
-	mkdir -p $(CURDIR)/debian/mintinstall
-	cp -r $(CURDIR)/usr $(CURDIR)/debian/mintinstall/
+	dh_install
 	wget http://community.linuxmint.com/data/reviews.list -O $(CURDIR)/debian/mintinstall/usr/lib/linuxmint/mintInstall/reviews.list
 
 override_dh_builddeb:
