@@ -1726,7 +1726,8 @@ class Application():
             else:
                 pkg.mark_install()
         except:
-            pass
+            if pkg.name not in BROKEN_PACKAGES:
+                BROKEN_PACKAGES.append(pkg.name)            
     
         changes = self.cache.get_changes()
         for pkg in changes:
