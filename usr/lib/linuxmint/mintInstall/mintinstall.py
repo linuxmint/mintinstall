@@ -1526,9 +1526,17 @@ class Application():
             if package.pkg.is_installed:
                 im=Image.open(icon_path)
                 bg_w,bg_h=im.size
+                # The code that pastes the green checkmark icon expects a 32x32
+                # icon. Most icons are 32x32, however in some rare instances
+                # the icon might be e.g. 64x64.
+                im = im.resize((32, 32))
                 im2=Image.open("/usr/lib/linuxmint/mintInstall/data/emblem-installed.png")
                 img_w,img_h=im2.size 
                 offset=(17,17)         
+                # For the green checkmark pasting to work well, the original icon image
+                # must be in the same format as the green checkmark. Otherwise the checkmark
+                # might be loose some colour precision.
+                im = im.convert(im2.mode)
                 im.paste(im2, offset,im2)
                 tmpFile = tempfile.NamedTemporaryFile(delete=False)
                 im.save (tmpFile.name + ".png")             
