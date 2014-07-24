@@ -77,7 +77,7 @@ class mintInstallExecuter(threading.Thread):
 
 	for i in range(steps + 1):
 		if (i > 0):			
-			openfile = open("/usr/lib/linuxmint/mintInstall/tmp/steps/"+str(i), 'r' )
+			openfile = open("/usr/share/linuxmint/mintInstall/tmp/steps/"+str(i), 'r' )
                         datalist = openfile.readlines()
 			for j in range( len( datalist ) ):
                             if (str.find(datalist[j], "TITLE") > -1):
@@ -146,22 +146,22 @@ class mintInstallWindow:
 	self.home = home
 
 	#Make tmp folder
-	os.system("mkdir -p /usr/lib/linuxmint/mintInstall/tmp")
+	os.system("mkdir -p /usr/share/linuxmint/mintInstall/tmp")
 
 	#Clean tmp files
-	os.system("rm -rf /usr/lib/linuxmint/mintInstall/tmp/*") 
+	os.system("rm -rf /usr/share/linuxmint/mintInstall/tmp/*") 
 
 	#Decompress file
-	os.system("cp " + mintFile + " /usr/lib/linuxmint/mintInstall/tmp/file.mint")
-	os.system("tar xf /usr/lib/linuxmint/mintInstall/tmp/file.mint -C /usr/lib/linuxmint/mintInstall/tmp/") #Try without gzip
-	os.system("tar zxf /usr/lib/linuxmint/mintInstall/tmp/file.mint -C /usr/lib/linuxmint/mintInstall/tmp/") #Try with gzip
+	os.system("cp " + mintFile + " /usr/share/linuxmint/mintInstall/tmp/file.mint")
+	os.system("tar xf /usr/share/linuxmint/mintInstall/tmp/file.mint -C /usr/share/linuxmint/mintInstall/tmp/") #Try without gzip
+	os.system("tar zxf /usr/share/linuxmint/mintInstall/tmp/file.mint -C /usr/share/linuxmint/mintInstall/tmp/") #Try with gzip
 
 	#Extract the name
-	self.name = commands.getoutput("cat /usr/lib/linuxmint/mintInstall/tmp/name")	
+	self.name = commands.getoutput("cat /usr/share/linuxmint/mintInstall/tmp/name")	
 	self.name = str.strip(self.name)
 
 	#Extract the number of steps
-	steps = int(commands.getoutput("ls -l /usr/lib/linuxmint/mintInstall/tmp/steps/ | wc -l"))
+	steps = int(commands.getoutput("ls -l /usr/share/linuxmint/mintInstall/tmp/steps/ | wc -l"))
 	steps = steps -1
 	self.pulse = 1/steps
 	
@@ -173,7 +173,7 @@ class mintInstallWindow:
 	packages = []
 	for i in range(steps + 1):
 		if (i > 0):			
-			openfile = open("/usr/lib/linuxmint/mintInstall/tmp/steps/"+str(i), 'r' )
+			openfile = open("/usr/share/linuxmint/mintInstall/tmp/steps/"+str(i), 'r' )
                         datalist = openfile.readlines()
 			for j in range( len( datalist ) ):
 			    if (str.find(datalist[j], "INSTALL") > -1):
@@ -187,9 +187,9 @@ class mintInstallWindow:
 			#openfile.close()
 	
         #Set the Glade file
-        self.gladefile = "/usr/lib/linuxmint/mintInstall/mintInstall.glade"
+        self.gladefile = "/usr/share/linuxmint/mintInstall/mintInstall.glade"
         wTree = gtk.glade.XML(self.gladefile,"main_window")
-	wTree.get_widget("main_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
+	wTree.get_widget("main_window").set_icon_from_file("/usr/share/linuxmint/mintInstall/icon.svg")
 	wTree.get_widget("main_window").set_title("")
 
 	wTree.get_widget("main_window").connect("destroy", self.giveUp)
@@ -405,7 +405,7 @@ global home
 if __name__ == "__main__":
     if (len(sys.argv) != 4):
 	username = sys.argv[1]	
-        gladefile = "/usr/lib/linuxmint/mintInstall/mintInstall.glade"
+        gladefile = "/usr/share/linuxmint/mintInstall/mintInstall.glade"
         wTree = gtk.glade.XML(gladefile,"window_menu")
 
 	# Get the window socket (needed for synaptic later on)
@@ -430,7 +430,7 @@ if __name__ == "__main__":
 	wTree.get_widget("txt_search_mint").connect("changed", updateEntries, wTree)
 	wTree.get_widget("txt_search_getdeb").connect("changed", updateEntries, wTree)
 	wTree.get_widget("txt_apt").connect("changed", updateEntries, wTree)
-	wTree.get_widget("window_menu").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
+	wTree.get_widget("window_menu").set_icon_from_file("/usr/share/linuxmint/mintInstall/icon.svg")
 	wTree.get_widget("window_menu").set_title(_("Find Software"))
 
 	#i18n

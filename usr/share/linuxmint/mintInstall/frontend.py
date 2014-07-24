@@ -134,14 +134,14 @@ def filter_search(widget, wTree, model):
 	show_applications(wTree, model, True)	
 
 def open_search(widget, username):
-	os.system("/usr/lib/linuxmint/mintInstall/mintInstall.py " + username + " &")
+	os.system("/usr/share/linuxmint/mintInstall/mintInstall.py " + username + " &")
 
 def open_featured(widget):
-	gladefile = "/usr/lib/linuxmint/mintInstall/frontend.glade"
+	gladefile = "/usr/share/linuxmint/mintInstall/frontend.glade"
 	wTree = gtk.glade.XML(gladefile, "featured_window")
 	treeview_featured = wTree.get_widget("treeview_featured")
 	wTree.get_widget("featured_window").set_title(_("Featured applications"))
-	wTree.get_widget("featured_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")	
+	wTree.get_widget("featured_window").set_icon_from_file("/usr/share/linuxmint/mintInstall/icon.svg")	
 	wTree.get_widget("button_close").connect("clicked", close_window, wTree.get_widget("featured_window"))
 	wTree.get_widget("button_apply").connect("clicked", install_featured, wTree, treeview_featured, wTree.get_widget("featured_window"))		
 	wTree.get_widget("featured_window").show_all()	
@@ -252,10 +252,10 @@ def celldatafunction_checkbox(column, cell, model, iter):
 def show_screenshot(widget, model):
 	#Set the Glade file
 	if model.selected_application != None:		
-		gladefile = "/usr/lib/linuxmint/mintInstall/frontend.glade"
+		gladefile = "/usr/share/linuxmint/mintInstall/frontend.glade"
 		wTree = gtk.glade.XML(gladefile, "screenshot_window")
 		wTree.get_widget("screenshot_window").set_title(model.selected_application.name)
-		wTree.get_widget("screenshot_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
+		wTree.get_widget("screenshot_window").set_icon_from_file("/usr/share/linuxmint/mintInstall/icon.svg")
 		wTree.get_widget("screenshot_window").connect("delete_event", close_window, wTree.get_widget("screenshot_window"))
 		wTree.get_widget("button_screen_close").connect("clicked", close_window, wTree.get_widget("screenshot_window"))
 		wTree.get_widget("image_screen").set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(model.selected_application.screenshot))	
@@ -323,10 +323,10 @@ def show_more_info(widget, model):
 						source = source.rstrip()
 						self.repositories.append(source)	
 					openfile.close()
-			gladefile = "/usr/lib/linuxmint/mintInstall/frontend.glade"
+			gladefile = "/usr/share/linuxmint/mintInstall/frontend.glade"
 			wTree = gtk.glade.XML(gladefile, "more_info_window")
 			wTree.get_widget("more_info_window").set_title(model.selected_application.name)
-			wTree.get_widget("more_info_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
+			wTree.get_widget("more_info_window").set_icon_from_file("/usr/share/linuxmint/mintInstall/icon.svg")
 			wTree.get_widget("button_versions_close").connect("clicked", close_window, wTree.get_widget("more_info_window"))
 
 			tree_repositories = wTree.get_widget("treeview_repositories")
@@ -417,11 +417,11 @@ def show_more_info(widget, model):
 
 def visit_web(widget, model, username):
 	if model.selected_application != None:
-		os.system("sudo -u " + username + " /usr/lib/linuxmint/common/launch_browser_as.py \"" + model.selected_application.link + "\"")	
+		os.system("sudo -u " + username + " /usr/share/linuxmint/common/launch_browser_as.py \"" + model.selected_application.link + "\"")	
 
 def visit_website(widget, model, username):
 	if model.selected_application != None:
-		os.system("sudo -u " + username + " /usr/lib/linuxmint/common/launch_browser_as.py \"" + model.selected_application.website + "\"")		
+		os.system("sudo -u " + username + " /usr/share/linuxmint/common/launch_browser_as.py \"" + model.selected_application.website + "\"")		
 
 def install(widget, model, wTree, username):	
 	if model.selected_application != None:
@@ -441,7 +441,7 @@ def install(widget, model, wTree, username):
 			model.selected_application.status = "add"
 			wTree.get_widget("toolbutton_apply").set_sensitive(True)			
 			model_applications, iter = wTree.get_widget("tree_applications").get_selection().get_selected()			
-			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/add.png"))		
+			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/add.png"))		
 			model_applications.set_value(iter, 8, 1)
 			show_item(wTree.get_widget("tree_applications").get_selection(), model, wTree, username)
 		
@@ -452,7 +452,7 @@ def remove(widget, model, wTree, username):
 			if not os.path.exists((model.selected_application.mint_file)):
 				os.system("zenity --error --text=\"" + _("The mint file for this application was not successfully downloaded. Click on refresh to fix the problem.") + "\"")
 			else:
-				os.system("/usr/lib/linuxmint/mintInstall/remove.py " + model.selected_application.mint_file)
+				os.system("/usr/share/linuxmint/mintInstall/remove.py " + model.selected_application.mint_file)
 				show_item(wTree.get_widget("tree_applications").get_selection(), model, wTree, username)
 				global cache
 				cache = apt.Cache()
@@ -464,7 +464,7 @@ def remove(widget, model, wTree, username):
 			model.selected_application.status = "remove"
 			wTree.get_widget("toolbutton_apply").set_sensitive(True)
 			model_applications, iter = wTree.get_widget("tree_applications").get_selection().get_selected()			
-			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/remove.png"))		
+			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/remove.png"))		
 			model_applications.set_value(iter, 8, 2)
 			show_item(wTree.get_widget("tree_applications").get_selection(), model, wTree, username)
 
@@ -476,14 +476,14 @@ def cancel_change(widget, model, wTree, username):
 				if package in model.packages_to_install:
 					model.packages_to_install.remove(package)
 			model.selected_application.status = "available"
-			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/available.png"))		
+			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/available.png"))		
 			model_applications.set_value(iter, 8, 4)
 		elif model.selected_application.status == "remove":
 			for package in model.selected_application.packages:
 				if package in model.packages_to_remove:
 					model.packages_to_remove.remove(package)
 			model.selected_application.status = "installed"
-			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/installed.png"))		
+			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/installed.png"))		
 			model_applications.set_value(iter, 8, 3)
 
 		if len(model.packages_to_install) == 0 and len(model.packages_to_remove) == 0:
@@ -580,21 +580,21 @@ def show_applications(wTree, model, scrollback):
 					model_applications.set_value(iter, 5, item)
 					model_applications.set_value(iter, 6, float(item.average_rating) * len(item.reviews) + (item.views / 1000))
 					if item.is_special:
-						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/special.png"))	
+						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/special.png"))	
 						model_applications.set_value(iter, 8, 9)
 
 					else:	
 						if item.status == "available":
-							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/available.png"))		
+							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/available.png"))		
 							model_applications.set_value(iter, 8, 4)				
 						elif item.status == "installed":
-							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/installed.png"))
+							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/installed.png"))
 							model_applications.set_value(iter, 8, 3)
 						elif item.status == "add":
-							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/add.png"))		
+							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/add.png"))		
 							model_applications.set_value(iter, 8, 1)
 						elif item.status == "remove":
-							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/remove.png"))		
+							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/remove.png"))		
 							model_applications.set_value(iter, 8, 2)
 
 					if model.selected_application == item:						
@@ -630,10 +630,10 @@ def filter_applications(combo, wTree, model):
 def build_GUI(model, username):
 
 	#Set the Glade file
-	gladefile = "/usr/lib/linuxmint/mintInstall/frontend.glade"
+	gladefile = "/usr/share/linuxmint/mintInstall/frontend.glade"
 	wTree = gtk.glade.XML(gladefile, "main_window")
 	wTree.get_widget("main_window").set_title(_("Software Manager"))
-	wTree.get_widget("main_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
+	wTree.get_widget("main_window").set_icon_from_file("/usr/share/linuxmint/mintInstall/icon.svg")
 	wTree.get_widget("main_window").connect("delete_event", close_application)
 
 	wTree.get_widget("image_screenshot").clear()
@@ -812,7 +812,7 @@ def cancel_changes(widget, wTree, model):
 
 def open_about(widget):
 	dlg = gtk.AboutDialog()		
-	dlg.set_version(commands.getoutput("/usr/lib/linuxmint/common/version.py mintinstall"))
+	dlg.set_version(commands.getoutput("/usr/share/linuxmint/common/version.py mintinstall"))
 	dlg.set_name("mintInstall")
 	dlg.set_comments(_("Software manager"))
         try:
@@ -826,8 +826,8 @@ def open_about(widget):
         except Exception, detail:
             print detail            
         dlg.set_authors(["Clement Lefebvre <root@linuxmint.com>"]) 
-	dlg.set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
-	dlg.set_logo(gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/icon.svg"))
+	dlg.set_icon_from_file("/usr/share/linuxmint/mintInstall/icon.svg")
+	dlg.set_logo(gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/icon.svg"))
         def close(w, res):
             if res == gtk.RESPONSE_CANCEL:
                 w.hide()
@@ -909,7 +909,7 @@ class RefreshThread(threading.Thread):
 					gtk.gdk.threads_enter()
 					dialog = gtk.MessageDialog(self.wTree.get_widget("main_window"), gtk.DIALOG_MODAL, gtk.MESSAGE_INFO, gtk.BUTTONS_NONE, _("Please refresh mintInstall by clicking on the Refresh button"))
 					dialog.set_title("mintInstall")
-					dialog.set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
+					dialog.set_icon_from_file("/usr/share/linuxmint/mintInstall/icon.svg")
 					dialog.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
 					dialog.connect('response', lambda dialog, response: dialog.destroy())
 					dialog.show()
@@ -988,7 +988,7 @@ class RefreshThread(threading.Thread):
 				if self.refresh:
 					os.chdir(self.directory + "/icons/categories")	
 					os.system("wget -nc -O" + category.key + " " + category.logo)
-					os.chdir("/usr/lib/linuxmint/mintInstall")					
+					os.chdir("/usr/share/linuxmint/mintInstall")					
 				category.logo = gtk.gdk.pixbuf_new_from_file_at_size(self.directory + "/icons/categories/" + category.key, 16, 16)
 				category.name = _(category.name)
 				portal.categories.append(category)	
@@ -1012,7 +1012,7 @@ class RefreshThread(threading.Thread):
 				if self.refresh:					
 					os.chdir(self.directory + "/mintfiles")	
 					os.system("wget -nc -O" + item.key + ".mint -T10 \"" + item.mint_file + "\"")
-					os.chdir("/usr/lib/linuxmint/mintInstall")
+					os.chdir("/usr/share/linuxmint/mintInstall")
 				item.mint_file = self.directory + "/mintfiles/" + item.key + ".mint"				
 
 				if item.repository == "":
@@ -1038,7 +1038,7 @@ class RefreshThread(threading.Thread):
 						if self.refresh:					
 							os.chdir(self.directory + "/screenshots")	
 							os.system("wget -nc -O" + screen_item + " -T10 \"" + screen_img + "\"")
-							os.chdir("/usr/lib/linuxmint/mintInstall")
+							os.chdir("/usr/share/linuxmint/mintInstall")
 						item.screenshot = self.directory + "/screenshots/" + screen_item
 						item.screenshot_url = screen_img				
 						gtk.gdk.threads_enter()						
@@ -1096,7 +1096,7 @@ class RefreshThread(threading.Thread):
 		iter = model_categories.insert_before(None, None)						
 		model_categories.set_value(iter, 0, _("All applications"))						
 		model_categories.set_value(iter, 1, None)
-		model_categories.set_value(iter, 2, gtk.gdk.pixbuf_new_from_file_at_size("/usr/lib/linuxmint/mintInstall/icon.svg", 16, 16))
+		model_categories.set_value(iter, 2, gtk.gdk.pixbuf_new_from_file_at_size("/usr/share/linuxmint/mintInstall/icon.svg", 16, 16))
 		for portal in model.portals:
 			for category in portal.categories:		
 				if (category.parent == None or category.parent == "None"):
@@ -1128,20 +1128,20 @@ class RefreshThread(threading.Thread):
 				model_applications.set_value(iter, 5, item)
 				model_applications.set_value(iter, 6, float(item.average_rating) * len(item.reviews) + (item.views / 1000))
 				if item.is_special:
-					model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/special.png"))	
+					model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/special.png"))	
 					model_applications.set_value(iter, 8, 9)	
 				else:					
 					if item.status == "available":
-						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/available.png"))		
+						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/available.png"))		
 						model_applications.set_value(iter, 8, 4)				
 					elif item.status == "installed":
-						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/installed.png"))
+						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/installed.png"))
 						model_applications.set_value(iter, 8, 3)
 					elif item.status == "add":
-						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/add.png"))		
+						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/add.png"))		
 						model_applications.set_value(iter, 8, 1)
 					elif item.status == "remove":
-						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/remove.png"))		
+						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/remove.png"))		
 						model_applications.set_value(iter, 8, 2)
 		model_applications.set_sort_column_id( 6, gtk.SORT_DESCENDING )
 		tree_applications.set_model(model_applications)		
