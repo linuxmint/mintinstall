@@ -1,18 +1,6 @@
 #!/bin/sh
 
 sudo rm -rf /usr/share/linuxmint/mintInstall
-sudo rm -f /usr/bin/int-batch-make
-sudo rm -f /usr/bin/mintInstall
-sudo rm -f /usr/bin/mintinstall
-sudo rm -f /usr/bin/mint-search-apt
-sudo rm -f /usr/bin/mint-synaptic-install
-sudo rm -f /usr/bin/mint-compress
-sudo rm -f /usr/bin/mint-make
-sudo rm -f /usr/bin/mint-search-portal
-sudo rm -f /usr/bin/mint-decompress
-sudo rm -f /usr/bin/mint-make-cmd
-sudo rm -f /usr/bin/mint-show-apt
-
 sudo cp -R usr /
-sudo ln -s mintInstall /usr/bin/mintinstall
+sudo ln -fs mintInstall /usr/bin/mintinstall
 sudo mintinstall
