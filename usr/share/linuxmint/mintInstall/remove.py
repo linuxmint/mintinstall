@@ -88,9 +88,9 @@ class mintRemoveWindow:
 				openfile.close()		
 					
         #Set the Glade file
-        self.gladefile = "/usr/lib/linuxmint/mintInstall/remove.glade"
+        self.gladefile = "/usr/share/linuxmint/mintInstall/remove.glade"
         wTree = gtk.glade.XML(self.gladefile,"main_window")
-	wTree.get_widget("main_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
+	wTree.get_widget("main_window").set_icon_from_file("/usr/share/linuxmint/mintInstall/icon.svg")
 	wTree.get_widget("main_window").set_title("")
 	wTree.get_widget("main_window").connect("destroy", self.giveUp)
 
