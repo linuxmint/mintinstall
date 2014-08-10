@@ -1,0 +1,2 @@
+# kdesudo is available on KDE
+mintinstall: desktop-command-not-in-package usr/share/applications/mintInstall_kde.desktop kdesudo
