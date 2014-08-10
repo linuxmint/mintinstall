@@ -3,7 +3,8 @@ mintinstall (7.5.7) qiana; urgency=medium
   * Don't break when a package's dependencies are broken
   * Don't allow the installation of broken packages
   * Don't erase the search entry field when searching within a category
-  * Changed "search while typing" default value to False (less comfortable but more reliable)
+  * Changed "search while typing" default value to False
+    (less comfortable but more reliable)
 
  -- Clement Lefebvre <root@linuxmint.com>  Tue, 17 Jun 2014 16:46:17 +0100
 

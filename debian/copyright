@@ -25,7 +25,8 @@ Files: usr/lib/linuxmint/mintInstall/widgets/*
 Copyright: 2009 Canonical
 License: GPL-3+
 
-Files: usr/lib/linuxmint/mintInstall/widgets/{pathbar2.py,rgb.py}
+Files: usr/lib/linuxmint/mintInstall/widgets/pathbar2.py
+       usr/lib/linuxmint/mintInstall/widgets/rgb.py
 Copyright: 2009 Matthew McGowan
 License: GPL-3+
 
