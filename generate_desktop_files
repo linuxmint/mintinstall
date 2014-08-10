@@ -12,7 +12,7 @@ gettext.install(DOMAIN, PATH)
 
 prefix = "[Desktop Entry]\n"
 
-suffix = """Exec=gksu mintinstall
+suffix = """Exec=su-to-root -X mintinstall
 Icon=/usr/lib/linuxmint/mintInstall/icon.svg
 Terminal=false
 Type=Application
