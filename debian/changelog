@@ -1,3 +1,10 @@
+mintinstall (7.5.8) rebecca; urgency=medium
+
+  * Fix for checkmark icon rendering glitches
+  * Added audacity to sound and video category
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue, 30 Sep 2014 13:12:13 +0200
+
 mintinstall (7.5.7) qiana; urgency=medium
 
   * Don't break when a package's dependencies are broken
