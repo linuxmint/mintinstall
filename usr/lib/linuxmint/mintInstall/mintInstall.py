@@ -445,7 +445,10 @@ if __name__ == "__main__":
 	wTree.get_widget("button_portal_mint_apt_label").set_label(_("Go to the Linux Mint repository"))
 	wTree.get_widget("txt_search_mint").grab_focus() 
 	wTree.get_widget("window_menu").show()
-        gtk.main()
+
+	gtk.gdk.threads_enter()
+	gtk.main()
+	gtk.gdk.threads_leave()
     else:
         os.system("rm -rf /var/lib/dpkg/lock")
         os.system("rm -rf /var/lib/apt/lists/lock") 
@@ -461,5 +464,6 @@ if __name__ == "__main__":
 	    username = sys.argv[2]
 	    home = sys.argv[3]
     	    mainwin = mintInstallWindow(sys.argv[1], username, home)
+    	    gtk.gdk.threads_enter()
     	    gtk.main()
-    
+    	    gtk.gdk.threads_leave()
