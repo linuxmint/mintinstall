@@ -146,5 +146,6 @@ class mintRemoveWindow:
 
 if __name__ == "__main__":
     mainwin = mintRemoveWindow(sys.argv[1])
+    gtk.gdk.threads_enter()
     gtk.main()
-    
+    gtk.gdk.threads_leave()
