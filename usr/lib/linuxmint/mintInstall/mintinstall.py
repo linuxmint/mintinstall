@@ -1874,4 +1874,6 @@ if __name__ == "__main__":
     model = Classes.Model()
     Application()
     #os.system("kill -9 %d" % splash_process.pid)
+    gtk.gdk.threads_enter()
     gtk.main()
+    gtk.gdk.threads_leave()
