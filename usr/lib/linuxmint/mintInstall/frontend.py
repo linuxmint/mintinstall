@@ -441,7 +441,7 @@ def install(widget, model, wTree, username):
 			model.selected_application.status = "add"
 			wTree.get_widget("toolbutton_apply").set_sensitive(True)			
 			model_applications, iter = wTree.get_widget("tree_applications").get_selection().get_selected()			
-			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/add.png"))		
+			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/add.png"))		
 			model_applications.set_value(iter, 8, 1)
 			show_item(wTree.get_widget("tree_applications").get_selection(), model, wTree, username)
 		
@@ -464,7 +464,7 @@ def remove(widget, model, wTree, username):
 			model.selected_application.status = "remove"
 			wTree.get_widget("toolbutton_apply").set_sensitive(True)
 			model_applications, iter = wTree.get_widget("tree_applications").get_selection().get_selected()			
-			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/remove.png"))		
+			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/remove.png"))		
 			model_applications.set_value(iter, 8, 2)
 			show_item(wTree.get_widget("tree_applications").get_selection(), model, wTree, username)
 
@@ -476,14 +476,14 @@ def cancel_change(widget, model, wTree, username):
 				if package in model.packages_to_install:
 					model.packages_to_install.remove(package)
 			model.selected_application.status = "available"
-			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/available.png"))		
+			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/available.png"))		
 			model_applications.set_value(iter, 8, 4)
 		elif model.selected_application.status == "remove":
 			for package in model.selected_application.packages:
 				if package in model.packages_to_remove:
 					model.packages_to_remove.remove(package)
 			model.selected_application.status = "installed"
-			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/installed.png"))		
+			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/installed.png"))		
 			model_applications.set_value(iter, 8, 3)
 
 		if len(model.packages_to_install) == 0 and len(model.packages_to_remove) == 0:
@@ -580,21 +580,21 @@ def show_applications(wTree, model, scrollback):
 					model_applications.set_value(iter, 5, item)
 					model_applications.set_value(iter, 6, float(item.average_rating) * len(item.reviews) + (item.views / 1000))
 					if item.is_special:
-						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/special.png"))	
+						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/special.png"))	
 						model_applications.set_value(iter, 8, 9)
 
 					else:	
 						if item.status == "available":
-							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/available.png"))		
+							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/available.png"))		
 							model_applications.set_value(iter, 8, 4)				
 						elif item.status == "installed":
-							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/installed.png"))
+							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/installed.png"))
 							model_applications.set_value(iter, 8, 3)
 						elif item.status == "add":
-							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/add.png"))		
+							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/add.png"))		
 							model_applications.set_value(iter, 8, 1)
 						elif item.status == "remove":
-							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/remove.png"))		
+							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/remove.png"))		
 							model_applications.set_value(iter, 8, 2)
 
 					if model.selected_application == item:						
@@ -1128,20 +1128,20 @@ class RefreshThread(threading.Thread):
 				model_applications.set_value(iter, 5, item)
 				model_applications.set_value(iter, 6, float(item.average_rating) * len(item.reviews) + (item.views / 1000))
 				if item.is_special:
-					model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/special.png"))	
+					model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/special.png"))	
 					model_applications.set_value(iter, 8, 9)	
 				else:					
 					if item.status == "available":
-						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/available.png"))		
+						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/available.png"))		
 						model_applications.set_value(iter, 8, 4)				
 					elif item.status == "installed":
-						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/installed.png"))
+						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/installed.png"))
 						model_applications.set_value(iter, 8, 3)
 					elif item.status == "add":
-						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/add.png"))		
+						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/add.png"))		
 						model_applications.set_value(iter, 8, 1)
 					elif item.status == "remove":
-						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/remove.png"))		
+						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintInstall/status-icons/remove.png"))		
 						model_applications.set_value(iter, 8, 2)
 		model_applications.set_sort_column_id( 6, gtk.SORT_DESCENDING )
 		tree_applications.set_model(model_applications)		
