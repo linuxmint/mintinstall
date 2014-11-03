@@ -622,6 +622,8 @@ class Application():
         wTree.get_widget("label_transactions_header").set_text(_("Active tasks:"))
         wTree.get_widget("progressbar1").hide_all()
 
+        wTree.get_widget("show_all_results_button").set_label(_("Show all results"))
+
         wTree.get_widget("button_transactions").connect("clicked", self.show_transactions)
         
         wTree.get_widget("tree_applications_scrolledview").get_vadjustment().connect("value-changed", self._on_tree_applications_scrolled, self.tree_applications)
@@ -1656,7 +1658,7 @@ class Application():
         del model_applications
         if self._search_in_category != self.root_category:
             self.search_in_category_hbox.show()
-            self.message_search_in_category_label.set_markup("<b>%s</b>" % (_("Only results in category \"%s\" are shown." % self._search_in_category.name)))
+            self.message_search_in_category_label.set_markup("<b>%s</b>" % (_("Only results in category \"%s\" are shown.") % self._search_in_category.name))
         if self._search_in_category == self.root_category:
             self.search_in_category_hbox.hide()
             self.navigation_bar.add_with_id(self._search_in_category.name, self.navigate, self.NAVIGATION_HOME, self._search_in_category)
