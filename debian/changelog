@@ -1,3 +1,10 @@
+mintinstall (7.5.9) rebecca; urgency=medium
+
+  * Fixed l10n
+  * Improved impact on packages section, added a modal warning dialog when packages are being removed
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon, 03 Nov 2014 17:26:02 +0100
+
 mintinstall (7.5.8) rebecca; urgency=medium
 
   * Fix for checkmark icon rendering glitches
