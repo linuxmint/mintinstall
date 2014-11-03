@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-11-03 14:04+0100\n"
+"POT-Creation-Date: 2014-11-03 17:21+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -201,26 +201,26 @@ msgid "Password:"
 msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/mintinstall.py:832
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1750
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1761
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1759
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1770
 msgid "B"
 msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/mintinstall.py:834
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1752
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1763
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1761
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1772
 msgid "KB"
 msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/mintinstall.py:836
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1754
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1765
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1763
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1774
 msgid "MB"
 msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/mintinstall.py:838
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1756
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1767
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1765
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1776
 msgid "GB"
 msgstr ""
 
@@ -262,7 +262,7 @@ msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/mintinstall.py:1055
 #: usr/lib/linuxmint/mintInstall/mintinstall.py:1067
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1772
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1780
 msgid "Reviews"
 msgstr ""
 
@@ -379,7 +379,7 @@ msgid "Programming"
 msgstr ""
 
 #: usr/lib/linuxmint/mintInstall/mintinstall.py:1380
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1836
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1853
 #, python-format
 msgid "%d reviews"
 msgstr ""
@@ -430,84 +430,94 @@ msgstr ""
 msgid "Your review"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1746
-#, python-format
-msgid "%s (removed)"
-msgstr ""
-
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1748
-#, python-format
-msgid "%s (installed)"
-msgstr ""
-
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1769
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1778
 msgid "Size:"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1770
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1779
 msgid "Version:"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1771
-msgid "Impact on packages:"
-msgstr ""
-
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1773
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1781
 msgid "Your review:"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1774
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1782
 msgid "Details"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1778
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1784
+msgid "This will remove the following packages:"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1785
+msgid "Cancel"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1786
+msgid "Confirm"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1790
 #, python-format
 msgid "%(localSize)s of disk space freed"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1780
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1792
 #, python-format
 msgid "%(localSize)s of disk space required"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1783
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1795
 #, python-format
 msgid "%(downloadSize)s to download, %(localSize)s of disk space freed"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1785
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1797
 #, python-format
 msgid "%(downloadSize)s to download, %(localSize)s of disk space required"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1803
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1800
+msgid "The following packages would be installed: "
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1802
+msgid "The following packages would be removed: "
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1805
+msgid "Impact on packages:"
+msgstr ""
+
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1823
 msgid "Remove"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1806
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1825
 #: usr/bin/mint-search-apt:37
 msgid "Installed"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1810
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1829
 msgid "Not available"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1813
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1831
 msgid "Please use apt-get to install this package."
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1816
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1834
 #: usr/lib/linuxmint/mintInstall/mintInstall.py:207
 #: usr/lib/linuxmint/mintInstall/mintInstall.py:442
 msgid "Install"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1819
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1836
 msgid "Not installed"
 msgstr ""
 
-#: usr/lib/linuxmint/mintInstall/mintinstall.py:1840
+#: usr/lib/linuxmint/mintInstall/mintinstall.py:1857
 msgid "Reviews:"
 msgstr ""
 

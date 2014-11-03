@@ -4,10 +4,14 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
     <title></title>
-   
-    
 
- <script type="text/javascript">
+  <link rel="stylesheet" type="text/css" href="file:///usr/lib/linuxmint/mintInstall/data/templates/css/semantic.css">
+  <script src="file:///usr/lib/linuxmint/mintInstall/data/templates/javascript/jquery.js"></script>
+  <script src="file:///usr/lib/linuxmint/mintInstall/data/templates/javascript/jquery.address.js"></script>
+  <script src="file:///usr/lib/linuxmint/mintInstall/data/templates/javascript/semantic.js"></script>
+
+ <script type="text/javascript">  
+
   function changeTitle(title) { 
     document.title = title; 
   }
@@ -32,11 +36,21 @@
     element.style.visibility = 'visible';
     fadeIn(id,0);
   }
-  function action_button_clicked() {
-    //document.getElementById("button_$action_button_value").disabled = true;
-    document.getElementById("button_$action_button_value").style.visibility = "hidden";
+
+  function confirm_button_clicked() {
+    document.getElementById("button_action").style.visibility = "hidden";
     changeTitle("call:on_button_clicked");
   }
+
+  function action_button_clicked() {
+    if (removals.length > 0) {
+      $('#modaldiv').modal('show');
+    }
+    else {
+      confirm_button_clicked();
+    }
+  }
+
   function action_screenshot_clicked(url) {   
     changeTitle("call:on_screenshot_clicked:" + url);
     changeTitle("nop");
@@ -50,10 +64,10 @@
     changeTitle("nop");
   }
   function enable_action_button() {
-    document.getElementById("button_$action_button_value").disabled = false;
+    document.getElementById("button_action").disabled = false;
   }
   function disable_action_button() {
-    document.getElementById("button_$action_button_value").disabled = true;
+    document.getElementById("button_action").disabled = true;
   }
   
   function addReview(mydate, username, rating, comment) { 
@@ -69,6 +83,16 @@
     
 	var cell2 = row.insertCell(1);
 	cell2.innerHTML = comment + "<br/><small><i><font color='#777777'>" + username + " (" + mydate + ")</font></i></small>";            
+  }
+
+  function addWarning(packagename) { 
+    
+    var table = document.getElementById("warnings");
+    var rowCount = table.rows.length;
+    var row = table.insertRow(rowCount);
+
+    var cell1 = row.insertCell(0);    
+    cell1.innerHTML = "<tr><td class=\"error\"><i class=\"attention icon\"></i> " + packagename + "</td></tr>";            
   }
 
   function addScreenshot(href, src) {     
@@ -97,6 +121,14 @@
 	{
 	    table.deleteRow(i);
 	}
+  }
+
+  function clearWarnings() {
+    var table = document.getElementById("warnings");
+    for(var i = table.rows.length - 1; i >= 0; i--)
+    {
+      table.deleteRow(i);
+    }
   }
     
  </script>
@@ -279,6 +311,21 @@
     
 <body class="${body_class}">
 
+<div id='modaldiv' class="ui small modal">
+  <div class="content">
+      <p>$warning_label</p>
+        
+        <table id="warnings" class="ui compact table segment">                                       
+        </table>
+  </div>
+  <div class="actions">
+    <div class="ui buttons small">
+      <div class="ui negative button right attached">$warning_cancel</div>
+      <div class="ui button left attached" id="confirm_button" onclick='confirm_button_clicked()'>$warning_confirm</div>  
+    </div>
+  </div>
+</div>
+
 <table width="100%">
     <tr>
     <td valign="absmiddle" align="center"><img id="icon" src="$iconbig"/></td>
@@ -295,7 +342,7 @@
          <tr>
              <td align="left" valign="absmiddle"><img align=absmiddle src="$iconstatus"/>&nbsp;$action_button_description</td>
              <td align="right" valign="absmiddle">
-              <input type="button" id="button_${action_button_value}" 
+              <input type="button" id="button_action" 
               class="action_button"
           alt="$action_button_label"
               value="$action_button_label"
@@ -323,8 +370,8 @@
                      <div id="inner">                      
                        <p><b>$versionLabel</b> $version</p>
                        <p><b>$sizeLabel</b> $sizeinfo</p>
-                       <p><b>$impactLabel</b> $packagesinfo</p>
-                     </div> 
+                       $packagesinfo
+                     </div>
                    </div>
                     
                   
@@ -370,6 +417,15 @@
 
   
     </div>
+
+    <script type="text/javascript">
+      var removals = [${removals}];
+      for (index = 0; index < removals.length; index++) {
+        text = removals[index];
+        addWarning(text);
+      } 
+    </script>
+
 </body> 
 
 </html>

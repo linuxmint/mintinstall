@@ -977,7 +977,7 @@ class Application():
         self.show_category(self.root_category)
 
     @print_timing
-    def _on_package_load_finished(self, view, frame, package):        
+    def _on_package_load_finished(self, view, frame, package):             
         #Add the reviews
         reviews = package.reviews
         self.packageBrowser.execute_script('clearReviews()')
@@ -1729,7 +1729,11 @@ class Application():
         subs['label_submit'] = _("Submit")
         subs['label_your_review'] = _("Your review")
 
-        impacted_packages = []    
+        impacted_packages = []  
+        js_removals = []
+        removals = []
+        installations = []
+
         pkg = self.cache[package.name]
         try:
             if package.pkg.is_installed:
@@ -1742,10 +1746,15 @@ class Application():
     
         changes = self.cache.get_changes()
         for pkg in changes:
-            if (pkg.is_installed):
-                impacted_packages.append(_("%s (removed)") % pkg.name)
-            else:
-                impacted_packages.append(_("%s (installed)") % pkg.name)
+            if pkg.name == package.name:
+                continue
+            if (pkg.is_installed):                
+                js_removals.append("'%s'" % pkg.name)
+                removals.append(pkg.name)
+            else:                
+                installations.append(pkg.name)
+
+        subs['removals'] = ", ".join(js_removals)
         
         downloadSize = str(self.cache.required_download) + _("B")
         if (self.cache.required_download >= 1000):
@@ -1767,11 +1776,14 @@ class Application():
             localSize = str(required_space / 1000000000) + _("GB")
 
         subs['sizeLabel'] = _("Size:")
-        subs['versionLabel'] = _("Version:")
-        subs['impactLabel'] = _("Impact on packages:")
+        subs['versionLabel'] = _("Version:")        
         subs['reviewsLabel'] = _("Reviews")
         subs['yourReviewLabel'] = _("Your review:")
         subs['detailsLabel'] = _("Details")
+
+        subs['warning_label'] = _("This will remove the following packages:")
+        subs['warning_cancel'] = _("Cancel")
+        subs['warning_confirm'] = _("Confirm")        
         
         if package.pkg.is_installed:
             if self.cache.required_space < 0:
@@ -1783,8 +1795,16 @@ class Application():
                 subs['sizeinfo'] = _("%(downloadSize)s to download, %(localSize)s of disk space freed") % {'downloadSize': downloadSize, 'localSize': localSize}
             else:
                 subs['sizeinfo'] = _("%(downloadSize)s to download, %(localSize)s of disk space required") % {'downloadSize': downloadSize, 'localSize': localSize}
-            
-        subs['packagesinfo'] = (', '.join(name for name in impacted_packages))
+
+        if (len(installations) > 0):            
+            impacted_packages.append("<li>%s %s</li>" % (_("The following packages would be installed: "), ', '.join(installations)))
+        if (len(removals) > 0):                        
+            impacted_packages.append("<li><font color=red>%s %s</font></li>" % (_("The following packages would be removed: "), ', '.join(removals)))
+        
+        if (len(installations) > 0 or len(removals) > 0):
+            subs['packagesinfo'] = '<b>%s</b><ul>%s</ul>' % (_("Impact on packages:"), '<br>'.join(impacted_packages))
+        else:
+            subs['packagesinfo'] = ''
 
         if len(package.pkg.candidate.homepage) > 0:
             subs['homepage'] = package.pkg.candidate.homepage
@@ -1801,20 +1821,17 @@ class Application():
 
         if package.pkg.is_installed:
             subs['action_button_label'] = _("Remove")
-            subs['action_button_value'] = "remove"
             subs['version'] = package.pkg.installed.version
             subs['action_button_description'] = _("Installed")
             subs['iconstatus'] = "/usr/lib/linuxmint/mintInstall/data/installed.png"
         else:
             if package.pkg.name in BROKEN_PACKAGES:           
                 subs['action_button_label'] = _("Not available")
-                subs['action_button_value'] = "remove"
                 subs['version'] = package.pkg.candidate.version
                 subs['action_button_description'] = _("Please use apt-get to install this package.")
                 subs['iconstatus'] = "/usr/lib/linuxmint/mintInstall/data/available.png"
             else:
                 subs['action_button_label'] = _("Install")
-                subs['action_button_value'] = "install"
                 subs['version'] = package.pkg.candidate.version
                 subs['action_button_description'] = _("Not installed")
                 subs['iconstatus'] = "/usr/lib/linuxmint/mintInstall/data/available.png"
