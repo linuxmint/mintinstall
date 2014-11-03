@@ -503,7 +503,7 @@ class Application():
 
         prefsMenu.append(searchInSummaryMenuItem)
         prefsMenu.append(searchInDescriptionMenuItem)
-        prefsMenu.append(openLinkExternalMenuItem)
+        # prefsMenu.append(openLinkExternalMenuItem)
         prefsMenu.append(searchWhileTypingMenuItem)
 
         #prefsMenuItem.connect("activate", open_preferences, treeview_update, statusIcon, wTree)
@@ -1041,6 +1041,7 @@ class Application():
         package = self.current_package
         if package is not None:
             if self.prefs['external_browser']:
+                clem
                 os.system("xdg-open " + self.current_package.pkg.candidate.homepage + " &")
             else:
                 self.websiteBrowser.open(self.current_package.pkg.candidate.homepage)
@@ -1806,12 +1807,12 @@ class Application():
         else:
             subs['packagesinfo'] = ''
 
-        if len(package.pkg.candidate.homepage) > 0:
-            subs['homepage'] = package.pkg.candidate.homepage
-            subs['homepage_button_visibility'] = "visible"
-        else:
-            subs['homepage'] = ""
-            subs['homepage_button_visibility'] = "hidden"
+        # if len(package.pkg.candidate.homepage) > 0:
+        #     subs['homepage'] = package.pkg.candidate.homepage
+        #     subs['homepage_button_visibility'] = "visible"
+        # else:
+        subs['homepage'] = ""
+        subs['homepage_button_visibility'] = "hidden"
         
         direction = gtk.widget_get_default_direction()
         if direction ==  gtk.TEXT_DIR_RTL:
