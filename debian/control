@@ -2,12 +2,18 @@ Source: mintinstall
 Section: admin
 Priority: optional
 Maintainer: clem <root@linuxmint.com>
-Build-Depends: debhelper (>= 5)
-Standards-Version: 3.7.2
+Build-Depends: debhelper (>= 9), python
+Standards-Version: 3.9.5
 
 Package: mintinstall
 Architecture: all
-Depends: python (>= 2.4), python (<< 3), python-gtk2, python-glade2, mint-common, python-webkit, python-imaging, ttf-freefont, python-sexy, libgtk2-perl, python-beautifulsoup
+Depends:
+ ${misc:Depends}, ${python:Depends},
+ libgtk2-perl, mint-common,
+ python (>= 2.4), python (<< 3),
+ python-gtk2, python-glade2,
+ python-webkit, python-imaging, python-sexy, python-beautifulsoup,
+ ttf-freefont
 Recommends: mintinstall-icons
 Description: Software Manager
  A software manager to easily install new applications.
