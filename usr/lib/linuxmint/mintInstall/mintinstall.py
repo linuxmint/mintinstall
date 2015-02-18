@@ -1541,9 +1541,9 @@ class Application():
                 # might be loose some colour precision.
                 im = im.convert(im2.mode)
                 im.paste(im2, offset,im2)
-                tmpFile = tempfile.NamedTemporaryFile(delete=False)
-                im.save (tmpFile.name + ".png")             
-                icon_path = tmpFile.name + ".png"               
+                tmpFile = tempfile.NamedTemporaryFile(suffix=".png",delete=False)
+                im.save(tmpFile.name)        
+                icon_path = tmpFile.name               
         else:
             # Try mintinstall-icons then
             if package.pkg.is_installed:
@@ -1852,9 +1852,9 @@ class Application():
             draw.text((86, 8), str(package.score), font=sans26, fill="#555555")
             draw.text((85, 7), str(package.score), font=sans26, fill=color)
             draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
-            tmpFile = tempfile.NamedTemporaryFile(delete=True)
-            im.save (tmpFile.name + ".png")
-            subs['rating'] = tmpFile.name + ".png"
+            tmpFile = tempfile.NamedTemporaryFile(suffix=".png",delete=True)
+            im.save(tmpFile.name)
+            subs['rating'] = tmpFile.name
             subs['reviews'] = "<b>" + _("Reviews:") + "</b>"
         else:
             subs['rating'] = "/usr/lib/linuxmint/mintInstall/data/no-reviews.png"
