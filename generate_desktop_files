@@ -13,15 +13,15 @@ gettext.install(DOMAIN, PATH)
 prefix = "[Desktop Entry]\n"
 
 suffix = """Exec=gksu mintinstall
-Icon=/usr/lib/linuxmint/mintInstall/icon.svg
+Icon=mintinstall
 Terminal=false
 Type=Application
 Encoding=UTF-8
-Categories=Application;System;Settings
+Categories=Application;System;Settings;XFCE;X-XFCE-SettingsDialog;X-XFCE-SystemSettings;
 NotShowIn=KDE;
 """
 
-additionalfiles.generate(DOMAIN, PATH, "usr/share/applications/mintInstall.desktop", prefix, _("Software Manager"), _("Install new applications"), suffix)
+additionalfiles.generate(DOMAIN, PATH, "usr/share/applications/mintinstall.desktop", prefix, _("Software Manager"), _("Install new applications"), suffix)
 
 suffix = """Exec=kdesudo -i /usr/share/icons/hicolors/48x48/apps/software-properties-mint.png -d --comment "<b>Please enter your password to start the software manager</b>" mintinstall
 Icon=software-properties-mint
@@ -32,7 +32,7 @@ Categories=System;
 OnlyShowIn=KDE;
 """
 
-additionalfiles.generate(DOMAIN, PATH, "usr/share/applications/mintInstall_kde.desktop", prefix, _("Software Manager"), _("Install new applications"), suffix, genericName=_("Install new applications"))
+additionalfiles.generate(DOMAIN, PATH, "usr/share/applications/mintinstall-kde.desktop", prefix, _("Software Manager"), _("Install new applications"), suffix, genericName=_("Install new applications"))
 
 suffix = """Exec=mintInstall
 Icon=/usr/share/linuxmint/logo.png
@@ -44,4 +44,4 @@ NoDisplay=true
 MimeType=application/x-mint;
 """
 
-additionalfiles.generate(DOMAIN, PATH, "usr/share/applications/mintInstall_mime.desktop", prefix, _("Software Manager"), _("Install new applications"), suffix)
+additionalfiles.generate(DOMAIN, PATH, "usr/share/applications/mintinstall-mime.desktop", prefix, _("Software Manager"), _("Install new applications"), suffix)
