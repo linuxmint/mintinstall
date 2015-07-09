@@ -1,4 +1,10 @@
-mintinstall (7.6.1) raphaela; urgency=medium
+mintinstall (7.6.2) rafaela; urgency=medium
+
+  * Updated desktop files (removed duplicated categories in KDE, added to settings in Xfce)
+
+ -- Clement Lefebvre <root@linuxmint.com>  Thu, 09 Jul 2015 12:11:28 +0200
+
+mintinstall (7.6.1) rafaela; urgency=medium
 
   * Removed duplicated categories in KDE menus
 
