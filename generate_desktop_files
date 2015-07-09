@@ -28,7 +28,7 @@ Icon=software-properties-mint
 Terminal=false
 Type=Application
 Encoding=UTF-8
-Categories=Application;System;Settings
+Categories=System;
 OnlyShowIn=KDE;
 """
 
