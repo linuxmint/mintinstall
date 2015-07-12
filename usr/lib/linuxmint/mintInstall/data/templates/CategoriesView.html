@@ -10,9 +10,15 @@
     document.title = title; 
     document.title = "nop"; 
   }
+  var categoriesRow;
+  function getCategoriesRow() {
+      if (!categoriesRow) {
+          categoriesRow = document.getElementById("categoriesRow");
+      }
+      return categoriesRow;
+  }
   function addCategory(name, num_packages, img) {
-    oT = document.getElementsByTagName("table")[0];
-    Tr = document.getElementsByTagName("tr")[0];
+    Tr = getCategoriesRow();
     newTd = document.createElement("td");
     newTd.setAttribute("tabindex", 0)
     newTd.setAttribute("align", "center");
@@ -341,7 +347,7 @@
     
    
   <table id="categoriesTable">        
-    <tr></tr>
+    <tr id="categoriesRow"></tr>
   </table>
   <div class="pod"><div style="font-size:70%">&nbsp;$package_num</div></div>
 </body>

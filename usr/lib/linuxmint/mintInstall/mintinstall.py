@@ -360,7 +360,7 @@ class Category:
             cat = cat.parent
 
 class Package(object):
-    __slots__='name', 'pkg', 'reviews', 'categories','score','avg_rating','num_reviews','candidate','summary' #To remove __dict__ memory overhead
+    __slots__='name', 'pkg', 'reviews', 'categories','score','avg_rating','num_reviews','_candidate','candidate','_summary','summary' #To remove __dict__ memory overhead
     
     def __init__(self, name, pkg):
         self.name = name
@@ -370,12 +370,22 @@ class Package(object):
         self.score = 0
         self.avg_rating = 0
         self.num_reviews = 0
-        self.candidate = pkg.candidate #cache, as the pkg.candidate call has a performance overhead
-        
-        #search cache:
-        self.summary = None
-        if self.candidate is not None:
-          self.summary = self.candidate.summary
+    
+    def _get_candidate(self):
+        if not hasattr(self, "_candidate"):
+            self._candidate = self.pkg.candidate
+        return self._candidate
+    candidate = property(_get_candidate)
+    
+    def _get_summary(self):
+        if not hasattr(self, "_summary"):
+            candidate = self.candidate
+            if candidate is not None:
+                self._summary = candidate.summary
+            else:
+                self._summary = None
+        return self._summary
+    summary = property(_get_summary)
             
     def update_stats(self):
         points = 0
@@ -817,9 +827,9 @@ class Application():
         for package in self.packages:
             if package.pkg.name.endswith(":i386") or package.pkg.name.endswith(":amd64"):
                 continue
-            summary = ""
-            if package.pkg.candidate is not None:
-                summary = package.pkg.candidate.summary
+            summary = package.summary
+            if summary is None:
+                summary = ""
             summary = summary.capitalize()
             description = ""
             version = ""
@@ -1357,8 +1367,8 @@ class Application():
             model_applications.set_value(iter, 0, self.get_package_pixbuf_icon(package))
                     
             summary = ""
-            if package.candidate is not None:
-                summary = package.candidate.summary
+            if package.summary is not None:
+                summary = package.summary
                 summary = unicode(summary, 'UTF-8', 'replace')
                 summary = summary.replace("<", "&lt;")
                 summary = summary.replace("&", "&amp;")
@@ -1444,7 +1454,6 @@ class Application():
             self.navigation_bar.add_with_id(category.name, self.navigate, self.NAVIGATION_CATEGORY, category)
         else:
             self.navigation_bar.add_with_id(category.name, self.navigate, self.NAVIGATION_SUB_CATEGORY, category)
-    
     
     
     
@@ -1725,7 +1734,7 @@ class Application():
         subs['pkgname'] = package.pkg.name
         subs['description'] = package.pkg.candidate.description
         subs['description'] = subs['description'].replace('\n','<br />\n')
-        subs['summary'] = package.pkg.candidate.summary.capitalize()
+        subs['summary'] = package.summary.capitalize()
         subs['label_score'] = _("Score:")
         subs['label_submit'] = _("Submit")
         subs['label_your_review'] = _("Your review")
@@ -1894,4 +1903,6 @@ if __name__ == "__main__":
     model = Classes.Model()
     Application()
     #os.system("kill -9 %d" % splash_process.pid)
+    gtk.gdk.threads_enter()
     gtk.main()
+    gtk.gdk.threads_leave()
