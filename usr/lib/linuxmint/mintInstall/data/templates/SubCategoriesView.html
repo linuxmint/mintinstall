@@ -9,9 +9,15 @@
     document.title = title; 
     document.title = "nop"; 
   }
+  var categoriesRow;
+  function getCategoriesRow() {
+      if (!categoriesRow) {
+          categoriesRow = document.getElementById("categoriesRow");
+      }
+      return categoriesRow;
+  }
   function addCategory(name, num_packages, img) {
-    oT = document.getElementsByTagName("table")[0];
-    Tr = document.getElementsByTagName("tr")[0];
+    Tr = getCategoriesRow();
     newTd = document.createElement("td");
     newTd.setAttribute("tabindex", 0)
     newTd.className = "category_td";
@@ -319,7 +325,7 @@
 
 <body>
   <table id="categoriesTable">        
-    <tr></tr>
+    <tr id="categoriesRow"></tr>
   </table>  
 </body>
 </html>
