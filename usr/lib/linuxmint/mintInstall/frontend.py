@@ -1203,8 +1203,7 @@ if __name__ == "__main__":
 	wTree = build_GUI(model, username)
 	refresh = RefreshThread(wTree, False, model, username)
 	refresh.start()
+
+	gtk.gdk.threads_enter()
 	gtk.main()
-
-
-
-		
+	gtk.gdk.threads_leave()
