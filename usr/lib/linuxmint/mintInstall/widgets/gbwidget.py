@@ -25,8 +25,8 @@ import sys
 import string
 
 class GtkbuilderWidget(gtk.HBox):
-    """A widget that gets loaded from a Gtkbuilder UI file 
-    
+    """A widget that gets loaded from a Gtkbuilder UI file
+
     If no "toplevel_name" paramter is given, the name of
     the class is used to find a UI file of that name and
     load the object with that name
@@ -52,7 +52,7 @@ class GtkbuilderWidget(gtk.HBox):
         w = getattr(self, self.__class__.__name__)
         w.show_all()
 
-# test widget that just loads the 
+# test widget that just loads the
 class GBTestWidget(GtkbuilderWidget):
 
     def on_button_clicked(self, button):

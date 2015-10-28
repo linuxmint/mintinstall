@@ -24,13 +24,13 @@ import glob
 import time
 
 class AnimatedImage(gtk.Image):
-    
+
     FPS = 20.0
     SIZE = 24
 
     def __init__(self, icon):
         """ Animate a gtk.Image
-    
+
         Keywords:
         icon: pass either:
               - None - creates empty image with self.SIZE
@@ -61,7 +61,7 @@ class AnimatedImage(gtk.Image):
             pixbuf_buffer = pixbuf_orig.copy()
             x = 0
             y = 0
-            for f in range((pixbuf_orig.get_width() / self.SIZE) * 
+            for f in range((pixbuf_orig.get_width() / self.SIZE) *
                            (pixbuf_orig.get_height() / self.SIZE)):
                 pixbuf_buffer = pixbuf_orig.subpixbuf(x, y, self.SIZE, self.SIZE)
                 self.images.append(pixbuf_buffer)
@@ -78,7 +78,7 @@ class AnimatedImage(gtk.Image):
             raise IOError, "need a str, list or a pixbuf"
 
     def start(self, w=None):
-        source_id = gobject.timeout_add(int(1000/self.FPS), 
+        source_id = gobject.timeout_add(int(1000/self.FPS),
                                               self._progress_timeout)
         self._run = True
 
@@ -100,10 +100,10 @@ class AnimatedImage(gtk.Image):
 
 class CellRendererAnimatedImage(gtk.CellRendererPixbuf):
 
-    __gproperties__  = { 
-        "image" : (gobject.TYPE_OBJECT, 
+    __gproperties__  = {
+        "image" : (gobject.TYPE_OBJECT,
                    "Image",
-                   "Image", 
+                   "Image",
                    gobject.PARAM_READWRITE),
     }
     FPS = 20.0
@@ -121,7 +121,7 @@ class CellRendererAnimatedImage(gtk.CellRendererPixbuf):
             return
         for row in model:
             cell_area = widget.get_cell_area(row.path, widget.get_column(0))
-            widget.queue_draw_area(cell_area.x, cell_area.y, 
+            widget.queue_draw_area(cell_area.x, cell_area.y,
                                    cell_area.width, cell_area.height)
     def do_render(self, window, widget, background_area, cell_area, expose_area, flags):
         image = self.get_property("image")
@@ -181,5 +181,3 @@ if __name__ == "__main__":
     gobject.timeout_add_seconds(5, image.hide)
 
     gtk.main()
-
-

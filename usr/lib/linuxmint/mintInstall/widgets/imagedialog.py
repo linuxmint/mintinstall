@@ -74,9 +74,9 @@ class ShowImageDialog(gtk.Dialog):
         self.y = 0
         self.pixbuf_count = 0
         pixbuf_buffer = pixbuf_orig.copy()
-        
+
         self.pixbuf_list = []
-                
+
         for f in range((pixbuf_orig.get_width() / loading_img_size) * (pixbuf_orig.get_height() / loading_img_size)):
             pixbuf_buffer = pixbuf_orig.subpixbuf(self.x, self.y, loading_img_size, loading_img_size)
             self.pixbuf_list.append(pixbuf_buffer)
@@ -88,9 +88,9 @@ class ShowImageDialog(gtk.Dialog):
                     self.y = 0
             else:
                 self.x += loading_img_size
-        
-        
-        
+
+
+
         self.img = gtk.Image()
         self.img.set_from_file(loading_img)
         self.img.show()
@@ -100,7 +100,7 @@ class ShowImageDialog(gtk.Dialog):
         scroll = gtk.ScrolledWindow()
         scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         scroll.add_with_viewport(self.img)
-        scroll.show() 
+        scroll.show()
 
         # box
         vbox = gtk.VBox()
@@ -127,18 +127,18 @@ class ShowImageDialog(gtk.Dialog):
             else:
                 self.pixbuf_count += 1
             return True
-            
+
     def _get_loading_x_start(self, loading_img_size):
         if (gtk.settings_get_default().props.gtk_icon_theme_name in ICON_EXCEPTIONS) or (gtk.settings_get_default().props.gtk_fallback_icon_theme in ICON_EXCEPTIONS):
             return loading_img_size
         else:
             return 0
-            
+
 
     def _response(self, dialog, reponse_id):
         self._finished = True
         self._abort = True
-        
+
     def run(self):
         self.show()
         # thread
@@ -171,8 +171,8 @@ class ShowImageDialog(gtk.Dialog):
         logging.debug("_fetch: %s" % self.url)
         self.location = tempfile.NamedTemporaryFile()
         try:
-            (screenshot, info) = urllib.urlretrieve(self.url, 
-                                                    self.location.name, 
+            (screenshot, info) = urllib.urlretrieve(self.url,
+                                                    self.location.name,
                                                     self._progress)
             self.image_filename = self.location.name
         except (Url403Error, Url404Error), e:
