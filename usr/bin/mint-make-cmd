@@ -3,16 +3,17 @@
 import os
 import sys
 import apt
-from user import home
 import gettext
 import gtk
+
+HOME = os.path.expanduser("~")
 
 # i18n
 gettext.install("mintinstall", "/usr/share/linuxmint/locale")
 
-os.system("mkdir -p " + home + "/.linuxmint/mintInstall/tmp")
-os.system("rm -rf " + home + "/.linuxmint/mintInstall/tmp/*")
-os.chdir(home + "/.linuxmint/mintInstall/tmp")	
+os.system("mkdir -p " + HOME + "/.linuxmint/mintInstall/tmp")
+os.system("rm -rf " + HOME + "/.linuxmint/mintInstall/tmp/*")
+os.chdir(HOME + "/.linuxmint/mintInstall/tmp")
 pkg_name = sys.argv[1]
 
 try:
@@ -28,8 +29,8 @@ try:
 	os.mkdir("steps")
 	os.chdir("steps")
 	os.system("echo \"TITLE Installing " + pkg_name + "\" > 1")
-	os.system("echo \"INSTALL " + pkg_name + "\" >> 1")		
-	os.chdir(home + "/.linuxmint/mintInstall/tmp")	
+	os.system("echo \"INSTALL " + pkg_name + "\" >> 1")
+	os.chdir(HOME + "/.linuxmint/mintInstall/tmp")
 	os.system("mint-compress " + pkg_name)
 	os.system("rm -rf " + pkg_name)
 	os.system("mintInstall " + pkg_name + ".mint")
@@ -38,8 +39,8 @@ except Exception, cause:
 	msgDlg = gtk.MessageDialog( None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK, _("Could not find package: %s") % pkg_name )
 	msgDlg.set_title("mintInstall")
 	msgDlg.set_icon_from_file("/usr/share/linuxmint/logo.png")
-	msgDlg.run();
-	msgDlg.destroy();
+	msgDlg.run()
+	msgDlg.destroy()
 
 
 

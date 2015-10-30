@@ -15,13 +15,14 @@ try:
     import threading
     import tempfile
     import gettext
-    from user import home
-	
+
 except Exception, detail:
     print detail
     sys.exit(1)
 
 from subprocess import Popen, PIPE
+
+HOME = os.path.expanduser("~")
 
 gtk.gdk.threads_init()
 
@@ -34,14 +35,14 @@ class RemoveExecuter(threading.Thread):
 	threading.Thread.__init__(self)
 	self.window_id = window_id
 	self.packages = packages
-    
+
     def execute(self, command):
 	#print "Executing: " + command
 	os.system(command)
 	ret = commands.getoutput("echo $?")
 	return ret
 
-    def run(self):		
+    def run(self):
 	cmd = ["sudo", "/usr/sbin/synaptic", "--hide-main-window",  \
 	        "--non-interactive", "--parent-window-id", self.window_id]
 	cmd.append("--progress-str")
@@ -59,16 +60,16 @@ class RemoveExecuter(threading.Thread):
 	f.close()
 	gtk.main_quit()
 	sys.exit(0)
-		
+
 class mintRemoveWindow:
 
     def __init__(self, mintFile):
 	self.mintFile = mintFile
 
-	if os.path.exists(self.mintFile):			
-		directory = home + "/.linuxmint/mintInstall/tmp/mintFile"
+	if os.path.exists(self.mintFile):
+		directory = HOME + "/.linuxmint/mintInstall/tmp/mintFile"
 		os.system("mkdir -p " + directory)
-		os.system("rm -rf " + directory + "/*") 
+		os.system("rm -rf " + directory + "/*")
 		os.system("cp " + self.mintFile + " " + directory + "/file.mint")
 		os.system("tar zxf " + directory + "/file.mint -C " + directory)
 		appName = commands.getoutput("cat " + directory + "/name")
@@ -77,16 +78,16 @@ class mintRemoveWindow:
 		repositories = []
 		packages = []
 		for i in range(steps + 1):
-			if (i > 0):			
+			if (i > 0):
 				openfile = open(directory + "/steps/"+str(i), 'r' )
 				datalist = openfile.readlines()
 				for j in range( len( datalist ) ):
 				    if (str.find(datalist[j], "INSTALL") > -1):
 					install = datalist[j][8:]
 					install = str.strip(install)
-					packages.append(install)						   					
-				openfile.close()		
-					
+					packages.append(install)
+				openfile.close()
+
         #Set the Glade file
         self.gladefile = "/usr/lib/linuxmint/mintInstall/remove.glade"
         wTree = gtk.glade.XML(self.gladefile,"main_window")
@@ -100,12 +101,12 @@ class mintRemoveWindow:
 	vbox.pack_start(socket)
 	socket.show()
 	window_id = repr(socket.get_id())
-        
+
 	wTree.get_widget("txt_name").set_text("<big><b>" + _("Remove %s?") % (appName) + "</b></big>")
 	wTree.get_widget("txt_name").set_use_markup(True)
 
 	wTree.get_widget("txt_guidance").set_text(_("The following packages will be removed:"))
-	
+
 	treeview = wTree.get_widget("tree")
 	column1 = gtk.TreeViewColumn()
 	renderer = gtk.CellRendererText()
@@ -116,7 +117,7 @@ class mintRemoveWindow:
 
 	model = gtk.ListStore(str)
 
-	for package in packages:		
+	for package in packages:
 		dependenciesString = commands.getoutput("apt-get -s -q remove " + package + " | grep Remv")
 		dependencies = string.split(dependenciesString, "\n")
 		for dependency in dependencies:
@@ -124,7 +125,7 @@ class mintRemoveWindow:
 			model.append([dependency])
 
 	treeview.set_model(model)
-	treeview.show()		
+	treeview.show()
 
         dic = {"on_remove_button_clicked" : (self.MainButtonClicked, window_id, packages, wTree),
                "on_cancel_button_clicked" : (self.giveUp) }
