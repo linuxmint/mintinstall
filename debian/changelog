@@ -1,3 +1,27 @@
+mintinstall (7.6.3) rosa; urgency=medium
+
+  [ djcj ]
+  * fix icon-size-and-directory-name-mismatch
+
+  [ monsta ]
+  * Fix frontend.py
+  * Fix mintInstall.py
+  * Fix mintinstall.py
+  * Fix remove.py
+
+  [ Corbin ]
+  * Add some missing drawing apps
+  * Add gcolor2
+
+  [ Gwendal Le Bihan ]
+  * Improve initial loading time
+
+  [ Clement Lefebvre ]
+  * [darealshinji] Update Debian files, remove Python bytecode
+  * Updated desktop files
+
+ -- Clement Lefebvre <root@linuxmint.com>  Fri, 06 Nov 2015 16:28:25 +0000
+
 mintinstall (7.6.2) rafaela; urgency=medium
 
   * Updated desktop files (removed duplicated categories in KDE, added to settings in Xfce)
