@@ -38,7 +38,7 @@ class WebkitWidget(webkit.WebView):
     called on load of the page and the template in the
     html page will be replaced by the value that is returned
     by the function. E.g. the html has "... <p>$description</p>"
-    then that will get replaced by the call to 
+    then that will get replaced by the call to
     "def wksub_description(self)".
 
     It support calls to functions via javascript title change
@@ -83,7 +83,7 @@ class WebkitWidget(webkit.WebView):
         #print self._html
 
     def _load(self):
-        class_name = self.__class__.__name__        
+        class_name = self.__class__.__name__
         self._html_path = self.datadir+"/templates/%s.html" % class_name
         logging.debug("looking for '%s'" % self._html_path)
         if os.path.exists(self._html_path):
@@ -103,7 +103,7 @@ class WebkitWidget(webkit.WebView):
         """
         substituate template strings in the html text. If a dict is passed
         to the argument "subs" that will be used for the substitution.
-        Otherwise it will call all functions that are prefixed with 
+        Otherwise it will call all functions that are prefixed with
         "wksub_" and use those values for the substitution
         """
         if subs is None:
@@ -165,7 +165,7 @@ if __name__ == "__main__":
 
 
     subs = {
-        'key' : 'subs value' 
+        'key' : 'subs value'
     }
     w = WKTestWidget(datadir, subs)
 

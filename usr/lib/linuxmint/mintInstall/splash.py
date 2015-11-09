@@ -31,9 +31,9 @@ subs['font_family'] = font_description.get_family()
 try:
     subs['font_weight'] = font_description.get_weight().real
 except:
-    subs['font_weight'] = font_description.get_weight()   
-subs['font_style'] = font_description.get_style().value_nick        
-subs['font_size'] = font_description.get_size() / 1024      
+    subs['font_weight'] = font_description.get_weight()
+subs['font_style'] = font_description.get_style().value_nick
+subs['font_size'] = font_description.get_size() / 1024
 template = open("/usr/lib/linuxmint/mintInstall/data/templates/splash.html").read()
 html = string.Template(template).safe_substitute(subs)
 browser.load_html_string(html, "file:/")

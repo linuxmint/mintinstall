@@ -1,22 +1,22 @@
 # urlview.py
-#  
+#
 #  Copyright (c) 2006 Sebastian Heinlein
-#  
+#
 #  Author: Sebastian Heinlein <sebastian.heinlein@web.de>
 #
-#  This modul provides an inheritance of the gtk.TextView that is 
+#  This modul provides an inheritance of the gtk.TextView that is
 #  aware of http URLs and allows to open them in a browser.
 #  It is based on the pygtk-demo "hypertext".
-# 
-#  This program is free software; you can redistribute it and/or 
-#  modify it under the terms of the GNU General Public License as 
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License as
 #  published by the Free Software Foundation; version 3.
-# 
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
@@ -53,21 +53,21 @@ class UrlTextView(gtk.TextView):
 
     def tag_link(self, start, end, url):
         """Apply the tag that marks links to the specified buffer selection"""
-        tag = self.buffer.create_tag(None, 
+        tag = self.buffer.create_tag(None,
                                      foreground="blue",
                                      underline=pango.UNDERLINE_SINGLE)
         tag.set_data("url", url)
         self.buffer.apply_tag(tag , start, end)
 
     def on_insert_text(self, buffer, iter_end, text, *args):
-        """Search for http URLs in newly inserted text  
+        """Search for http URLs in newly inserted text
            and tag them accordingly"""
         iter = buffer.get_iter_at_offset(iter_end.get_offset() - len(text))
         iter_real_end = buffer.get_end_iter()
         for protocol in ["http://", "https://"]:
             while True:
                 # search for the next URL in the buffer
-                ret = iter.forward_search(protocol, 
+                ret = iter.forward_search(protocol,
                                       gtk.TEXT_SEARCH_VISIBLE_ONLY,
                                       iter_end)
                 # if we reach the end break the loop
@@ -120,7 +120,7 @@ class UrlTextView(gtk.TextView):
         (x, y) = self.window_to_buffer_coords(gtk.TEXT_WINDOW_WIDGET,
                                               int(event.x), int(event.y))
         iter = self.get_iter_at_location(x, y)
-        
+
         # call open_url if an URL is assigned to the iter
         tags = iter.get_tags()
         for tag in tags:
@@ -151,7 +151,7 @@ class UrlTextView(gtk.TextView):
         self.check_hovering(x, y)
         self.window.get_pointer()
         return False
-    
+
     def visibility_notify_event(self, text_view, event):
         """callback if the widgets gets visible (e.g. moves to the foreground)
            that calls the check_hovering method with the mouse position
@@ -168,7 +168,7 @@ class UrlTextView(gtk.TextView):
         _hovering = False
         # get the iter at the mouse position
         iter = self.get_iter_at_location(x, y)
-        
+
         # set _hovering if the iter has the tag "url"
         tags = iter.get_tags()
         for tag in tags:

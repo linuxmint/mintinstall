@@ -159,7 +159,7 @@ class PathBar(gtk.DrawingArea):
             apart = self.id_to_part[i]
             if apart.id > part.id:
                 self.remove(apart)
-                
+
         prev_active = self.__active_part
         redraw = False
         if part.callback:
