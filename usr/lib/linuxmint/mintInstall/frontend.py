@@ -3,7 +3,6 @@
 import urllib
 import Classes
 from xml.etree import ElementTree as ET
-from user import home
 import os
 import commands
 import gtk
@@ -16,6 +15,8 @@ import tempfile
 pygtk.require("2.0")
 
 from subprocess import Popen, PIPE
+
+HOME = os.path.expanduser("~")
 
 gtk.gdk.threads_init()
 
@@ -30,7 +31,7 @@ architecture = commands.getoutput("uname -a")
 if (architecture.find("x86_64") >= 0):
 	import ctypes
 	libc = ctypes.CDLL('libc.so.6')
-	libc.prctl(15, 'mintInstall', 0, 0, 0)	
+	libc.prctl(15, 'mintInstall', 0, 0, 0)
 else:
 	import dl
 	libc = dl.open('/lib/libc.so.6')
@@ -42,11 +43,11 @@ cache = apt.Cache()
 global num_apps
 num_apps = 0
 
-def close_application(window, event=None):	
+def close_application(window, event=None):
 	gtk.main_quit()
 	sys.exit(0)
 
-def close_window(widget, window):	
+def close_window(widget, window):
 	window.hide_all()
 
 def show_item(selection, model, wTree, username):
@@ -62,7 +63,7 @@ def show_item(selection, model, wTree, username):
 		wTree.get_widget("label_cancel_change").set_text(_("Cancel change"))
 		wTree.get_widget("label_cancel_change").set_tooltip_text("")
 		selected_item = model_applications.get_value(iter, 5)
-		model.selected_application = selected_item		
+		model.selected_application = selected_item
 		if selected_item.version == "":
 			wTree.get_widget("label_name").set_text("<b>" + selected_item.name + "</b>")
 			wTree.get_widget("label_name").set_tooltip_text(selected_item.name)
@@ -70,12 +71,12 @@ def show_item(selection, model, wTree, username):
 			version = selected_item.version.split("+")[0]
 			version = version.split("-")[0]
 			wTree.get_widget("label_name").set_text("<b>" + selected_item.name + "</b> [" + version + "]")
-			wTree.get_widget("label_name").set_tooltip_text(selected_item.name + " [" + selected_item.version + "]")		
+			wTree.get_widget("label_name").set_tooltip_text(selected_item.name + " [" + selected_item.version + "]")
 		wTree.get_widget("label_name").set_use_markup(True)
 		wTree.get_widget("label_description").set_text("<i>" + selected_item.description + "</i>")
-		wTree.get_widget("label_description").set_use_markup(True)		
-		str_size = str(selected_item.size) + _("MB")		
-		if selected_item.size == "0" or selected_item.size == 0:						
+		wTree.get_widget("label_description").set_use_markup(True)
+		str_size = str(selected_item.size) + _("MB")
+		if selected_item.size == "0" or selected_item.size == 0:
 			str_size = "--"
 		wTree.get_widget("image_screenshot").clear()
 		if (selected_item.screenshot != None):
@@ -84,33 +85,33 @@ def show_item(selection, model, wTree, username):
 					wTree.get_widget("image_screenshot").set_from_pixbuf(gtk.gdk.pixbuf_new_from_file_at_size(selected_item.screenshot, 200, 200))
 				except Exception, detail:
 					print detail
-			else:							
+			else:
 				downloadScreenshot = DownloadScreenshot(selected_item, wTree, model)
-				downloadScreenshot.start()				
-			
+				downloadScreenshot.start()
+
 		tree_reviews = wTree.get_widget("tree_reviews")
 		model_reviews = gtk.TreeStore(str, int, str, object)
 		for review in selected_item.reviews:
-			iter = model_reviews.insert_before(None, None)						
-			model_reviews.set_value(iter, 0, review.username)						
+			iter = model_reviews.insert_before(None, None)
+			model_reviews.set_value(iter, 0, review.username)
 			model_reviews.set_value(iter, 1, review.rating)
 			model_reviews.set_value(iter, 2, review.comment)
 			model_reviews.set_value(iter, 3, review)
 		model_reviews.set_sort_column_id( 1, gtk.SORT_DESCENDING )
-		tree_reviews.set_model(model_reviews)	
+		tree_reviews.set_model(model_reviews)
 
 		first = model_reviews.get_iter_first()
 		if (first != None):
 			tree_reviews.get_selection().select_iter(first)
 			tree_reviews.scroll_to_cell(model_reviews.get_path(first))
-					
-		del model_reviews			
+
+		del model_reviews
 		if selected_item.is_special:
 			wTree.get_widget("button_install").show()
 		else:
 			if selected_item.status == "available":
 				wTree.get_widget("button_install").show()
-			elif selected_item.status == "installed": 					
+			elif selected_item.status == "installed":
 				wTree.get_widget("button_remove").show()
 			elif selected_item.status == "add":
 				wTree.get_widget("button_cancel_change").show()
@@ -121,17 +122,17 @@ def show_item(selection, model, wTree, username):
 
 	update_statusbar(wTree, model)
 
-def show_category(selection, model, wTree):	
+def show_category(selection, model, wTree):
 	(model_categories, iter) = selection.get_selected()
 	if (iter != None):
 		selected_category = model_categories.get_value(iter, 1)
 		model.selected_category = selected_category
-		show_applications(wTree, model, True)					
+		show_applications(wTree, model, True)
 
 def filter_search(widget, wTree, model):
 	keyword = widget.get_text()
 	model.keyword = keyword
-	show_applications(wTree, model, True)	
+	show_applications(wTree, model, True)
 
 def open_search(widget, username):
 	os.system("/usr/lib/linuxmint/mintInstall/mintInstall.py " + username + " &")
@@ -141,32 +142,32 @@ def open_featured(widget):
 	wTree = gtk.glade.XML(gladefile, "featured_window")
 	treeview_featured = wTree.get_widget("treeview_featured")
 	wTree.get_widget("featured_window").set_title(_("Featured applications"))
-	wTree.get_widget("featured_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")	
+	wTree.get_widget("featured_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
 	wTree.get_widget("button_close").connect("clicked", close_window, wTree.get_widget("featured_window"))
-	wTree.get_widget("button_apply").connect("clicked", install_featured, wTree, treeview_featured, wTree.get_widget("featured_window"))		
-	wTree.get_widget("featured_window").show_all()	
+	wTree.get_widget("button_apply").connect("clicked", install_featured, wTree, treeview_featured, wTree.get_widget("featured_window"))
+	wTree.get_widget("featured_window").show_all()
 
 	wTree.get_widget("lbl_intro").set_label(_("These popular applications can be installed on your system:"))
 
-	# the treeview 
+	# the treeview
 	cr = gtk.CellRendererToggle()
 	cr.connect("toggled", toggled, treeview_featured)
 	column1 = gtk.TreeViewColumn(_("Install"), cr)
 	column1.set_cell_data_func(cr, celldatafunction_checkbox)
 	column1.set_sort_column_id(1)
-	column1.set_resizable(True)  
+	column1.set_resizable(True)
 	column2 = gtk.TreeViewColumn(_("Application"), gtk.CellRendererText(), text=2)
 	column2.set_sort_column_id(2)
-	column2.set_resizable(True)  
+	column2.set_resizable(True)
 	column3 = gtk.TreeViewColumn(_("Icon"), gtk.CellRendererPixbuf(), pixbuf=3)
 	column3.set_sort_column_id(3)
-	column3.set_resizable(True)  	
+	column3.set_resizable(True)
 	column4 = gtk.TreeViewColumn(_("Description"), gtk.CellRendererText(), text=4)
 	column4.set_sort_column_id(4)
-	column4.set_resizable(True)  
+	column4.set_resizable(True)
 	column5 = gtk.TreeViewColumn(_("Size"), gtk.CellRendererText(), text=5)
 	column5.set_sort_column_id(5)
-	column5.set_resizable(True)  
+	column5.set_resizable(True)
 
 	treeview_featured.append_column(column1)
 	treeview_featured.append_column(column3)
@@ -186,11 +187,11 @@ def open_featured(widget):
 		if len(application_details) == 3:
 			application_pkg = application_details[0]
 			application_name = application_details[1]
-			application_icon = application_details[2]			
+			application_icon = application_details[2]
 			try:
 				global cache
 				pkg = cache[application_pkg]
-				
+
 				if ((not pkg.is_installed) and (pkg.candidate.summary != "")):
 					strSize = str(pkg.candidate.size) + _("B")
 					if (pkg.candidate.size >= 1000):
@@ -199,17 +200,17 @@ def open_featured(widget):
 						strSize = str(pkg.candidate.size / 1000000) + _("MB")
 					if (pkg.candidate.size >= 1000000000):
 						strSize = str(pkg.candidate.size / 1000000000) + _("GB")
-					iter = model.insert_before(None, None)						
+					iter = model.insert_before(None, None)
 					model.set_value(iter, 0, application_pkg)
 					model.set_value(iter, 1, "false")
 					model.set_value(iter, 2, application_name)
-					model.set_value(iter, 3, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintinstall/featured_applications/" + application_icon))						
+					model.set_value(iter, 3, gtk.gdk.pixbuf_new_from_file("/usr/share/linuxmint/mintinstall/featured_applications/" + application_icon))
 					model.set_value(iter, 4, pkg.candidate.summary)
 					model.set_value(iter, 5, strSize)
 
 			except Exception, detail:
 				#Package isn't in repositories
-				print detail				
+				print detail
 
 	treeview_featured.set_model(model)
 	del model
@@ -219,7 +220,7 @@ def install_featured(widget, wTree, treeview_featured, window):
 	socket = gtk.Socket()
 	vbox.pack_start(socket)
 	socket.show()
-	window_id = repr(socket.get_id())	
+	window_id = repr(socket.get_id())
 	command = "gksu mint-synaptic-install " + window_id
 	model = treeview_featured.get_model()
 	iter = model.get_iter_first()
@@ -227,7 +228,7 @@ def install_featured(widget, wTree, treeview_featured, window):
 		if (model.get_value(iter, 1) == "true"):
 			pkg = model.get_value(iter, 0)
 			command = command + " " + pkg
-		iter = model.iter_next(iter)	
+		iter = model.iter_next(iter)
 	os.system(command)
 	close_window(widget, window)
 
@@ -251,19 +252,19 @@ def celldatafunction_checkbox(column, cell, model, iter):
 
 def show_screenshot(widget, model):
 	#Set the Glade file
-	if model.selected_application != None:		
+	if model.selected_application != None:
 		gladefile = "/usr/lib/linuxmint/mintInstall/frontend.glade"
 		wTree = gtk.glade.XML(gladefile, "screenshot_window")
 		wTree.get_widget("screenshot_window").set_title(model.selected_application.name)
 		wTree.get_widget("screenshot_window").set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
 		wTree.get_widget("screenshot_window").connect("delete_event", close_window, wTree.get_widget("screenshot_window"))
 		wTree.get_widget("button_screen_close").connect("clicked", close_window, wTree.get_widget("screenshot_window"))
-		wTree.get_widget("image_screen").set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(model.selected_application.screenshot))	
-		wTree.get_widget("button_screen").connect("clicked", close_window, wTree.get_widget("screenshot_window"))	
+		wTree.get_widget("image_screen").set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(model.selected_application.screenshot))
+		wTree.get_widget("button_screen").connect("clicked", close_window, wTree.get_widget("screenshot_window"))
 		wTree.get_widget("screenshot_window").show_all()
 
 def fetch_apt_details(model):
-	global cache	
+	global cache
 	if os.path.exists("/usr/share/linuxmint/mintinstall/data/details/packages.list"):
 		packagesFile = open("/usr/share/linuxmint/mintinstall/data/details/packages.list", "r")
 		lines = packagesFile.readlines()
@@ -275,8 +276,8 @@ def fetch_apt_details(model):
 			for portal in model.portals:
 				if item is None:
 					item = portal.find_item(key)
-			if item is not None:	
-				item.status = "installed"			
+			if item is not None:
+				item.status = "installed"
 				for package in packages:
 					try:
 						pkg = cache[package]
@@ -288,21 +289,21 @@ def fetch_apt_details(model):
 						item.packages.append(pkg)
 						item.is_special = False
 						item.long_description = pkg.candidate.raw_description
-					except Exception, details: 
+					except Exception, details:
 						print details
-			packagesFile.close()											
+			packagesFile.close()
 
 def show_more_info_wrapper(widget, path, column, model):
 	show_more_info(widget, model)
 
 def show_more_info(widget, model):
 	if model.selected_application != None:
-		if not os.path.exists((model.selected_application.mint_file)):			
+		if not os.path.exists((model.selected_application.mint_file)):
 			os.system("zenity --error --text=\"" + _("The mint file for this application was not successfully downloaded. Click on refresh to fix the problem.") + "\"")
 		else:
-			directory = home + "/.linuxmint/mintInstall/tmp/mintFile"
+			directory = HOME + "/.linuxmint/mintInstall/tmp/mintFile"
 			os.system("mkdir -p " + directory)
-			os.system("rm -rf " + directory + "/*") 
+			os.system("rm -rf " + directory + "/*")
 			os.system("cp " + model.selected_application.mint_file + " " + directory + "/file.mint")
 			os.system("tar zxf " + directory + "/file.mint -C " + directory)
 			steps = int(commands.getoutput("ls -l " + directory + "/steps/ | wc -l"))
@@ -310,7 +311,7 @@ def show_more_info(widget, model):
 			repositories = []
 			packages = []
 			for i in range(steps + 1):
-				if (i > 0):			
+				if (i > 0):
 					openfile = open(directory + "/steps/"+str(i), 'r' )
 				        datalist = openfile.readlines()
 					for j in range( len( datalist ) ):
@@ -321,7 +322,7 @@ def show_more_info(widget, model):
 					    if (str.find(datalist[j], "SOURCE") > -1):
 						source = datalist[j][7:]
 						source = source.rstrip()
-						self.repositories.append(source)	
+						self.repositories.append(source)
 					openfile.close()
 			gladefile = "/usr/lib/linuxmint/mintInstall/frontend.glade"
 			wTree = gtk.glade.XML(gladefile, "more_info_window")
@@ -339,14 +340,14 @@ def show_more_info(widget, model):
 			tree_repositories.show()
 			model_repositories = gtk.TreeStore(str)
 			if len(repositories) == 0:
-				iter = model_repositories.insert_before(None, None)						
-				model_repositories.set_value(iter, 0, _("Default repositories"))	
-			for repository in repositories:				
-				iter = model_repositories.insert_before(None, None)						
-				model_repositories.set_value(iter, 0, repository)						
-			model_repositories.set_sort_column_id( 0, gtk.SORT_ASCENDING )	
+				iter = model_repositories.insert_before(None, None)
+				model_repositories.set_value(iter, 0, _("Default repositories"))
+			for repository in repositories:
+				iter = model_repositories.insert_before(None, None)
+				model_repositories.set_value(iter, 0, repository)
+			model_repositories.set_sort_column_id( 0, gtk.SORT_ASCENDING )
 			tree_repositories.set_model(model_repositories)
-			del model_repositories	
+			del model_repositories
 
 			tree_packages = wTree.get_widget("treeview_packages")
 			column1 = gtk.TreeViewColumn(_("Package"), gtk.CellRendererText(), text=0)
@@ -371,7 +372,7 @@ def show_more_info(widget, model):
 			model_packages = gtk.TreeStore(str, str, str, str)
 
 			description = ""
-			strSize = ""	
+			strSize = ""
 			for package in packages:
 				installedVersion = ""
 				candidateVersion = ""
@@ -380,9 +381,9 @@ def show_more_info(widget, model):
 					pkg = cache[package]
 					description = pkg.candidate.raw_description
 					if pkg.installed is not None:
-						installedVersion = pkg.installed.version	
+						installedVersion = pkg.installed.version
 					if pkg.candidate is not None:
-						candidateVersion = pkg.candidate.version				
+						candidateVersion = pkg.candidate.version
 					size = int(pkg.candidate.size)
 					strSize = str(size) + _("B")
 					if (size >= 1000):
@@ -392,15 +393,15 @@ def show_more_info(widget, model):
 					if (size >= 1000000000):
 						strSize = str(size / 1000000000) + _("GB")
 				except Exception, detail:
-					print detail			
-				iter = model_packages.insert_before(None, None)						
+					print detail
+				iter = model_packages.insert_before(None, None)
 				model_packages.set_value(iter, 0, package)
-				model_packages.set_value(iter, 1, installedVersion)						
+				model_packages.set_value(iter, 1, installedVersion)
 				model_packages.set_value(iter, 2, candidateVersion)
-				model_packages.set_value(iter, 3, strSize)															
-			model_packages.set_sort_column_id( 0, gtk.SORT_ASCENDING )		
+				model_packages.set_value(iter, 3, strSize)
+			model_packages.set_sort_column_id( 0, gtk.SORT_ASCENDING )
 			tree_packages.set_model(model_packages)
-			del model_packages	
+			del model_packages
 
 			wTree.get_widget("lbl_license").set_text(_("License:"))
 			wTree.get_widget("lbl_homepage").set_text(_("Website") + ":")
@@ -410,20 +411,20 @@ def show_more_info(widget, model):
 			wTree.get_widget("txt_license").set_text(model.selected_application.license)
 			wTree.get_widget("txt_description").set_text(description)
 			wTree.get_widget("button_website").connect("clicked", visit_website, model, username)
-			wTree.get_widget("button_website").set_label(model.selected_application.website)	
+			wTree.get_widget("button_website").set_label(model.selected_application.website)
 			wTree.get_widget("button_portal").connect("clicked", visit_web, model, username)
-			wTree.get_widget("button_portal").set_label(model.selected_application.link)					
+			wTree.get_widget("button_portal").set_label(model.selected_application.link)
 			wTree.get_widget("more_info_window").show_all()
 
 def visit_web(widget, model, username):
 	if model.selected_application != None:
-		os.system("sudo -u " + username + " /usr/lib/linuxmint/common/launch_browser_as.py \"" + model.selected_application.link + "\"")	
+		os.system("sudo -u " + username + " /usr/lib/linuxmint/common/launch_browser_as.py \"" + model.selected_application.link + "\"")
 
 def visit_website(widget, model, username):
 	if model.selected_application != None:
-		os.system("sudo -u " + username + " /usr/lib/linuxmint/common/launch_browser_as.py \"" + model.selected_application.website + "\"")		
+		os.system("sudo -u " + username + " /usr/lib/linuxmint/common/launch_browser_as.py \"" + model.selected_application.website + "\"")
 
-def install(widget, model, wTree, username):	
+def install(widget, model, wTree, username):
 	if model.selected_application != None:
 		if model.selected_application.is_special:
 			if not os.path.exists((model.selected_application.mint_file)):
@@ -439,12 +440,12 @@ def install(widget, model, wTree, username):
 				if package not in model.packages_to_install:
 					model.packages_to_install.append(package)
 			model.selected_application.status = "add"
-			wTree.get_widget("toolbutton_apply").set_sensitive(True)			
-			model_applications, iter = wTree.get_widget("tree_applications").get_selection().get_selected()			
-			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/add.png"))		
+			wTree.get_widget("toolbutton_apply").set_sensitive(True)
+			model_applications, iter = wTree.get_widget("tree_applications").get_selection().get_selected()
+			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/add.png"))
 			model_applications.set_value(iter, 8, 1)
 			show_item(wTree.get_widget("tree_applications").get_selection(), model, wTree, username)
-		
+
 
 def remove(widget, model, wTree, username):
 	if model.selected_application != None:
@@ -463,8 +464,8 @@ def remove(widget, model, wTree, username):
 					model.packages_to_remove.append(package)
 			model.selected_application.status = "remove"
 			wTree.get_widget("toolbutton_apply").set_sensitive(True)
-			model_applications, iter = wTree.get_widget("tree_applications").get_selection().get_selected()			
-			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/remove.png"))		
+			model_applications, iter = wTree.get_widget("tree_applications").get_selection().get_selected()
+			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/remove.png"))
 			model_applications.set_value(iter, 8, 2)
 			show_item(wTree.get_widget("tree_applications").get_selection(), model, wTree, username)
 
@@ -476,14 +477,14 @@ def cancel_change(widget, model, wTree, username):
 				if package in model.packages_to_install:
 					model.packages_to_install.remove(package)
 			model.selected_application.status = "available"
-			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/available.png"))		
+			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/available.png"))
 			model_applications.set_value(iter, 8, 4)
 		elif model.selected_application.status == "remove":
 			for package in model.selected_application.packages:
 				if package in model.packages_to_remove:
 					model.packages_to_remove.remove(package)
 			model.selected_application.status = "installed"
-			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/installed.png"))		
+			model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/installed.png"))
 			model_applications.set_value(iter, 8, 3)
 
 		if len(model.packages_to_install) == 0 and len(model.packages_to_remove) == 0:
@@ -499,21 +500,21 @@ def apply(widget, model, wTree, username):
 	cmd.append("\"" + _("Please wait, this can take some time") + "\"")
 	cmd.append("--finish-str")
 	cmd.append("\"" + _("The changes are complete") + "\"")
-		
+
 	f = tempfile.NamedTemporaryFile()
 
-	for pkg in model.packages_to_install:				    
-	    f.write("%s\tinstall\n" % pkg.name)		
-	for pkg in model.packages_to_remove:				    
-	    f.write("%s\tdeinstall\n" % pkg.name)				    
+	for pkg in model.packages_to_install:
+	    f.write("%s\tinstall\n" % pkg.name)
+	for pkg in model.packages_to_remove:
+	    f.write("%s\tdeinstall\n" % pkg.name)
 
 	cmd.append("--set-selections-file")
 	cmd.append("%s" % f.name)
 	f.flush()
 	comnd = Popen(' '.join(cmd), shell=True)
-	returnCode = comnd.wait()				
+	returnCode = comnd.wait()
         #sts = os.waitpid(comnd.pid, 0)
-	f.close()	
+	f.close()
 
 	model.packages_to_install = []
 	model.packages_to_remove = []
@@ -527,9 +528,9 @@ def apply(widget, model, wTree, username):
 
 	fetch_apt_details(model)
 	show_applications(wTree, model, True)
-	
 
-def show_applications(wTree, model, scrollback):	
+
+def show_applications(wTree, model, scrollback):
 
 	matching_statuses = []
 	if model.filter_applications == "available":
@@ -537,42 +538,42 @@ def show_applications(wTree, model, scrollback):
 		matching_statuses.append("add")
 		matching_statuses.append("special")
 	elif model.filter_applications == "installed":
-		matching_statuses.append("installed")	
-		matching_statuses.append("remove")	
+		matching_statuses.append("installed")
+		matching_statuses.append("remove")
 	elif model.filter_applications == "changes":
-		matching_statuses.append("add")	
-		matching_statuses.append("remove")	
+		matching_statuses.append("add")
+		matching_statuses.append("remove")
 	elif model.filter_applications == "all":
-		matching_statuses.append("available")	
-		matching_statuses.append("installed")	
-		matching_statuses.append("special")	
-		matching_statuses.append("add")	
-		matching_statuses.append("remove")	
+		matching_statuses.append("available")
+		matching_statuses.append("installed")
+		matching_statuses.append("special")
+		matching_statuses.append("add")
+		matching_statuses.append("remove")
 	global num_apps
 	num_apps = 0
 	category_keys = []
-	if (model.selected_category == None): 
+	if (model.selected_category == None):
 		#The All category is selected
-		for portal in model.portals:			
+		for portal in model.portals:
 			for category in portal.categories:
 				category_keys.append(category.key)
 	else:
 		category_keys.append(model.selected_category.key)
 		for subcategory in model.selected_category.subcategories:
-			category_keys.append(subcategory.key)		
+			category_keys.append(subcategory.key)
 
 	tree_applications = wTree.get_widget("tree_applications")
 	new_selection = None
 	model_applications = gtk.TreeStore(str, str, int, int, str, object, int, gtk.gdk.Pixbuf, int)
 	for portal in model.portals:
-		for item in portal.items:	
+		for item in portal.items:
 			if (item.category.key in category_keys):
-				if item.status in matching_statuses and (model.keyword == None 
+				if item.status in matching_statuses and (model.keyword == None
 					or item.name.upper().count(model.keyword.upper()) > 0
 					or item.description.upper().count(model.keyword.upper()) > 0
 					or item.long_description.upper().count(model.keyword.upper()) > 0):
-					iter = model_applications.insert_before(None, None)						
-					model_applications.set_value(iter, 0, item.name)						
+					iter = model_applications.insert_before(None, None)
+					model_applications.set_value(iter, 0, item.name)
 					model_applications.set_value(iter, 1, item.average_rating)
 					model_applications.set_value(iter, 2, len(item.reviews))
 					model_applications.set_value(iter, 3, item.views)
@@ -580,30 +581,30 @@ def show_applications(wTree, model, scrollback):
 					model_applications.set_value(iter, 5, item)
 					model_applications.set_value(iter, 6, float(item.average_rating) * len(item.reviews) + (item.views / 1000))
 					if item.is_special:
-						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/special.png"))	
+						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/special.png"))
 						model_applications.set_value(iter, 8, 9)
 
-					else:	
+					else:
 						if item.status == "available":
-							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/available.png"))		
-							model_applications.set_value(iter, 8, 4)				
+							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/available.png"))
+							model_applications.set_value(iter, 8, 4)
 						elif item.status == "installed":
 							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/installed.png"))
 							model_applications.set_value(iter, 8, 3)
 						elif item.status == "add":
-							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/add.png"))		
+							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/add.png"))
 							model_applications.set_value(iter, 8, 1)
 						elif item.status == "remove":
-							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/remove.png"))		
+							model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/remove.png"))
 							model_applications.set_value(iter, 8, 2)
 
-					if model.selected_application == item:						
+					if model.selected_application == item:
 						new_selection = iter
-						
+
 					num_apps = num_apps + 1
 	model_applications.set_sort_column_id( 6, gtk.SORT_DESCENDING )
 	tree_applications.set_model(model_applications)
-	if scrollback: 
+	if scrollback:
 		first = model_applications.get_iter_first()
 		if (first != None):
 			tree_applications.get_selection().select_iter(first)
@@ -618,7 +619,7 @@ def show_applications(wTree, model, scrollback):
 def update_statusbar(wTree, model):
 	global num_apps
 	statusbar = wTree.get_widget("statusbar")
-	context_id = statusbar.get_context_id("mintInstall")	
+	context_id = statusbar.get_context_id("mintInstall")
 	statusbar.push(context_id,  _("%(applications)d applications listed, %(install)d to install, %(remove)d to remove") % {'applications':num_apps, 'install':len(model.packages_to_install), 'remove':len(model.packages_to_remove)})
 
 def filter_applications(combo, wTree, model):
@@ -644,7 +645,7 @@ def build_GUI(model, username):
 	wTree.get_widget("label1").set_text(_("Show:"))
 	wTree.get_widget("button_search_online").set_label(_("Search"))
 
-	wTree.get_widget("lbl_featured").set_label(_("Featured applications"))	
+	wTree.get_widget("lbl_featured").set_label(_("Featured applications"))
 
 	# Filter
 	model.filter_applications = "all"
@@ -656,10 +657,10 @@ def build_GUI(model, username):
 	store.append([_("Your changes"), "changes"])
 	combo.set_model(store)
 	combo.set_active(0)
-	combo.connect('changed', filter_applications, wTree, model)		
+	combo.connect('changed', filter_applications, wTree, model)
 
 	# Build categories tree
-	tree_categories = wTree.get_widget("tree_categories")	
+	tree_categories = wTree.get_widget("tree_categories")
 	pix = gtk.CellRendererPixbuf()
 	pix.set_property('xalign', 0.0)
 	column1 = gtk.TreeViewColumn(_("Category"), pix, pixbuf=2)
@@ -668,12 +669,12 @@ def build_GUI(model, username):
 	column1.pack_start(cell, True)
 	column1.add_attribute(cell, 'text', 0)
 	cell.set_property('xalign', 0.1)
-	
+
 	tree_categories.append_column(column1)
 	tree_categories.set_headers_clickable(True)
 	tree_categories.set_reorderable(False)
 	tree_categories.show()
-	model_categories = gtk.TreeStore(str, object)	
+	model_categories = gtk.TreeStore(str, object)
 	tree_categories.set_model(model_categories)
 	del model_categories
 
@@ -719,7 +720,7 @@ def build_GUI(model, username):
 	tree_applications.show()
 	model_applications = gtk.TreeStore(str, int, int, int, str, object, int, gtk.gdk.Pixbuf, int)
 	tree_applications.set_model(model_applications)
-	del model_applications	
+	del model_applications
 
 	tree_applications.connect("row_activated", show_more_info_wrapper, model)
 
@@ -747,22 +748,22 @@ def build_GUI(model, username):
 	model_reviews = gtk.TreeStore(str, int, str, object)
 	tree_reviews.set_model(model_reviews)
 	del model_reviews
-	
+
 	selection = tree_applications.get_selection()
 	selection.connect("changed", show_item, model, wTree, username)
 
 	entry_search = wTree.get_widget("entry_search")
-	entry_search.connect("changed", filter_search, wTree, model)		
-	
+	entry_search.connect("changed", filter_search, wTree, model)
+
 	wTree.get_widget("button_search_online").connect("clicked", open_search, username)
-	wTree.get_widget("button_feature").connect("clicked", open_featured)				
+	wTree.get_widget("button_feature").connect("clicked", open_featured)
 	wTree.get_widget("button_screenshot").connect("clicked", show_screenshot, model)
-	wTree.get_widget("button_install").connect("clicked", install, model, wTree, username)	
+	wTree.get_widget("button_install").connect("clicked", install, model, wTree, username)
 	wTree.get_widget("button_remove").connect("clicked", remove, model, wTree, username)
-	wTree.get_widget("button_cancel_change").connect("clicked", cancel_change, model, wTree, username)		
+	wTree.get_widget("button_cancel_change").connect("clicked", cancel_change, model, wTree, username)
 	wTree.get_widget("button_show").connect("clicked", show_more_info, model)
 
-	wTree.get_widget("toolbutton_apply").connect("clicked", apply, model, wTree, username)	
+	wTree.get_widget("toolbutton_apply").connect("clicked", apply, model, wTree, username)
 
 	fileMenu = gtk.MenuItem(_("_File"))
 	fileSubmenu = gtk.Menu()
@@ -770,7 +771,7 @@ def build_GUI(model, username):
 	closeMenuItem = gtk.ImageMenuItem(gtk.STOCK_CLOSE)
 	closeMenuItem.get_child().set_text(_("Quit"))
 	closeMenuItem.connect("activate", close_application)
-	fileSubmenu.append(closeMenuItem)		
+	fileSubmenu.append(closeMenuItem)
 	closeMenuItem.show()
 
 	editMenu = gtk.MenuItem(_("_Edit"))
@@ -778,7 +779,7 @@ def build_GUI(model, username):
 	editMenu.set_submenu(editSubmenu)
 	cancelMenuItem = gtk.MenuItem(_("Cancel all changes"))
 	cancelMenuItem.connect("activate", cancel_changes, wTree, model)
-	editSubmenu.append(cancelMenuItem)		
+	editSubmenu.append(cancelMenuItem)
 	cancelMenuItem.show()
 
 	helpMenu = gtk.MenuItem(_("_Help"))
@@ -795,7 +796,7 @@ def build_GUI(model, username):
 	wTree.get_widget("menubar1").append(fileMenu)
 	wTree.get_widget("menubar1").append(editMenu)
 	wTree.get_widget("menubar1").append(helpMenu)
-	
+
 	return wTree
 
 def cancel_changes(widget, wTree, model):
@@ -811,7 +812,7 @@ def cancel_changes(widget, wTree, model):
 	show_applications(wTree, model, True)
 
 def open_about(widget):
-	dlg = gtk.AboutDialog()		
+	dlg = gtk.AboutDialog()
 	dlg.set_version(commands.getoutput("/usr/lib/linuxmint/common/version.py mintinstall"))
 	dlg.set_name("mintInstall")
 	dlg.set_comments(_("Software manager"))
@@ -824,8 +825,8 @@ def open_about(widget):
             h.close()
             dlg.set_license(gpl)
         except Exception, detail:
-            print detail            
-        dlg.set_authors(["Clement Lefebvre <root@linuxmint.com>"]) 
+            print detail
+        dlg.set_authors(["Clement Lefebvre <root@linuxmint.com>"])
 	dlg.set_icon_from_file("/usr/lib/linuxmint/mintInstall/icon.svg")
 	dlg.set_logo(gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/icon.svg"))
         def close(w, res):
@@ -851,7 +852,7 @@ class DownloadScreenshot(threading.Thread):
 				self.wTree.get_widget("image_screenshot").set_from_pixbuf(gtk.gdk.pixbuf_new_from_file_at_size(self.selected_item.screenshot, 200, 200))
 			gtk.gdk.threads_leave()
 		except Exception, detail:
-			pass					
+			pass
 
 class RefreshThread(threading.Thread):
 
@@ -865,7 +866,7 @@ class RefreshThread(threading.Thread):
 
 	def run(self):
 		try:
-		
+
 			self.initialize()
 			del self.model.portals[:]
 			self.model = self.register_portals(self.model)
@@ -873,7 +874,7 @@ class RefreshThread(threading.Thread):
 			self.wTree.get_widget("main_window").set_sensitive(False)
 			self.wTree.get_widget("main_window").window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
 			gtk.gdk.threads_leave()
-			if (self.refresh):	
+			if (self.refresh):
 				for portal in self.model.portals:
 					self.download_portal(portal)
 			try:
@@ -889,13 +890,13 @@ class RefreshThread(threading.Thread):
 						if (category.parent == "0"):
 							category.parent = None
 						else:
-							parentKey = category.parent			
+							parentKey = category.parent
 							parent = portal.find_category(parentKey)
 							parent.add_subcategory(category)
 
-				gtk.gdk.threads_enter()	
+				gtk.gdk.threads_enter()
 				update_statusbar(wTree, model)
-				gtk.gdk.threads_leave()				
+				gtk.gdk.threads_leave()
 			except Exception, details:
 				print details
 				allPortalsHere = True
@@ -913,32 +914,32 @@ class RefreshThread(threading.Thread):
 					dialog.add_button(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE)
 					dialog.connect('response', lambda dialog, response: dialog.destroy())
 					dialog.show()
-					gtk.gdk.threads_leave()					
+					gtk.gdk.threads_leave()
 
 				del self.model.portals[:]
 				self.model = self.register_portals(self.model)
 
 			gtk.gdk.threads_enter()
-			self.load_model_in_GUI(self.wTree, self.model)			
+			self.load_model_in_GUI(self.wTree, self.model)
 			self.wTree.get_widget("main_window").window.set_cursor(None)
 			self.wTree.get_widget("main_window").set_sensitive(True)
 			gtk.gdk.threads_leave()
 		except Exception, detail:
 			print detail
 
-	def initialize(self):		
+	def initialize(self):
 		#if self.refresh:
-		#	os.system("rm -rf " + self.directory + "/tmp/*")	
+		#	os.system("rm -rf " + self.directory + "/tmp/*")
 		os.system("mkdir -p " + self.directory + "/icons/categories")
 		os.system("mkdir -p " + self.directory + "/mintfiles")
 		os.system("mkdir -p " + self.directory + "/screenshots")
 		os.system("mkdir -p " + self.directory + "/xml")
-		#os.system("mkdir -p " + self.directory + "/etc")		
+		#os.system("mkdir -p " + self.directory + "/etc")
 		#if not os.path.exists(self.directory + "/etc/portals.list"):
 		#	os.system("cp /etc/linuxmint/version/mintinstall/portals.list " + self.directory + "/etc/portals.list")
 
-	def register_portals(self, model):		
-		portalsFile = open("/usr/share/linuxmint/mintinstall/portals.list")	
+	def register_portals(self, model):
+		portalsFile = open("/usr/share/linuxmint/mintinstall/portals.list")
 		for line in portalsFile:
 			array = line.split(";")
 			if len(array) == 6:
@@ -948,19 +949,19 @@ class RefreshThread(threading.Thread):
 		return model
 
 	def download_portal(self, portal):
-		gtk.gdk.threads_enter()	
+		gtk.gdk.threads_enter()
 		statusbar = wTree.get_widget("statusbar")
 		context_id = statusbar.get_context_id("mintInstall")
 		portal.update_url = portal.update_url.strip()
 		statusbar.push(context_id, _("Downloading data for %s") % (portal.name))
-		gtk.gdk.threads_leave()		
+		gtk.gdk.threads_leave()
 		webFile = urllib.urlopen(portal.update_url)
 		localFile = open(self.directory + "/xml/" + portal.key + ".xml", 'w')
 		localFile.write(webFile.read())
 		webFile.close()
-		localFile.close()		
+		localFile.close()
 
-	def build_portal(self, model, portal):	
+	def build_portal(self, model, portal):
 		fileName = self.directory + "/xml/" + portal.key + ".xml"
 		numItems = commands.getoutput("grep -c \"<item\" " + fileName)
 		numReviews = commands.getoutput("grep -c \"<review\" " + fileName)
@@ -973,78 +974,78 @@ class RefreshThread(threading.Thread):
 		processed_categories = 0
 		processed_items = 0
 		processed_screenshots = 0
-		processed_reviews = 0			
+		processed_reviews = 0
 		processed_total = 0
 		xml = ET.parse(fileName)
-		root = xml.getroot()				
+		root = xml.getroot()
 		gtk.gdk.threads_enter()
 		statusbar = wTree.get_widget("statusbar")
 		context_id = statusbar.get_context_id("mintInstall")
-		gtk.gdk.threads_leave()	
-		for element in root: 
+		gtk.gdk.threads_leave()
+		for element in root:
 			if element.tag == "category":
-				category = Classes.Category(portal, element.attrib["id"], element.attrib["name"], element.attrib["description"], element.attrib["vieworder"], element.attrib["parent"], element.attrib["logo"])				
+				category = Classes.Category(portal, element.attrib["id"], element.attrib["name"], element.attrib["description"], element.attrib["vieworder"], element.attrib["parent"], element.attrib["logo"])
 				category.name = category.name.replace("ANDAND", "&")
 				if self.refresh:
-					os.chdir(self.directory + "/icons/categories")	
+					os.chdir(self.directory + "/icons/categories")
 					os.system("wget -nc -O" + category.key + " " + category.logo)
-					os.chdir("/usr/lib/linuxmint/mintInstall")					
+					os.chdir("/usr/lib/linuxmint/mintInstall")
 				category.logo = gtk.gdk.pixbuf_new_from_file_at_size(self.directory + "/icons/categories/" + category.key, 16, 16)
 				category.name = _(category.name)
-				portal.categories.append(category)	
-				gtk.gdk.threads_enter()	
-				processed_categories = int(processed_categories) + 1	
+				portal.categories.append(category)
+				gtk.gdk.threads_enter()
+				processed_categories = int(processed_categories) + 1
 				statusbar.push(context_id, _("%d categories loaded") % processed_categories)
 				processed_total = processed_total + 1
 				ratio = float(processed_total) / float(numTotal)
 				progressbar.set_fraction(ratio)
 				pct = int(ratio * 100)
 				progressbar.set_text(str(pct) + "%")
-				gtk.gdk.threads_leave()		
-					
+				gtk.gdk.threads_leave()
+
 			elif element.tag == "item":
 				item = Classes.Item(portal, element.attrib["id"], element.attrib["link"], element.attrib["mint_file"], element.attrib["category"], element.attrib["name"], element.attrib["description"], "", element.attrib["added"], element.attrib["views"], element.attrib["license"], element.attrib["size"], element.attrib["website"], element.attrib["repository"], element.attrib["average_rating"])
-				item.average_rating = item.average_rating[:3]								
+				item.average_rating = item.average_rating[:3]
 				if item.average_rating.endswith("0"):
 					item.average_rating = item.average_rating[0]
 				item.views = int(item.views)
 				item.link = item.link.replace("ANDAND", "&")
-				if self.refresh:					
-					os.chdir(self.directory + "/mintfiles")	
+				if self.refresh:
+					os.chdir(self.directory + "/mintfiles")
 					os.system("wget -nc -O" + item.key + ".mint -T10 \"" + item.mint_file + "\"")
 					os.chdir("/usr/lib/linuxmint/mintInstall")
-				item.mint_file = self.directory + "/mintfiles/" + item.key + ".mint"				
+				item.mint_file = self.directory + "/mintfiles/" + item.key + ".mint"
 
 				if item.repository == "":
 					item.repository = _("Default repositories")
-				portal.items.append(item)		
+				portal.items.append(item)
 				portal.find_category(item.category).add_item(item)
 				gtk.gdk.threads_enter()
-				processed_items = int(processed_items) + 1	
+				processed_items = int(processed_items) + 1
 				statusbar.push(context_id, _("%d applications loaded") % processed_items)
 				processed_total = processed_total + 1
 				ratio = float(processed_total) / float(numTotal)
 				progressbar.set_fraction(ratio)
 				pct = int(ratio * 100)
 				progressbar.set_text(str(pct) + "%")
-				gtk.gdk.threads_leave()						
+				gtk.gdk.threads_leave()
 
 			elif element.tag == "screenshot":
 				screen_item = element.attrib["item"]
 				screen_img = element.attrib["img"]
 				item = portal.find_item(screen_item)
-				if item != None:			
+				if item != None:
 					try:
-						if self.refresh:					
-							os.chdir(self.directory + "/screenshots")	
+						if self.refresh:
+							os.chdir(self.directory + "/screenshots")
 							os.system("wget -nc -O" + screen_item + " -T10 \"" + screen_img + "\"")
 							os.chdir("/usr/lib/linuxmint/mintInstall")
 						item.screenshot = self.directory + "/screenshots/" + screen_item
-						item.screenshot_url = screen_img				
-						gtk.gdk.threads_enter()						
-						processed_screenshots = int(processed_screenshots) + 1	
+						item.screenshot_url = screen_img
+						gtk.gdk.threads_enter()
+						processed_screenshots = int(processed_screenshots) + 1
 						statusbar.push(context_id, _("%d screenshots loaded") % processed_screenshots)
-						gtk.gdk.threads_leave()		
+						gtk.gdk.threads_leave()
 					except:
 						pass
 				gtk.gdk.threads_enter()
@@ -1068,11 +1069,11 @@ class RefreshThread(threading.Thread):
 					review.rating = int(review.rating)
 					item.add_review(review)
 					portal.reviews.append(review)
-					gtk.gdk.threads_enter()					
-					processed_reviews = int(processed_reviews) + 1	
+					gtk.gdk.threads_enter()
+					processed_reviews = int(processed_reviews) + 1
 					statusbar.push(context_id, _("%d reviews loaded") % processed_reviews)
-					gtk.gdk.threads_leave()								
-	
+					gtk.gdk.threads_leave()
+
 				gtk.gdk.threads_enter()
 				processed_total = processed_total + 1
 				ratio = float(processed_total) / float(numTotal)
@@ -1081,7 +1082,7 @@ class RefreshThread(threading.Thread):
 				progressbar.set_text(str(pct) + "%")
 				gtk.gdk.threads_leave()
 
-		fetch_apt_details(model)	
+		fetch_apt_details(model)
 
 		gtk.gdk.threads_enter()
 		progressbar.set_fraction(0)
@@ -1093,20 +1094,20 @@ class RefreshThread(threading.Thread):
 		tree_categories = wTree.get_widget("tree_categories")
 		model_categories = gtk.TreeStore(str, object, gtk.gdk.Pixbuf)
 		#Add the "All" category
-		iter = model_categories.insert_before(None, None)						
-		model_categories.set_value(iter, 0, _("All applications"))						
+		iter = model_categories.insert_before(None, None)
+		model_categories.set_value(iter, 0, _("All applications"))
 		model_categories.set_value(iter, 1, None)
 		model_categories.set_value(iter, 2, gtk.gdk.pixbuf_new_from_file_at_size("/usr/lib/linuxmint/mintInstall/icon.svg", 16, 16))
 		for portal in model.portals:
-			for category in portal.categories:		
+			for category in portal.categories:
 				if (category.parent == None or category.parent == "None"):
-					iter = model_categories.insert_before(None, None)						
-					model_categories.set_value(iter, 0, category.name)						
+					iter = model_categories.insert_before(None, None)
+					model_categories.set_value(iter, 0, category.name)
 					model_categories.set_value(iter, 1, category)
 					model_categories.set_value(iter, 2, category.logo)
-					for subcategory in category.subcategories:				
-						subiter = model_categories.insert_before(iter, None)						
-						model_categories.set_value(subiter, 0, subcategory.name)				
+					for subcategory in category.subcategories:
+						subiter = model_categories.insert_before(iter, None)
+						model_categories.set_value(subiter, 0, subcategory.name)
 						model_categories.set_value(subiter, 1, subcategory)
 						model_categories.set_value(subiter, 2, subcategory.logo)
 		tree_categories.set_model(model_categories)
@@ -1116,11 +1117,11 @@ class RefreshThread(threading.Thread):
 
 		#Build applications table
 		tree_applications = wTree.get_widget("tree_applications")
-		model_applications = gtk.TreeStore(str, str, int, int, str, object, int, gtk.gdk.Pixbuf, int)		
+		model_applications = gtk.TreeStore(str, str, int, int, str, object, int, gtk.gdk.Pixbuf, int)
 		for portal in model.portals:
-			for item in portal.items:		
-				iter = model_applications.insert_before(None, None)						
-				model_applications.set_value(iter, 0, item.name)						
+			for item in portal.items:
+				iter = model_applications.insert_before(None, None)
+				model_applications.set_value(iter, 0, item.name)
 				model_applications.set_value(iter, 1, item.average_rating)
 				model_applications.set_value(iter, 2, len(item.reviews))
 				model_applications.set_value(iter, 3, item.views)
@@ -1128,27 +1129,27 @@ class RefreshThread(threading.Thread):
 				model_applications.set_value(iter, 5, item)
 				model_applications.set_value(iter, 6, float(item.average_rating) * len(item.reviews) + (item.views / 1000))
 				if item.is_special:
-					model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/special.png"))	
-					model_applications.set_value(iter, 8, 9)	
-				else:					
+					model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/special.png"))
+					model_applications.set_value(iter, 8, 9)
+				else:
 					if item.status == "available":
-						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/available.png"))		
-						model_applications.set_value(iter, 8, 4)				
+						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/available.png"))
+						model_applications.set_value(iter, 8, 4)
 					elif item.status == "installed":
 						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/installed.png"))
 						model_applications.set_value(iter, 8, 3)
 					elif item.status == "add":
-						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/add.png"))		
+						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/add.png"))
 						model_applications.set_value(iter, 8, 1)
 					elif item.status == "remove":
-						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/remove.png"))		
+						model_applications.set_value(iter, 7, gtk.gdk.pixbuf_new_from_file("/usr/lib/linuxmint/mintInstall/status-icons/remove.png"))
 						model_applications.set_value(iter, 8, 2)
 		model_applications.set_sort_column_id( 6, gtk.SORT_DESCENDING )
-		tree_applications.set_model(model_applications)		
+		tree_applications.set_model(model_applications)
 		first = model_applications.get_iter_first()
 		if (first != None):
 			tree_applications.get_selection().select_iter(first)
-		del model_applications				
+		del model_applications
 
 if __name__ == "__main__":
 	#i18n (force categories to make it to the pot file)

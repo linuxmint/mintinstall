@@ -3,13 +3,15 @@
 import os
 import sys
 import apt
-from user import home
 import gettext
 import gtk
 import gtk.glade
 import commands
 
-def addListColumn(view, title, columnId):	
+HOME = os.path.expanduser("~")
+
+
+def addListColumn(view, title, columnId):
 	column = gtk.TreeViewColumn(title, gtk.CellRendererText(), text=columnId)
 	column.set_resizable(True)
 	column.set_sort_column_id(columnId)
@@ -63,11 +65,11 @@ if (not foundAny):
 	# Switch the notebook to show the "No results" page
 	wTree.get_widget("notebook_list").set_current_page(1)
 
-lview.connect("row-activated", onRowActivated);
+lview.connect("row-activated", onRowActivated)
 wTree.get_widget("window_dialog_list").show()
 
 gtk.main()
 
-	
+
 
 

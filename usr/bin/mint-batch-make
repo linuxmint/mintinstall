@@ -6,16 +6,17 @@ import commands
 import sys
 import apt
 import datetime
-from user import home
+
+HOME = os.path.expanduser("~")
 
 pkgfile = open(sys.argv[1], "r")
 
-os.system("mkdir -p " + home + "/mintfiles")
-os.system("rm -rf " + home + "/mintfiles/*")
-os.chdir(home + "/mintfiles")
+os.system("mkdir -p " + HOME + "/mintfiles")
+os.system("rm -rf " + HOME + "/mintfiles/*")
+os.chdir(HOME + "/mintfiles")
 
 today = datetime.date.today()
-today = today.strftime("%Y-%m-%d") 
+today = today.strftime("%Y-%m-%d")
 
 cache = apt.Cache()
 
@@ -39,9 +40,9 @@ for line in lines:
 		os.mkdir("steps")
 		os.chdir("steps")
 		os.system("echo \"TITLE Installing " + app_name + "\" > 1")
-		os.system("echo \"INSTALL " + pkg_name + "\" >> 1")		
-		os.chdir(home + "/mintfiles")
+		os.system("echo \"INSTALL " + pkg_name + "\" >> 1")
+		os.chdir(HOME + "/mintfiles")
 		os.system("mint-compress " + pkg_name)
 		os.system("rm -rf " + pkg_name)
-		os.system("echo \"INSERT INTO items (id, category, name, description, \`file\`, license, website, size, added, \`release\`) VALUES (0, 21, '" + app_name + "', '" + description + "', 'files/8/" + pkg_name + ".mint', 'Open Source', '" + homepage + "', " + str(size) + ", '" + today + "', 6);\" >> insert.sql ") 
+		os.system("echo \"INSERT INTO items (id, category, name, description, \`file\`, license, website, size, added, \`release\`) VALUES (0, 21, '" + app_name + "', '" + description + "', 'files/8/" + pkg_name + ".mint', 'Open Source', '" + homepage + "', " + str(size) + ", '" + today + "', 6);\" >> insert.sql ")
 pkgfile.close()
