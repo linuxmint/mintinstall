@@ -1899,10 +1899,8 @@ class Application():
 
 if __name__ == "__main__":
     os.system("mkdir -p " + home + "/.linuxmint/mintinstall/screenshots/")
-    #splash_process = Popen("/usr/lib/linuxmint/mintInstall/splash.py")
     model = Classes.Model()
     Application()
-    #os.system("kill -9 %d" % splash_process.pid)
     gtk.gdk.threads_enter()
     gtk.main()
     gtk.gdk.threads_leave()
