@@ -1,3 +1,18 @@
+mintinstall (7.6.4) sarah; urgency=medium
+
+  [ Corbin Auriti ]
+  * Tweaked the Featured List
+
+  [ Clement Lefebvre ]
+  * Removed GTK frontend and support for .mint files (obsolete)
+  * Removed obsolete files
+  * Removed unused files
+  * Shebangs
+  * Removed more obsolete files
+  * Removed icon.svg
+
+ -- Clement Lefebvre <root@linuxmint.com>  Thu, 21 Jan 2016 16:39:37 +0000
+
 mintinstall (7.6.3) rosa; urgency=medium
 
   [ djcj ]
