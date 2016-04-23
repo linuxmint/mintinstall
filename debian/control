@@ -7,7 +7,17 @@ Standards-Version: 3.9.5
 
 Package: mintinstall
 Architecture: all
-Depends: python (>= 2.4), python (<< 3), python-gtk2, python-glade2, mint-common, python-webkit, python-imaging, ttf-freefont, python-sexy, libgtk2-perl, python-beautifulsoup
+Depends: python (>= 2.4), python (<< 3),
+         python-gtk2,
+         python-glade2,
+         python-webkit,
+         python-imaging,
+         python-sexy,
+         python-configobj,
+         python-beautifulsoup,
+         mint-common,
+         ttf-freefont,
+         libgtk2-perl
 Recommends: mintinstall-icons
 Description: Software Manager
  A software manager to easily install new applications.
