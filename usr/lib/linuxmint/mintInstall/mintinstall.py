@@ -31,8 +31,9 @@ from datetime import datetime
 from subprocess import Popen, PIPE
 from widgets.pathbar2 import NavigationBar
 from widgets.searchentry import SearchEntry
-from user import home
 import base64
+
+HOME = os.path.expanduser("~")
 
 # Don't let mintinstall run as root
 #~ if os.getuid() == 0:
@@ -104,7 +105,7 @@ class DownloadReviews(threading.Thread):
 
     def run(self):
         try:
-            reviews_dir = home + "/.linuxmint/mintinstall"
+            reviews_dir = HOME + "/.linuxmint/mintinstall"
             os.system("mkdir -p " + reviews_dir)
             reviews_path = reviews_dir + "/reviews.list"
             reviews_path_tmp = reviews_path + ".tmp"
@@ -672,7 +673,7 @@ class Application():
               self.show_search_results(terms)
 
     def set_filter(self, checkmenuitem, configName):
-        config = ConfigObj(home + "/.linuxmint/mintinstall.conf")
+        config = ConfigObj(HOME + "/.linuxmint/mintinstall.conf")
         if (config.has_key('filter')):
             config['filter'][configName] = checkmenuitem.get_active()
         else:
@@ -684,7 +685,7 @@ class Application():
             self.model_filter.refilter()
 
     def set_search_filter(self, checkmenuitem, configName):
-        config = ConfigObj(home + "/.linuxmint/mintinstall.conf")
+        config = ConfigObj(HOME + "/.linuxmint/mintinstall.conf")
         if (config.has_key('search')):
             config['search'][configName] = checkmenuitem.get_active()
         else:
@@ -696,14 +697,14 @@ class Application():
             self.show_search_results(self.searchentry.get_text())
 
     def set_external_browser(self, checkmenuitem):
-        config = ConfigObj(home + "/.linuxmint/mintinstall.conf")
+        config = ConfigObj(HOME + "/.linuxmint/mintinstall.conf")
         config['external_browser'] = checkmenuitem.get_active()
         config.write()
         self.prefs = self.read_configuration()
 
     def read_configuration(self):
 
-        config = ConfigObj(home + "/.linuxmint/mintinstall.conf")
+        config = ConfigObj(HOME + "/.linuxmint/mintinstall.conf")
         prefs = {}
 
         #Read account info
@@ -778,7 +779,7 @@ class Application():
         window.hide()
 
     def update_account_info(self, entry, prop, configName):
-        config = ConfigObj(home + "/.linuxmint/mintinstall.conf")
+        config = ConfigObj(HOME + "/.linuxmint/mintinstall.conf")
         if (not config.has_key('account')):
             config['account'] = {}
 
@@ -1252,7 +1253,7 @@ class Application():
 
     @print_timing
     def add_reviews(self):
-        reviews_path = home + "/.linuxmint/mintinstall/reviews.list"
+        reviews_path = HOME + "/.linuxmint/mintinstall/reviews.list"
         if not os.path.exists(reviews_path):
             # No reviews found, use the ones from the packages itself
             os.system("cp /usr/lib/linuxmint/mintInstall/reviews.list %s" % reviews_path)
@@ -1281,7 +1282,7 @@ class Application():
 
     @print_timing
     def update_reviews(self):
-        reviews_path = home + "/.linuxmint/mintinstall/reviews.list"
+        reviews_path = HOME + "/.linuxmint/mintinstall/reviews.list"
         if os.path.exists(reviews_path):
             reviews = open(reviews_path)
             last_package = None
@@ -1897,7 +1898,7 @@ class Application():
             return 1
 
 if __name__ == "__main__":
-    os.system("mkdir -p " + home + "/.linuxmint/mintinstall/screenshots/")
+    os.system("mkdir -p " + HOME + "/.linuxmint/mintinstall/screenshots/")
     model = Classes.Model()
     Application()
     gtk.gdk.threads_enter()
