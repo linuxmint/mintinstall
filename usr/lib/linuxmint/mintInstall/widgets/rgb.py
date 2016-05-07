@@ -38,7 +38,7 @@ def shade(color, k):
     if (k == 1.0):
         return color
 
-    h,l,s = colorsys.rgb_to_hls(r,g,b)
+    h, l, s = colorsys.rgb_to_hls(r, g, b)
 
     l *= k
     if (l > 1.0):
@@ -52,16 +52,18 @@ def shade(color, k):
     elif (s < 0.0):
         s = 0.0
 
-    r, g, b = colorsys.hls_to_rgb(h,l,s)
+    r, g, b = colorsys.hls_to_rgb(h, l, s)
 
-    return Color(int(r*65535), int(g*65535), int(b*65535))
+    return Color(int(r * 65535), int(g * 65535), int(b * 65535))
+
 
 def mix_color(color1, color2, mix_factor):
     # as seen in Murrine's cairo-support.c
-    r = color1.red_float*(1-mix_factor)+color2.red_float*mix_factor
-    g = color1.green_float*(1-mix_factor)+color2.green_float*mix_factor
-    b = color1.blue_float*(1-mix_factor)+color2.blue_float*mix_factor
-    return Color(int(r*65535), int(g*65535), int(b*65535))
+    r = color1.red_float * (1 - mix_factor) + color2.red_float * mix_factor
+    g = color1.green_float * (1 - mix_factor) + color2.green_float * mix_factor
+    b = color1.blue_float * (1 - mix_factor) + color2.blue_float * mix_factor
+    return Color(int(r * 65535), int(g * 65535), int(b * 65535))
+
 
 def to_float(color):
     return color.red_float, color.green_float, color.blue_float

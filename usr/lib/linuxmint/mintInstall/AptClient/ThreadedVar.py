@@ -1,8 +1,10 @@
 
 import threading
 
+
 class ThreadedVar(object):
-    def __init__(self, value = None):
+
+    def __init__(self, value=None):
         self._value = value
         self._lock = threading.Lock()
 

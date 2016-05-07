@@ -1,6 +1,6 @@
 # coding: utf-8
 #
-# SearchEntry - An enhanced search entry with alternating background colouring 
+# SearchEntry - An enhanced search entry with alternating background colouring
 #               and timeout support
 #
 # Copyright (C) 2007 Sebastian Heinlein
@@ -26,12 +26,13 @@ import sexy
 import gtk
 import gobject
 
+
 class SearchEntry(sexy.IconEntry):
 
     # FIMXE: we need "can-undo", "can-redo" signals
-    __gsignals__ = {'terms-changed':(gobject.SIGNAL_RUN_FIRST,
-                                     gobject.TYPE_NONE,
-                                     (gobject.TYPE_STRING,))}
+    __gsignals__ = {'terms-changed': (gobject.SIGNAL_RUN_FIRST,
+                                      gobject.TYPE_NONE,
+                                      (gobject.TYPE_STRING,))}
 
     SEARCH_TIMEOUT = 400
 
@@ -46,12 +47,12 @@ class SearchEntry(sexy.IconEntry):
         self._handler_changed = self.connect_after("changed",
                                                    self._on_changed)
         self.connect("icon-pressed", self._on_icon_pressed)
-        image_find = gtk.image_new_from_stock(gtk.STOCK_FIND, 
+        image_find = gtk.image_new_from_stock(gtk.STOCK_FIND,
                                               gtk.ICON_SIZE_MENU)
         self.set_icon(sexy.ICON_ENTRY_PRIMARY, image_find)
 
         self.empty_image = gtk.Image()
-        self.clear_image = gtk.image_new_from_stock(gtk.STOCK_CLEAR, 
+        self.clear_image = gtk.image_new_from_stock(gtk.STOCK_CLEAR,
                                                     gtk.ICON_SIZE_MENU)
         self.set_icon(sexy.ICON_ENTRY_SECONDARY, self.clear_image)
         self.set_icon_highlight(sexy.ICON_ENTRY_PRIMARY, True)
@@ -91,7 +92,7 @@ class SearchEntry(sexy.IconEntry):
         text = self._undo_stack.pop()
         self.set_text(text)
         self.set_position(-1)
-    
+
     def redo(self):
         if not self._redo_stack:
             return
@@ -145,6 +146,7 @@ class SearchEntry(sexy.IconEntry):
         else:
             self.modify_base(gtk.STATE_NORMAL, yellowish)
 
+
 def on_entry_changed(self, terms):
     print terms
 
@@ -156,8 +158,7 @@ if __name__ == "__main__":
 
     win = gtk.Window()
     win.add(entry)
-    win.set_size_request(400,400)
+    win.set_size_request(400, 400)
     win.show_all()
 
     gtk.main()
-    
