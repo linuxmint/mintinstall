@@ -5,15 +5,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
     <title></title>
 
-  <link rel="stylesheet" type="text/css" href="file:///usr/lib/linuxmint/mintInstall/data/templates/css/semantic.css">
-  <script src="file:///usr/lib/linuxmint/mintInstall/data/templates/javascript/jquery.js"></script>
-  <script src="file:///usr/lib/linuxmint/mintInstall/data/templates/javascript/jquery.address.js"></script>
-  <script src="file:///usr/lib/linuxmint/mintInstall/data/templates/javascript/semantic.js"></script>
+  <link rel="stylesheet" type="text/css" href="file:///usr/share/linuxmint/mintinstall/data/templates/css/semantic.css">
+  <script src="file:///usr/share/linuxmint/mintinstall/data/templates/javascript/jquery.js"></script>
+  <script src="file:///usr/share/linuxmint/mintinstall/data/templates/javascript/jquery.address.js"></script>
+  <script src="file:///usr/share/linuxmint/mintinstall/data/templates/javascript/semantic.js"></script>
 
- <script type="text/javascript">  
+ <script type="text/javascript">
 
-  function changeTitle(title) { 
-    document.title = title; 
+  function changeTitle(title) {
+    document.title = title;
   }
   function fadeIn(objId,opacity) {
     if (document.getElementById) {
@@ -25,7 +25,7 @@
       }
     }
   }
-            
+
   function setOpacity(obj, opacity) {
     opacity = (opacity == 100)?99.999:opacity;
     obj.style.opacity = opacity/100;
@@ -51,15 +51,15 @@
     }
   }
 
-  function action_screenshot_clicked(url) {   
+  function action_screenshot_clicked(url) {
     changeTitle("call:on_screenshot_clicked:" + url);
     changeTitle("nop");
   }
-  function action_website_clicked() {   
+  function action_website_clicked() {
     changeTitle("call:on_website_clicked");
     changeTitle("nop");
   }
-  function action_reviews_clicked() {   
+  function action_reviews_clicked() {
     changeTitle("call:on_reviews_clicked");
     changeTitle("nop");
   }
@@ -69,9 +69,9 @@
   function disable_action_button() {
     document.getElementById("button_action").disabled = true;
   }
-  
-  function addReview(mydate, username, rating, comment) { 
-    
+
+  function addReview(mydate, username, rating, comment) {
+
     var table = document.getElementById("reviews");
 	var rowCount = table.rows.length;
 	var row = table.insertRow(rowCount);
@@ -80,22 +80,22 @@
 	newImg = document.createElement("img");
 	newImg.src = rating;
 	cell1.appendChild(newImg);
-    
+
 	var cell2 = row.insertCell(1);
-	cell2.innerHTML = comment + "<br/><small><i><font color='#777777'>" + username + " (" + mydate + ")</font></i></small>";            
+	cell2.innerHTML = comment + "<br/><small><i><font color='#777777'>" + username + " (" + mydate + ")</font></i></small>";
   }
 
-  function addWarning(packagename) { 
-    
+  function addWarning(packagename) {
+
     var table = document.getElementById("warnings");
     var rowCount = table.rows.length;
     var row = table.insertRow(rowCount);
 
-    var cell1 = row.insertCell(0);    
-    cell1.innerHTML = "<tr><td class=\"error\"><i class=\"attention icon\"></i> " + packagename + "</td></tr>";            
+    var cell1 = row.insertCell(0);
+    cell1.innerHTML = "<tr><td class=\"error\"><i class=\"attention icon\"></i> " + packagename + "</td></tr>";
   }
 
-  function addScreenshot(href, src) {     
+  function addScreenshot(href, src) {
     var screenshots = document.getElementById("screenshots");
     newLink = document.createElement("a");
     newLink.href = "javascript:action_screenshot_clicked('" + href + "');";
@@ -103,15 +103,15 @@
     newImg.className = "screenshot";
     newImg.src = src;
     newLink.appendChild(newImg);
-    screenshots.appendChild(newLink);               
+    screenshots.appendChild(newLink);
   }
-  
+
   function addLink(linkname) {
 	var table = document.getElementById("reviews");
 	var rowCount = table.rows.length;
 	var row = table.insertRow(rowCount);
 	var cell1 = row.insertCell(0);
-	cell1.colSpan="3";		
+	cell1.colSpan="3";
 	cell1.innerHTML=  '<a href="javascript:action_reviews_clicked()" style="color: black;">'+linkname+'</a>';
   }
 
@@ -130,18 +130,18 @@
       table.deleteRow(i);
     }
   }
-    
+
  </script>
 
   <style type="text/css">
     *{ -khtml-user-drag:none;}
     body {
       background-color: #efefef;
-      background-image: url('/usr/lib/linuxmint/mintInstall/data/templates/bg-gradient.jpg');
-      background-repeat: repeat-x;        
-      margin-left: 20px; 
-      margin-right: 20px; 
-      padding: 1em 12px;   
+      background-image: url('/usr/share/linuxmint/mintinstall/data/templates/bg-gradient.jpg');
+      background-repeat: repeat-x;
+      margin-left: 20px;
+      margin-right: 20px;
+      padding: 1em 12px;
       font-family:${font_family};
       font-size:${font_size};
       font-weight:${font_weight};
@@ -149,8 +149,8 @@
     }
     #wrap{ margin:0 auto; padding: 0 15px 0 15px; }
     #header{ padding-left:76px }
-   
-    h1 { 
+
+    h1 {
       position: relative;
       top: 0;
       left: 0;
@@ -175,7 +175,7 @@
       color: #000;
       text-shadow: 3px 3px 1px #666;
       }
-  
+
     h2 {
       font-size:80%;
       margin:0 0 0.3em 0;
@@ -201,8 +201,8 @@
       font-size: 80%;
       clear:left;
     }
-    #icon {      
-      width:64px;      
+    #icon {
+      width:64px;
     }
 
     #screenshots {
@@ -212,7 +212,7 @@
     #screenshots a {
       outline: 0px;
     }
-    
+
     .pod {
         border: 1px solid #6aa5d7;
         background-color: #adcde9;
@@ -220,76 +220,76 @@
         _zoom: 100%;
         *zoom: 100%;
     }
-     
+
     .screenshot {
       height: 100px;
       margin-right: 10px;
       outline: 0px;
       overflow:hidden;
-      -webkit-box-shadow: rgba(0, 0, 0, 0.4) -4px 2px 10px;      
+      -webkit-box-shadow: rgba(0, 0, 0, 0.4) -4px 2px 10px;
       display:inline-block;
       max-width:500px;
-      max-height:375px;      
-      cursor: pointer;      
+      max-height:375px;
+      cursor: pointer;
       text-align:center;
       -khtml-user-drag:none;
 
       margin-bottom: 20px;
     }
 
-    .screenshot:hover {   
+    .screenshot:hover {
       -webkit-filter: contrast(120%);
       -webkit-filter: brightness(95%);
-    } 
+    }
 
     #homepage {
       margin-top: 20px;
     }
 
     #homepage a {
-      color: #3c3c3c;      
+      color: #3c3c3c;
       font-size:70%;
     }
-    
-    
+
+
     #text {
-      float:left; 
+      float:left;
       padding-left:86px;
-    }   
-    #package_information { 
-      font-size:70%; 
     }
-    #maintainance_time { 
-      font-size:70%; 
+    #package_information {
+      font-size:70%;
     }
-    #license { 
-      font-size:70%; 
+    #maintainance_time {
+      font-size:70%;
     }
-    #price { 
-      font-size:70%; 
-    } 
-    #action_button_description { 
-      font-size:70%; 
-    } 
-    #reviewsTable { 
-      font-size:90%; 
-      #float:left; 
+    #license {
+      font-size:70%;
+    }
+    #price {
+      font-size:70%;
+    }
+    #action_button_description {
+      font-size:70%;
+    }
+    #reviewsTable {
+      font-size:90%;
+      #float:left;
       padding-left:30px;
-    }  
-    #infoTable { 
-      font-size:70%; 
-      float:left; 
+    }
+    #infoTable {
+      font-size:70%;
+      float:left;
       padding-left:86px;
       padding-bottom:20px;
-    }  
+    }
     #wrapper h2{
       padding:-15px;
       color: #4a4a4a;
       font-weight:normal;
-      font-size:1em;      
+      font-size:1em;
       padding:0.2em  0.8em;
       margin: .25em 0;
-     
+
       background-color:#dad7d3;
        -webkit-border-top-left-radius: 5px;
        -webkit-border-top-right-radius: 5px;
@@ -298,30 +298,30 @@
         margin-top:1em;
         clear:both;
         border-radius: 5px;
-        background-color:#f7f7f7;        
+        background-color:#f7f7f7;
         -webkit-box-shadow: rgba(0, 0, 0, 0.2) -1px 1px 4px;
     }
     #inner{
       padding:15px;
-      font-size:70%; 
+      font-size:70%;
     }
  </style>
 
 </head>
-    
+
 <body class="${body_class}">
 
 <div id='modaldiv' class="ui small modal">
   <div class="content">
       <p>$warning_label</p>
-        
-        <table id="warnings" class="ui compact table segment">                                       
+
+        <table id="warnings" class="ui compact table segment">
         </table>
   </div>
   <div class="actions">
     <div class="ui buttons small">
       <div class="ui negative button right attached">$warning_cancel</div>
-      <div class="ui button left attached" id="confirm_button" onclick='confirm_button_clicked()'>$warning_confirm</div>  
+      <div class="ui button left attached" id="confirm_button" onclick='confirm_button_clicked()'>$warning_confirm</div>
     </div>
   </div>
 </div>
@@ -342,7 +342,7 @@
          <tr>
              <td align="left" valign="absmiddle"><img align=absmiddle src="$iconstatus"/>&nbsp;$action_button_description</td>
              <td align="right" valign="absmiddle">
-              <input type="button" id="button_action" 
+              <input type="button" id="button_action"
               class="action_button"
           alt="$action_button_label"
               value="$action_button_label"
@@ -351,34 +351,34 @@
              </td>
          </tr>
          </table>
-             
+
     </div>
 
 <p>
-<div id="screenshots"></div>  
+<div id="screenshots"></div>
 <div id="description">$description</div>
-<div id="homepage"><i><a href="javascript:action_website_clicked()">$homepage</a></i></div>                
+<div id="homepage"><i><a href="javascript:action_website_clicked()">$homepage</a></i></div>
 
 </div>
 </p>
 
 
-    
-					
+
+
 					<div id="wrapper">
                      <h2>$detailsLabel</h2>
-                     <div id="inner">                      
+                     <div id="inner">
                        <p><b>$versionLabel</b> $version</p>
                        <p><b>$sizeLabel</b> $sizeinfo</p>
                        $packagesinfo
                      </div>
                    </div>
-                    
-                  
+
+
                     <div id="wrapper">
-                     <h2>$reviewsLabel</h2>                                         
-                              
-                    
+                     <h2>$reviewsLabel</h2>
+
+
                      <form action="http://community.linuxmint.com/index.php/software/remote_review" method="post">
                               <input type="hidden" name="username" value="$username">
                                 <input type="hidden" name="password" value="$password">
@@ -386,7 +386,7 @@
                     <table width="100%" cellpadding="3">
                         <tr>
                             <td nowrap><b>$yourReviewLabel</b></td>
-                            <td>                                                          
+                            <td>
                                 <select name="score">
                                 $score_options
                                 </select>
@@ -395,27 +395,27 @@
                                 <input type="text" name="comment" style="width:100%" value="$comment"/>
                             </td>
                             <td>
-                                <input type="submit" value="$label_submit"/>                                
+                                <input type="submit" value="$label_submit"/>
                             </td>
-                        </tr>                        
-                    </table> 
+                        </tr>
+                    </table>
                     </form>
-                    <div id="inner">           
+                    <div id="inner">
                        <table id="reviews" cellpadding="5"></table>
-                     </div> 
+                     </div>
                    </div>
-                    
-					
-				
-                        
+
+
+
+
 
                         </div>
-                        
+
                             </div>
-              
 
 
-  
+
+
     </div>
 
     <script type="text/javascript">
@@ -423,9 +423,9 @@
       for (index = 0; index < removals.length; index++) {
         text = removals[index];
         addWarning(text);
-      } 
+      }
     </script>
 
-</body> 
+</body>
 
 </html>

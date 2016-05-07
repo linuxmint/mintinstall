@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US" xml:lang="en">
 <head>
-    <title></title>  
-    
+    <title></title>
+
  <script type="text/javascript">
-  
+
   function addReview(mydate, username, rating, comment) {
 	 var table = document.getElementById("reviews");
 	var rowCount = table.rows.length;
@@ -14,11 +14,11 @@
 	newImg = document.createElement("img");
 	newImg.src = rating;
 	cell1.appendChild(newImg);
-    
+
 	var cell2 = row.insertCell(1);
-	cell2.innerHTML = comment + "<br/><small><i><font color='#777777'>" + username + " (" + mydate + ")</font></i></small>";   
+	cell2.innerHTML = comment + "<br/><small><i><font color='#777777'>" + username + " (" + mydate + ")</font></i></small>";
   }
-    
+
   function clearReviews() {
 	var table = document.getElementById("reviews");
 	for(var i = table.rows.length - 1; i >= 0; i--)
@@ -26,18 +26,18 @@
 	    table.deleteRow(i);
 	}
   }
-  
+
  </script>
 
 <style type="text/css">
     *{ -khtml-user-drag:none;}
     body {
       background-color: #efefef;
-      background-image: url('/usr/lib/linuxmint/mintInstall/data/templates/bg-gradient.jpg');
-      background-repeat: repeat-x;        
-      margin-left: 20px; 
-      margin-right: 20px; 
-      padding: 1em 12px;   
+      background-image: url('/usr/share/linuxmint/mintinstall/data/templates/bg-gradient.jpg');
+      background-repeat: repeat-x;
+      margin-left: 20px;
+      margin-right: 20px;
+      padding: 1em 12px;
       font-family:${font_family};
       font-size:${font_size};
       font-weight:${font_weight};
@@ -45,8 +45,8 @@
     }
     #wrap{ margin:0 auto; padding: 0 15px 0 15px; }
     #header{ padding-left:76px }
-   
-    h1 { 
+
+    h1 {
       position: relative;
       top: 0;
       left: 0;
@@ -71,7 +71,7 @@
       color: #000;
       text-shadow: 3px 3px 1px #666;
       }
-  
+
     h2 {
       font-size:80%;
       margin:0 0 0.3em 0;
@@ -101,13 +101,13 @@
       margin-left:-76px;
       width:64px;
       height:64px;
-      z-index:-1;      
+      z-index:-1;
       position:absolute;
       -webkit-background-clip: border-box;
       -webkit-background-origin: border-box;
       -webkit-background-size: 32px 32px;
     }
-    
+
     .pod {
         border: 1px solid #6aa5d7;
         background-color: #adcde9;
@@ -115,64 +115,64 @@
         _zoom: 100%;
         *zoom: 100%;
     }
-       
+
     #screenshot_wrap{
       display:block;
     }
-    
+
     .screenshot {
       overflow:hidden;
       -webkit-box-shadow: rgba(0, 0, 0, 0.4) -4px 2px 10px;
-      
+
       display:inline-block;
       max-width:500px;
       max-height:375px;
-      
+
       cursor: -webkit-zoom-in;
-      
+
       text-align:center;
       -khtml-user-drag:none;
     }
-    
-    
+
+
     #text {
-      float:left; 
+      float:left;
       padding-left:86px;
-    }   
-    #package_information { 
-      font-size:70%; 
     }
-    #maintainance_time { 
-      font-size:70%; 
+    #package_information {
+      font-size:70%;
     }
-    #license { 
-      font-size:70%; 
+    #maintainance_time {
+      font-size:70%;
     }
-    #price { 
-      font-size:70%; 
-    } 
-    #action_button_description { 
-      font-size:70%; 
-    } 
-    #reviewsTable { 
-      font-size:90%; 
-      #float:left; 
+    #license {
+      font-size:70%;
+    }
+    #price {
+      font-size:70%;
+    }
+    #action_button_description {
+      font-size:70%;
+    }
+    #reviewsTable {
+      font-size:90%;
+      #float:left;
       padding-left:30px;
-    }  
-    #infoTable { 
-      font-size:70%; 
-      float:left; 
+    }
+    #infoTable {
+      font-size:70%;
+      float:left;
       padding-left:86px;
       padding-bottom:20px;
-    }  
+    }
     #wrapper h2{
       padding:-15px;
       color: #4a4a4a;
       font-weight:normal;
-      font-size:1em;      
+      font-size:1em;
       padding:0.2em  0.8em;
       margin: .25em 0;
-     
+
       background-color:#dad7d3;
        -webkit-border-top-left-radius: 5px;
        -webkit-border-top-right-radius: 5px;
@@ -181,27 +181,27 @@
         margin-top:1em;
         clear:both;
         border-radius: 5px;
-        background-color:#f7f7f7;        
+        background-color:#f7f7f7;
         -webkit-box-shadow: rgba(0, 0, 0, 0.2) -1px 1px 4px;
     }
     #inner{
       padding:15px;
-      font-size:70%; 
+      font-size:70%;
     }
  </style>
 </head>
 <body>
 
             <div id="wrapper">
-                      <h2>$reviewsLabel</h2>                                            
-                              
-                    
-                 
-                    <div id="inner">           
+                      <h2>$reviewsLabel</h2>
+
+
+
+                    <div id="inner">
                        <table id="reviews" cellpadding="5"></table>
-                     </div> 
+                     </div>
                    </div>
-                    
-    
+
+
 </body>
 </html>

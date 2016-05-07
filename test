@@ -1,5 +1,5 @@
 #!/bin/bash
 
-sudo rm -rf /usr/lib/linuxmint/mintInstall
+sudo rm -rf /usr/lib/linuxmint/mintinstall
 sudo cp -R usr /
 sudo mintinstall
