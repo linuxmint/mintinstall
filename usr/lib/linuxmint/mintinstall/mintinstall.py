@@ -805,7 +805,7 @@ class Application():
     def open_about(self, widget):
         dlg = gtk.AboutDialog()
         dlg.set_title(_("About"))
-        dlg.set_program_name("mintInstall")
+        dlg.set_program_name("mintinstall")
         dlg.set_comments(_("Software Manager"))
         try:
             h = open('/usr/share/common-licenses/GPL', 'r')
