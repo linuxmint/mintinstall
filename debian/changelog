@@ -1,3 +1,12 @@
+mintinstall (7.6.7) sarah; urgency=medium
+
+  [ Daniel Alley ]
+  * PEP8 autoformatting
+  * Moved non-executable files into usr/share, changed directories to lowercase
+  * Changed case of program name in the about dialog
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue, 10 May 2016 17:41:40 +0100
+
 mintinstall (7.6.6) sarah; urgency=medium
 
   [ Daniel Alley ]
