@@ -1,3 +1,11 @@
+mintinstall (7.6.6) sarah; urgency=medium
+
+  [ Daniel Alley ]
+  * Replaced dependency on static python-configobj in mint-common for the upstream version
+  * Replaced 'from user import home' with os.path.expanduser('~')
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue, 10 May 2016 17:38:05 +0100
+
 mintinstall (7.6.5) sarah; urgency=medium
 
   * Updated generated files and pot file
