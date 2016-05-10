@@ -1,3 +1,3 @@
 #!/bin/bash
 
-xgettext --language=Python --keyword=_ --output=mintinstall.pot usr/lib/linuxmint/mintInstall/mintinstall.py generate_desktop_files
+xgettext --language=Python --keyword=_ --output=mintinstall.pot usr/lib/linuxmint/mintinstall/mintinstall.py generate_desktop_files

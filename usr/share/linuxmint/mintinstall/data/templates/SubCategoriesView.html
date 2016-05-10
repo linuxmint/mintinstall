@@ -4,11 +4,10 @@
 <head>
  <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
  <title></title>
-
  <script type="text/javascript">
-  function changeTitle(title) { 
-    document.title = title; 
-    document.title = "nop"; 
+  function changeTitle(title) {
+    document.title = title;
+    document.title = "nop";
   }
   var categoriesRow;
   function getCategoriesRow() {
@@ -21,14 +20,13 @@
     Tr = getCategoriesRow();
     newTd = document.createElement("td");
     newTd.setAttribute("tabindex", 0)
-    newTd.setAttribute("align", "center");
     newTd.className = "category_td";
     // we need a <p> around the img so that we can align it
     newTextAroundImg = document.createElement("div");
     newImg = document.createElement("img");
     newImg.src = img;
-    newImg.setAttribute("width", 96);
-    newImg.setAttribute("height", 96);
+    newImg.setAttribute("width", 64);
+    newImg.setAttribute("height", 64);
     newImg.className = "category_img";
     newTextAroundImg.appendChild(newImg);
     newText = document.createElement("div");
@@ -51,11 +49,11 @@
     newText.appendChild(document.createElement("br"))
     newText.appendChild(newSubText)
     newTd.appendChild(newTextAroundImg);
-    newTd.appendChild(newText);    
+    newTd.appendChild(newText);
     Tr.appendChild(newTd);
     categoryCount += 1;
   }
-  function clearCategories() {      
+  function clearCategories() {
     var row = document.getElementsByTagName("tr")[0];
     for(var i = row.cells.length - 1; i >= 0; i--)
     {
@@ -76,37 +74,37 @@
       }
       return cat_inc_count;
   }
-  
+
   function onKey(ev) {
     if (ev) {
       switch (ev.keyCode) {
         // left
         case 37:
           category_delta = -1;
-          break;    
+          break;
         // up
         case 38:
           category_delta = -currently_displayed_rows();
-          break;    
+          break;
         // right
         case 39:
           category_delta = 1;
-          break;   
+          break;
         // down
         case 40:
           category_delta = currently_displayed_rows();
-          break;   
+          break;
         // tab
         case 9:
           category_delta = 1;
-          break;   
+          break;
         default:
           category_delta = 0;
-      } 
+      }
       // HACK: the very first key-stroke should always focus the first element
       if (currentCategory  == -1)
          category_delta = 1;
-      // ensure that we go not over the borders				 
+      // ensure that we go not over the borders
       if ((currentCategory + category_delta) > categoryCount ||
           (currentCategory + category_delta) < 0)
           category_delta = 0;
@@ -115,9 +113,9 @@
       if (potential_selected) {
           currentCategory += category_delta;
           potential_selected.focus();
-      } 
+      }
     }
-  }  
+  }
   // global variables to keep track of the cursor
   var categoryCount = 0;
   var currentCategory = -1;
@@ -125,7 +123,7 @@
   document.onkeyup = onKey;
  </script>
   <style type="text/css">
-   
+
     h2 {
       background-color: #7D91aa;
       border-style: solid;
@@ -137,58 +135,45 @@
       text-shadow: #404a57 0 -1px 1px;
     }
  /* debug border */
-  /*.category_td {border-width:1px;border-style:solid;} */
+ /* .category_td {border-width:1px;border-style:solid;} */
  /* fixed width does not work, it does not ellipsis but overflows the box */
  /* .category_td {padding:8px; margin:8px; width:6em; display:inline-block; text-overflow: ellipsis;} */
 
-    #categoriesTable {
-      margin-left: auto;
-      margin-right: auto; 
-      padding-left: 30px;     
-      padding-right: 30px;
-    }
-
     .category_td {
-      padding: 0 3px;      
-      margin-bottom: 10px;
+      padding: 0 3px;
+      margin-bottom: 0px;
       display:inline-block;
       text-overflow: ellipsis;
       vertical-align: top;
       width: 7em !important;
-      outline: 0;  
-      margin-left: 30px;
-      margin-right: 10px;
-     
+      outline: 0;
     }
 
-    .category_td:hover {cursor: pointer;                     
-     
+    .category_img {
+      -khtml-user-drag:none;
     }
 
-    .category_img {                  
-      -khtml-user-drag:none;    
-    }
-
-    .category_img:hover {   
+    .category_img:hover {
       -webkit-filter: contrast(150%);
-      
-    }  
 
-    .category_td:active {background-color: #EEEEEE;}
+    }
+
+    .category_td:hover {cursor: pointer; }
+    .category_td:active {background-color: #EEEEEE; }
     .category_td p { font-size:90%; text-align:center; }
     .category_td div { font-size:90%; text-align:center; }
 
  </style>
- 
+
  <style type="text/css">
     *{ -khtml-user-drag:none;}
     body {
       background-color: #efefef;
-      background-image: url('/usr/lib/linuxmint/mintInstall/data/templates/bg-gradient.jpg');
-      background-repeat: repeat-x;        
-      margin-left: 5px; 
-      margin-right: 5px; 
-      padding: 1em 12px;   
+      background-image: url('/usr/share/linuxmint/mintinstall/data/templates/bg-gradient.jpg');
+      background-repeat: repeat-x;
+      margin-left: 5px;
+      margin-right: 5px;
+      padding: 1em 12px;
       font-family:${font_family};
       font-size:${font_size};
       font-weight:${font_weight};
@@ -196,8 +181,8 @@
     }
     #wrap{ margin:0 auto; padding: 0 15px 0 15px; }
     #header{ padding-left:76px }
-   
-    h1 { 
+
+    h1 {
       position: relative;
       top: 0;
       left: 0;
@@ -217,12 +202,8 @@
       color: #000;
       -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,0)), to(rgba(0,0,0,0)));
       }
-    h1:after {
-      content: "$title";
-      color: #000;
-      text-shadow: 3px 3px 1px #666;
-      }
-  
+
+
     h2 {
       font-size:80%;
       margin:0 0 0.3em 0;
@@ -250,80 +231,80 @@
     }
     #icon {
       margin-left:-76px;
-      width:64px;
-      height:64px;
-      z-index:-1;      
+      width:48px;
+      height:48px;
+      z-index:-1;
       position:absolute;
       -webkit-background-clip: border-box;
       -webkit-background-origin: border-box;
       -webkit-background-size: 32px 32px;
     }
-    
+
     .pod {
         border: 1px solid #fff726;
         background-color: #fffdbc;
-        padding: 3px;        
+        margin-bottom: 1em;
         _zoom: 100%;
         *zoom: 100%;
     }
-       
+
     #screenshot_wrap{
       display:block;
     }
-    
+
     .screenshot {
       overflow:hidden;
       -webkit-box-shadow: rgba(0, 0, 0, 0.4) -4px 2px 10px;
-      
+
       display:inline-block;
       max-width:500px;
       max-height:375px;
-      
+
       cursor: -webkit-zoom-in;
-      
+
       text-align:center;
       -khtml-user-drag:none;
     }
-    
-    
+
+
     #text {
-      float:left; 
+      float:left;
       padding-left:86px;
-    }   
-    #package_information { 
-      font-size:70%; 
     }
-    #maintainance_time { 
-      font-size:70%; 
+    #package_information {
+      font-size:70%;
     }
-    #license { 
-      font-size:70%; 
+    #maintainance_time {
+      font-size:70%;
     }
-    #price { 
-      font-size:70%; 
-    } 
-    #action_button_description { 
-      font-size:70%; 
-    } 
-    #reviewsTable { 
-      font-size:90%; 
-      #float:left; 
+    #license {
+      font-size:70%;
+    }
+    #price {
+      font-size:70%;
+    }
+    #action_button_description {
+      font-size:70%;
+    }
+    #reviewsTable {
+      font-size:90%;
+      #float:left;
       padding-left:30px;
-    }  
-    #infoTable { 
-      font-size:70%; 
-      float:left; 
+    }
+    #infoTable {
+      font-size:70%;
+      float:left;
       padding-left:86px;
       padding-bottom:20px;
-    }  
+    }
     #wrapper h2{
       padding:-15px;
       color: #4a4a4a;
       font-weight:normal;
-      font-size:1em;      
+      font-size:1em;
       padding:0.2em  0.8em;
       margin: .25em 0;
-     
+
       background-color:#dad7d3;
        -webkit-border-top-left-radius: 5px;
        -webkit-border-top-right-radius: 5px;
@@ -332,23 +313,19 @@
         margin-top:1em;
         clear:both;
         border-radius: 5px;
-        background-color:#f7f7f7;        
+        background-color:#f7f7f7;
         -webkit-box-shadow: rgba(0, 0, 0, 0.2) -1px 1px 4px;
     }
     #inner{
       padding:15px;
-      font-size:70%; 
+      font-size:70%;
     }
- </style> 
-
+ </style>
  </head>
 
 <body>
-    
-   
-  <table id="categoriesTable">        
+  <table id="categoriesTable">
     <tr id="categoriesRow"></tr>
   </table>
-  <div class="pod"><div style="font-size:70%">&nbsp;$package_num</div></div>
 </body>
 </html>

@@ -2,9 +2,13 @@
 # -*- Mode: Python; indent-tabs-mode: nil; tab-width: 4; coding: utf-8 -*-
 
 from AptClient import AptClient
-import gtk, logging, gobject
+import gtk
+import logging
+import gobject
+
 
 class TestApp(object):
+
     def __init__(self):
         self._apt_client = AptClient()
         self._apt_client.connect("idle", lambda c: gtk.main_quit())

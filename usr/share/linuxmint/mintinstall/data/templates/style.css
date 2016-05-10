@@ -17,13 +17,13 @@ body
 	top: 0;
 }
 
-optgroup { 
-	border-top: 1px solid black 
-} 
+optgroup {
+	border-top: 1px solid black
+}
 
 /* Tables */
 table.commentsTable
-{ 
+{
 font-family: Verdana;
 font-weight: normal;
 font-size: 11px;
@@ -37,7 +37,7 @@ margin-top: 0px;
 
 
 table.commentsTable td.commentsTableHeader
-{ 
+{
 border-bottom: 1px solid #BBE693;
 background-color: #E2F5D1;
 text-align: center;
@@ -49,7 +49,7 @@ color: #404040;
 
 
 table.commentsTable td
-{ 
+{
 border-bottom: 1px dotted #BBE693;
 font-family: Verdana, sans-serif, Arial;
 font-weight: normal;
@@ -334,7 +334,7 @@ h1.art-Logo-name, h1.art-Logo-name a, h1.art-Logo-name a:link, h1.art-Logo-name 
 	float: left;
 	position: relative;
 	z-index: 5;
-	
+
 }
 
 .art-menu li:hover
@@ -355,7 +355,7 @@ h1.art-Logo-name, h1.art-Logo-name a, h1.art-Logo-name a:link, h1.art-Logo-name 
 	z-index: 10;
 	left: 0;
 	top: 0;
-	
+
 }
 
 .art-menu li:hover>ul
@@ -386,7 +386,7 @@ h1.art-Logo-name, h1.art-Logo-name a, h1.art-Logo-name a:link, h1.art-Logo-name 
 
 .art-menu ul
 {
-	
+
 	padding: 10px 30px 30px 30px;
 	margin: -10px 0 0 -30px;
 }
@@ -482,7 +482,7 @@ h1.art-Logo-name, h1.art-Logo-name a, h1.art-Logo-name a:link, h1.art-Logo-name 
 	clip: rect(auto, auto, auto, 404px);
 }
 
-.art-menu a .t 
+.art-menu a .t
 {
 	font-family: "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, Sans-Serif;
 	font-size: 11px;
@@ -704,7 +704,7 @@ h1.art-Logo-name, h1.art-Logo-name a, h1.art-Logo-name a:link, h1.art-Logo-name 
 }
 
 .art-BlockHeader .r
-{ 
+{
 	width:898px;
 	right:0;
 	clip: rect(auto, auto, auto, 894px);
@@ -1069,7 +1069,7 @@ li ol, li ul
 	padding:0;
 }
 
-li 
+li
 {
 	margin:0.2em 0;
 	padding:0;
@@ -1083,7 +1083,7 @@ ul
 ol
 {
 	list-style-position:inside;
-	
+
 }
 
 
@@ -1100,7 +1100,7 @@ ol
 	padding-left:0;
 }
 
-.art-Post ul li, .art-Post ol ul li 
+.art-Post ul li, .art-Post ol ul li
 {
 	background-image: url('/images/PostBullets.png');
 	background-repeat:no-repeat;
@@ -1129,7 +1129,7 @@ blockquote p
 
 blockquote
 {
-		border:solid 1px #BBE693; 
+		border:solid 1px #BBE693;
 		margin:10px 10px 10px 50px;
 	padding:5px 5px 5px 41px;
 	background-color:#E2F5D1;
@@ -1210,7 +1210,7 @@ input, select
 	position:absolute;
 	z-index:-1;
 	height: 99px;
-	background-image: url('/usr/lib/linuxmint/mintInstall/data/templates/Button.png');
+	background-image: url('/usr/share/linuxmint/mintinstall/data/templates/Button.png');
 }
 
 .art-button-wrapper .l
