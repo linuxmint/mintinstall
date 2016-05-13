@@ -538,7 +538,7 @@ class Application():
 
         if os.path.exists("/usr/bin/software-sources") or os.path.exists("/usr/bin/software-properties-gtk") or os.path.exists("/usr/bin/software-properties-kde"):
             sourcesMenuItem = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
-            sourcesMenuItem.set_image(gtk.image_new_from_file("/usr/lib/linuxmint/mintUpdate/icons/software-properties.png"))
+            sourcesMenuItem.set_image(gtk.image_new_from_icon_name("software-properties", gtk.ICON_SIZE_MENU))
             sourcesMenuItem.get_child().set_text(_("Software sources"))
             sourcesMenuItem.connect("activate", self.open_repositories)
             editSubmenu.append(sourcesMenuItem)
