@@ -1,3 +1,9 @@
+mintinstall (7.6.8) sarah; urgency=medium
+
+  * Fixed mintsources icon in the menu
+
+ -- Clement Lefebvre <root@linuxmint.com>  Fri, 13 May 2016 12:18:02 +0100
+
 mintinstall (7.6.7) sarah; urgency=medium
 
   [ Daniel Alley ]
