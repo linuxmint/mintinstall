@@ -837,7 +837,12 @@ class Application():
         # packages
         for package in self.packages:
             if package.pkg.name.endswith(":i386") or package.pkg.name.endswith(":amd64"):
-                continue
+                root_name = package.pkg.name.split(":")[0]
+                if root_name in self.packages_dict:
+                    # foo is present in the cache, so ignore foo:i386 and foo:amd64
+                    continue
+                elif ("%s:i386" % root_name) in self.packages_dict and ("%s:amd64" % root_name) in self.packages_dict:
+                    continue
             summary = package.summary
             if summary is None:
                 summary = ""
