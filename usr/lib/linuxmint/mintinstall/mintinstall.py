@@ -1483,9 +1483,10 @@ class Application():
         return icon_path
 
     def find_app_icon_alternative(self, package):
+        package_name = package.name.split(":")[0] # If this is an arch package, like "foo:i386", only consider "foo"
         icon_path = None
         if package.pkg.is_installed:
-            icon_path = "/usr/share/linuxmint/mintinstall/installed/%s" % package.name
+            icon_path = "/usr/share/linuxmint/mintinstall/installed/%s" % package_name
             if os.path.exists(icon_path + ".png"):
                 icon_path = icon_path + ".png"
             elif os.path.exists(icon_path + ".xpm"):
@@ -1496,13 +1497,13 @@ class Application():
         else:
             # Try the Icon theme first
             theme = gtk.icon_theme_get_default()
-            if theme.has_icon(package.name):
-                iconInfo = theme.lookup_icon(package.name, 32, 0)
+            if theme.has_icon(package_name):
+                iconInfo = theme.lookup_icon(package_name, 32, 0)
                 if iconInfo and os.path.exists(iconInfo.get_filename()):
                     icon_path = iconInfo.get_filename()
             else:
                 # Try mintinstall-icons then
-                icon_path = "/usr/share/linuxmint/mintinstall/icons/%s" % package.name
+                icon_path = "/usr/share/linuxmint/mintinstall/icons/%s" % package_name
                 if os.path.exists(icon_path + ".png"):
                     icon_path = icon_path + ".png"
                 elif os.path.exists(icon_path + ".xpm"):
@@ -1513,17 +1514,18 @@ class Application():
         return icon_path
 
     def find_app_icon(self, package):
+        package_name = package.name.split(":")[0] # If this is an arch package, like "foo:i386", only consider "foo"
         icon_path = None
         # Try the Icon theme first
         theme = gtk.icon_theme_get_default()
-        if theme.has_icon(package.name):
-            iconInfo = theme.lookup_icon(package.name, 32, 0)
+        if theme.has_icon(package_name):
+            iconInfo = theme.lookup_icon(package_name, 32, 0)
             if iconInfo and os.path.exists(iconInfo.get_filename()):
                 icon_path = iconInfo.get_filename()
 
         # If - is in the name, try the first part of the name (for instance "steam" instead of "steam-launcher")
-        if icon_path is None and "-" in package.name:
-            name = package.name.split("-")[0]
+        if icon_path is None and "-" in package_name:
+            name = package_name.split("-")[0]
             if theme.has_icon(name):
                 iconInfo = theme.lookup_icon(name, 32, 0)
                 if iconInfo and os.path.exists(iconInfo.get_filename()):
@@ -1551,9 +1553,9 @@ class Application():
         else:
             # Try mintinstall-icons then
             if package.pkg.is_installed:
-                icon_path = "/usr/share/linuxmint/mintinstall/installed/%s" % package.name
+                icon_path = "/usr/share/linuxmint/mintinstall/installed/%s" % package_name
             else:
-                icon_path = "/usr/share/linuxmint/mintinstall/icons/%s" % package.name
+                icon_path = "/usr/share/linuxmint/mintinstall/icons/%s" % package_name
 
             if os.path.exists(icon_path + ".png"):
                 icon_path = icon_path + ".png"
@@ -1569,15 +1571,16 @@ class Application():
         return icon_path
 
     def find_large_app_icon(self, package):
+        package_name = package.name.split(":")[0] # If this is an arch package, like "foo:i386", only consider "foo"
         theme = gtk.icon_theme_get_default()
-        if theme.has_icon(package.name):
-            iconInfo = theme.lookup_icon(package.name, 64, 0)
+        if theme.has_icon(package_name):
+            iconInfo = theme.lookup_icon(package_name, 64, 0)
             if iconInfo and os.path.exists(iconInfo.get_filename()):
                 return iconInfo.get_filename()
 
         # If - is in the name, try the first part of the name (for instance "steam" instead of "steam-launcher")
-        if "-" in package.name:
-            name = package.name.split("-")[0]
+        if "-" in package_name:
+            name = package_name.split("-")[0]
             if theme.has_icon(name):
                 iconInfo = theme.lookup_icon(name, 64, 0)
                 if iconInfo and os.path.exists(iconInfo.get_filename()):
