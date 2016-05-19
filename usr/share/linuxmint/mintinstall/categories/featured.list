@@ -1,4 +1,6 @@
 dropbox
+nemo-dropbox
+caja-dropbox
 googleearth
 virtualbox
 miro
@@ -16,7 +18,6 @@ cheese
 mpv
 minitube
 xfburn
-pitivi
 gimp
 inkscape
 blender
@@ -36,3 +37,4 @@ spotify
 spotify-client-0.9.17
 spotify-client
 sublime-text
+mint-meta-codecs

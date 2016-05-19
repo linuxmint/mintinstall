@@ -94,6 +94,9 @@ ALIASES['spotify-client'] = "spotify"
 ALIASES['steam-launcher'] = "steam"
 ALIASES['minecraft-installer'] = "minecraft"
 ALIASES['sublime-text'] = "sublime"
+ALIASES['mint-meta-codecs'] = "Multimedia Codecs"
+ALIASES['mint-meta-codecs-kde'] = "Multimedia Codecs for KDE"
+ALIASES['mint-meta-debian-codecs'] = "Multimedia Codecs"
 
 def get_dbus_bus():
     bus = dbus.SystemBus()
