@@ -93,7 +93,7 @@ ALIASES = {}
 ALIASES['spotify-client'] = "spotify"
 ALIASES['steam-launcher'] = "steam"
 ALIASES['minecraft-installer'] = "minecraft"
-
+ALIASES['sublime-text'] = "sublime"
 
 def get_dbus_bus():
     bus = dbus.SystemBus()
