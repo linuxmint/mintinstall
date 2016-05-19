@@ -88,6 +88,12 @@ COMMERCIAL_APPS = ["chromium-browser", "chromium-browser-l10n", "chromium-codecs
 # List of packages which are either broken or do not install properly in mintinstall
 BROKEN_PACKAGES = ['pepperflashplugin-nonfree']
 
+# List of packages which are either broken or do not install properly in mintinstall
+ALIASES = {}
+ALIASES['spotify-client'] = "spotify"
+ALIASES['steam-launcher'] = "steam"
+ALIASES['minecraft-installer'] = "minecraft"
+
 
 def get_dbus_bus():
     bus = dbus.SystemBus()
@@ -1353,6 +1359,12 @@ class Application():
                 self._nb_displayed_packages = min(len(self._listed_packages), self._nb_displayed_packages + 500)
         return False
 
+    def get_simple_name(self, package_name):
+        package_name = package_name.split(":")[0]
+        if package_name in ALIASES and ALIASES[package_name] not in self.packages_dict:
+            package_name = ALIASES[package_name]
+        return package_name.capitalize()
+
     def display_packages_list(self, packages_list, searchTree):
         sans26 = ImageFont.truetype(self.FONT, 26)
         sans10 = ImageFont.truetype(self.FONT, 12)
@@ -1369,6 +1381,16 @@ class Application():
             if (not searchTree and package.name in COMMERCIAL_APPS):
                 continue
 
+            if ":" in package.name and package.name.split(":")[0] in self.packages_dict:
+                # don't list arch packages when the root is represented in the cache
+                continue
+
+            if ":" in package.name and package.name.split(":")[0] in self.packages_dict:
+                # don't list arch packages when the root is represented in the cache
+                continue
+
+            package_name = self.get_simple_name(package.name)
+
             iter = model_applications.insert_before(None, None)
 
             model_applications.set_value(iter, 0, self.get_package_pixbuf_icon(package))
@@ -1380,7 +1402,7 @@ class Application():
                 summary = summary.replace("<", "&lt;")
                 summary = summary.replace("&", "&amp;")
 
-            model_applications.set_value(iter, 1, "%s\n<small><span foreground='#555555'>%s</span></small>" % (package.name, summary.capitalize()))
+            model_applications.set_value(iter, 1, "%s\n<small><span foreground='#555555'>%s</span></small>" % (package_name, summary.capitalize()))
 
             if package.num_reviews > 0:
                 image = "/usr/share/linuxmint/mintinstall/data/" + str(package.avg_rating) + ".png"
@@ -1721,8 +1743,8 @@ class Application():
 
         subs['iconbig'] = self.find_large_app_icon(package)
 
-        subs['appname'] = package.name
-        subs['pkgname'] = package.pkg.name
+        subs['appname'] = self.get_simple_name(package.name)
+        subs['pkgname'] = package.name
         subs['description'] = package.pkg.candidate.description
         subs['description'] = subs['description'].replace('\n', '<br />\n')
         subs['summary'] = package.summary.capitalize()
