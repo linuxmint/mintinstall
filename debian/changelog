@@ -1,3 +1,13 @@
+mintinstall (7.6.9) sarah; urgency=medium
+
+  * Ignore :arch suffix in package name when looking for icons
+  * Export: Don't ignore arch packages which aren't represented without an arch
+  * Simplify names and listings
+  * Fixed reviewing apps
+  * Reviewed list of featured apps
+
+ -- Clement Lefebvre <root@linuxmint.com>  Thu, 19 May 2016 15:48:03 +0100
+
 mintinstall (7.6.8) sarah; urgency=medium
 
   * Fixed mintsources icon in the menu
