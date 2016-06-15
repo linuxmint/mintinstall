@@ -88,11 +88,13 @@ COMMERCIAL_APPS = ["chromium-browser", "chromium-browser-l10n", "chromium-codecs
 # List of packages which are either broken or do not install properly in mintinstall
 BROKEN_PACKAGES = ['pepperflashplugin-nonfree']
 
-# List of packages which are either broken or do not install properly in mintinstall
+# List of aliases
 ALIASES = {}
 ALIASES['spotify-client'] = "spotify"
 ALIASES['steam-launcher'] = "steam"
 ALIASES['minecraft-installer'] = "minecraft"
+ALIASES['virtualbox-qt'] = "virtualbox " # Added a space to force alias
+ALIASES['virtualbox'] = "virtualbox (base)"
 ALIASES['sublime-text'] = "sublime"
 ALIASES['mint-meta-codecs'] = "Multimedia Codecs"
 ALIASES['mint-meta-codecs-kde'] = "Multimedia Codecs for KDE"
