@@ -1,3 +1,9 @@
+mintinstall (7.7.1) sarah; urgency=medium
+
+  * Featured apps: Switch virtualbox with virtualbox-qt
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 15 Jun 2016 10:56:00 +0100
+
 mintinstall (7.7.0) sarah; urgency=medium
 
   * Added codecs to featured list
