@@ -1,4 +1,4 @@
-zsnes
+zsnes:i386
 wine
 visualboyadvance-gtk
 vice
@@ -26,4 +26,5 @@ desmume
 basilisk2
 atari800
 playonlinux
-
+higan
+dolphin-emu
