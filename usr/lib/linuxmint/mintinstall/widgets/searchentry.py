@@ -47,21 +47,14 @@ class SearchEntry(sexy.IconEntry):
         self._handler_changed = self.connect_after("changed",
                                                    self._on_changed)
         self.connect("icon-pressed", self._on_icon_pressed)
-        image_find = gtk.image_new_from_stock(gtk.STOCK_FIND,
-                                              gtk.ICON_SIZE_MENU)
+        image_find = gtk.image_new_from_stock(gtk.STOCK_FIND, gtk.ICON_SIZE_MENU)
         self.set_icon(sexy.ICON_ENTRY_PRIMARY, image_find)
 
         self.empty_image = gtk.Image()
-        self.clear_image = gtk.image_new_from_stock(gtk.STOCK_CLEAR,
-                                                    gtk.ICON_SIZE_MENU)
+        self.clear_image = gtk.image_new_from_stock(gtk.STOCK_CLEAR, gtk.ICON_SIZE_MENU)
         self.set_icon(sexy.ICON_ENTRY_SECONDARY, self.clear_image)
         self.set_icon_highlight(sexy.ICON_ENTRY_PRIMARY, True)
 
-        # Do not draw a yellow bg if an a11y theme is used
-        settings = gtk.settings_get_default()
-        theme = settings.get_property("gtk-theme-name")
-        self._a11y = (theme.startswith("HighContrast") or
-                      theme.startswith("LowContrast"))
         # data
         self._timeout_id = 0
         self._undo_stack = [""]
@@ -137,14 +130,6 @@ class SearchEntry(sexy.IconEntry):
             self.set_icon(sexy.ICON_ENTRY_SECONDARY, self.clear_image)
         else:
             self.set_icon(sexy.ICON_ENTRY_SECONDARY, self.empty_image)
-        # Based on the Rhythmbox code
-        yellowish = gtk.gdk.Color(63479, 63479, 48830)
-        if self._a11y == True:
-            return
-        if self.get_text() == "":
-            self.modify_base(gtk.STATE_NORMAL, None)
-        else:
-            self.modify_base(gtk.STATE_NORMAL, yellowish)
 
 
 def on_entry_changed(self, terms):
