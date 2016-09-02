@@ -1155,7 +1155,17 @@ class Application():
         self.root_category = Category(_("Categories"), "applications-other", None, None, self.categories)
 
         featured = Category(_("Featured"), "/usr/share/linuxmint/mintinstall/data/templates/featured.svg", None, self.root_category, self.categories)
-        featured.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/featured.list")
+        edition = ""
+        try:
+            with open("/etc/linuxmint/info") as f:
+                config = dict([line.strip().split("=") for line in f])
+                edition = config['EDITION']
+        except:
+            pass
+        if "KDE" in edition:
+            featured.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/featured-kde.list")
+        else:
+            featured.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/featured.list")
 
         self.category_all = Category(_("All Packages"), "applications-other", None, self.root_category, self.categories)
 
