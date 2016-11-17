@@ -1,3 +1,11 @@
+mintinstall (7.7.5) sarah; urgency=medium
+
+  * Error handling: Remove dpkg from list of checked processes
+  * Error handling: Show actual error and stack trace
+  * Force LC_NUMERIC=C in the environment
+
+ -- Clement Lefebvre <root@linuxmint.com>  Thu, 17 Nov 2016 17:26:46 +0000
+
 mintinstall (7.7.4) sarah; urgency=medium
 
   * Show a custom featured list in KDE
