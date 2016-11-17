@@ -233,7 +233,7 @@ class APTProgressHandler(threading.Thread):
             pslist = p.split('\n')
             for process in pslist:
                 process_name = process.strip()
-                if process_name in ["dpkg", "apt-get", "aptitude", "synaptic", "update-manager", "adept", "adept-notifier", "checkAPT.py"]:
+                if process_name in ["apt-get", "aptitude", "synaptic", "update-manager", "adept", "adept-notifier", "checkAPT.py"]:
                     running = process_name
                     text = "%s\n\n    <b>%s</b>" % (_("Another application is using APT:"), process_name)
                     break
