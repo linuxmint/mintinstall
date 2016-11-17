@@ -9,6 +9,7 @@ import gobject
 import time
 import sys
 import os
+import traceback
 from EventsObject import EventsObject
 from ThreadedVar import ThreadedVar
 
@@ -88,8 +89,10 @@ class AptThread(threading.Thread, EventsObject):
             self.success.set()
         except:
             error = sys.exc_info()[1]
+            stack = traceback.format_exc()
             logging.error("Error during %s task with params %s : %s" % (task_type, params, str(error)))
-            self.error.set_value(error)
+            self.error.set_value(stack)
+            print stack
 
         logging.debug("End of %s thread with params %s" % (task_type, params))
 

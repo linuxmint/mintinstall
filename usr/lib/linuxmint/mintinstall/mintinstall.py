@@ -224,7 +224,7 @@ class APTProgressHandler(threading.Thread):
                 return
 
             # By default assume there's a problem with the Internet connection
-            text = _("Please check your connection to the Internet")
+            text = str(error)
 
             # Check to see if no other APT process is running
             p1 = Popen(['ps', '-U', 'root', '-o', 'comm'], stdout=PIPE)
