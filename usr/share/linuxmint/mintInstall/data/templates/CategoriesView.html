@@ -1,0 +1,354 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" DIR="LTR">
+<head>
+ <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
+ <title></title>
+
+ <script type="text/javascript">
+  function changeTitle(title) { 
+    document.title = title; 
+    document.title = "nop"; 
+  }
+  var categoriesRow;
+  function getCategoriesRow() {
+      if (!categoriesRow) {
+          categoriesRow = document.getElementById("categoriesRow");
+      }
+      return categoriesRow;
+  }
+  function addCategory(name, num_packages, img) {
+    Tr = getCategoriesRow();
+    newTd = document.createElement("td");
+    newTd.setAttribute("tabindex", 0)
+    newTd.setAttribute("align", "center");
+    newTd.className = "category_td";
+    // we need a <p> around the img so that we can align it
+    newTextAroundImg = document.createElement("div");
+    newImg = document.createElement("img");
+    newImg.src = img;
+    newImg.setAttribute("width", 96);
+    newImg.setAttribute("height", 96);
+    newImg.className = "category_img";
+    newTextAroundImg.appendChild(newImg);
+    newText = document.createElement("div");
+    newText.align = "center";
+
+    newSubText = document.createElement("font");
+    newSubText.align = "center";
+    newSubText.setAttribute("size", 1);
+    newSubText.setAttribute("color", "#555555");
+    //newSubText2 = document.createElement("b");
+    newSubText.appendChild(document.createTextNode(num_packages))
+  //  newSubText.appendChild(newSubText2)
+
+    click_cb = 'changeTitle("call:on_category_clicked:' + name + '");';
+    newTd.setAttribute('onclick', click_cb);
+    key_cb = 'if (event.which == 13) { changeTitle("call:on_category_clicked:' + name + '"); };'
+    newTd.setAttribute('onkeydown', key_cb);
+    newTd.id = "Category_"+ parseInt(categoryCount)
+    newText.appendChild(document.createTextNode(name))
+    newText.appendChild(document.createElement("br"))
+    newText.appendChild(newSubText)
+    newTd.appendChild(newTextAroundImg);
+    newTd.appendChild(newText);    
+    Tr.appendChild(newTd);
+    categoryCount += 1;
+  }
+  function clearCategories() {      
+    var row = document.getElementsByTagName("tr")[0];
+    for(var i = row.cells.length - 1; i >= 0; i--)
+    {
+        row.deleteCell(i);
+    }
+
+  }
+  function currently_displayed_rows() {
+      var cat_inc_count = 1, current_offset_left = 0, check_offset_left;
+      while (true) {
+          check_offset_left = document.getElementById("Category_" + cat_inc_count).offsetLeft;
+          if (check_offset_left < current_offset_left) {
+              break;
+          } else {
+              current_offset_left = check_offset_left;
+              cat_inc_count += 1;
+          }
+      }
+      return cat_inc_count;
+  }
+  
+  function onKey(ev) {
+    if (ev) {
+      switch (ev.keyCode) {
+        // left
+        case 37:
+          category_delta = -1;
+          break;    
+        // up
+        case 38:
+          category_delta = -currently_displayed_rows();
+          break;    
+        // right
+        case 39:
+          category_delta = 1;
+          break;   
+        // down
+        case 40:
+          category_delta = currently_displayed_rows();
+          break;   
+        // tab
+        case 9:
+          category_delta = 1;
+          break;   
+        default:
+          category_delta = 0;
+      } 
+      // HACK: the very first key-stroke should always focus the first element
+      if (currentCategory  == -1)
+         category_delta = 1;
+      // ensure that we go not over the borders				 
+      if ((currentCategory + category_delta) > categoryCount ||
+          (currentCategory + category_delta) < 0)
+          category_delta = 0;
+      var potential_new_category = "Category_" + (parseInt(currentCategory) + category_delta);
+      var potential_selected = document.getElementById(potential_new_category);
+      if (potential_selected) {
+          currentCategory += category_delta;
+          potential_selected.focus();
+      } 
+    }
+  }  
+  // global variables to keep track of the cursor
+  var categoryCount = 0;
+  var currentCategory = -1;
+  // global key handler for the arrow keys
+  document.onkeyup = onKey;
+ </script>
+  <style type="text/css">
+   
+    h2 {
+      background-color: #7D91aa;
+      border-style: solid;
+      border-width: 0 0 1px 0;
+      border-color: #E2E7EC #404a57 #404a57 #E2E7EC;
+      color: #fff;
+      padding: 0.25em 0.5em;
+      margin: 0;
+      text-shadow: #404a57 0 -1px 1px;
+    }
+ /* debug border */
+  /*.category_td {border-width:1px;border-style:solid;} */
+ /* fixed width does not work, it does not ellipsis but overflows the box */
+ /* .category_td {padding:8px; margin:8px; width:6em; display:inline-block; text-overflow: ellipsis;} */
+
+    #categoriesTable {
+      margin-left: auto;
+      margin-right: auto; 
+      padding-left: 30px;     
+      padding-right: 30px;
+    }
+
+    .category_td {
+      padding: 0 3px;      
+      margin-bottom: 10px;
+      display:inline-block;
+      text-overflow: ellipsis;
+      vertical-align: top;
+      width: 7em !important;
+      outline: 0;  
+      margin-left: 30px;
+      margin-right: 10px;
+     
+    }
+
+    .category_td:hover {cursor: pointer;                     
+     
+    }
+
+    .category_img {                  
+      -khtml-user-drag:none;    
+    }
+
+    .category_img:hover {   
+      -webkit-filter: contrast(150%);
+      
+    }  
+
+    .category_td:active {background-color: #EEEEEE;}
+    .category_td p { font-size:90%; text-align:center; }
+    .category_td div { font-size:90%; text-align:center; }
+
+ </style>
+ 
+ <style type="text/css">
+    *{ -khtml-user-drag:none;}
+    body {
+      background-color: #efefef;
+      background-image: url('/usr/lib/linuxmint/mintInstall/data/templates/bg-gradient.jpg');
+      background-repeat: repeat-x;        
+      margin-left: 5px; 
+      margin-right: 5px; 
+      padding: 1em 12px;   
+      font-family:${font_family};
+      font-size:${font_size};
+      font-weight:${font_weight};
+      font-style:${font_style};
+    }
+    #wrap{ margin:0 auto; padding: 0 15px 0 15px; }
+    #header{ padding-left:76px }
+   
+    h1 { 
+      position: relative;
+      top: 0;
+      left: 0;
+      font-size: 50px;
+      #line-height: 50px;
+      text-shadow: -3px 0 4px #000;
+      margin-bottom: 0px;
+    padding-bottom: 0px;
+      }
+
+    h1 a:link,
+    h1 a:visited,
+    h1 a:hover,
+    h1 a:active {
+      position: absolute;
+      top: 0; z-index: 2;
+      color: #000;
+      -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,0)), to(rgba(0,0,0,0)));
+      }
+    h1:after {
+      content: "$title";
+      color: #000;
+      text-shadow: 3px 3px 1px #666;
+      }
+  
+    h2 {
+      font-size:80%;
+      margin:0 0 0.3em 0;
+      font-weight:normal;
+    }
+    #error {
+      font-size: 80%;
+      clear:left;
+      border-left: 5px solid #ea2824;
+      border-right: 5px solid #ea2824;
+      background-color: #fcb9b8;
+      padding: 0 5px;
+    }
+    #warning {
+      font-size: 80%;
+      clear:left;
+      border-left: 5px solid #fc9518;
+      border-right: 5px solid #fc9518;
+      background-color: #feeecc;
+      padding: 0 5px;
+    }
+    #description {
+      font-size: 80%;
+      clear:left;
+    }
+    #icon {
+      margin-left:-76px;
+      width:64px;
+      height:64px;
+      z-index:-1;      
+      position:absolute;
+      -webkit-background-clip: border-box;
+      -webkit-background-origin: border-box;
+      -webkit-background-size: 32px 32px;
+    }
+    
+    .pod {
+        border: 1px solid #fff726;
+        background-color: #fffdbc;
+        padding: 3px;        
+        _zoom: 100%;
+        *zoom: 100%;
+    }
+       
+    #screenshot_wrap{
+      display:block;
+    }
+    
+    .screenshot {
+      overflow:hidden;
+      -webkit-box-shadow: rgba(0, 0, 0, 0.4) -4px 2px 10px;
+      
+      display:inline-block;
+      max-width:500px;
+      max-height:375px;
+      
+      cursor: -webkit-zoom-in;
+      
+      text-align:center;
+      -khtml-user-drag:none;
+    }
+    
+    
+    #text {
+      float:left; 
+      padding-left:86px;
+    }   
+    #package_information { 
+      font-size:70%; 
+    }
+    #maintainance_time { 
+      font-size:70%; 
+    }
+    #license { 
+      font-size:70%; 
+    }
+    #price { 
+      font-size:70%; 
+    } 
+    #action_button_description { 
+      font-size:70%; 
+    } 
+    #reviewsTable { 
+      font-size:90%; 
+      #float:left; 
+      padding-left:30px;
+    }  
+    #infoTable { 
+      font-size:70%; 
+      float:left; 
+      padding-left:86px;
+      padding-bottom:20px;
+    }  
+    #wrapper h2{
+      padding:-15px;
+      color: #4a4a4a;
+      font-weight:normal;
+      font-size:1em;      
+      padding:0.2em  0.8em;
+      margin: .25em 0;
+     
+      background-color:#dad7d3;
+       -webkit-border-top-left-radius: 5px;
+       -webkit-border-top-right-radius: 5px;
+    }
+    #wrapper{
+        margin-top:1em;
+        clear:both;
+        border-radius: 5px;
+        background-color:#f7f7f7;        
+        -webkit-box-shadow: rgba(0, 0, 0, 0.2) -1px 1px 4px;
+    }
+    #inner{
+      padding:15px;
+      font-size:70%; 
+    }
+ </style> 
+
+ </head>
+
+<body>
+    
+   
+  <table id="categoriesTable">        
+    <tr id="categoriesRow"></tr>
+  </table>
+  <div class="pod"><div style="font-size:70%">&nbsp;$package_num</div></div>
+</body>
+</html>
