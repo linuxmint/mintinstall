@@ -1,18 +1,37 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 import os
-import commands
+import subprocess
 import gettext
+
+def get_output_uni(*args):  # uni = Unicode 
+  return subprocess.check_output(*args, universal_newlines=True).rstrip()
+# We set "universal_newlines" in order to handle Unicode properly.  
 
 gettext.install("mintinstall", "/usr/share/linuxmint/locale")
 
-launcher = commands.getoutput("/usr/lib/linuxmint/common/mint-which-launcher.py \"%s\"" % _("Please enter your password to start the software manager"))
+tool_if_nonroot = "mintinstall"
+tool_if_root = "/usr/lib/linuxmint/mintinstall/mintinstall.py"
 
 status = 9  # status code 9 is used to restart the app
 
-if os.getuid() != 0:
-    os.system("LC_NUMERIC='C' %s mintinstall" % launcher)
-    status = 0  # Don't call mintinstall
+if os.getuid() != 0:  # Are we running as root?  
+    # Not running as root.  
 
+    which_launcher = "/usr/lib/linuxmint/common/mint-which-launcher.py"
+    sentence = _("Please enter your password to start the software manager")
+    icon = "/usr/share/pixmaps/mintinstall.svg"
+    launcher_query = [which_launcher, "-p", sentence, "-i", icon]
+    launcher = get_output_uni(launcher_query)
+
+    os.system("LC_NUMERIC='C' {0} {1}".format(launcher, tool_if_nonroot))
+    # Call this script recursively (once) as root.  
+
+    status = 0
+    # Don't directly call mintinstall.py; just exit the non-root instance of 
+    # this script.  
+
+# Running as root.  
 while status == 9:
-    status = int(os.system("LC_NUMERIC='C' /usr/lib/linuxmint/mintinstall/mintinstall.py") / 256)  # exit code is upper 8 bits
+    status = int(os.system("LC_NUMERIC='C' {0}".format(tool_if_root)) / 256)
+    # exit code is upper 8 bits
