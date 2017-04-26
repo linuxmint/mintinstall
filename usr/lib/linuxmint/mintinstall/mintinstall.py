@@ -1154,7 +1154,7 @@ class Application():
         self.categories = []
         self.root_category = Category(_("Categories"), "applications-other", None, None, self.categories)
 
-        featured = Category(_("Featured"), "/usr/share/linuxmint/mintinstall/data/templates/featured.svg", None, self.root_category, self.categories)
+        featured = Category(_("Featured"), "applications-featured", None, self.root_category, self.categories)
         edition = ""
         try:
             with open("/etc/linuxmint/info") as f:
