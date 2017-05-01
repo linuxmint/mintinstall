@@ -1,3 +1,13 @@
+mintinstall (7.7.6) sonya; urgency=medium
+
+  [ theel0ja ]
+  * Remove hardcoding of featured icon
+
+  [ JosephMcc ]
+  * Install an icon for the hicolor icon theme (#125)
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon, 01 May 2017 18:24:49 +0100
+
 mintinstall (7.7.5) sarah; urgency=medium
 
   * Error handling: Remove dpkg from list of checked processes
