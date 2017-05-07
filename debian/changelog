@@ -1,3 +1,9 @@
+mintinstall (7.7.7) sonya; urgency=medium
+
+  * l10n: Generate desktop files
+
+ -- Clement Lefebvre <root@linuxmint.com>  Sun, 07 May 2017 12:04:08 +0100
+
 mintinstall (7.7.6) sonya; urgency=medium
 
   [ theel0ja ]
