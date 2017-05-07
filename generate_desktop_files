@@ -9,7 +9,7 @@ import sys
 sys.path.append('/usr/lib/linuxmint/common')
 import additionalfiles
 
-os.environ['LANG'] = "en_US.UTF-8"
+os.environ['LANGUAGE'] = "en_US.UTF-8"
 gettext.install(DOMAIN, PATH)
 
 prefix = "[Desktop Entry]\n"
