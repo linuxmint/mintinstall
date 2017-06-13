@@ -1515,7 +1515,13 @@ class Application():
         if icon_path == self.generic_available_icon_path:
             return self.generic_available_icon_pixbuf
 
-        return gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 32, 32)
+        try:
+            return gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 32, 32)
+        except:
+            if package.pkg.is_installed:
+               return self.generic_installed_icon_pixbuf
+            else:
+                return self.generic_available_icon_pixbuf
 
     def find_fallback_icon(self, package):
         if package.pkg.is_installed:
