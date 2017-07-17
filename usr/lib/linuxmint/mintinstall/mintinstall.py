@@ -13,7 +13,6 @@ import thread
 import gettext
 import tempfile
 import threading
-import webkit
 import string
 import Image
 import StringIO
@@ -464,12 +463,7 @@ class Application():
 
     @print_timing
     def __init__(self):
-        self.browser = webkit.WebView()
-        self.browser2 = webkit.WebView()
-        self.packageBrowser = webkit.WebView()
-        self.screenshotBrowser = webkit.WebView()
-        self.websiteBrowser = webkit.WebView()
-        self.reviewsBrowser = webkit.WebView()
+        self.packageLabel = gtk.Label()
 
         self.add_categories()
         self.build_matched_packages()
@@ -616,39 +610,19 @@ class Application():
         sans26 = ImageFont.truetype(self.FONT, 26)
         sans10 = ImageFont.truetype(self.FONT, 12)
 
-        # Build the category browsers
-        template = open("/usr/share/linuxmint/mintinstall/data/templates/CategoriesView.html").read()
-        subs = {'header': _("Categories")}
-        subs['subtitle'] = _("Please choose a category")
-        subs['package_num'] = _("%d packages are currently available") % len(self.packages)
-        html = string.Template(template).safe_substitute(subs)
-        self.browser.load_html_string(html, "file:/")
-        self.browser.connect("load-finished", self._on_load_finished)
-        self.browser.connect('title-changed', self._on_title_changed)
-        wTree.get_widget("scrolled_categories").add(self.browser)
+        # BUILD THE CATEGORIES IN GTK
+        box = gtk.VBox()
+        wTree.get_widget("scrolled_categories").add(box)
 
-        template = open("/usr/share/linuxmint/mintinstall/data/templates/SubCategoriesView.html").read()
-        subs = {'header': _("Categories")}
-        subs['subtitle'] = _("Please choose a sub-category")
-        html = string.Template(template).safe_substitute(subs)
-        self.browser2.load_html_string(html, "file:/")
-        self.browser2.connect('title-changed', self._on_title_changed)
-        wTree.get_widget("scrolled_mixed_categories").add(self.browser2)
+        for cat in self.root_category.subcategories:
+            button = gtk.Button()
+            button.set_label(cat.name)
+            button.connect("clicked", self.category_button_clicked, cat)
+            box.pack_start(button, False, False, 3)
 
-        wTree.get_widget("scrolled_details").add(self.packageBrowser)
+        #wTree.get_widget("scrolled_mixed_categories").add()
 
-        self.packageBrowser.connect('title-changed', self._on_title_changed)
-
-        wTree.get_widget("scrolled_screenshot").add(self.screenshotBrowser)
-        wTree.get_widget("scrolled_website").add(self.websiteBrowser)
-        wTree.get_widget("scrolled_reviews").add(self.reviewsBrowser)
-
-        # kill right click menus in webkit views
-        self.browser.connect("button-press-event", lambda w, e: e.button == 3)
-        self.browser2.connect("button-press-event", lambda w, e: e.button == 3)
-        self.packageBrowser.connect("button-press-event", lambda w, e: e.button == 3)
-        self.screenshotBrowser.connect("button-press-event", lambda w, e: e.button == 3)
-        self.reviewsBrowser.connect("button-press-event", lambda w, e: e.button == 3)
+        wTree.get_widget("scrolled_details").add(self.packageLabel)
 
         wTree.get_widget("label_ongoing").set_text(_("No ongoing actions"))
         wTree.get_widget("label_transactions_header").set_text(_("Active tasks:"))
@@ -678,10 +652,8 @@ class Application():
         self.generic_installed_icon_pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(self.generic_installed_icon_path, 32, 32)
         self.generic_available_icon_pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(self.generic_available_icon_path, 32, 32)
 
-    def show_screenshots(self, pkg_name):
-        if self.navigation_bar.get_active().get_label() == pkg_name:
-            for screenshot_cmd in self.screenshots:
-                self.packageBrowser.execute_script(screenshot_cmd)
+    def category_button_clicked(self, button, category):
+        self.show_category(category)
 
     def on_search_entry_activated(self, searchentry):
         terms = searchentry.get_text()
@@ -1013,42 +985,6 @@ class Application():
         # Get the categories
         self.show_category(self.root_category)
 
-    @print_timing
-    def _on_package_load_finished(self, view, frame, package):
-        #Add the reviews
-        reviews = package.reviews
-        self.packageBrowser.execute_script('clearReviews()')
-        reviews.sort(key=lambda x: x.date, reverse=True)
-        if len(reviews) > 10:
-            for review in reviews[0:10]:
-                rating = "/usr/share/linuxmint/mintinstall/data/small_" + str(review.rating) + ".png"
-                comment = review.comment.strip()
-                comment = comment.replace("'", "\'")
-                comment = comment.replace('"', '\"')
-                comment = comment.capitalize()
-                comment = unicode(comment, 'UTF-8', 'replace')
-                review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
-
-                self.packageBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
-            self.packageBrowser.execute_script('addLink("%s")' % _("See more reviews"))
-
-        else:
-            for review in reviews:
-                rating = "/usr/share/linuxmint/mintinstall/data/small_" + str(review.rating) + ".png"
-                comment = review.comment.strip()
-                comment = comment.replace("'", "\'")
-                comment = comment.replace('"', '\"')
-                comment = comment.capitalize()
-                comment = unicode(comment, 'UTF-8', 'replace')
-                review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
-
-                self.packageBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
-        #self.main_window.set_sensitive(True)
-        #self.main_window.window.set_cursor(None)
-
-        downloadScreenshots = ScreenshotDownloader(self, package.name)
-        downloadScreenshots.start()
-
     def on_category_clicked(self, name):
         for category in self.categories:
             if category.name == name:
@@ -1066,57 +1002,7 @@ class Application():
     def on_screenshot_clicked(self, url):
         package = self.current_package
         if package is not None:
-            template = open("/usr/share/linuxmint/mintinstall/data/templates/ScreenshotView.html").read()
-            subs = {}
-            subs['url'] = url
-            print "loading: '%s'" % url
-            html = string.Template(template).safe_substitute(subs)
-            self.screenshotBrowser.load_html_string(html, "file:/")
-            self.navigation_bar.add_with_id(_("Screenshot"), self.navigate, self.NAVIGATION_SCREENSHOT, "screenshot")
-
-    def on_website_clicked(self):
-        package = self.current_package
-        if package is not None:
-            if self.prefs['external_browser']:
-                clem
-                os.system("xdg-open " + self.current_package.pkg.candidate.homepage + " &")
-            else:
-                self.websiteBrowser.open(self.current_package.pkg.candidate.homepage)
-                self.navigation_bar.add_with_id(_("Website"), self.navigate, self.NAVIGATION_WEBSITE, "website")
-
-    def on_reviews_clicked(self):
-        package = self.current_package
-        if package is not None:
-            template = open("/usr/share/linuxmint/mintinstall/data/templates/ReviewsView.html").read()
-            subs = {}
-            subs['appname'] = self.current_package.pkg.name
-            subs['reviewsLabel'] = _("Reviews")
-            font_description = gtk.Label("pango").get_pango_context().get_font_description()
-            subs['font_family'] = font_description.get_family()
-            try:
-                subs['font_weight'] = font_description.get_weight().real
-            except:
-                subs['font_weight'] = font_description.get_weight()
-            subs['font_style'] = font_description.get_style().value_nick
-            subs['font_size'] = font_description.get_size() / 1024
-            html = string.Template(template).safe_substitute(subs)
-            self.reviewsBrowser.load_html_string(html, "file:/")
-            self.reviewsBrowser.connect("load-finished", self._on_reviews_load_finished, package.reviews)
-            self.navigation_bar.add_with_id(_("Reviews"), self.navigate, self.NAVIGATION_REVIEWS, "reviews")
-
-    def _on_reviews_load_finished(self, view, frame, reviews):
-        #Add the reviews
-        self.reviewsBrowser.execute_script('clearReviews()')
-        reviews.sort(key=lambda x: x.date, reverse=True)
-        for review in reviews:
-            rating = "/usr/share/linuxmint/mintinstall/data/small_" + str(review.rating) + ".png"
-            comment = review.comment.strip()
-            comment = comment.replace("'", "\'")
-            comment = comment.replace('"', '\"')
-            comment = comment.capitalize()
-            comment = unicode(comment, 'UTF-8', 'replace')
-            review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
-            self.reviewsBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
+            print("SHOW %s" % url)
 
     def _on_title_changed(self, view, frame, title):
         # no op - needed to reset the title after a action so that
@@ -1144,7 +1030,7 @@ class Application():
                 if f and callable(f):
                     f(*args_list)
                 # now we need to reset the title
-                self.browser.execute_script('window.setTimeout(function(){document.title = "nop"},0);') #setTimeout workaround: otherwise title parameter doesn't upgrade in callback causing show_category to be called twice
+                #self.browser.execute_script('window.setTimeout(function(){document.title = "nop"},0);') #setTimeout workaround: otherwise title parameter doesn't upgrade in callback causing show_category to be called twice
             except Exception, detail:
                 print detail
                 pass
@@ -1445,31 +1331,23 @@ class Application():
         self._search_in_category = category
         # Load subcategories
         if len(category.subcategories) > 0:
-            if len(category.packages) == 0:
-                # Show categories page
-                browser = self.browser
-                size = 96
-            else:
-                # Show mixed page
-                browser = self.browser2
-                size = 64
-
-            browser.execute_script('clearCategories()')
+            # Show mixed page
+            #self.browser2.execute_script('clearCategories()')
             theme = gtk.icon_theme_get_default()
             for cat in category.subcategories:
                 icon = None
                 if theme.has_icon(cat.icon):
-                    iconInfo = theme.lookup_icon(cat.icon, size, 0)
+                    iconInfo = theme.lookup_icon(cat.icon, 64, 0)
                     if iconInfo and os.path.exists(iconInfo.get_filename()):
                         icon = iconInfo.get_filename()
                 if icon == None:
                     if os.path.exists(cat.icon):
                         icon = cat.icon
                     else:
-                        iconInfo = theme.lookup_icon("applications-other", size, 0)
+                        iconInfo = theme.lookup_icon("applications-other", 64, 0)
                         if iconInfo and os.path.exists(iconInfo.get_filename()):
                             icon = iconInfo.get_filename()
-                browser.execute_script('addCategory("%s", "%s", "%s")' % (cat.name, _("%d packages") % len(cat.packages), icon))
+                #self.browser2.execute_script('addCategory("%s", "%s", "%s")' % (cat.name, _("%d packages") % len(cat.packages), icon))
 
         # Load packages into self.tree_applications
         if (len(category.subcategories) == 0):
@@ -1904,15 +1782,36 @@ class Application():
             subs['rating'] = "/usr/share/linuxmint/mintinstall/data/no-reviews.png"
             subs['reviews'] = ""
 
-        template = open("/usr/share/linuxmint/mintinstall/data/templates/PackageView.html")
-        html = string.Template(template.read()).safe_substitute(subs)
-        self.packageBrowser.load_html_string(html, "file:/")
-        template.close()
+        reviews = package.reviews
+        reviews.sort(key=lambda x: x.date, reverse=True)
+        if len(reviews) > 10:
+            for review in reviews[0:10]:
+                rating = "/usr/share/linuxmint/mintinstall/data/small_" + str(review.rating) + ".png"
+                comment = review.comment.strip()
+                comment = comment.replace("'", "\'")
+                comment = comment.replace('"', '\"')
+                comment = comment.capitalize()
+                comment = unicode(comment, 'UTF-8', 'replace')
+                review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
 
-        if self.loadHandlerID != -1:
-            self.packageBrowser.disconnect(self.loadHandlerID)
+                #self.packageBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
+        else:
+            for review in reviews:
+                rating = "/usr/share/linuxmint/mintinstall/data/small_" + str(review.rating) + ".png"
+                comment = review.comment.strip()
+                comment = comment.replace("'", "\'")
+                comment = comment.replace('"', '\"')
+                comment = comment.capitalize()
+                comment = unicode(comment, 'UTF-8', 'replace')
+                review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
 
-        self.loadHandlerID = self.packageBrowser.connect("load-finished", self._on_package_load_finished, package)
+        #self.main_window.set_sensitive(True)
+        #self.main_window.window.set_cursor(None)
+
+        self.packageLabel.set_label(package.name)
+
+        downloadScreenshots = ScreenshotDownloader(self, package.name)
+        downloadScreenshots.start()
 
         # Update the navigation bar
         self.navigation_bar.add_with_id(package.name, self.navigate, self.NAVIGATION_ITEM, package)

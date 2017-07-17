@@ -10,7 +10,6 @@ Architecture: all
 Depends: python (>= 2.4), python (<< 3),
          python-gtk2,
          python-glade2,
-         python-webkit,
          python-imaging,
          python-configobj,
          python-beautifulsoup,
