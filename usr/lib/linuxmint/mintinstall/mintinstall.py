@@ -35,7 +35,6 @@ from AptClient.AptClient import AptClient
 from datetime import datetime
 from subprocess import Popen, PIPE
 from widgets.pathbar2 import NavigationBar
-from widgets.searchentry import SearchEntry
 import base64
 
 HOME = os.path.expanduser("~")
@@ -596,8 +595,8 @@ class Application():
         self.build_transactions_tree(self.tree_transactions)
 
         self.navigation_bar = NavigationBar()
-        self.searchentry = SearchEntry()
-        self.searchentry.connect("terms-changed", self.on_search_terms_changed)
+        self.searchentry = gtk.Entry()
+        self.searchentry.connect("changed", self.on_search_terms_changed)
         self.searchentry.connect("activate", self.on_search_entry_activated)
         top_hbox = gtk.HBox()
         top_hbox.pack_start(self.navigation_bar, padding=6)
@@ -689,7 +688,9 @@ class Application():
         if terms != "":
             self.show_search_results(terms)
 
-    def on_search_terms_changed(self, searchentry, terms):
+    def on_search_terms_changed(self, entry):
+        terms = entry.get_text()
+        print(terms)
         if terms != "" and self.prefs["search_while_typing"] and len(terms) >= 3:
             if terms != self._current_search_terms:
                 self.show_search_results(terms)
