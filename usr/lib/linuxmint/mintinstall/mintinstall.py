@@ -857,7 +857,6 @@ class Application():
             summary = package.summary
             if summary is None:
                 summary = ""
-            summary = summary.capitalize()
             description = ""
             version = ""
             homepage = ""
@@ -874,7 +873,6 @@ class Application():
                 if (package.pkg.candidate.size >= 1000000000):
                     strSize = str(package.pkg.candidate.size / 1000000000) + _("GB")
 
-            description = description.capitalize()
             description = description.replace("\r\n", "<br>")
             description = description.replace("\n", "<br>")
             output = package.pkg.name + "#~#" + version + "#~#" + homepage + "#~#" + strSize + "#~#" + summary + "#~#" + description + "#~#"
@@ -1024,7 +1022,6 @@ class Application():
                 comment = review.comment.strip()
                 comment = comment.replace("'", "\'")
                 comment = comment.replace('"', '\"')
-                comment = comment.capitalize()
                 comment = unicode(comment, 'UTF-8', 'replace')
                 review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
 
@@ -1037,7 +1034,6 @@ class Application():
                 comment = review.comment.strip()
                 comment = comment.replace("'", "\'")
                 comment = comment.replace('"', '\"')
-                comment = comment.capitalize()
                 comment = unicode(comment, 'UTF-8', 'replace')
                 review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
 
@@ -1112,7 +1108,6 @@ class Application():
             comment = review.comment.strip()
             comment = comment.replace("'", "\'")
             comment = comment.replace('"', '\"')
-            comment = comment.capitalize()
             comment = unicode(comment, 'UTF-8', 'replace')
             review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
             self.reviewsBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
@@ -1378,7 +1373,7 @@ class Application():
         package_name = package_name.split(":")[0]
         if package_name in ALIASES and ALIASES[package_name] not in self.packages_dict:
             package_name = ALIASES[package_name]
-        return package_name.capitalize()
+        return package_name
 
     def display_packages_list(self, packages_list, searchTree):
         sans26 = ImageFont.truetype(self.FONT, 26)
@@ -1417,7 +1412,7 @@ class Application():
                 summary = summary.replace("<", "&lt;")
                 summary = summary.replace("&", "&amp;")
 
-            model_applications.set_value(iter, 1, "%s\n<small><span foreground='#555555'>%s</span></small>" % (package_name, summary.capitalize()))
+            model_applications.set_value(iter, 1, "%s\n<small><span foreground='#555555'>%s</span></small>" % (package_name, summary))
 
             if package.num_reviews > 0:
                 image = "/usr/share/linuxmint/mintinstall/data/" + str(package.avg_rating) + ".png"
@@ -1768,7 +1763,7 @@ class Application():
         subs['pkgname'] = package.name
         subs['description'] = package.pkg.candidate.description
         subs['description'] = subs['description'].replace('\n', '<br />\n')
-        subs['summary'] = package.summary.capitalize()
+        subs['summary'] = package.summary
         subs['label_score'] = _("Score:")
         subs['label_submit'] = _("Submit")
         subs['label_your_review'] = _("Your review")
