@@ -319,7 +319,7 @@ class APTProgressHandler(threading.Thread):
         else:
             fraction = 0
             progress = ""
-        self.status_label.set_text(_("%d ongoing actions") % progress_info["nb_tasks"])
+        self.status_label.set_text(gettext.ngettext("%d ongoing action", "%d ongoing actions", progress_info["nb_tasks"]) % progress_info["nb_tasks"])
         self.progressbar.set_text(progress)
         self.progressbar.set_fraction(fraction / 100.)
 
@@ -621,7 +621,7 @@ class Application():
         template = open("/usr/share/linuxmint/mintinstall/data/templates/CategoriesView.html").read()
         subs = {'header': _("Categories")}
         subs['subtitle'] = _("Please choose a category")
-        subs['package_num'] = _("%d packages are currently available") % len(self.packages)
+        subs['package_num'] = gettext.ngettext("%d package is currently available", "%d packages are currently available", len(self.packages)) % len(self.packages)
         html = string.Template(template).safe_substitute(subs)
         self.browser.load_html_string(html, "file:/")
         self.browser.connect("load-finished", self._on_load_finished)
@@ -1432,7 +1432,7 @@ class Application():
                 draw.text((87, 9), str(package.score), font=sans26, fill="#AAAAAA")
                 draw.text((86, 8), str(package.score), font=sans26, fill="#555555")
                 draw.text((85, 7), str(package.score), font=sans26, fill=color)
-                draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
+                draw.text((13, 33), u"%s" % (gettext.ngettext("%d review", "%d reviews", package.num_reviews) % package.num_reviews), font=sans10, fill="#555555")
 
                 model_applications.set_value(iter, 2, convertImageToGtkPixbuf(im))
 
@@ -1468,7 +1468,7 @@ class Application():
                         iconInfo = theme.lookup_icon("applications-other", size, 0)
                         if iconInfo and os.path.exists(iconInfo.get_filename()):
                             icon = iconInfo.get_filename()
-                browser.execute_script('addCategory("%s", "%s", "%s")' % (cat.name, _("%d packages") % len(cat.packages), icon))
+                browser.execute_script('addCategory("%s", "%s", "%s")' % (cat.name, gettext.ngettext("%d package", "%d packages", len(cat.packages)) % len(cat.packages), icon))
 
         # Load packages into self.tree_applications
         if (len(category.subcategories) == 0):
@@ -1894,7 +1894,7 @@ class Application():
             draw.text((87, 9), str(package.score), font=sans26, fill="#AAAAAA")
             draw.text((86, 8), str(package.score), font=sans26, fill="#555555")
             draw.text((85, 7), str(package.score), font=sans26, fill=color)
-            draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
+            draw.text((13, 33), u"%s" % (gettext.ngettext("%d review", "%d reviews", package.num_reviews) % package.num_reviews), font=sans10, fill="#555555")
             tmpFile = tempfile.NamedTemporaryFile(delete=True)
             im.save(tmpFile.name + ".png")
             subs['rating'] = tmpFile.name + ".png"
