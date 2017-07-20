@@ -641,10 +641,15 @@ class Application():
 
         self.builder.get_object("main_window").show_all()
 
-        self.generic_installed_icon_path = "/usr/share/linuxmint/mintinstall/data/installed.png"
         self.generic_available_icon_path = "/usr/share/linuxmint/mintinstall/data/available.png"
+        theme = Gtk.IconTheme.get_default()
+        for icon_name in ["application-x-deb", "file-roller"]:
+            if theme.has_icon(icon_name):
+                iconInfo = theme.lookup_icon(icon_name, ICON_SIZE, 0)
+                if iconInfo and os.path.exists(iconInfo.get_filename()):
+                    self.generic_available_icon_path = iconInfo.get_filename()
+                    break
 
-        self.generic_installed_icon_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(self.generic_installed_icon_path, ICON_SIZE, ICON_SIZE)
         self.generic_available_icon_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(self.generic_available_icon_path, ICON_SIZE, ICON_SIZE)
 
         self.listbox_categories = Gtk.ListBox()
@@ -1240,54 +1245,6 @@ class Application():
     def get_package_pixbuf_icon(self, package):
         icon_path = None
 
-        try:
-            icon_path = self.find_app_icon(package)
-        except:
-            try:
-                icon_path = self.find_app_icon_alternative(package)
-            except:
-                icon_path = self.find_fallback_icon(package)
-
-        #get cached generic icons, so they aren't converted repetitively
-        if icon_path == self.generic_installed_icon_path:
-            return self.generic_installed_icon_pixbuf
-        if icon_path == self.generic_available_icon_path:
-            return self.generic_available_icon_pixbuf
-
-        try:
-            return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, ICON_SIZE, ICON_SIZE)
-        except:
-            return self.generic_available_icon_pixbuf
-
-    def find_fallback_icon(self, package):
-        if package.pkg.is_installed:
-            icon_path = self.generic_installed_icon_path
-        else:
-            icon_path = self.generic_available_icon_path
-        return icon_path
-
-    def find_app_icon_alternative(self, package):
-        package_name = package.name.split(":")[0] # If this is an arch package, like "foo:i386", only consider "foo"
-        icon_path = None
-        # Try the Icon theme first
-        theme = Gtk.IconTheme.get_default()
-        if theme.has_icon(package_name):
-            iconInfo = theme.lookup_icon(package_name, ICON_SIZE, 0)
-            if iconInfo and os.path.exists(iconInfo.get_filename()):
-                icon_path = iconInfo.get_filename()
-        else:
-            # Try mintinstall-icons then
-            icon_path = "/usr/share/linuxmint/mintinstall/icons/%s" % package_name
-            if os.path.exists(icon_path + ".png"):
-                icon_path = icon_path + ".png"
-            elif os.path.exists(icon_path + ".xpm"):
-                icon_path = icon_path + ".xpm"
-            else:
-                # Else, default to generic icons
-                icon_path = self.generic_available_icon_path
-        return icon_path
-
-    def find_app_icon(self, package):
         package_name = package.name.split(":")[0] # If this is an arch package, like "foo:i386", only consider "foo"
         icon_path = None
         # Try the Icon theme first
@@ -1306,10 +1263,12 @@ class Application():
                     icon_path = iconInfo.get_filename()
 
         if icon_path is None:
-            # Try mintinstall-icons then
-            icon_path = "/usr/share/linuxmint/mintinstall/icons/%s" % package_name
+            # Try app-install icons then
+            icon_path = "/usr/share/app-install/icons/%s" % package_name
 
-            if os.path.exists(icon_path + ".png"):
+            if os.path.exists(icon_path + ".svg"):
+                icon_path = icon_path + ".svg"
+            elif os.path.exists(icon_path + ".png"):
                 icon_path = icon_path + ".png"
             elif os.path.exists(icon_path + ".xpm"):
                 icon_path = icon_path + ".xpm"
@@ -1317,7 +1276,15 @@ class Application():
                 # Else, default to generic icons
                 icon_path = self.generic_available_icon_path
 
-        return icon_path
+
+        #get cached generic icons, so they aren't converted repetitively
+        if icon_path == self.generic_available_icon_path:
+            return self.generic_available_icon_pixbuf
+
+        try:
+            return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, ICON_SIZE, ICON_SIZE)
+        except:
+            return self.generic_available_icon_pixbuf
 
     def find_large_app_icon(self, package):
         package_name = package.name.split(":")[0] # If this is an arch package, like "foo:i386", only consider "foo"
@@ -1415,8 +1382,8 @@ class Application():
         # sans10 = ImageFont.truetype(self.FONT, 12)
 
         for package in packages:
-            if (package.name in COMMERCIAL_APPS):
-                continue
+            # if (package.name in COMMERCIAL_APPS):
+            #     continue
 
             if ":" in package.name and package.name.split(":")[0] in self.packages_dict:
                 # don't list arch packages when the root is represented in the cache
