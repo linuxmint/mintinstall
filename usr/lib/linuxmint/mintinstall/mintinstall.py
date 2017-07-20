@@ -619,7 +619,18 @@ class Application():
         sans26 = ImageFont.truetype(self.FONT, 26)
         sans10 = ImageFont.truetype(self.FONT, 12)
 
-        # BUILD THE CATEGORIES IN GTK
+        self.generic_available_icon_path = "/usr/share/linuxmint/mintinstall/data/available.png"
+        theme = Gtk.IconTheme.get_default()
+        for icon_name in ["application-x-deb", "file-roller"]:
+            if theme.has_icon(icon_name):
+                iconInfo = theme.lookup_icon(icon_name, ICON_SIZE, 0)
+                if iconInfo and os.path.exists(iconInfo.get_filename()):
+                    self.generic_available_icon_path = iconInfo.get_filename()
+                    break
+
+        self.generic_available_icon_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(self.generic_available_icon_path, ICON_SIZE, ICON_SIZE)
+
+        self.load_picks_on_landing()
         self.load_categories_on_landing()
 
         self.builder.get_object("scrolled_details").add(self.packageLabel)
@@ -641,24 +652,40 @@ class Application():
 
         self.builder.get_object("main_window").show_all()
 
-        self.generic_available_icon_path = "/usr/share/linuxmint/mintinstall/data/available.png"
-        theme = Gtk.IconTheme.get_default()
-        for icon_name in ["application-x-deb", "file-roller"]:
-            if theme.has_icon(icon_name):
-                iconInfo = theme.lookup_icon(icon_name, ICON_SIZE, 0)
-                if iconInfo and os.path.exists(iconInfo.get_filename()):
-                    self.generic_available_icon_path = iconInfo.get_filename()
-                    break
-
-        self.generic_available_icon_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(self.generic_available_icon_path, ICON_SIZE, ICON_SIZE)
-
         self.listbox_categories = Gtk.ListBox()
         self.builder.get_object("box_subcategories").pack_start(self.listbox_categories, False, False, 0)
         self.listbox_categories.connect('row-activated', self.on_row_activated)
 
+    def load_picks_on_landing(self):
+        box = self.builder.get_object("box_picks")
+        flowbox = Gtk.FlowBox()
+        flowbox.set_min_children_per_line(4)
+        flowbox.set_max_children_per_line(4)
+        flowbox.set_row_spacing(6)
+        flowbox.set_column_spacing(6)
+        flowbox.set_homogeneous(True)
+        featured = 0
+        for package in self.featured_category.packages:
+            if not package.pkg.is_installed:
+                icon = self.get_package_pixbuf_icon(package)
+                icon = Gtk.Image.new_from_pixbuf(icon)
+                tile = PackageTile(package, icon, package.summary)
+                tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LANDING)
+                flowbox.insert(tile, -1)
+                featured = featured + 1
+                if featured >= 12:
+                    break
+        box.pack_start(flowbox, True, True, 0)
+        box.show_all()
+
     def load_categories_on_landing(self):
         box = self.builder.get_object("box_categories")
         flowbox = Gtk.FlowBox()
+        flowbox.set_min_children_per_line(4)
+        flowbox.set_max_children_per_line(4)
+        flowbox.set_row_spacing(6)
+        flowbox.set_column_spacing(6)
+        flowbox.set_homogeneous(True)
         for cat in self.root_category.subcategories:
             button = Gtk.Button()
             button.set_label(cat.name)
@@ -983,7 +1010,7 @@ class Application():
         self.categories = []
         self.root_category = Category(_("Categories"), "applications-other", None, None, self.categories)
 
-        #featured = Category(_("Featured"), "applications-featured", None, self.root_category, self.categories)
+        self.featured_category = Category(_("Featured"), "applications-featured", None, None, self.categories)
         edition = ""
         try:
             with open("/etc/linuxmint/info") as f:
@@ -991,10 +1018,10 @@ class Application():
                 edition = config['EDITION']
         except:
             pass
-        # if "KDE" in edition:
-        #     featured.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/featured-kde.list")
-        # else:
-        #     featured.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/featured.list")
+        if "KDE" in edition:
+            self.featured_category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/featured-kde.list")
+        else:
+            self.featured_category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/featured.list")
 
         internet = Category(_("Internet"), "applications-internet", None, self.root_category, self.categories)
         subcat = Category(_("Web"), "web-browser", ("web", "net"), internet, self.categories)
@@ -1104,10 +1131,10 @@ class Application():
                     #print detail
 
     def add_package_to_category(self, package, category):
+        if category not in package.categories:
+            package.categories.append(category)
+            category.packages.append(package)
         if category.parent is not None:
-            if category not in package.categories:
-                package.categories.append(category)
-                category.packages.append(package)
             self.add_package_to_category(package, category.parent)
 
     @print_timing
@@ -1362,8 +1389,8 @@ class Application():
                     return True
         return False
 
-    def on_package_tile_clicked(self, tile):
-        self.show_package(tile.package)
+    def on_package_tile_clicked(self, tile, previous_page):
+        self.show_package(tile.package, previous_page)
 
     def show_packages(self, packages):
         for child in self.flowbox_applications.get_children():
@@ -1399,7 +1426,7 @@ class Application():
             icon = Gtk.Image.new_from_pixbuf(icon)
 
             tile = PackageTile(package, icon, package.summary)
-            tile.connect("clicked", self.on_package_tile_clicked)
+            tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LIST)
 
             self.flowbox_applications.insert(tile, -1)
             self.flowbox_applications.show_all()
@@ -1437,10 +1464,10 @@ class Application():
         # self.tree_applications.set_model(self.model_filter)
 
     @print_timing
-    def show_package(self, package):
+    def show_package(self, package, previous_page):
 
         self.notebook.set_current_page(self.PAGE_PACKAGE)
-        self.previous_page = self.PAGE_LIST
+        self.previous_page = previous_page
         self.back_button.set_sensitive(True)
 
         self.searchentry.set_text("")

@@ -124,12 +124,16 @@
                   <object class="GtkBox" id="box_landing">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="border_width">6</property>
                     <property name="orientation">vertical</property>
+                    <property name="spacing">6</property>
                     <child>
                       <object class="GtkLabel" id="label2">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="ypad">6</property>
                         <property name="label" translatable="yes">Featured application</property>
+                        <property name="xalign">0</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -156,7 +160,9 @@
                       <object class="GtkLabel" id="label3">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="ypad">6</property>
                         <property name="label" translatable="yes">Editor's Picks</property>
+                        <property name="xalign">0</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -183,7 +189,9 @@
                       <object class="GtkLabel" id="label4">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="ypad">6</property>
                         <property name="label" translatable="yes">Categories</property>
+                        <property name="xalign">0</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
