@@ -5,10 +5,7 @@ import Classes
 import sys
 import os
 import commands
-import gtk
-import gtk.glade
-import pygtk
-import gobject
+import gi
 import thread
 import gettext
 import tempfile
@@ -24,7 +21,6 @@ import apt
 import urllib
 import urllib2
 import thread
-import glib
 import dbus
 import httplib
 from urlparse import urlparse
@@ -33,10 +29,14 @@ from AptClient.AptClient import AptClient
 
 from datetime import datetime
 from subprocess import Popen, PIPE
-from widgets.pathbar2 import NavigationBar
 import base64
 
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib
+
 HOME = os.path.expanduser("~")
+
+ICON_SIZE = 48
 
 # Don't let mintinstall run as root
 #~ if os.getuid() == 0:
@@ -46,7 +46,7 @@ if os.getuid() != 0:
     print "The software manager should be run as root."
     sys.exit(1)
 
-pygtk.require("2.0")
+gi.require_version("Gtk", "3.0")
 
 from configobj import ConfigObj
 
@@ -77,7 +77,7 @@ else:
         libc = dl.open('/lib/i386-linux-gnu/libc.so.6')
         libc.call('prctl', 15, 'mintinstall', 0, 0, 0)
 
-gtk.gdk.threads_init()
+Gdk.threads_init()
 
 COMMERCIAL_APPS = ["chromium-browser", "chromium-browser-l10n", "chromium-codecs-ffmpeg",
                    "chromium-codecs-ffmpeg-extra", "chromium-codecs-ffmpeg-extra",
@@ -107,13 +107,12 @@ def convertImageToGtkPixbuf(image):
     buf = StringIO.StringIO()
     image.save(buf, format="PNG")
     bufString = buf.getvalue()
-    loader = gtk.gdk.PixbufLoader('png')
-    loader.write(bufString, len(bufString))
+    loader = GdkPixbuf.PixbufLoader.new_with_type('png')
+    loader.write(bufString)
     pixbuf = loader.get_pixbuf()
     loader.close()
     buf.close()
     return pixbuf
-
 
 class DownloadReviews(threading.Thread):
 
@@ -182,24 +181,24 @@ class ScreenshotDownloader(threading.Thread):
         except Exception, detail:
             print detail
 
-        try:
-            gobject.idle_add(self.application.show_screenshots, self.pkg_name)
-        except Exception, detail:
-            print detail
+        # try:
+        #     GObject.idle_add(self.application.show_screenshots, self.pkg_name)
+        # except Exception, detail:
+        #     print detail
 
 
 class APTProgressHandler(threading.Thread):
 
-    def __init__(self, application, packages, wTree, apt_client):
+    def __init__(self, application, packages, apt_client, builder):
         threading.Thread.__init__(self)
         self.application = application
         self.apt_client = apt_client
-        self.wTree = wTree
-        self.status_label = wTree.get_widget("label_ongoing")
-        self.progressbar = wTree.get_widget("progressbar1")
-        self.tree_transactions = wTree.get_widget("tree_transactions")
+        self.builder = builder
+        self.status_label = self.builder.get_object("label_ongoing")
+        self.progressbar = self.builder.get_object("progressbar1")
+        self.tree_transactions = self.builder.get_object("tree_transactions")
         self.packages = packages
-        self.model = gtk.TreeStore(str, str, str, float, object)
+        self.model = Gtk.TreeStore(str, str, str, float, object)
         self.tree_transactions.set_model(self.model)
         self.tree_transactions.connect("button-release-event", self.menuPopup)
 
@@ -238,8 +237,8 @@ class APTProgressHandler(threading.Thread):
 
             self.application.show_dialog_modal(title=title,
                                                text=text,
-                                               type=gtk.MESSAGE_ERROR,
-                                               buttons=gtk.BUTTONS_OK)
+                                               type=Gtk.MessageType.ERROR,
+                                               buttons=Gtk.ButtonsType.OK)
 
     def _update_display(self):
         progress_info = self.apt_client.get_progress_info()
@@ -279,14 +278,14 @@ class APTProgressHandler(threading.Thread):
                             package.pkg = new_pkg
                             # If the user is currently viewing this package in the browser,
                             # refresh the view to show that the package has been installed or uninstalled.
-                            if self.application.navigation_bar.get_active().get_label() == pkg_name:
-                                self.application.show_package(package, None)
+                            #if self.application.back_button.get_active().get_label() == pkg_name:
+                            #    self.application.show_package(package)
 
                     # Update apps tree
-                    tree_applications = self.wTree.get_widget("tree_applications")
+                    tree_applications = self.self.builder.get_object("tree_applications")
                     if tree_applications:
                         model_apps = tree_applications.get_model()
-                        if isinstance(model_apps, gtk.TreeModelFilter):
+                        if isinstance(model_apps, Gtk.TreeModelFilter):
                             model_apps = model_apps.get_model()
 
                         if model_apps is not None:
@@ -294,19 +293,6 @@ class APTProgressHandler(threading.Thread):
                             while iter_apps is not None:
                                 package = model_apps.get_value(iter_apps, 3)
                                 if package.pkg.name == pkg_name:
-                                    model_apps.set_value(iter_apps, 0, self.application.get_package_pixbuf_icon(package))
-                                iter_apps = model_apps.iter_next(iter_apps)
-
-                        # Update mixed apps tree
-                        model_apps = self.wTree.get_widget("tree_mixed_applications").get_model()
-                        if isinstance(model_apps, gtk.TreeModelFilter):
-                            model_apps = model_apps.get_model()
-                        if model_apps is not None:
-                            iter_apps = model_apps.get_iter_first()
-                            while iter_apps is not None:
-                                package = model_apps.get_value(iter_apps, 3)
-                                if package.pkg.name == pkg_name:
-
                                     model_apps.set_value(iter_apps, 0, self.application.get_package_pixbuf_icon(package))
                                 iter_apps = model_apps.iter_next(iter_apps)
             else:
@@ -326,8 +312,8 @@ class APTProgressHandler(threading.Thread):
             model, iter = self.tree_transactions.get_selection().get_selected()
             if iter is not None:
                 task = model.get_value(iter, 4)
-                menu = gtk.Menu()
-                cancelMenuItem = gtk.MenuItem(_("Cancel the task: %s") % model.get_value(iter, 0))
+                menu = Gtk.Menu()
+                cancelMenuItem = Gtk.MenuItem(_("Cancel the task: %s") % model.get_value(iter, 0))
                 cancelMenuItem.set_sensitive(task["cancellable"])
                 menu.append(cancelMenuItem)
                 menu.show_all()
@@ -361,6 +347,37 @@ class APTProgressHandler(threading.Thread):
         else:
             return _("No role set")
 
+class PackageTile(Gtk.Button):
+
+    def __init__(self, package, icon, summary):
+        self.package = package
+        super(Gtk.Button, self).__init__()
+
+        label_name = Gtk.Label(xalign=0)
+        label_name.set_markup("<b>%s</b>" % package.name)
+        label_name.set_justify(Gtk.Justification.LEFT)
+        label_summary = Gtk.Label(xalign=0)
+        label_summary.set_markup("<small>%s</small>" % summary)
+        label_summary.set_alignment
+        label_summary.set_justify(Gtk.Justification.LEFT)
+
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+
+        name_box = Gtk.Box()
+        name_box.pack_start(label_name, False, False, 3)
+        if package.pkg.is_installed:
+            installed_mark = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/linuxmint/mintinstall/data/emblem-installed.png", 15, 15)
+            installed_mark = Gtk.Image.new_from_pixbuf(installed_mark)
+            name_box.pack_start(installed_mark, False, False, 3)
+
+        vbox.pack_start(name_box, True, True, 3)
+        vbox.pack_start(label_summary, True, True, 3)
+
+        hbox = Gtk.Box()
+        hbox.pack_start(icon, False, False, 3)
+        hbox.pack_start(vbox, True, True, 3)
+
+        self.add(hbox)
 
 class Category:
 
@@ -432,38 +449,25 @@ class Review(object):
         self.comment = comment
         self.package = None
 
+class CategoryListBoxRow(Gtk.ListBoxRow):
+    def __init__(self, category):
+        super(Gtk.ListBoxRow, self).__init__()
+        self.category = category
+        label = Gtk.Label(category.name, xalign=0, margin=10)
+        self.add(label)
 
 class Application():
 
-    PAGE_CATEGORIES = 0
-    PAGE_MIXED = 1
-    PAGE_PACKAGES = 2
-    PAGE_DETAILS = 3
-    PAGE_SCREENSHOT = 4
-    PAGE_WEBSITE = 5
-    PAGE_SEARCH = 6
-    PAGE_TRANSACTIONS = 7
-    PAGE_REVIEWS = 8
+    PAGE_LANDING = 0
+    PAGE_LIST = 1
+    PAGE_PACKAGE = 2
+    PAGE_TRANSACTIONS = 3
 
-    NAVIGATION_HOME = 1
-    NAVIGATION_SEARCH = 2
-    NAVIGATION_CATEGORY = 3
-    NAVIGATION_SEARCH_CATEGORY = 4
-    NAVIGATION_SUB_CATEGORY = 5
-    NAVIGATION_SEARCH_SUB_CATEGORY = 6
-    NAVIGATION_ITEM = 7
-    NAVIGATION_SCREENSHOT = 8
-    NAVIGATION_WEBSITE = 8
-    NAVIGATION_REVIEWS = 8
-
-    if os.path.exists("/usr/share/fonts/truetype/wqy/wqy-microhei.ttc"):
-        FONT = "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc"
-    else:
-        FONT = "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
+    FONT = "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
 
     @print_timing
     def __init__(self):
-        self.packageLabel = gtk.Label()
+        self.packageLabel = Gtk.Label()
 
         self.add_categories()
         self.build_matched_packages()
@@ -472,16 +476,17 @@ class Application():
         self.screenshots = []
 
         # Build the GUI
-        gladefile = "/usr/share/linuxmint/mintinstall/mintinstall.glade"
-        wTree = gtk.glade.XML(gladefile, "main_window")
-        wTree.get_widget("main_window").set_title(_("Software Manager"))
-        wTree.get_widget("main_window").set_icon_name("mintinstall")
-        wTree.get_widget("main_window").connect("delete_event", self.close_application)
+        glade_file = "/usr/share/linuxmint/mintinstall/mintinstall.glade"
 
-        self.main_window = wTree.get_widget("main_window")
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file(glade_file)
+        self.main_window = self.builder.get_object("main_window")
+        self.main_window.set_title(_("Software Manager"))
+        self.main_window.set_icon_name("mintinstall")
+        self.main_window.connect("delete_event", self.close_application)
 
         self.apt_client = AptClient()
-        self.apt_progress_handler = APTProgressHandler(self, self.packages, wTree, self.apt_client)
+        self.apt_progress_handler = APTProgressHandler(self, self.packages, self.apt_client, self.builder)
 
         self.add_reviews()
         downloadReviews = DownloadReviews(self)
@@ -495,35 +500,35 @@ class Application():
         self.prefs = self.read_configuration()
 
         # Build the menu
-        fileMenu = gtk.MenuItem(_("_File"))
-        fileSubmenu = gtk.Menu()
+        fileMenu = Gtk.MenuItem(_("_File"))
+        fileSubmenu = Gtk.Menu()
         fileMenu.set_submenu(fileSubmenu)
-        closeMenuItem = gtk.ImageMenuItem(gtk.STOCK_CLOSE)
+        closeMenuItem = Gtk.ImageMenuItem(Gtk.STOCK_CLOSE)
         closeMenuItem.get_child().set_text(_("Close"))
         closeMenuItem.connect("activate", self.close_application)
         fileSubmenu.append(closeMenuItem)
 
-        editMenu = gtk.MenuItem(_("_Edit"))
-        editSubmenu = gtk.Menu()
+        editMenu = Gtk.MenuItem(_("_Edit"))
+        editSubmenu = Gtk.Menu()
         editMenu.set_submenu(editSubmenu)
-        prefsMenuItem = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
+        prefsMenuItem = Gtk.ImageMenuItem(Gtk.STOCK_PREFERENCES)
         prefsMenuItem.get_child().set_text(_("Preferences"))
-        prefsMenu = gtk.Menu()
+        prefsMenu = Gtk.Menu()
         prefsMenuItem.set_submenu(prefsMenu)
 
-        searchInSummaryMenuItem = gtk.CheckMenuItem(_("Search in packages summary (slower search)"))
+        searchInSummaryMenuItem = Gtk.CheckMenuItem(_("Search in packages summary (slower search)"))
         searchInSummaryMenuItem.set_active(self.prefs["search_in_summary"])
         searchInSummaryMenuItem.connect("toggled", self.set_search_filter, "search_in_summary")
 
-        searchInDescriptionMenuItem = gtk.CheckMenuItem(_("Search in packages description (even slower search)"))
+        searchInDescriptionMenuItem = Gtk.CheckMenuItem(_("Search in packages description (even slower search)"))
         searchInDescriptionMenuItem.set_active(self.prefs["search_in_description"])
         searchInDescriptionMenuItem.connect("toggled", self.set_search_filter, "search_in_description")
 
-        openLinkExternalMenuItem = gtk.CheckMenuItem(_("Open links using the web browser"))
+        openLinkExternalMenuItem = Gtk.CheckMenuItem(_("Open links using the web browser"))
         openLinkExternalMenuItem.set_active(self.prefs["external_browser"])
         openLinkExternalMenuItem.connect("toggled", self.set_external_browser)
 
-        searchWhileTypingMenuItem = gtk.CheckMenuItem(_("Search while typing"))
+        searchWhileTypingMenuItem = Gtk.CheckMenuItem(_("Search while typing"))
         searchWhileTypingMenuItem.set_active(self.prefs["search_while_typing"])
         searchWhileTypingMenuItem.connect("toggled", self.set_search_filter, "search_while_typing")
 
@@ -535,122 +540,126 @@ class Application():
         #prefsMenuItem.connect("activate", open_preferences, treeview_update, statusIcon, wTree)
         editSubmenu.append(prefsMenuItem)
 
-        accountMenuItem = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
+        accountMenuItem = Gtk.ImageMenuItem(Gtk.STOCK_PREFERENCES)
         accountMenuItem.get_child().set_text(_("Account information"))
         accountMenuItem.connect("activate", self.open_account_info)
         editSubmenu.append(accountMenuItem)
 
         if os.path.exists("/usr/bin/software-sources") or os.path.exists("/usr/bin/software-properties-gtk") or os.path.exists("/usr/bin/software-properties-kde"):
-            sourcesMenuItem = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
-            sourcesMenuItem.set_image(gtk.image_new_from_icon_name("software-properties", gtk.ICON_SIZE_MENU))
+            sourcesMenuItem = Gtk.ImageMenuItem(Gtk.STOCK_PREFERENCES)
+            sourcesMenuItem.set_image(Gtk.Image.new_from_icon_name("software-properties", Gtk.IconSize.MENU))
             sourcesMenuItem.get_child().set_text(_("Software sources"))
             sourcesMenuItem.connect("activate", self.open_repositories)
             editSubmenu.append(sourcesMenuItem)
 
-        viewMenu = gtk.MenuItem(_("_View"))
-        viewSubmenu = gtk.Menu()
+        viewMenu = Gtk.MenuItem(_("_View"))
+        viewSubmenu = Gtk.Menu()
         viewMenu.set_submenu(viewSubmenu)
 
-        availablePackagesMenuItem = gtk.CheckMenuItem(_("Available packages"))
+        availablePackagesMenuItem = Gtk.CheckMenuItem(_("Available packages"))
         availablePackagesMenuItem.set_active(self.prefs["available_packages_visible"])
         availablePackagesMenuItem.connect("toggled", self.set_filter, "available_packages_visible")
 
-        installedPackagesMenuItem = gtk.CheckMenuItem(_("Installed packages"))
+        installedPackagesMenuItem = Gtk.CheckMenuItem(_("Installed packages"))
         installedPackagesMenuItem.set_active(self.prefs["installed_packages_visible"])
         installedPackagesMenuItem.connect("toggled", self.set_filter, "installed_packages_visible")
 
         viewSubmenu.append(availablePackagesMenuItem)
         viewSubmenu.append(installedPackagesMenuItem)
 
-        helpMenu = gtk.MenuItem(_("_Help"))
-        helpSubmenu = gtk.Menu()
+        helpMenu = Gtk.MenuItem(_("_Help"))
+        helpSubmenu = Gtk.Menu()
         helpMenu.set_submenu(helpSubmenu)
-        aboutMenuItem = gtk.ImageMenuItem(gtk.STOCK_ABOUT)
+        aboutMenuItem = Gtk.ImageMenuItem(Gtk.STOCK_ABOUT)
         aboutMenuItem.get_child().set_text(_("About"))
         aboutMenuItem.connect("activate", self.open_about)
         helpSubmenu.append(aboutMenuItem)
 
+        #prevents multiple load finished handlers being hooked up to packageBrowser in show_package
+        self.loadHandlerID = -1
+        self.acthread = threading.Thread(target=self.cache_apt)
+        self.acthread.start()
+
         #browser.connect("activate", browser_callback)
         #browser.show()
-        wTree.get_widget("menubar1").append(fileMenu)
-        wTree.get_widget("menubar1").append(editMenu)
-        wTree.get_widget("menubar1").append(viewMenu)
-        wTree.get_widget("menubar1").append(helpMenu)
+        self.builder.get_object("menubar1").append(fileMenu)
+        self.builder.get_object("menubar1").append(editMenu)
+        self.builder.get_object("menubar1").append(viewMenu)
+        self.builder.get_object("menubar1").append(helpMenu)
 
         # Build the applications tables
-        self.tree_applications = wTree.get_widget("tree_applications")
-        self.tree_mixed_applications = wTree.get_widget("tree_mixed_applications")
-        self.tree_search = wTree.get_widget("tree_search")
-        self.tree_transactions = wTree.get_widget("tree_transactions")
+        self.tree_transactions = self.builder.get_object("tree_transactions")
 
-        self.build_application_tree(self.tree_applications)
-        self.build_application_tree(self.tree_mixed_applications)
-        self.build_application_tree(self.tree_search)
+        self.flowbox_applications = Gtk.FlowBox()
+        self.flowbox_applications.set_min_children_per_line(1)
+        self.flowbox_applications.set_max_children_per_line(3)
+        self.flowbox_applications.set_row_spacing(6)
+        self.flowbox_applications.set_column_spacing(6)
+        self.flowbox_applications.set_homogeneous(True)
+
+        box = self.builder.get_object("scrolledwindow_applications")
+        box.add(self.flowbox_applications)
+
         self.build_transactions_tree(self.tree_transactions)
 
-        self.navigation_bar = NavigationBar()
-        self.searchentry = gtk.Entry()
+        self.back_button = self.builder.get_object("back_button")
+        self.back_button.connect("clicked", self.on_back_button_clicked)
+        self.previous_page = self.PAGE_LANDING
+        self.back_button.set_sensitive(False)
+
+        self.searchentry = self.builder.get_object("search_entry")
         self.searchentry.connect("changed", self.on_search_terms_changed)
         self.searchentry.connect("activate", self.on_search_entry_activated)
-        top_hbox = gtk.HBox()
-        top_hbox.pack_start(self.navigation_bar, padding=6)
-        top_hbox.pack_start(self.searchentry, expand=False, padding=6)
-        wTree.get_widget("toolbar").pack_start(top_hbox, expand=False, padding=6)
-
-        self.search_in_category_hbox = wTree.get_widget("search_in_category_hbox")
-        self.message_search_in_category_label = wTree.get_widget("message_search_in_category_label")
-        wTree.get_widget("show_all_results_button").connect("clicked", lambda w: self._show_all_search_results())
-        wTree.get_widget("search_in_category_hbox_wrapper").modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#F5F5B5"))
 
         self._search_in_category = self.root_category
         self._current_search_terms = ""
 
-        self.notebook = wTree.get_widget("notebook1")
+        self.notebook = self.builder.get_object("notebook1")
 
         sans26 = ImageFont.truetype(self.FONT, 26)
         sans10 = ImageFont.truetype(self.FONT, 12)
 
         # BUILD THE CATEGORIES IN GTK
-        box = gtk.VBox()
-        wTree.get_widget("scrolled_categories").add(box)
+        self.load_categories_on_landing()
 
-        for cat in self.root_category.subcategories:
-            button = gtk.Button()
-            button.set_label(cat.name)
-            button.connect("clicked", self.category_button_clicked, cat)
-            box.pack_start(button, False, False, 3)
+        self.builder.get_object("scrolled_details").add(self.packageLabel)
 
-        #wTree.get_widget("scrolled_mixed_categories").add()
+        self.builder.get_object("label_ongoing").set_text(_("No ongoing actions"))
+        self.builder.get_object("label_transactions_header").set_text(_("Active tasks:"))
+        self.builder.get_object("progressbar1").hide()
 
-        wTree.get_widget("scrolled_details").add(self.packageLabel)
-
-        wTree.get_widget("label_ongoing").set_text(_("No ongoing actions"))
-        wTree.get_widget("label_transactions_header").set_text(_("Active tasks:"))
-        wTree.get_widget("progressbar1").hide_all()
-
-        wTree.get_widget("show_all_results_button").set_label(_("Show all results"))
-
-        wTree.get_widget("button_transactions").connect("clicked", self.show_transactions)
-
-        wTree.get_widget("tree_applications_scrolledview").get_vadjustment().connect("value-changed", self._on_tree_applications_scrolled, self.tree_applications)
-        wTree.get_widget("tree_mixed_applications_scrolledview").get_vadjustment().connect("value-changed", self._on_tree_applications_scrolled, self.tree_mixed_applications)
+        self.builder.get_object("button_transactions").connect("clicked", self.show_transactions)
 
         self._load_more_timer = None
 
         self.searchentry.grab_focus()
 
-        wTree.get_widget("scrolled_search").get_vadjustment().connect("value-changed", self._on_search_applications_scrolled)
+        # self.builder.get_object("scrolled_search").get_vadjustment().connect("value-changed", self._on_search_applications_scrolled)
         self._load_more_search_timer = None
         self.initial_search_display = 200 #number of packages shown on first search
         self.scroll_search_display = 300 #number of packages added after scrolling
 
-        wTree.get_widget("main_window").show_all()
+        self.builder.get_object("main_window").show_all()
 
         self.generic_installed_icon_path = "/usr/share/linuxmint/mintinstall/data/installed.png"
         self.generic_available_icon_path = "/usr/share/linuxmint/mintinstall/data/available.png"
 
-        self.generic_installed_icon_pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(self.generic_installed_icon_path, 32, 32)
-        self.generic_available_icon_pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(self.generic_available_icon_path, 32, 32)
+        self.generic_installed_icon_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(self.generic_installed_icon_path, ICON_SIZE, ICON_SIZE)
+        self.generic_available_icon_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(self.generic_available_icon_path, ICON_SIZE, ICON_SIZE)
+
+        self.listbox_categories = Gtk.ListBox()
+        self.builder.get_object("box_subcategories").pack_start(self.listbox_categories, False, False, 0)
+        self.listbox_categories.connect('row-activated', self.on_row_activated)
+
+    def load_categories_on_landing(self):
+        box = self.builder.get_object("box_categories")
+        flowbox = Gtk.FlowBox()
+        for cat in self.root_category.subcategories:
+            button = Gtk.Button()
+            button.set_label(cat.name)
+            button.connect("clicked", self.category_button_clicked, cat)
+            flowbox.insert(button, -1)
+        box.pack_start(flowbox, True, True, 0)
 
     def category_button_clicked(self, button, category):
         self.show_category(category)
@@ -752,22 +761,21 @@ class Application():
         self.close_application(None, None, 9) # Status code 9 means we want to restart ourselves
 
     def open_account_info(self, widget):
-        gladefile = "/usr/share/linuxmint/mintinstall/mintinstall.glade"
-        wTree = gtk.glade.XML(gladefile, "window_account")
-        wTree.get_widget("window_account").set_title(_("Account information"))
-        wTree.get_widget("window_account").set_icon_name("mintinstall")
-        wTree.get_widget("label1").set_label("<b>%s</b>" % _("Your community account"))
-        wTree.get_widget("label1").set_use_markup(True)
-        wTree.get_widget("label2").set_label("<i><small>%s</small></i>" % _("Fill in your account info to review applications"))
-        wTree.get_widget("label2").set_use_markup(True)
-        wTree.get_widget("label3").set_label(_("Username:"))
-        wTree.get_widget("label4").set_label(_("Password:"))
-        wTree.get_widget("entry_username").set_text(self.prefs["username"])
-        wTree.get_widget("entry_password").set_text(base64.b64decode(self.prefs["password"]))
-        wTree.get_widget("close_button").connect("clicked", self.close_window, wTree.get_widget("window_account"))
-        wTree.get_widget("entry_username").connect("notify::text", self.update_account_info, "username")
-        wTree.get_widget("entry_password").connect("notify::text", self.update_account_info, "password")
-        wTree.get_widget("window_account").show_all()
+        window = self.builder.get_object("window_account")
+        window.set_title(_("Account information"))
+        window.set_icon_name("mintinstall")
+        self.builder.get_object("label111").set_label("<b>%s</b>" % _("Your community account"))
+        self.builder.get_object("label111").set_use_markup(True)
+        self.builder.get_object("label222").set_label("<i><small>%s</small></i>" % _("Fill in your account info to review applications"))
+        self.builder.get_object("label222").set_use_markup(True)
+        self.builder.get_object("label333").set_label(_("Username:"))
+        self.builder.get_object("label444").set_label(_("Password:"))
+        self.builder.get_object("entry_username").set_text(self.prefs["username"])
+        self.builder.get_object("entry_password").set_text(base64.b64decode(self.prefs["password"]))
+        self.builder.get_object("close_button").connect("clicked", self.close_window, self.builder.get_object("window_account"))
+        self.builder.get_object("entry_username").connect("notify::text", self.update_account_info, "username")
+        self.builder.get_object("entry_password").connect("notify::text", self.update_account_info, "password")
+        window.show_all()
 
     def close_window(self, widget, window):
         window.hide()
@@ -787,7 +795,7 @@ class Application():
         self.prefs = self.read_configuration()
 
     def open_about(self, widget):
-        dlg = gtk.AboutDialog()
+        dlg = Gtk.AboutDialog()
         dlg.set_title(_("About"))
         dlg.set_program_name("mintinstall")
         dlg.set_comments(_("Software Manager"))
@@ -807,12 +815,11 @@ class Application():
         except Exception, detail:
             print detail
 
-        dlg.set_authors(["Clement Lefebvre <root@linuxmint.com>"])
         dlg.set_icon_name("mintinstall")
-        dlg.set_logo(gtk.gdk.pixbuf_new_from_file("/usr/share/pixmaps/mintinstall.svg"))
+        dlg.set_logo(GdkPixbuf.Pixbuf.new_from_file("/usr/share/pixmaps/mintinstall.svg"))
 
         def close(w, res):
-            if res == gtk.RESPONSE_CANCEL:
+            if res == Gtk.ResponseType.CANCEL:
                 w.hide()
         dlg.connect("response", close)
         dlg.show()
@@ -867,24 +874,20 @@ class Application():
             pass
 
     def build_application_tree(self, treeview):
-        column0 = gtk.TreeViewColumn(_("Icon"), gtk.CellRendererPixbuf(), pixbuf=0)
+        column0 = Gtk.TreeViewColumn(_("Icon"), Gtk.CellRendererPixbuf(), pixbuf=0)
         column0.set_sort_column_id(0)
         column0.set_resizable(True)
 
-        column1 = gtk.TreeViewColumn(_("Application"), gtk.CellRendererText(), markup=1)
+        column1 = Gtk.TreeViewColumn(_("Application"), Gtk.CellRendererText(), markup=1)
         column1.set_sort_column_id(1)
         column1.set_resizable(True)
-        column1.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+        column1.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
         column1.set_min_width(350)
         column1.set_max_width(350)
 
-        column2 = gtk.TreeViewColumn(_("Score"), gtk.CellRendererPixbuf(), pixbuf=2)
+        column2 = Gtk.TreeViewColumn(_("Score"), Gtk.CellRendererPixbuf(), pixbuf=2)
         column2.set_sort_column_id(2)
         column2.set_resizable(True)
-
-        #prevents multiple load finished handlers being hooked up to packageBrowser in show_package
-        self.loadHandlerID = -1
-        self.acthread = threading.Thread(target=self.cache_apt)
 
         treeview.append_column(column0)
         treeview.append_column(column1)
@@ -895,18 +898,18 @@ class Application():
         #treeview.connect("row_activated", self.show_more_info)
 
         selection = treeview.get_selection()
-        selection.set_mode(gtk.SELECTION_BROWSE)
+        selection.set_mode(Gtk.SelectionMode.BROWSE)
 
         #selection.connect("changed", self.show_selected)
 
     def build_transactions_tree(self, treeview):
-        column0 = gtk.TreeViewColumn(_("Task"), gtk.CellRendererText(), text=0)
+        column0 = Gtk.TreeViewColumn(_("Task"), Gtk.CellRendererText(), text=0)
         column0.set_resizable(True)
 
-        column1 = gtk.TreeViewColumn(_("Status"), gtk.CellRendererText(), text=1)
+        column1 = Gtk.TreeViewColumn(_("Status"), Gtk.CellRendererText(), text=1)
         column1.set_resizable(True)
 
-        column2 = gtk.TreeViewColumn(_("Progress"), gtk.CellRendererProgress(), text=2, value=3)
+        column2 = Gtk.TreeViewColumn(_("Progress"), Gtk.CellRendererProgress(), text=2, value=3)
         column2.set_resizable(True)
 
         treeview.append_column(column0)
@@ -916,13 +919,13 @@ class Application():
         treeview.show()
 
     def show_selected(self, tree, path, column):
-        #self.main_window.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+        #self.main_window.window.set_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
         #self.main_window.set_sensitive(False)
         model = tree.get_model()
         iter = model.get_iter(path)
 
         #poll for end of apt caching when idle
-        glib.idle_add(self.show_package_if_apt_cached, model.get_value(iter, 3), tree)
+        GLib.idle_add(self.show_package_if_apt_cached, model.get_value(iter, 3), tree)
         #cache apt in a separate thread as blocks gui update
         self.acthread.start()
 
@@ -930,7 +933,7 @@ class Application():
         if (self.acthread.isAlive()):
             self.acthread.join()
 
-        self.show_package(pkg, tree)
+        self.show_package(pkg)
         self.acthread = threading.Thread(target=self.cache_apt) #rebuild here for speed
         return False #false will remove this from gtk's list of idle functions
         #return True
@@ -943,31 +946,6 @@ class Application():
         iter = model.get_iter(path)
         self.selected_package = model.get_value(iter, 3)
 
-    def navigate(self, button, destination):
-
-        if (destination == "search"):
-            self.notebook.set_current_page(self.PAGE_SEARCH)
-        else:
-            self._search_in_category = self.root_category
-            if isinstance(destination, Category):
-                self._search_in_category = destination
-                if len(destination.subcategories) > 0:
-                    if len(destination.packages) > 0:
-                        self.notebook.set_current_page(self.PAGE_MIXED)
-                    else:
-                        self.notebook.set_current_page(self.PAGE_CATEGORIES)
-                        self.searchentry.set_text("")
-                else:
-                    self.notebook.set_current_page(self.PAGE_PACKAGES)
-            elif isinstance(destination, Package):
-                self.notebook.set_current_page(self.PAGE_DETAILS)
-            elif (destination == "screenshot"):
-                self.notebook.set_current_page(self.PAGE_SCREENSHOT)
-            elif (destination == "reviews"):
-                self.notebook.set_current_page(self.PAGE_REVIEWS)
-            else:
-                self.notebook.set_current_page(self.PAGE_WEBSITE)
-
     def close_application(self, window, event=None, exit_code=0):
         self.apt_client.call_on_completion(lambda c: self.do_close_application(c), exit_code)
         window.hide()
@@ -978,17 +956,8 @@ class Application():
             pid = os.getpid()
             os.system("kill -9 %s &" % pid)
         else:
-            gtk.main_quit()
+            Gtk.main_quit()
             sys.exit(exit_code)
-
-    def _on_load_finished(self, view, frame):
-        # Get the categories
-        self.show_category(self.root_category)
-
-    def on_category_clicked(self, name):
-        for category in self.categories:
-            if category.name == name:
-                self.show_category(category)
 
     def on_button_clicked(self):
         package = self.current_package
@@ -1004,44 +973,12 @@ class Application():
         if package is not None:
             print("SHOW %s" % url)
 
-    def _on_title_changed(self, view, frame, title):
-        # no op - needed to reset the title after a action so that
-        #        the action can be triggered again
-        if title.startswith("nop"):
-            return
-        # call directive looks like:
-        #  "call:func:arg1,arg2"
-        #  "call:func"
-        if title.startswith("call:"):
-            args_str = ""
-            args_list = []
-            # try long form (with arguments) first
-            try:
-                elements = title.split(":")
-                t = elements[0]
-                funcname = elements[1]
-                if len(elements) > 2:
-                    args_str = ':'.join(elements[2:])
-                    if args_str:
-                        args_list = args_str.split(",")
-
-                # see if we have it and if it can be called
-                f = getattr(self, funcname)
-                if f and callable(f):
-                    f(*args_list)
-                # now we need to reset the title
-                #self.browser.execute_script('window.setTimeout(function(){document.title = "nop"},0);') #setTimeout workaround: otherwise title parameter doesn't upgrade in callback causing show_category to be called twice
-            except Exception, detail:
-                print detail
-                pass
-            return
-
     @print_timing
     def add_categories(self):
         self.categories = []
         self.root_category = Category(_("Categories"), "applications-other", None, None, self.categories)
 
-        featured = Category(_("Featured"), "applications-featured", None, self.root_category, self.categories)
+        #featured = Category(_("Featured"), "applications-featured", None, self.root_category, self.categories)
         edition = ""
         try:
             with open("/etc/linuxmint/info") as f:
@@ -1049,12 +986,10 @@ class Application():
                 edition = config['EDITION']
         except:
             pass
-        if "KDE" in edition:
-            featured.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/featured-kde.list")
-        else:
-            featured.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/featured.list")
-
-        self.category_all = Category(_("All Packages"), "applications-other", None, self.root_category, self.categories)
+        # if "KDE" in edition:
+        #     featured.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/featured-kde.list")
+        # else:
+        #     featured.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/featured.list")
 
         internet = Category(_("Internet"), "applications-internet", None, self.root_category, self.categories)
         subcat = Category(_("Web"), "web-browser", ("web", "net"), internet, self.categories)
@@ -1142,7 +1077,6 @@ class Application():
             package = Package(pkg.name, pkg)
             self.packages.append(package)
             self.packages_dict[pkg.name] = package
-            self.category_all.packages.append(package)
 
             # If the package is not a "matching package", find categories with matching sections
             if (pkg.name not in self.matchedPackages):
@@ -1233,16 +1167,11 @@ class Application():
                                 review.package = package
                                 package.update_stats()
 
-    def _on_tree_applications_scrolled(self, adjustment, tree_applications):
-        if self._load_more_timer:
-            gobject.source_remove(self._load_more_timer)
-        self._load_more_timer = gobject.timeout_add(500, self._load_more_packages, tree_applications)
-
     def show_dialog_modal(self, title, text, type, buttons):
-        gobject.idle_add(self._show_dialog_modal_callback, title, text, type, buttons) #as this might not be called from the main thread
+        GObject.idle_add(self._show_dialog_modal_callback, title, text, type, buttons) #as this might not be called from the main thread
 
     def _show_dialog_modal_callback(self, title, text, type, buttons):
-        dialog = gtk.MessageDialog(self.main_window, flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, type=type, buttons=buttons, message_format=title)
+        dialog = Gtk.MessageDialog(self.main_window, flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT, type=type, buttons=buttons, message_format=title)
         dialog.format_secondary_markup(text)
         dialog.connect('response', self._show_dialog_modal_clicked, dialog)
         dialog.show()
@@ -1250,90 +1179,43 @@ class Application():
     def _show_dialog_modal_clicked(self, dialog, *args):
         dialog.destroy()
 
-    def _load_more_packages(self, tree_applications):
-        self._load_more_timer = None
-
-        adjustment = tree_applications.get_vadjustment()
-        if adjustment.get_value() + adjustment.get_page_size() > 0.90 * adjustment.get_upper():
-            if len(self._listed_packages) > self._nb_displayed_packages:
-                packages_to_show = self._listed_packages[self._nb_displayed_packages:self._nb_displayed_packages + 500]
-                self.display_packages_list(packages_to_show, False)
-                self._nb_displayed_packages = min(len(self._listed_packages), self._nb_displayed_packages + 500)
-        return False
-
     def get_simple_name(self, package_name):
         package_name = package_name.split(":")[0]
         if package_name in ALIASES and ALIASES[package_name] not in self.packages_dict:
             package_name = ALIASES[package_name]
         return package_name.capitalize()
 
-    def display_packages_list(self, packages_list, searchTree):
-        sans26 = ImageFont.truetype(self.FONT, 26)
-        sans10 = ImageFont.truetype(self.FONT, 12)
-
-        model_applications = None
-
-        if searchTree:
-            model_applications = self._model_applications_search
-        else:
-            model_applications = self._model_applications
-
-        for package in packages_list:
-
-            if (not searchTree and package.name in COMMERCIAL_APPS):
-                continue
-
-            if ":" in package.name and package.name.split(":")[0] in self.packages_dict:
-                # don't list arch packages when the root is represented in the cache
-                continue
-
-            if ":" in package.name and package.name.split(":")[0] in self.packages_dict:
-                # don't list arch packages when the root is represented in the cache
-                continue
-
-            package_name = self.get_simple_name(package.name)
-
-            iter = model_applications.insert_before(None, None)
-
-            model_applications.set_value(iter, 0, self.get_package_pixbuf_icon(package))
-
-            summary = ""
-            if package.summary is not None:
-                summary = package.summary
-                summary = unicode(summary, 'UTF-8', 'replace')
-                summary = summary.replace("<", "&lt;")
-                summary = summary.replace("&", "&amp;")
-
-            model_applications.set_value(iter, 1, "%s\n<small><span foreground='#555555'>%s</span></small>" % (package_name, summary.capitalize()))
-
-            if package.num_reviews > 0:
-                image = "/usr/share/linuxmint/mintinstall/data/" + str(package.avg_rating) + ".png"
-                im = Image.open(image)
-                draw = ImageDraw.Draw(im)
-
-                color = "#000000"
-                if package.score < 0:
-                    color = "#AA5555"
-                elif package.score > 0:
-                    color = "#55AA55"
-                draw.text((87, 9), str(package.score), font=sans26, fill="#AAAAAA")
-                draw.text((86, 8), str(package.score), font=sans26, fill="#555555")
-                draw.text((85, 7), str(package.score), font=sans26, fill=color)
-                draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
-
-                model_applications.set_value(iter, 2, convertImageToGtkPixbuf(im))
-
-            model_applications.set_value(iter, 3, package)
+    def on_back_button_clicked(self, button):
+        self.notebook.set_current_page(self.previous_page)
+        if self.previous_page == self.PAGE_LANDING:
+            self.back_button.set_sensitive(False)
+        if self.previous_page == self.PAGE_LIST:
+            self.previous_page = self.PAGE_LANDING
 
     @print_timing
     def show_category(self, category):
+
+        self.notebook.set_current_page(self.PAGE_LIST)
+        self.previous_page = self.PAGE_LANDING
+        self.back_button.set_sensitive(True)
+
         self.searchentry.set_text("")
         self._search_in_category = category
+
+        if category.parent == self.root_category:
+            self.clear_category_list()
+            self.show_subcategories(category)
+
+        self.show_packages(category.packages)
+
+    def clear_category_list(self):
+        for child in self.listbox_categories.get_children():
+            self.listbox_categories.remove(child)
+
+    def show_subcategories(self, category):
         # Load subcategories
         if len(category.subcategories) > 0:
-            # Show mixed page
-            #self.browser2.execute_script('clearCategories()')
-            theme = gtk.icon_theme_get_default()
+            theme = Gtk.IconTheme.get_default()
             for cat in category.subcategories:
                 icon = None
                 if theme.has_icon(cat.icon):
@@ -1348,34 +1230,12 @@ class Application():
                         if iconInfo and os.path.exists(iconInfo.get_filename()):
                             icon = iconInfo.get_filename()
                 #self.browser2.execute_script('addCategory("%s", "%s", "%s")' % (cat.name, _("%d packages") % len(cat.packages), icon))
+                row = CategoryListBoxRow(cat)
+                self.listbox_categories.add(row)
+                self.listbox_categories.show_all()
 
-        # Load packages into self.tree_applications
-        if (len(category.subcategories) == 0):
-            # Show packages
-            tree_applications = self.tree_applications
-        else:
-            tree_applications = self.tree_mixed_applications
-
-        self._model_applications = gtk.TreeStore(gtk.gdk.Pixbuf, str, gtk.gdk.Pixbuf, object)
-
-        self.model_filter = self._model_applications.filter_new()
-        self.model_filter.set_visible_func(self.visible_func)
-
-        self._listed_packages = category.packages
-        self._listed_packages.sort(self.package_compare)
-        self._nb_displayed_packages = min(len(self._listed_packages), 200)
-        self.display_packages_list(self._listed_packages[0:200], False)
-
-        tree_applications.set_model(self.model_filter)
-        first = self._model_applications.get_iter_first()
-
-        # Update the navigation bar
-        if category == self.root_category:
-            self.navigation_bar.add_with_id(category.name, self.navigate, self.NAVIGATION_HOME, category)
-        elif category.parent == self.root_category:
-            self.navigation_bar.add_with_id(category.name, self.navigate, self.NAVIGATION_CATEGORY, category)
-        else:
-            self.navigation_bar.add_with_id(category.name, self.navigate, self.NAVIGATION_SUB_CATEGORY, category)
+    def on_row_activated(self, listbox, row):
+        self.show_category(row.category)
 
     def get_package_pixbuf_icon(self, package):
         icon_path = None
@@ -1395,12 +1255,9 @@ class Application():
             return self.generic_available_icon_pixbuf
 
         try:
-            return gtk.gdk.pixbuf_new_from_file_at_size(icon_path, 32, 32)
+            return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, ICON_SIZE, ICON_SIZE)
         except:
-            if package.pkg.is_installed:
-               return self.generic_installed_icon_pixbuf
-            else:
-                return self.generic_available_icon_pixbuf
+            return self.generic_available_icon_pixbuf
 
     def find_fallback_icon(self, package):
         if package.pkg.is_installed:
@@ -1412,41 +1269,31 @@ class Application():
     def find_app_icon_alternative(self, package):
         package_name = package.name.split(":")[0] # If this is an arch package, like "foo:i386", only consider "foo"
         icon_path = None
-        if package.pkg.is_installed:
-            icon_path = "/usr/share/linuxmint/mintinstall/installed/%s" % package_name
+        # Try the Icon theme first
+        theme = Gtk.IconTheme.get_default()
+        if theme.has_icon(package_name):
+            iconInfo = theme.lookup_icon(package_name, ICON_SIZE, 0)
+            if iconInfo and os.path.exists(iconInfo.get_filename()):
+                icon_path = iconInfo.get_filename()
+        else:
+            # Try mintinstall-icons then
+            icon_path = "/usr/share/linuxmint/mintinstall/icons/%s" % package_name
             if os.path.exists(icon_path + ".png"):
                 icon_path = icon_path + ".png"
             elif os.path.exists(icon_path + ".xpm"):
                 icon_path = icon_path + ".xpm"
             else:
                 # Else, default to generic icons
-                icon_path = self.generic_installed_icon_path
-        else:
-            # Try the Icon theme first
-            theme = gtk.icon_theme_get_default()
-            if theme.has_icon(package_name):
-                iconInfo = theme.lookup_icon(package_name, 32, 0)
-                if iconInfo and os.path.exists(iconInfo.get_filename()):
-                    icon_path = iconInfo.get_filename()
-            else:
-                # Try mintinstall-icons then
-                icon_path = "/usr/share/linuxmint/mintinstall/icons/%s" % package_name
-                if os.path.exists(icon_path + ".png"):
-                    icon_path = icon_path + ".png"
-                elif os.path.exists(icon_path + ".xpm"):
-                    icon_path = icon_path + ".xpm"
-                else:
-                    # Else, default to generic icons
-                    icon_path = self.generic_available_icon_path
+                icon_path = self.generic_available_icon_path
         return icon_path
 
     def find_app_icon(self, package):
         package_name = package.name.split(":")[0] # If this is an arch package, like "foo:i386", only consider "foo"
         icon_path = None
         # Try the Icon theme first
-        theme = gtk.icon_theme_get_default()
+        theme = Gtk.IconTheme.get_default()
         if theme.has_icon(package_name):
-            iconInfo = theme.lookup_icon(package_name, 32, 0)
+            iconInfo = theme.lookup_icon(package_name, ICON_SIZE, 0)
             if iconInfo and os.path.exists(iconInfo.get_filename()):
                 icon_path = iconInfo.get_filename()
 
@@ -1454,35 +1301,13 @@ class Application():
         if icon_path is None and "-" in package_name:
             name = package_name.split("-")[0]
             if theme.has_icon(name):
-                iconInfo = theme.lookup_icon(name, 32, 0)
+                iconInfo = theme.lookup_icon(name, ICON_SIZE, 0)
                 if iconInfo and os.path.exists(iconInfo.get_filename()):
                     icon_path = iconInfo.get_filename()
 
-        if icon_path is not None:
-            if package.pkg.is_installed:
-                im = Image.open(icon_path)
-                bg_w, bg_h = im.size
-                # The code that pastes the green checkmark icon expects a 32x32
-                # icon. Most icons are 32x32, however in some rare instances
-                # the icon might be e.g. 64x64.
-                im = im.resize((32, 32))
-                im2 = Image.open("/usr/share/linuxmint/mintinstall/data/emblem-installed.png")
-                img_w, img_h = im2.size
-                offset = (17, 17)
-                # For the green checkmark pasting to work well, the original icon image
-                # must be in the same format as the green checkmark. Otherwise the checkmark
-                # might be loose some colour precision.
-                im = im.convert(im2.mode)
-                im.paste(im2, offset, im2)
-                tmpFile = tempfile.NamedTemporaryFile(delete=False)
-                im.save(tmpFile.name + ".png")
-                icon_path = tmpFile.name + ".png"
-        else:
+        if icon_path is None:
             # Try mintinstall-icons then
-            if package.pkg.is_installed:
-                icon_path = "/usr/share/linuxmint/mintinstall/installed/%s" % package_name
-            else:
-                icon_path = "/usr/share/linuxmint/mintinstall/icons/%s" % package_name
+            icon_path = "/usr/share/linuxmint/mintinstall/icons/%s" % package_name
 
             if os.path.exists(icon_path + ".png"):
                 icon_path = icon_path + ".png"
@@ -1490,16 +1315,13 @@ class Application():
                 icon_path = icon_path + ".xpm"
             else:
                 # Else, default to generic icons
-                if package.pkg.is_installed:
-                    icon_path = self.generic_installed_icon_path
-                else:
-                    icon_path = self.generic_available_icon_path
+                icon_path = self.generic_available_icon_path
 
         return icon_path
 
     def find_large_app_icon(self, package):
         package_name = package.name.split(":")[0] # If this is an arch package, like "foo:i386", only consider "foo"
-        theme = gtk.icon_theme_get_default()
+        theme = Gtk.IconTheme.get_default()
         if theme.has_icon(package_name):
             iconInfo = theme.lookup_icon(package_name, 64, 0)
             if iconInfo and os.path.exists(iconInfo.get_filename()):
@@ -1522,29 +1344,17 @@ class Application():
 
     def _on_search_applications_scrolled(self, adjustment):
         if self._load_more_search_timer:
-            gobject.source_remove(self._load_more_search_timer)
-        self._load_more_search_timer = gobject.timeout_add(500, self._load_more_search_packages)
-
-    def _load_more_search_packages(self):
-        self._load_more_search_timer = None
-        adjustment = self.tree_search.get_vadjustment()
-        if adjustment.get_value() + adjustment.get_page_size() > 0.90 * adjustment.get_upper():
-            if len(self._searched_packages) > self._nb_displayed_search_packages:
-                packages_to_show = self._searched_packages[self._nb_displayed_search_packages:self._nb_displayed_search_packages + self.scroll_search_display]
-                self.display_packages_list(packages_to_show, True)
-                self._nb_displayed_search_packages = min(len(self._searched_packages), self._nb_displayed_search_packages + self.scroll_search_display)
-        return False
+            GObject.source_remove(self._load_more_search_timer)
+        self._load_more_search_timer = GObject.timeout_add(500, self._load_more_search_packages)
 
     @print_timing
     def show_search_results(self, terms):
+        self.listbox_categories.hide()
+        self.back_button.set_sensitive(True)
+        self.previous_page = self.PAGE_LANDING
+        self.notebook.set_current_page(self.PAGE_LIST)
+
         self._current_search_terms = terms
-        # Load packages into self.tree_search
-        model_applications = gtk.TreeStore(gtk.gdk.Pixbuf, str, gtk.gdk.Pixbuf, object)
-
-        self._model_applications_search = model_applications
-
-        self.model_filter = model_applications.filter_new()
-        self.model_filter.set_visible_func(self.visible_func)
 
         sans26 = ImageFont.truetype(self.FONT, 26)
         sans10 = ImageFont.truetype(self.FONT, 12)
@@ -1572,29 +1382,10 @@ class Application():
             if visible:
                 self._searched_packages.append(package)
 
-        self._searched_packages.sort(self.package_compare)
+        self.clear_category_list()
+        self.show_packages(self._searched_packages)
 
-        self._nb_displayed_search_packages = min(len(self._searched_packages), self.initial_search_display)
-        self.display_packages_list(self._searched_packages[0:self.initial_search_display], True)
-
-        self.tree_search.set_model(self.model_filter)
-        del model_applications
-        if self._search_in_category != self.root_category:
-            self.search_in_category_hbox.show()
-            self.message_search_in_category_label.set_markup("<b>%s</b>" % (_("Only results in category \"%s\" are shown.") % self._search_in_category.name))
-        if self._search_in_category == self.root_category:
-            self.search_in_category_hbox.hide()
-            self.navigation_bar.add_with_id(self._search_in_category.name, self.navigate, self.NAVIGATION_HOME, self._search_in_category)
-            navigation_id = self.NAVIGATION_SEARCH
-        elif self._search_in_category.parent == self.root_category:
-            self.navigation_bar.add_with_id(self._search_in_category.name, self.navigate, self.NAVIGATION_CATEGORY, self._search_in_category)
-            navigation_id = self.NAVIGATION_SEARCH_CATEGORY
-        else:
-            self.navigation_bar.add_with_id(self._search_in_category.name, self.navigate, self.NAVIGATION_SUB_CATEGORY, self._search_in_category)
-            navigation_id = self.NAVIGATION_SEARCH_SUB_CATEGORY
-        self.navigation_bar.add_with_id(_("Search results"), self.navigate, navigation_id, "search")
-
-    def visible_func(self, model, iter):
+    def visible_func(self, model, iter, data):
         package = model.get_value(iter, 3)
         if package is not None:
             if package.pkg is not None:
@@ -1604,8 +1395,87 @@ class Application():
                     return True
         return False
 
+    def on_package_tile_clicked(self, tile):
+        self.show_package(tile.package)
+
+    def show_packages(self, packages):
+        for child in self.flowbox_applications.get_children():
+            self.flowbox_applications.remove(child)
+
+        # # Load packages into self.tree_applications
+        # model = Gtk.TreeStore(GdkPixbuf.Pixbuf, str, GdkPixbuf.Pixbuf, object)
+
+        # self.model_filter = model.filter_new()
+        # self.model_filter.set_visible_func(self.visible_func)
+
+        packages.sort(self.package_compare)
+        packages = packages[0:200]
+
+        # sans26 = ImageFont.truetype(self.FONT, 26)
+        # sans10 = ImageFont.truetype(self.FONT, 12)
+
+        for package in packages:
+            if (package.name in COMMERCIAL_APPS):
+                continue
+
+            if ":" in package.name and package.name.split(":")[0] in self.packages_dict:
+                # don't list arch packages when the root is represented in the cache
+                continue
+
+            if ":" in package.name and package.name.split(":")[0] in self.packages_dict:
+                # don't list arch packages when the root is represented in the cache
+                continue
+
+            package_name = self.get_simple_name(package.name)
+
+            icon = self.get_package_pixbuf_icon(package)
+            icon = Gtk.Image.new_from_pixbuf(icon)
+
+            tile = PackageTile(package, icon, package.summary)
+            tile.connect("clicked", self.on_package_tile_clicked)
+
+            self.flowbox_applications.insert(tile, -1)
+            self.flowbox_applications.show_all()
+
+        #     iter = model.insert_before(None, None)
+        #     model.set_value(iter, 0, self.get_package_pixbuf_icon(package))
+        #     summary = ""
+        #     if package.summary is not None:
+        #         summary = package.summary
+        #         summary = unicode(summary, 'UTF-8', 'replace')
+        #         summary = summary.replace("<", "&lt;")
+        #         summary = summary.replace("&", "&amp;")
+
+        #     model.set_value(iter, 1, "%s\n<small><span foreground='#555555'>%s</span></small>" % (package_name, summary.capitalize()))
+
+        #     if package.num_reviews > 0:
+        #         image = "/usr/share/linuxmint/mintinstall/data/" + str(package.avg_rating) + ".png"
+        #         im = Image.open(image)
+        #         draw = ImageDraw.Draw(im)
+
+        #         color = "#000000"
+        #         if package.score < 0:
+        #             color = "#AA5555"
+        #         elif package.score > 0:
+        #             color = "#55AA55"
+        #         draw.text((87, 9), str(package.score), font=sans26, fill="#AAAAAA")
+        #         draw.text((86, 8), str(package.score), font=sans26, fill="#555555")
+        #         draw.text((85, 7), str(package.score), font=sans26, fill=color)
+        #         draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
+
+        #         model.set_value(iter, 2, convertImageToGtkPixbuf(im))
+
+        #     model.set_value(iter, 3, package)
+
+        # self.tree_applications.set_model(self.model_filter)
+
     @print_timing
-    def show_package(self, package, tree):
+    def show_package(self, package):
+
+        self.notebook.set_current_page(self.PAGE_PACKAGE)
+        self.previous_page = self.PAGE_LIST
+        self.back_button.set_sensitive(True)
+
         self.searchentry.set_text("")
         self.current_package = package
 
@@ -1616,7 +1486,7 @@ class Application():
         subs['comment'] = ""
         subs['score'] = 0
 
-        font_description = gtk.Label("pango").get_pango_context().get_font_description()
+        font_description = Gtk.Label(label="pango").get_pango_context().get_font_description()
         subs['font_family'] = font_description.get_family()
         try:
             subs['font_weight'] = font_description.get_weight().real
@@ -1729,18 +1599,8 @@ class Application():
         else:
             subs['packagesinfo'] = ''
 
-        # if len(package.pkg.candidate.homepage) > 0:
-        #     subs['homepage'] = package.pkg.candidate.homepage
-        #     subs['homepage_button_visibility'] = "visible"
-        # else:
         subs['homepage'] = ""
         subs['homepage_button_visibility'] = "hidden"
-
-        direction = gtk.widget_get_default_direction()
-        if direction == gtk.TEXT_DIR_RTL:
-            subs['text_direction'] = 'DIR="RTL"'
-        elif direction == gtk.TEXT_DIR_LTR:
-            subs['text_direction'] = 'DIR="LTR"'
 
         if package.pkg.is_installed:
             subs['action_button_label'] = _("Remove")
@@ -1813,9 +1673,6 @@ class Application():
         downloadScreenshots = ScreenshotDownloader(self, package.name)
         downloadScreenshots.start()
 
-        # Update the navigation bar
-        self.navigation_bar.add_with_id(package.name, self.navigate, self.NAVIGATION_ITEM, package)
-
     def package_compare(self, x, y):
         if x.score == y.score:
             if x.name < y.name:
@@ -1834,6 +1691,6 @@ if __name__ == "__main__":
     os.system("mkdir -p " + HOME + "/.linuxmint/mintinstall/screenshots/")
     model = Classes.Model()
     Application()
-    gtk.gdk.threads_enter()
-    gtk.main()
-    gtk.gdk.threads_leave()
+    Gdk.threads_enter()
+    Gtk.main()
+    Gdk.threads_leave()

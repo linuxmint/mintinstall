@@ -2,16 +2,16 @@
 # -*- Mode: Python; indent-tabs-mode: nil; tab-width: 4; coding: utf-8 -*-
 
 from AptClient import AptClient
-import gtk
+from gi.repository import Gtk
 import logging
-import gobject
+from gi.repository import GObject
 
 
 class TestApp(object):
 
     def __init__(self):
         self._apt_client = AptClient()
-        self._apt_client.connect("idle", lambda c: gtk.main_quit())
+        self._apt_client.connect("idle", lambda c: Gtk.main_quit())
         self._apt_client.connect("task_ended", self._on_task_ended)
         self._apt_client.connect("progress", self._on_progress)
 
@@ -29,9 +29,9 @@ class TestApp(object):
         return False
 
     def run(self):
-        gobject.threads_init()
-        gobject.timeout_add(100, self._start_tasks)
-        gtk.main()
+        GObject.threads_init()
+        GObject.timeout_add(100, self._start_tasks)
+        Gtk.main()
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.FATAL)

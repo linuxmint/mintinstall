@@ -5,7 +5,7 @@ import apt
 import apt.progress.base
 import logging
 import threading
-import gobject
+from gi.repository import GObject
 import time
 import sys
 import os
@@ -156,7 +156,7 @@ class AptClient(EventsObject):
         logging.debug("Processing %s task with params %s" % (task_type, str(params)))
 
         self._apt_thread = AptThread(task_id, task_type, **params)
-        gobject.timeout_add(100, self._watch_thread)
+        GObject.timeout_add(100, self._watch_thread)
         self._apt_thread.start()
 
     def _watch_thread(self):
