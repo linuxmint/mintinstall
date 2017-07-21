@@ -358,7 +358,6 @@ class PackageTile(Gtk.Button):
         label_name.set_justify(Gtk.Justification.LEFT)
         label_summary = Gtk.Label(xalign=0)
         label_summary.set_markup("<small>%s</small>" % summary)
-        label_summary.set_alignment
         label_summary.set_justify(Gtk.Justification.LEFT)
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -378,6 +377,28 @@ class PackageTile(Gtk.Button):
         hbox.pack_start(vbox, True, True, 3)
 
         self.add(hbox)
+
+class VerticalPackageTile(Gtk.Button):
+    def __init__(self, package, icon):
+        super(Gtk.Button, self).__init__()
+
+        label_name = Gtk.Label(xalign=0.5)
+        label_name.set_markup("<b>%s</b>" % package.name)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        vbox.set_border_width(6)
+
+        vbox.pack_start(icon, False, False, 0)
+
+        name_box = Gtk.Box()
+        name_box.pack_start(label_name, True, True, 0)
+        if package.pkg.is_installed:
+            installed_mark = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/linuxmint/mintinstall/data/emblem-installed.png", 15, 15)
+            installed_mark = Gtk.Image.new_from_pixbuf(installed_mark)
+            name_box.pack_start(installed_mark, False, False, 3)
+
+        vbox.pack_start(name_box, True, True, 0)
+
+        self.add(vbox)
 
 class Category:
 
@@ -659,17 +680,17 @@ class Application():
     def load_picks_on_landing(self):
         box = self.builder.get_object("box_picks")
         flowbox = Gtk.FlowBox()
-        flowbox.set_min_children_per_line(4)
-        flowbox.set_max_children_per_line(4)
-        flowbox.set_row_spacing(6)
-        flowbox.set_column_spacing(6)
+        flowbox.set_min_children_per_line(6)
+        flowbox.set_max_children_per_line(6)
+        flowbox.set_row_spacing(12)
+        flowbox.set_column_spacing(12)
         flowbox.set_homogeneous(True)
         featured = 0
         for package in self.featured_category.packages:
             if not package.pkg.is_installed:
                 icon = self.get_package_pixbuf_icon(package)
                 icon = Gtk.Image.new_from_pixbuf(icon)
-                tile = PackageTile(package, icon, package.summary)
+                tile = VerticalPackageTile(package, icon)
                 tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LANDING)
                 flowbox.insert(tile, -1)
                 featured = featured + 1
