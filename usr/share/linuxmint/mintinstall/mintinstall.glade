@@ -107,6 +107,9 @@
                     <property name="position">0</property>
                   </packing>
                 </child>
+                <style>
+                  <class name="primary-toolbar"/>
+                </style>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -124,7 +127,7 @@
                   <object class="GtkBox" id="box_landing">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="border_width">6</property>
+                    <property name="border_width">12</property>
                     <property name="orientation">vertical</property>
                     <property name="spacing">6</property>
                     <child>
@@ -134,6 +137,10 @@
                         <property name="ypad">6</property>
                         <property name="label" translatable="yes">Featured application</property>
                         <property name="xalign">0</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                          <attribute name="scale" value="1.2"/>
+                        </attributes>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -163,6 +170,10 @@
                         <property name="ypad">6</property>
                         <property name="label" translatable="yes">Editor's Picks</property>
                         <property name="xalign">0</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                          <attribute name="scale" value="1.2"/>
+                        </attributes>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -192,6 +203,10 @@
                         <property name="ypad">6</property>
                         <property name="label" translatable="yes">Categories</property>
                         <property name="xalign">0</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                          <attribute name="scale" value="1.2"/>
+                        </attributes>
                       </object>
                       <packing>
                         <property name="expand">False</property>
