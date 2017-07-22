@@ -6,22 +6,14 @@ import sys
 import os
 import commands
 import gi
-import thread
 import gettext
 import tempfile
 import threading
-import string
-import Image
-import StringIO
-import ImageFont
-import ImageDraw
-import ImageOps
 import time
 import apt
 import urllib
 import urllib2
 import thread
-import dbus
 import httplib
 from urlparse import urlparse
 
@@ -29,7 +21,6 @@ from AptClient.AptClient import AptClient
 
 from datetime import datetime
 from subprocess import Popen, PIPE
-import base64
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib
@@ -39,17 +30,13 @@ HOME = os.path.expanduser("~")
 ICON_SIZE = 48
 
 # Don't let mintinstall run as root
-#~ if os.getuid() == 0:
-    #~ print "The software manager should not be run as root. Please run it in user mode."
-    #~ sys.exit(1)
-if os.getuid() != 0:
-    print "The software manager should be run as root."
+if os.getuid() == 0:
+    print "The software manager should not be run as root. Please run it in user mode."
     sys.exit(1)
 
 gi.require_version("Gtk", "3.0")
 
 from configobj import ConfigObj
-
 
 def print_timing(func):
     def wrapper(*arg):
@@ -79,9 +66,9 @@ else:
 
 Gdk.threads_init()
 
-COMMERCIAL_APPS = ["chromium-browser", "chromium-browser-l10n", "chromium-codecs-ffmpeg",
-                   "chromium-codecs-ffmpeg-extra", "chromium-codecs-ffmpeg-extra",
-                   "chromium-browser-dbg", "chromium-chromedriver", "chromium-chromedriver-dbg"]
+CACHE_DIR = os.path.expanduser("~/.cache/mintinstall")
+SCREENSHOT_DIR = os.path.join(CACHE_DIR, "screenshots")
+REVIEWS_PATH = os.path.join(CACHE_DIR, "reviews.list")
 
 # List of packages which are either broken or do not install properly in mintinstall
 BROKEN_PACKAGES = ['pepperflashplugin-nonfree']
@@ -98,22 +85,6 @@ ALIASES['mint-meta-codecs'] = "Multimedia Codecs"
 ALIASES['mint-meta-codecs-kde'] = "Multimedia Codecs for KDE"
 ALIASES['mint-meta-debian-codecs'] = "Multimedia Codecs"
 
-def get_dbus_bus():
-    bus = dbus.SystemBus()
-    return bus
-
-
-def convertImageToGtkPixbuf(image):
-    buf = StringIO.StringIO()
-    image.save(buf, format="PNG")
-    bufString = buf.getvalue()
-    loader = GdkPixbuf.PixbufLoader.new_with_type('png')
-    loader.write(bufString)
-    pixbuf = loader.get_pixbuf()
-    loader.close()
-    buf.close()
-    return pixbuf
-
 class DownloadReviews(threading.Thread):
 
     def __init__(self, application):
@@ -122,20 +93,17 @@ class DownloadReviews(threading.Thread):
 
     def run(self):
         try:
-            reviews_dir = HOME + "/.linuxmint/mintinstall"
-            os.system("mkdir -p " + reviews_dir)
-            reviews_path = reviews_dir + "/reviews.list"
-            reviews_path_tmp = reviews_path + ".tmp"
+            reviews_path_tmp = REVIEWS_PATH + ".tmp"
             url = urllib.urlretrieve("http://community.linuxmint.com/data/new-reviews.list", reviews_path_tmp)
             numlines = 0
             numlines_new = 0
-            if os.path.exists(reviews_path):
-                numlines = int(commands.getoutput("cat " + reviews_path + " | wc -l"))
+            if os.path.exists(REVIEWS_PATH):
+                numlines = int(commands.getoutput("cat " + REVIEWS_PATH + " | wc -l"))
             if os.path.exists(reviews_path_tmp):
                 numlines_new = int(commands.getoutput("cat " + reviews_path_tmp + " | wc -l"))
             if numlines_new > numlines:
-                os.system("mv " + reviews_path_tmp + " " + reviews_path)
-                print "Overwriting reviews file in " + reviews_path
+                os.system("mv " + reviews_path_tmp + " " + REVIEWS_PATH)
+                print "Overwriting reviews file in " + REVIEWS_PATH
                 self.application.update_reviews()
         except Exception, detail:
             print detail
@@ -183,22 +151,24 @@ class ScreenshotDownloader(threading.Thread):
             print detail
 
     def add_screenshot(self, link, thumb, number):
-        local_name = "%s.png" % number
-        local_thumb = "thumb_%s.png" % number
+        local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkg_name, number))
+        local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.pkg_name, number))
         if self.application.shown_package.name == self.pkg_name:
-            urllib.urlretrieve (link, local_name)
-            urllib.urlretrieve (thumb, local_thumb)
+            if not os.path.exists(local_name):
+                urllib.urlretrieve (link, local_name)
+            if not os.path.exists(local_thumb):
+                urllib.urlretrieve (thumb, local_thumb)
         if self.application.shown_package.name == self.pkg_name:
             if (number == 1):
                 pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, -1, 350)
                 self.application.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
             else:
                 if (number == 2):
-                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size("thumb_1.png", 100, -1)
+                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % self.pkg_name), 100, -1)
                     event_box = Gtk.EventBox()
                     image = Gtk.Image.new_from_pixbuf(pixbuf)
                     event_box.add(image)
-                    event_box.connect("button-release-event", self.on_screenshot_clicked, image, "thumb_1.png", "1.png")
+                    event_box.connect("button-release-event", self.on_screenshot_clicked, image, os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % self.pkg_name), os.path.join(SCREENSHOT_DIR, "%s_1.png" % self.pkg_name))
                     self.application.builder.get_object("box_more_screenshots").pack_start(event_box, False, False, 0)
                     event_box.show_all()
                 pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_thumb, 100, -1)
@@ -553,8 +523,6 @@ class Application():
         self.add_packages()
         self.process_matching_packages()
 
-        self.screenshots = []
-
         self.shown_package = None
 
         # Build the GUI
@@ -672,9 +640,6 @@ class Application():
 
         self.notebook = self.builder.get_object("notebook1")
 
-        sans26 = ImageFont.truetype(self.FONT, 26)
-        sans10 = ImageFont.truetype(self.FONT, 12)
-
         self.generic_available_icon_path = "/usr/share/linuxmint/mintinstall/data/available.png"
         theme = Gtk.IconTheme.get_default()
         for icon_name in ["application-x-deb", "file-roller"]:
@@ -702,6 +667,16 @@ class Application():
         self.listbox_categories = Gtk.ListBox()
         self.builder.get_object("box_subcategories").pack_start(self.listbox_categories, False, False, 0)
         self.listbox_categories.connect('row-activated', self.on_row_activated)
+
+        self.builder.get_object("website_button").connect("clicked", self.on_website_button_clicked)
+
+    def on_website_button_clicked(self, button):
+        if self.shown_package is not None:
+            if self.shown_package.pkg.is_installed:
+                homepage = self.shown_package.pkg.installed.homepage
+            else:
+                homepage = self.shown_package.pkg.candidate.homepage
+            os.system("xdg-open %s" % homepage)
 
     def load_picks_on_landing(self):
         box = self.builder.get_object("box_picks")
@@ -1142,13 +1117,12 @@ class Application():
 
     @print_timing
     def add_reviews(self):
-        reviews_path = HOME + "/.linuxmint/mintinstall/reviews.list"
-        if not os.path.exists(reviews_path):
+        if not os.path.exists(REVIEWS_PATH):
             # No reviews found, use the ones from the packages itself
-            os.system("cp /usr/share/linuxmint/mintinstall/reviews.list %s" % reviews_path)
+            os.system("cp /usr/share/linuxmint/mintinstall/reviews.list %s" % REVIEWS_PATH)
             print "First run detected, initial set of reviews used"
 
-        with open(reviews_path) as reviews:
+        with open(REVIEWS_PATH) as reviews:
             last_package = None
             for line in reviews:
                 elements = line.split("~~~")
@@ -1171,9 +1145,8 @@ class Application():
 
     @print_timing
     def update_reviews(self):
-        reviews_path = HOME + "/.linuxmint/mintinstall/reviews.list"
-        if os.path.exists(reviews_path):
-            reviews = open(reviews_path)
+        if os.path.exists(REVIEWS_PATH):
+            reviews = open(REVIEWS_PATH)
             last_package = None
             for line in reviews:
                 elements = line.split("~~~")
@@ -1287,9 +1260,6 @@ class Application():
         self.previous_page = self.PAGE_LANDING
         self.notebook.set_current_page(self.PAGE_LIST)
 
-        sans26 = ImageFont.truetype(self.FONT, 26)
-        sans10 = ImageFont.truetype(self.FONT, 12)
-
         termsUpper = terms.upper()
 
         self._searched_packages = []
@@ -1328,21 +1298,10 @@ class Application():
         for child in self.flowbox_applications.get_children():
             self.flowbox_applications.remove(child)
 
-        # # Load packages into self.tree_applications
-        # model = Gtk.TreeStore(GdkPixbuf.Pixbuf, str, GdkPixbuf.Pixbuf, object)
-
-        # self.model_filter = model.filter_new()
-        # self.model_filter.set_visible_func(self.visible_func)
-
         packages.sort(self.package_compare)
         packages = packages[0:200]
 
-        # sans26 = ImageFont.truetype(self.FONT, 26)
-        # sans10 = ImageFont.truetype(self.FONT, 12)
-
         for package in packages:
-            # if (package.name in COMMERCIAL_APPS):
-            #     continue
 
             if ":" in package.name and package.name.split(":")[0] in self.packages_dict:
                 # don't list arch packages when the root is represented in the cache
@@ -1357,43 +1316,18 @@ class Application():
             icon = self.get_application_icon(package, ICON_SIZE)
             icon = Gtk.Image.new_from_pixbuf(icon)
 
-            tile = PackageTile(package, icon, package.summary)
+            summary = ""
+            if package.summary is not None:
+                summary = package.summary
+                summary = unicode(summary, 'UTF-8', 'replace')
+                summary = summary.replace("<", "&lt;")
+                summary = summary.replace("&", "&amp;")
+
+            tile = PackageTile(package, icon, summary)
             tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LIST)
 
             self.flowbox_applications.insert(tile, -1)
             self.flowbox_applications.show_all()
-
-        #     iter = model.insert_before(None, None)
-        #     model.set_value(iter, 0, self.get_application_icon(package, ICON_SIZE))
-        #     summary = ""
-        #     if package.summary is not None:
-        #         summary = package.summary
-        #         summary = unicode(summary, 'UTF-8', 'replace')
-        #         summary = summary.replace("<", "&lt;")
-        #         summary = summary.replace("&", "&amp;")
-
-        #     model.set_value(iter, 1, "%s\n<small><span foreground='#555555'>%s</span></small>" % (package_name, summary.capitalize()))
-
-        #     if package.num_reviews > 0:
-        #         image = "/usr/share/linuxmint/mintinstall/data/" + str(package.avg_rating) + ".png"
-        #         im = Image.open(image)
-        #         draw = ImageDraw.Draw(im)
-
-        #         color = "#000000"
-        #         if package.score < 0:
-        #             color = "#AA5555"
-        #         elif package.score > 0:
-        #             color = "#55AA55"
-        #         draw.text((87, 9), str(package.score), font=sans26, fill="#AAAAAA")
-        #         draw.text((86, 8), str(package.score), font=sans26, fill="#555555")
-        #         draw.text((85, 7), str(package.score), font=sans26, fill=color)
-        #         draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
-
-        #         model.set_value(iter, 2, convertImageToGtkPixbuf(im))
-
-        #     model.set_value(iter, 3, package)
-
-        # self.tree_applications.set_model(self.model_filter)
 
     @print_timing
     def show_package(self, package, previous_page):
@@ -1478,10 +1412,6 @@ class Application():
 
         self.builder.get_object("application_size").set_label(sizeinfo)
 
-        # subs['warning_label'] = _("This will remove the following packages:")
-        # subs['warning_cancel'] = _("Cancel")
-        # subs['warning_confirm'] = _("Confirm")
-
         if (len(installations) > 0):
             impacted_packages.append("<li>%s %s</li>" % (_("The following packages would be installed: "), ', '.join(installations)))
         if (len(removals) > 0):
@@ -1490,19 +1420,19 @@ class Application():
         if package.pkg.is_installed:
             action_button_label = _("Remove")
             version = package.pkg.installed.version
+            homepage = package.pkg.installed.homepage
             action_button_description = _("Installed")
             iconstatus = "/usr/share/linuxmint/mintinstall/data/installed.png"
         else:
             if package.pkg.name in BROKEN_PACKAGES:
                 action_button_label = _("Not available")
-                version = package.pkg.candidate.version
                 action_button_description = _("Please use apt-get to install this package.")
-                iconstatus = "/usr/share/linuxmint/mintinstall/data/available.png"
             else:
                 action_button_label = _("Install")
-                version = package.pkg.candidate.version
                 action_button_description = _("Not installed")
-                iconstatus = "/usr/share/linuxmint/mintinstall/data/available.png"
+            version = package.pkg.candidate.version
+            iconstatus = "/usr/share/linuxmint/mintinstall/data/available.png"
+            homepage = package.pkg.candidate.homepage
 
         self.builder.get_object("application_version").set_label(version)
 
@@ -1551,9 +1481,10 @@ class Application():
         self.builder.get_object("application_summary").set_label(summary)
         self.builder.get_object("application_description").set_label(description)
 
-        # homepage = package.pkg.candidate.homepage
-        # print(homepage)
-        # self.builder.get_object("website_button").set_uri(homepage)
+        if homepage is not None and homepage != "":
+            self.builder.get_object("website_button").show()
+        else:
+            self.builder.get_object("website_button").hide()
 
         downloadScreenshots = ScreenshotDownloader(self, package.name)
         downloadScreenshots.start()
@@ -1573,7 +1504,7 @@ class Application():
             return 1
 
 if __name__ == "__main__":
-    os.system("mkdir -p " + HOME + "/.linuxmint/mintinstall/screenshots/")
+    os.system("mkdir -p %s" % SCREENSHOT_DIR)
     model = Classes.Model()
     Application()
     Gdk.threads_enter()
