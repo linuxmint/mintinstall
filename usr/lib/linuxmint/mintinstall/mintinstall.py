@@ -561,11 +561,6 @@ class Application():
         #prefsMenuItem.connect("activate", open_preferences, treeview_update, statusIcon, wTree)
         editSubmenu.append(prefsMenuItem)
 
-        accountMenuItem = Gtk.ImageMenuItem(Gtk.STOCK_PREFERENCES)
-        accountMenuItem.get_child().set_text(_("Account information"))
-        accountMenuItem.connect("activate", self.open_account_info)
-        editSubmenu.append(accountMenuItem)
-
         if os.path.exists("/usr/bin/software-sources") or os.path.exists("/usr/bin/software-properties-gtk") or os.path.exists("/usr/bin/software-properties-kde"):
             sourcesMenuItem = Gtk.ImageMenuItem(Gtk.STOCK_PREFERENCES)
             sourcesMenuItem.set_image(Gtk.Image.new_from_icon_name("software-properties", Gtk.IconSize.MENU))
@@ -764,14 +759,6 @@ class Application():
         config = ConfigObj(HOME + "/.linuxmint/mintinstall.conf")
         prefs = {}
 
-        #Read account info
-        try:
-            prefs["username"] = config['account']['username']
-            prefs["password"] = config['account']['password']
-        except:
-            prefs["username"] = ""
-            prefs["password"] = ""
-
         #Read filter info
         try:
             prefs["available_packages_visible"] = (config['filter']['available_packages_visible'] == "True")
@@ -813,39 +800,8 @@ class Application():
             os.system("/usr/bin/software-properties-kde")
         self.close_application(None, None, 9) # Status code 9 means we want to restart ourselves
 
-    def open_account_info(self, widget):
-        window = self.builder.get_object("window_account")
-        window.set_title(_("Account information"))
-        window.set_icon_name("mintinstall")
-        self.builder.get_object("label111").set_label("<b>%s</b>" % _("Your community account"))
-        self.builder.get_object("label111").set_use_markup(True)
-        self.builder.get_object("label222").set_label("<i><small>%s</small></i>" % _("Fill in your account info to review applications"))
-        self.builder.get_object("label222").set_use_markup(True)
-        self.builder.get_object("label333").set_label(_("Username:"))
-        self.builder.get_object("label444").set_label(_("Password:"))
-        self.builder.get_object("entry_username").set_text(self.prefs["username"])
-        self.builder.get_object("entry_password").set_text(base64.b64decode(self.prefs["password"]))
-        self.builder.get_object("close_button").connect("clicked", self.close_window, self.builder.get_object("window_account"))
-        self.builder.get_object("entry_username").connect("notify::text", self.update_account_info, "username")
-        self.builder.get_object("entry_password").connect("notify::text", self.update_account_info, "password")
-        window.show_all()
-
     def close_window(self, widget, window):
         window.hide()
-
-    def update_account_info(self, entry, prop, configName):
-        config = ConfigObj(HOME + "/.linuxmint/mintinstall.conf")
-        if (not config.has_key('account')):
-            config['account'] = {}
-
-        if (configName == "password"):
-            text = base64.b64encode(entry.props.text)
-        else:
-            text = entry.props.text
-
-        config['account'][configName] = text
-        config.write()
-        self.prefs = self.read_configuration()
 
     def open_about(self, widget):
         dlg = Gtk.AboutDialog()
@@ -1496,8 +1452,6 @@ class Application():
 
         # Load package info
         subs = {}
-        subs['username'] = self.prefs["username"]
-        subs['password'] = self.prefs["password"]
         subs['comment'] = ""
         subs['score'] = 0
 
@@ -1509,12 +1463,6 @@ class Application():
             subs['font_weight'] = font_description.get_weight()
         subs['font_style'] = font_description.get_style().value_nick
         subs['font_size'] = font_description.get_size() / 1024
-
-        if self.prefs["username"] != "":
-            for review in package.reviews:
-                if review.username == self.prefs["username"]:
-                    subs['comment'] = review.comment
-                    subs['score'] = review.rating
 
         score_options = ["", _("Hate it"), _("Not a fan"), _("So so"), _("Like it"), _("Awesome!")]
         subs['score_options'] = ""
@@ -1534,8 +1482,6 @@ class Application():
         subs['description'] = subs['description'].replace('\n', '<br />\n')
         subs['summary'] = package.summary.capitalize()
         subs['label_score'] = _("Score:")
-        subs['label_submit'] = _("Submit")
-        subs['label_your_review'] = _("Your review")
 
         impacted_packages = []
         js_removals = []
@@ -1586,7 +1532,6 @@ class Application():
         subs['sizeLabel'] = _("Size:")
         subs['versionLabel'] = _("Version:")
         subs['reviewsLabel'] = _("Reviews")
-        subs['yourReviewLabel'] = _("Your review:")
         subs['detailsLabel'] = _("Details")
 
         subs['warning_label'] = _("This will remove the following packages:")
