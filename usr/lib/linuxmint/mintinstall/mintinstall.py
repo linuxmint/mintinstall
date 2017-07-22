@@ -126,7 +126,7 @@ class DownloadReviews(threading.Thread):
             os.system("mkdir -p " + reviews_dir)
             reviews_path = reviews_dir + "/reviews.list"
             reviews_path_tmp = reviews_path + ".tmp"
-            url = urllib.urlretrieve("http://community.linuxmint.com/data/reviews.list", reviews_path_tmp)
+            url = urllib.urlretrieve("http://community.linuxmint.com/data/new-reviews.list", reviews_path_tmp)
             numlines = 0
             numlines_new = 0
             if os.path.exists(reviews_path):
@@ -194,14 +194,14 @@ class ScreenshotDownloader(threading.Thread):
                 self.application.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
             else:
                 if (number == 2):
-                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size("thumb_1.png", 150, -1)
+                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size("thumb_1.png", 100, -1)
                     event_box = Gtk.EventBox()
                     image = Gtk.Image.new_from_pixbuf(pixbuf)
                     event_box.add(image)
                     event_box.connect("button-release-event", self.on_screenshot_clicked, image, "thumb_1.png", "1.png")
                     self.application.builder.get_object("box_more_screenshots").pack_start(event_box, False, False, 0)
                     event_box.show_all()
-                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_thumb, 150, -1)
+                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_thumb, 100, -1)
                 event_box = Gtk.EventBox()
                 image = Gtk.Image.new_from_pixbuf(pixbuf)
                 event_box.add(image)
@@ -463,7 +463,6 @@ class Category:
         self.parent = parent
         self.subcategories = []
         self.packages = []
-        self.sections = sections
         self.matchingPackages = []
         if parent is not None:
             parent.subcategories.append(self)
@@ -510,7 +509,7 @@ class Package(object):
             points = points + (review.rating - 3)
             sum_rating = sum_rating + review.rating
         if self.num_reviews > 0:
-            self.avg_rating = int(round(sum_rating / self.num_reviews))
+            self.avg_rating = round(float(sum_rating) / float(self.num_reviews), 1)
         self.score = points
 
 
@@ -542,11 +541,18 @@ class Application():
     FONT = "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
 
     @print_timing
+    def load_cache(self):
+        self.cache = apt.Cache()
+
+    @print_timing
     def __init__(self):
+
+        self.load_cache()
 
         self.add_categories()
         self.build_matched_packages()
         self.add_packages()
+        self.process_matching_packages()
 
         self.screenshots = []
 
@@ -601,20 +607,9 @@ class Application():
         searchInDescriptionMenuItem.set_active(self.prefs["search_in_description"])
         searchInDescriptionMenuItem.connect("toggled", self.set_search_filter, "search_in_description")
 
-        openLinkExternalMenuItem = Gtk.CheckMenuItem(_("Open links using the web browser"))
-        openLinkExternalMenuItem.set_active(self.prefs["external_browser"])
-        openLinkExternalMenuItem.connect("toggled", self.set_external_browser)
-
-        searchWhileTypingMenuItem = Gtk.CheckMenuItem(_("Search while typing"))
-        searchWhileTypingMenuItem.set_active(self.prefs["search_while_typing"])
-        searchWhileTypingMenuItem.connect("toggled", self.set_search_filter, "search_while_typing")
-
         prefsMenu.append(searchInSummaryMenuItem)
         prefsMenu.append(searchInDescriptionMenuItem)
-        # prefsMenu.append(openLinkExternalMenuItem)
-        prefsMenu.append(searchWhileTypingMenuItem)
 
-        #prefsMenuItem.connect("activate", open_preferences, treeview_update, statusIcon, wTree)
         editSubmenu.append(prefsMenuItem)
 
         if os.path.exists("/usr/bin/software-sources") or os.path.exists("/usr/bin/software-properties-gtk") or os.path.exists("/usr/bin/software-properties-kde"):
@@ -647,13 +642,6 @@ class Application():
         aboutMenuItem.connect("activate", self.open_about)
         helpSubmenu.append(aboutMenuItem)
 
-        #prevents multiple load finished handlers being hooked up to packageBrowser in show_package
-        self.loadHandlerID = -1
-        self.acthread = threading.Thread(target=self.cache_apt)
-        self.acthread.start()
-
-        #browser.connect("activate", browser_callback)
-        #browser.show()
         self.builder.get_object("menubar1").append(fileMenu)
         self.builder.get_object("menubar1").append(editMenu)
         self.builder.get_object("menubar1").append(viewMenu)
@@ -683,9 +671,6 @@ class Application():
         self.searchentry.connect("changed", self.on_search_terms_changed)
         self.searchentry.connect("activate", self.on_search_entry_activated)
 
-        self._search_in_category = self.root_category
-        self._current_search_terms = ""
-
         self.notebook = self.builder.get_object("notebook1")
 
         sans26 = ImageFont.truetype(self.FONT, 26)
@@ -711,14 +696,7 @@ class Application():
 
         self.builder.get_object("button_transactions").connect("clicked", self.show_transactions)
 
-        self._load_more_timer = None
-
         self.searchentry.grab_focus()
-
-        # self.builder.get_object("scrolled_search").get_vadjustment().connect("value-changed", self._on_search_applications_scrolled)
-        self._load_more_search_timer = None
-        self.initial_search_display = 200 #number of packages shown on first search
-        self.scroll_search_display = 300 #number of packages added after scrolling
 
         self.builder.get_object("main_window").show_all()
 
@@ -774,9 +752,8 @@ class Application():
     def on_search_terms_changed(self, entry):
         terms = entry.get_text()
         print(terms)
-        if terms != "" and self.prefs["search_while_typing"] and len(terms) >= 3:
-            if terms != self._current_search_terms:
-                self.show_search_results(terms)
+        if terms != "" and len(terms) >= 3:
+            self.show_search_results(terms)
 
     def set_filter(self, checkmenuitem, configName):
         config = ConfigObj(HOME + "/.linuxmint/mintinstall.conf")
@@ -802,12 +779,6 @@ class Application():
         if (self.searchentry.get_text() != ""):
             self.show_search_results(self.searchentry.get_text())
 
-    def set_external_browser(self, checkmenuitem):
-        config = ConfigObj(HOME + "/.linuxmint/mintinstall.conf")
-        config['external_browser'] = checkmenuitem.get_active()
-        config.write()
-        self.prefs = self.read_configuration()
-
     def read_configuration(self):
 
         config = ConfigObj(HOME + "/.linuxmint/mintinstall.conf")
@@ -832,16 +803,6 @@ class Application():
             prefs["search_in_description"] = (config['search']['search_in_description'] == "True")
         except:
             prefs["search_in_description"] = False
-        try:
-            prefs["search_while_typing"] = (config['search']['search_while_typing'] == "True")
-        except:
-            prefs["search_while_typing"] = False
-
-        #External browser
-        try:
-            prefs["external_browser"] = (config['external_browser'] == "True")
-        except:
-            prefs["external_browser"] = False
 
         return prefs
 
@@ -936,35 +897,6 @@ class Application():
         except:
             pass
 
-    def build_application_tree(self, treeview):
-        column0 = Gtk.TreeViewColumn(_("Icon"), Gtk.CellRendererPixbuf(), pixbuf=0)
-        column0.set_sort_column_id(0)
-        column0.set_resizable(True)
-
-        column1 = Gtk.TreeViewColumn(_("Application"), Gtk.CellRendererText(), markup=1)
-        column1.set_sort_column_id(1)
-        column1.set_resizable(True)
-        column1.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
-        column1.set_min_width(350)
-        column1.set_max_width(350)
-
-        column2 = Gtk.TreeViewColumn(_("Score"), Gtk.CellRendererPixbuf(), pixbuf=2)
-        column2.set_sort_column_id(2)
-        column2.set_resizable(True)
-
-        treeview.append_column(column0)
-        treeview.append_column(column1)
-        treeview.append_column(column2)
-        treeview.set_headers_visible(False)
-        treeview.connect("row-activated", self.show_selected)
-        treeview.show()
-        #treeview.connect("row_activated", self.show_more_info)
-
-        selection = treeview.get_selection()
-        selection.set_mode(Gtk.SelectionMode.BROWSE)
-
-        #selection.connect("changed", self.show_selected)
-
     def build_transactions_tree(self, treeview):
         column0 = Gtk.TreeViewColumn(_("Task"), Gtk.CellRendererText(), text=0)
         column0.set_resizable(True)
@@ -981,34 +913,6 @@ class Application():
         treeview.set_headers_visible(True)
         treeview.show()
 
-    def show_selected(self, tree, path, column):
-        #self.main_window.window.set_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
-        #self.main_window.set_sensitive(False)
-        model = tree.get_model()
-        iter = model.get_iter(path)
-
-        #poll for end of apt caching when idle
-        GLib.idle_add(self.show_package_if_apt_cached, model.get_value(iter, 3), tree)
-        #cache apt in a separate thread as blocks gui update
-        self.acthread.start()
-
-    def show_package_if_apt_cached(self, pkg, tree):
-        if (self.acthread.isAlive()):
-            self.acthread.join()
-
-        self.show_package(pkg)
-        self.acthread = threading.Thread(target=self.cache_apt) #rebuild here for speed
-        return False #false will remove this from gtk's list of idle functions
-        #return True
-
-    def cache_apt(self):
-        self.cache = apt.Cache()
-
-    def show_more_info(self, tree, path, column):
-        model = tree.get_model()
-        iter = model.get_iter(path)
-        self.selected_package = model.get_value(iter, 3)
-
     def close_application(self, window, event=None, exit_code=0):
         self.apt_client.call_on_completion(lambda c: self.do_close_application(c), exit_code)
         window.hide()
@@ -1022,7 +926,7 @@ class Application():
             Gtk.main_quit()
             sys.exit(exit_code)
 
-    def on_button_clicked(self):
+    def on_install_button_clicked(self):
         package = self.current_package
         if package is not None:
             if package.pkg.is_installed:
@@ -1031,14 +935,10 @@ class Application():
                 if package.pkg.name not in BROKEN_PACKAGES:
                     self.apt_client.install_package(package.pkg.name)
 
-    def on_screenshot_clicked(self, url):
-        package = self.current_package
-        if package is not None:
-            print("SHOW %s" % url)
-
     @print_timing
     def add_categories(self):
         self.categories = []
+        self.sections = {}
         self.root_category = Category(_("Categories"), "applications-other", None, None, self.categories)
 
         self.featured_category = Category(_("Featured"), "applications-featured", None, None, self.categories)
@@ -1056,6 +956,9 @@ class Application():
 
         internet = Category(_("Internet"), "applications-internet", None, self.root_category, self.categories)
         subcat = Category(_("Web"), "web-browser", ("web", "net"), internet, self.categories)
+        self.sections["web"] = subcat
+        self.sections["net"] = subcat
+
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/internet-web.list")
         subcat = Category(_("Email"), "applications-mail", ("mail"), internet, self.categories)
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/internet-email.list")
@@ -1111,7 +1014,6 @@ class Application():
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/education.list")
 
         Category(_("Programming"), "applications-development", ("devel", "java"), self.root_category, self.categories)
-        #self.category_other = Category(_("Other"), "applications-other", None, self.root_category, self.categories)
 
     def file_to_array(self, filename):
         array = []
@@ -1134,23 +1036,41 @@ class Application():
     def add_packages(self):
         self.packages = []
         self.packages_dict = {}
-        cache = apt.Cache()
 
-        for pkg in cache:
-            package = Package(pkg.name, pkg)
+        for name in self.cache.keys():
+            if name.startswith("lib") and not name.startswith("libreoffice"):
+                continue
+            if name.endswith("-dev"):
+                continue
+            if name.endswith("-dbg"):
+               continue
+            if name.endswith("-doc"):
+                continue
+            if name.endswith("-common"):
+                continue
+            if name.endswith("-data"):
+                continue
+            if name.endswith(":i386"):
+                continue
+            if name.endswith("-perl"):
+                continue
+
+            pkg = self.cache[name]
+            package = Package(name, pkg)
             self.packages.append(package)
             self.packages_dict[pkg.name] = package
 
             # If the package is not a "matching package", find categories with matching sections
-            if (pkg.name not in self.matchedPackages):
+            if (name not in self.matchedPackages):
                 section = pkg.section
                 if "/" in section:
                     section = section.split("/")[1]
-                for category in self.categories:
-                    if category.sections is not None:
-                        if section in category.sections:
-                            self.add_package_to_category(package, category)
+                if section in self.sections:
+                    category = self.sections[section]
+                    self.add_package_to_category(package, category)
 
+    @print_timing
+    def process_matching_packages(self):
         # Process matching packages
         for category in self.categories:
             for package_name in category.matchingPackages:
@@ -1178,12 +1098,16 @@ class Application():
 
         with open(reviews_path) as reviews:
             last_package = None
+            last_package_num_reviews = 0
             for line in reviews:
                 elements = line.split("~~~")
                 if len(elements) == 5:
                     review = Review(elements[0], float(elements[1]), elements[2], elements[3], elements[4])
                     if last_package != None and last_package.name == elements[0]:
                         #Comment is on the same package as previous comment.. no need to search for the package
+                        if last_package_num_reviews > 9:
+                            continue
+                        last_package_num_reviews += 1
                         last_package.reviews.append(review)
                         review.package = last_package
                         last_package.update_stats()
@@ -1191,6 +1115,7 @@ class Application():
                         if elements[0] in self.packages_dict:
                             package = self.packages_dict[elements[0]]
                             last_package = package
+                            last_package_num_reviews = 1
                             package.reviews.append(review)
                             review.package = package
                             package.update_stats()
@@ -1254,6 +1179,7 @@ class Application():
             self.back_button.set_sensitive(False)
         if self.previous_page == self.PAGE_LIST:
             self.previous_page = self.PAGE_LANDING
+        self.searchentry.set_text("")
 
     @print_timing
     def show_category(self, category):
@@ -1263,7 +1189,6 @@ class Application():
         self.back_button.set_sensitive(True)
 
         self.searchentry.set_text("")
-        self._search_in_category = category
 
         if category.parent == self.root_category:
             self.clear_category_list()
@@ -1319,15 +1244,6 @@ class Application():
 
         return self.generic_available_icon_pixbuf
 
-    def _show_all_search_results(self):
-        self._search_in_category = self.root_category
-        self.show_search_results(self._current_search_terms)
-
-    def _on_search_applications_scrolled(self, adjustment):
-        if self._load_more_search_timer:
-            GObject.source_remove(self._load_more_search_timer)
-        self._load_more_search_timer = GObject.timeout_add(500, self._load_more_search_packages)
-
     @print_timing
     def show_search_results(self, terms):
         self.listbox_categories.hide()
@@ -1335,21 +1251,14 @@ class Application():
         self.previous_page = self.PAGE_LANDING
         self.notebook.set_current_page(self.PAGE_LIST)
 
-        self._current_search_terms = terms
-
         sans26 = ImageFont.truetype(self.FONT, 26)
         sans10 = ImageFont.truetype(self.FONT, 12)
 
         termsUpper = terms.upper()
 
-        if self._search_in_category == self.root_category:
-            packages = self.packages
-        else:
-            packages = self._search_in_category.packages
-
         self._searched_packages = []
 
-        for package in packages:
+        for package in self.packages:
             visible = False
             if termsUpper in package.name.upper():
                 visible = True
@@ -1561,8 +1470,7 @@ class Application():
 
         self.builder.get_object("application_version").set_label(version)
 
-        self.builder.get_object("application_comments").set_label(str(package.num_reviews))
-        self.builder.get_object("application_score").set_label(str(package.score))
+        self.builder.get_object("application_num_reviews").set_label(str(package.num_reviews))
         self.builder.get_object("application_avg_rating").set_label(str(package.avg_rating))
 
         box_reviews = self.builder.get_object("box_reviews")
@@ -1585,6 +1493,22 @@ class Application():
             if i >= 10:
                 break
         box_reviews.show_all()
+
+        box_stars = self.builder.get_object("box_stars")
+        for child in box_stars.get_children():
+            box_stars.remove(child)
+        rating = package.avg_rating
+        remaining_stars = 5
+        while rating >= 1.0:
+            box_stars.pack_start(Gtk.Image.new_from_icon_name("starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
+            rating -= 1
+            remaining_stars -= 1
+        if rating > 0.0:
+            box_stars.pack_start(Gtk.Image.new_from_icon_name("semi-starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
+            remaining_stars -= 1
+        for i in range (remaining_stars):
+            box_stars.pack_start(Gtk.Image.new_from_icon_name("non-starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
+        box_stars.show_all()
 
         self.builder.get_object("application_icon").set_from_pixbuf(self.get_application_icon(package, 64))
         self.builder.get_object("application_name").set_label(appname)
