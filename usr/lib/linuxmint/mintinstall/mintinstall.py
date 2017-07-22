@@ -140,7 +140,6 @@ class DownloadReviews(threading.Thread):
         except Exception, detail:
             print detail
 
-
 class ScreenshotDownloader(threading.Thread):
 
     def __init__(self, application, pkg_name):
@@ -150,6 +149,7 @@ class ScreenshotDownloader(threading.Thread):
 
     def run(self):
         num_screenshots = 0
+        self.screenshot_shown = None
         self.application.screenshots = []
         # Add main screenshot
         try:
@@ -161,7 +161,8 @@ class ScreenshotDownloader(threading.Thread):
             resp = conn.getresponse()
             if resp.status < 400:
                 num_screenshots += 1
-                self.application.screenshots.append('addScreenshot("%s", "%s")' % (link, thumb))
+                if self.application.shown_package.name == self.pkg_name:
+                    self.add_screenshot(link, thumb, num_screenshots)
         except Exception, detail:
             print detail
 
@@ -174,18 +175,44 @@ class ScreenshotDownloader(threading.Thread):
                 if num_screenshots >= 4:
                     break
                 if image['src'].startswith('/screenshots'):
+                    num_screenshots += 1
                     thumb = "http://screenshots.debian.net%s" % image['src']
                     link = thumb.replace("_small", "_large")
-                    num_screenshots += 1
-                    self.application.screenshots.append('addScreenshot("%s", "%s")' % (link, thumb))
+                    self.add_screenshot(link, thumb, num_screenshots)
         except Exception, detail:
             print detail
 
-        # try:
-        #     GObject.idle_add(self.application.show_screenshots, self.pkg_name)
-        # except Exception, detail:
-        #     print detail
+    def add_screenshot(self, link, thumb, number):
+        local_name = "%s.png" % number
+        local_thumb = "thumb_%s.png" % number
+        if self.application.shown_package.name == self.pkg_name:
+            urllib.urlretrieve (link, local_name)
+            urllib.urlretrieve (thumb, local_thumb)
+        if self.application.shown_package.name == self.pkg_name:
+            if (number == 1):
+                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, -1, 350)
+                self.application.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
+            else:
+                if (number == 2):
+                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size("thumb_1.png", 150, -1)
+                    event_box = Gtk.EventBox()
+                    image = Gtk.Image.new_from_pixbuf(pixbuf)
+                    event_box.add(image)
+                    event_box.connect("button-release-event", self.on_screenshot_clicked, image, "thumb_1.png", "1.png")
+                    self.application.builder.get_object("box_more_screenshots").pack_start(event_box, False, False, 0)
+                    event_box.show_all()
+                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_thumb, 150, -1)
+                event_box = Gtk.EventBox()
+                image = Gtk.Image.new_from_pixbuf(pixbuf)
+                event_box.add(image)
+                event_box.connect("button-release-event", self.on_screenshot_clicked, image, local_thumb, local_name)
+                self.application.builder.get_object("box_more_screenshots").pack_start(event_box, False, False, 0)
+                event_box.show_all()
 
+    def on_screenshot_clicked(self, eventbox, event, image, local_thumb, local_name):
+        # Set main screenshot
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, -1, 350)
+        self.application.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
 
 class APTProgressHandler(threading.Thread):
 
@@ -293,7 +320,7 @@ class APTProgressHandler(threading.Thread):
                             while iter_apps is not None:
                                 package = model_apps.get_value(iter_apps, 3)
                                 if package.pkg.name == pkg_name:
-                                    model_apps.set_value(iter_apps, 0, self.application.get_package_pixbuf_icon(package))
+                                    model_apps.set_value(iter_apps, 0, self.application.get_application_icon(package, ICON_SIZE))
                                 iter_apps = model_apps.iter_next(iter_apps)
             else:
                 iter = self.model.iter_next(iter)
@@ -380,6 +407,7 @@ class PackageTile(Gtk.Button):
 
 class VerticalPackageTile(Gtk.Button):
     def __init__(self, package, icon):
+        self.package = package
         super(Gtk.Button, self).__init__()
 
         label_name = Gtk.Label(xalign=0.5)
@@ -399,6 +427,33 @@ class VerticalPackageTile(Gtk.Button):
         vbox.pack_start(name_box, True, True, 0)
 
         self.add(vbox)
+
+class ReviewTile(Gtk.Box):
+    def __init__(self, username, date, comment, rating):
+        super(Gtk.Box, self).__init__()
+
+        box_stars = Gtk.Box()
+        for i in range(rating):
+            box_stars.pack_start(Gtk.Image.new_from_icon_name("starred", Gtk.IconSize.MENU), False, False, 0)
+        for i in range(5-rating):
+            box_stars.pack_start(Gtk.Image.new_from_icon_name("non-starred", Gtk.IconSize.MENU), False, False, 0)
+
+        label_comment = Gtk.Label(xalign=0.0)
+        label_comment.set_label(comment)
+
+        label_name = Gtk.Label(xalign=0.0)
+        label_name.set_markup("<small>%s (%s)</small>" % (username, date))
+
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        vbox.set_border_width(6)
+        vbox.pack_start(label_comment, False, False, 0)
+        vbox.pack_start(label_name, False, False, 0)
+
+        hbox = Gtk.Box()
+        hbox.pack_start(box_stars, True, True, 0)
+        hbox.pack_start(vbox, True, True, 0)
+
+        self.add(hbox)
 
 class Category:
 
@@ -488,13 +543,14 @@ class Application():
 
     @print_timing
     def __init__(self):
-        self.packageLabel = Gtk.Label()
 
         self.add_categories()
         self.build_matched_packages()
         self.add_packages()
 
         self.screenshots = []
+
+        self.shown_package = None
 
         # Build the GUI
         glade_file = "/usr/share/linuxmint/mintinstall/mintinstall.glade"
@@ -649,8 +705,6 @@ class Application():
         self.load_picks_on_landing()
         self.load_categories_on_landing()
 
-        self.builder.get_object("scrolled_details").add(self.packageLabel)
-
         self.builder.get_object("label_ongoing").set_text(_("No ongoing actions"))
         self.builder.get_object("label_transactions_header").set_text(_("Active tasks:"))
         self.builder.get_object("progressbar1").hide()
@@ -683,7 +737,7 @@ class Application():
         featured = 0
         for package in self.featured_category.packages:
             if not package.pkg.is_installed:
-                icon = self.get_package_pixbuf_icon(package)
+                icon = self.get_application_icon(package, ICON_SIZE)
                 icon = Gtk.Image.new_from_pixbuf(icon)
                 tile = VerticalPackageTile(package, icon)
                 tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LANDING)
@@ -1246,68 +1300,24 @@ class Application():
     def on_row_activated(self, listbox, row):
         self.show_category(row.category)
 
-    def get_package_pixbuf_icon(self, package):
+    def get_application_icon(self, package, size):
         icon_path = None
 
-        package_name = package.name.split(":")[0] # If this is an arch package, like "foo:i386", only consider "foo"
-        icon_path = None
-        # Try the Icon theme first
         theme = Gtk.IconTheme.get_default()
-        if theme.has_icon(package_name):
-            iconInfo = theme.lookup_icon(package_name, ICON_SIZE, 0)
-            if iconInfo and os.path.exists(iconInfo.get_filename()):
-                icon_path = iconInfo.get_filename()
-
-        # If - is in the name, try the first part of the name (for instance "steam" instead of "steam-launcher")
-        if icon_path is None and "-" in package_name:
-            name = package_name.split("-")[0]
+        for name in [package.name.split(":")[0], package.name.split("-")[0]]:
             if theme.has_icon(name):
-                iconInfo = theme.lookup_icon(name, ICON_SIZE, 0)
+                iconInfo = theme.lookup_icon(name, size, 0)
                 if iconInfo and os.path.exists(iconInfo.get_filename()):
-                    icon_path = iconInfo.get_filename()
+                    return GdkPixbuf.Pixbuf.new_from_file_at_size(iconInfo.get_filename(), size, size)
 
-        if icon_path is None:
-            # Try app-install icons then
-            icon_path = "/usr/share/app-install/icons/%s" % package_name
+        # Try app-install icons then
+        icon_path = "/usr/share/app-install/icons/%s" % package.name
+        for extension in ['svg', 'png', 'xpm']:
+            icon_path = "/usr/share/app-install/icons/%s.%s" % (package.name, extension)
+            if os.path.exists(icon_path):
+                return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, size, size)
 
-            if os.path.exists(icon_path + ".svg"):
-                icon_path = icon_path + ".svg"
-            elif os.path.exists(icon_path + ".png"):
-                icon_path = icon_path + ".png"
-            elif os.path.exists(icon_path + ".xpm"):
-                icon_path = icon_path + ".xpm"
-            else:
-                # Else, default to generic icons
-                icon_path = self.generic_available_icon_path
-
-
-        #get cached generic icons, so they aren't converted repetitively
-        if icon_path == self.generic_available_icon_path:
-            return self.generic_available_icon_pixbuf
-
-        try:
-            return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, ICON_SIZE, ICON_SIZE)
-        except:
-            return self.generic_available_icon_pixbuf
-
-    def find_large_app_icon(self, package):
-        package_name = package.name.split(":")[0] # If this is an arch package, like "foo:i386", only consider "foo"
-        theme = Gtk.IconTheme.get_default()
-        if theme.has_icon(package_name):
-            iconInfo = theme.lookup_icon(package_name, 64, 0)
-            if iconInfo and os.path.exists(iconInfo.get_filename()):
-                return iconInfo.get_filename()
-
-        # If - is in the name, try the first part of the name (for instance "steam" instead of "steam-launcher")
-        if "-" in package_name:
-            name = package_name.split("-")[0]
-            if theme.has_icon(name):
-                iconInfo = theme.lookup_icon(name, 64, 0)
-                if iconInfo and os.path.exists(iconInfo.get_filename()):
-                    return iconInfo.get_filename()
-
-        iconInfo = theme.lookup_icon("applications-other", 64, 0)
-        return iconInfo.get_filename()
+        return self.generic_available_icon_pixbuf
 
     def _show_all_search_results(self):
         self._search_in_category = self.root_category
@@ -1399,7 +1409,7 @@ class Application():
 
             package_name = self.get_simple_name(package.name)
 
-            icon = self.get_package_pixbuf_icon(package)
+            icon = self.get_application_icon(package, ICON_SIZE)
             icon = Gtk.Image.new_from_pixbuf(icon)
 
             tile = PackageTile(package, icon, package.summary)
@@ -1409,7 +1419,7 @@ class Application():
             self.flowbox_applications.show_all()
 
         #     iter = model.insert_before(None, None)
-        #     model.set_value(iter, 0, self.get_package_pixbuf_icon(package))
+        #     model.set_value(iter, 0, self.get_application_icon(package, ICON_SIZE))
         #     summary = ""
         #     if package.summary is not None:
         #         summary = package.summary
@@ -1443,6 +1453,8 @@ class Application():
     @print_timing
     def show_package(self, package, previous_page):
 
+        self.shown_package = package
+
         self.notebook.set_current_page(self.PAGE_PACKAGE)
         self.previous_page = previous_page
         self.back_button.set_sensitive(True)
@@ -1450,38 +1462,17 @@ class Application():
         self.searchentry.set_text("")
         self.current_package = package
 
+        self.builder.get_object("main_screenshot").set_from_file("/usr/share/linuxmint/mintinstall/data/no-screenshot.png")
+        box_more_screenshots = self.builder.get_object("box_more_screenshots")
+        for child in box_more_screenshots.get_children():
+            box_more_screenshots.remove(child)
+
         # Load package info
-        subs = {}
-        subs['comment'] = ""
-        subs['score'] = 0
+        score = 0
+        appname = self.get_simple_name(package.name)
 
-        font_description = Gtk.Label(label="pango").get_pango_context().get_font_description()
-        subs['font_family'] = font_description.get_family()
-        try:
-            subs['font_weight'] = font_description.get_weight().real
-        except:
-            subs['font_weight'] = font_description.get_weight()
-        subs['font_style'] = font_description.get_style().value_nick
-        subs['font_size'] = font_description.get_size() / 1024
-
-        score_options = ["", _("Hate it"), _("Not a fan"), _("So so"), _("Like it"), _("Awesome!")]
-        subs['score_options'] = ""
-        for score in range(6):
-            if (score == subs['score']):
-                option = "<option value=%d %s>%s</option>" % (score, "SELECTED", score_options[score])
-            else:
-                option = "<option value=%d %s>%s</option>" % (score, "", score_options[score])
-
-            subs['score_options'] = subs['score_options'] + option
-
-        subs['iconbig'] = self.find_large_app_icon(package)
-
-        subs['appname'] = self.get_simple_name(package.name)
-        subs['pkgname'] = package.name
-        subs['description'] = package.pkg.candidate.description
-        subs['description'] = subs['description'].replace('\n', '<br />\n')
-        subs['summary'] = package.summary.capitalize()
-        subs['label_score'] = _("Score:")
+        description = package.pkg.candidate.description
+        summary = package.summary.capitalize()
 
         impacted_packages = []
         js_removals = []
@@ -1508,7 +1499,7 @@ class Application():
             else:
                 installations.append(pkg.name)
 
-        subs['removals'] = ", ".join(js_removals)
+        # subs['removals'] = ", ".join(js_removals)
 
         downloadSize = str(self.cache.required_download) + _("B")
         if (self.cache.required_download >= 1000):
@@ -1529,106 +1520,80 @@ class Application():
         if (required_space >= 1000000000):
             localSize = str(required_space / 1000000000) + _("GB")
 
-        subs['sizeLabel'] = _("Size:")
-        subs['versionLabel'] = _("Version:")
-        subs['reviewsLabel'] = _("Reviews")
-        subs['detailsLabel'] = _("Details")
-
-        subs['warning_label'] = _("This will remove the following packages:")
-        subs['warning_cancel'] = _("Cancel")
-        subs['warning_confirm'] = _("Confirm")
-
         if package.pkg.is_installed:
             if self.cache.required_space < 0:
-                subs['sizeinfo'] = _("%(localSize)s of disk space freed") % {'localSize': localSize}
+                sizeinfo = _("%(localSize)s of disk space freed") % {'localSize': localSize}
             else:
-                subs['sizeinfo'] = _("%(localSize)s of disk space required") % {'localSize': localSize}
+                sizeinfo = _("%(localSize)s of disk space required") % {'localSize': localSize}
         else:
             if self.cache.required_space < 0:
-                subs['sizeinfo'] = _("%(downloadSize)s to download, %(localSize)s of disk space freed") % {'downloadSize': downloadSize, 'localSize': localSize}
+                sizeinfo = _("%(downloadSize)s to download, %(localSize)s of disk space freed") % {'downloadSize': downloadSize, 'localSize': localSize}
             else:
-                subs['sizeinfo'] = _("%(downloadSize)s to download, %(localSize)s of disk space required") % {'downloadSize': downloadSize, 'localSize': localSize}
+                sizeinfo = _("%(downloadSize)s to download, %(localSize)s of disk space required") % {'downloadSize': downloadSize, 'localSize': localSize}
+
+        self.builder.get_object("application_size").set_label(sizeinfo)
+
+        # subs['warning_label'] = _("This will remove the following packages:")
+        # subs['warning_cancel'] = _("Cancel")
+        # subs['warning_confirm'] = _("Confirm")
 
         if (len(installations) > 0):
             impacted_packages.append("<li>%s %s</li>" % (_("The following packages would be installed: "), ', '.join(installations)))
         if (len(removals) > 0):
             impacted_packages.append("<li><font color=red>%s %s</font></li>" % (_("The following packages would be removed: "), ', '.join(removals)))
 
-        if (len(installations) > 0 or len(removals) > 0):
-            subs['packagesinfo'] = '<b>%s</b><ul>%s</ul>' % (_("Impact on packages:"), '<br>'.join(impacted_packages))
-        else:
-            subs['packagesinfo'] = ''
-
-        subs['homepage'] = ""
-        subs['homepage_button_visibility'] = "hidden"
-
         if package.pkg.is_installed:
-            subs['action_button_label'] = _("Remove")
-            subs['version'] = package.pkg.installed.version
-            subs['action_button_description'] = _("Installed")
-            subs['iconstatus'] = "/usr/share/linuxmint/mintinstall/data/installed.png"
+            action_button_label = _("Remove")
+            version = package.pkg.installed.version
+            action_button_description = _("Installed")
+            iconstatus = "/usr/share/linuxmint/mintinstall/data/installed.png"
         else:
             if package.pkg.name in BROKEN_PACKAGES:
-                subs['action_button_label'] = _("Not available")
-                subs['version'] = package.pkg.candidate.version
-                subs['action_button_description'] = _("Please use apt-get to install this package.")
-                subs['iconstatus'] = "/usr/share/linuxmint/mintinstall/data/available.png"
+                action_button_label = _("Not available")
+                version = package.pkg.candidate.version
+                action_button_description = _("Please use apt-get to install this package.")
+                iconstatus = "/usr/share/linuxmint/mintinstall/data/available.png"
             else:
-                subs['action_button_label'] = _("Install")
-                subs['version'] = package.pkg.candidate.version
-                subs['action_button_description'] = _("Not installed")
-                subs['iconstatus'] = "/usr/share/linuxmint/mintinstall/data/available.png"
+                action_button_label = _("Install")
+                version = package.pkg.candidate.version
+                action_button_description = _("Not installed")
+                iconstatus = "/usr/share/linuxmint/mintinstall/data/available.png"
 
-        if package.num_reviews > 0:
-            sans26 = ImageFont.truetype(self.FONT, 26)
-            sans10 = ImageFont.truetype(self.FONT, 12)
-            image = "/usr/share/linuxmint/mintinstall/data/" + str(package.avg_rating) + ".png"
-            im = Image.open(image)
-            draw = ImageDraw.Draw(im)
-            color = "#000000"
-            if package.score < 0:
-                color = "#AA5555"
-            elif package.score > 0:
-                color = "#55AA55"
-            draw.text((87, 9), str(package.score), font=sans26, fill="#AAAAAA")
-            draw.text((86, 8), str(package.score), font=sans26, fill="#555555")
-            draw.text((85, 7), str(package.score), font=sans26, fill=color)
-            draw.text((13, 33), u"%s" % (_("%d reviews") % package.num_reviews), font=sans10, fill="#555555")
-            tmpFile = tempfile.NamedTemporaryFile(delete=True)
-            im.save(tmpFile.name + ".png")
-            subs['rating'] = tmpFile.name + ".png"
-            subs['reviews'] = "<b>" + _("Reviews:") + "</b>"
-        else:
-            subs['rating'] = "/usr/share/linuxmint/mintinstall/data/no-reviews.png"
-            subs['reviews'] = ""
+        self.builder.get_object("application_version").set_label(version)
+
+        self.builder.get_object("application_comments").set_label(str(package.num_reviews))
+        self.builder.get_object("application_score").set_label(str(package.score))
+        self.builder.get_object("application_avg_rating").set_label(str(package.avg_rating))
+
+        box_reviews = self.builder.get_object("box_reviews")
+        for child in box_reviews.get_children():
+            box_reviews.remove(child)
 
         reviews = package.reviews
         reviews.sort(key=lambda x: x.date, reverse=True)
-        if len(reviews) > 10:
-            for review in reviews[0:10]:
-                rating = "/usr/share/linuxmint/mintinstall/data/small_" + str(review.rating) + ".png"
-                comment = review.comment.strip()
-                comment = comment.replace("'", "\'")
-                comment = comment.replace('"', '\"')
-                comment = comment.capitalize()
-                comment = unicode(comment, 'UTF-8', 'replace')
-                review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
+        i = 0
+        for review in reviews:
+            comment = review.comment.strip()
+            comment = comment.replace("'", "\'")
+            comment = comment.replace('"', '\"')
+            comment = comment.capitalize()
+            comment = unicode(comment, 'UTF-8', 'replace')
+            review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
+            tile = ReviewTile(review.username, review_date, comment, review.rating)
+            box_reviews.pack_start(tile, False, False, 0)
+            i = i +1
+            if i >= 10:
+                break
+        box_reviews.show_all()
 
-                #self.packageBrowser.execute_script('addReview("%s", "%s", "%s", "%s")' % (review_date, review.username, rating, comment))
-        else:
-            for review in reviews:
-                rating = "/usr/share/linuxmint/mintinstall/data/small_" + str(review.rating) + ".png"
-                comment = review.comment.strip()
-                comment = comment.replace("'", "\'")
-                comment = comment.replace('"', '\"')
-                comment = comment.capitalize()
-                comment = unicode(comment, 'UTF-8', 'replace')
-                review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
+        self.builder.get_object("application_icon").set_from_pixbuf(self.get_application_icon(package, 64))
+        self.builder.get_object("application_name").set_label(appname)
+        self.builder.get_object("application_summary").set_label(summary)
+        self.builder.get_object("application_description").set_label(description)
 
-        #self.main_window.set_sensitive(True)
-        #self.main_window.window.set_cursor(None)
-
-        self.packageLabel.set_label(package.name)
+        # homepage = package.pkg.candidate.homepage
+        # print(homepage)
+        # self.builder.get_object("website_button").set_uri(homepage)
 
         downloadScreenshots = ScreenshotDownloader(self, package.name)
         downloadScreenshots.start()
