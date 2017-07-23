@@ -17,13 +17,16 @@ import thread
 import httplib
 from urlparse import urlparse
 
-from AptClient.AptClient import AptClient
-
 from datetime import datetime
 from subprocess import Popen, PIPE
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib
+
+import aptdaemon.client
+from aptdaemon.enums import *
+from aptdaemon.gtk3widgets import AptErrorDialog, AptConfirmDialog, AptProgressDialog, AptStatusIcon
+import aptdaemon.errors
 
 HOME = os.path.expanduser("~")
 
@@ -64,7 +67,7 @@ else:
         libc = dl.open('/lib/i386-linux-gnu/libc.so.6')
         libc.call('prctl', 15, 'mintinstall', 0, 0, 0)
 
-Gdk.threads_init()
+# Gdk.threads_init()
 
 CACHE_DIR = os.path.expanduser("~/.cache/mintinstall")
 SCREENSHOT_DIR = os.path.join(CACHE_DIR, "screenshots")
@@ -129,7 +132,7 @@ class ScreenshotDownloader(threading.Thread):
             resp = conn.getresponse()
             if resp.status < 400:
                 num_screenshots += 1
-                if self.application.shown_package.name == self.pkg_name:
+                if self.application.current_package.name == self.pkg_name:
                     self.add_screenshot(link, thumb, num_screenshots)
         except Exception, detail:
             print detail
@@ -153,12 +156,12 @@ class ScreenshotDownloader(threading.Thread):
     def add_screenshot(self, link, thumb, number):
         local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkg_name, number))
         local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.pkg_name, number))
-        if self.application.shown_package.name == self.pkg_name:
+        if self.application.current_package.name == self.pkg_name:
             if not os.path.exists(local_name):
                 urllib.urlretrieve (link, local_name)
             if not os.path.exists(local_thumb):
                 urllib.urlretrieve (thumb, local_thumb)
-        if self.application.shown_package.name == self.pkg_name:
+        if self.application.current_package.name == self.pkg_name:
             if (number == 1):
                 pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, -1, 350)
                 self.application.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
@@ -183,166 +186,6 @@ class ScreenshotDownloader(threading.Thread):
         # Set main screenshot
         pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, -1, 350)
         self.application.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
-
-class APTProgressHandler(threading.Thread):
-
-    def __init__(self, application, packages, apt_client, builder):
-        threading.Thread.__init__(self)
-        self.application = application
-        self.apt_client = apt_client
-        self.builder = builder
-        self.status_label = self.builder.get_object("label_ongoing")
-        self.progressbar = self.builder.get_object("progressbar1")
-        self.tree_transactions = self.builder.get_object("tree_transactions")
-        self.packages = packages
-        self.model = Gtk.TreeStore(str, str, str, float, object)
-        self.tree_transactions.set_model(self.model)
-        self.tree_transactions.connect("button-release-event", self.menuPopup)
-
-        self.apt_client.connect("progress", self._on_apt_client_progress)
-        self.apt_client.connect("task_ended", self._on_apt_client_task_ended)
-
-    def _on_apt_client_progress(self, *args):
-        self._update_display()
-
-    def _on_apt_client_task_ended(self, aptClient, task_id, task_type, params, success, error):
-        self._update_display()
-
-        if error:
-            if task_type == "install":
-                title = _("The package '%s' could not be installed") % str(params["package_name"])
-            elif task_type == "remove":
-                title = _("The package '%s' could not be removed") % str(params["package_name"])
-            else:
-                # Fail silently for other task types (update, wait)
-                return
-
-            # By default assume there's a problem with the Internet connection
-            text = str(error)
-
-            # Check to see if no other APT process is running
-            p1 = Popen(['ps', '-U', 'root', '-o', 'comm'], stdout=PIPE)
-            p = p1.communicate()[0]
-            running = None
-            pslist = p.split('\n')
-            for process in pslist:
-                process_name = process.strip()
-                if process_name in ["apt-get", "aptitude", "synaptic", "update-manager", "adept", "adept-notifier", "checkAPT.py"]:
-                    running = process_name
-                    text = "%s\n\n    <b>%s</b>" % (_("Another application is using APT:"), process_name)
-                    break
-
-            self.application.show_dialog_modal(title=title,
-                                               text=text,
-                                               type=Gtk.MessageType.ERROR,
-                                               buttons=Gtk.ButtonsType.OK)
-
-    def _update_display(self):
-        progress_info = self.apt_client.get_progress_info()
-        task_ids = []
-        for task in progress_info["tasks"]:
-            task_is_new = True
-            task_ids.append(task["task_id"])
-            iter = self.model.get_iter_first()
-            while iter is not None:
-                if self.model.get_value(iter, 4)["task_id"] == task["task_id"]:
-                    self.model.set_value(iter, 1, self.get_status_description(task))
-                    self.model.set_value(iter, 2, "%d %%" % task["progress"])
-                    self.model.set_value(iter, 3, task["progress"])
-                    task_is_new = False
-                iter = self.model.iter_next(iter)
-            if task_is_new:
-                iter = self.model.insert_before(None, None)
-                self.model.set_value(iter, 0, self.get_role_description(task))
-                self.model.set_value(iter, 1, self.get_status_description(task))
-                self.model.set_value(iter, 2, "%d %%" % task["progress"])
-                self.model.set_value(iter, 3, task["progress"])
-                self.model.set_value(iter, 4, task)
-        iter = self.model.get_iter_first()
-        while iter is not None:
-            if self.model.get_value(iter, 4)["task_id"] not in task_ids:
-                task = self.model.get_value(iter, 4)
-                iter_to_be_removed = iter
-                iter = self.model.iter_next(iter)
-                self.model.remove(iter_to_be_removed)
-                if task["role"] in ["install", "remove"]:
-                    pkg_name = task["task_params"]["package_name"]
-                    cache = apt.Cache()
-                    new_pkg = cache[pkg_name]
-                    # Update packages
-                    for package in self.packages:
-                        if package.pkg.name == pkg_name:
-                            package.pkg = new_pkg
-                            # If the user is currently viewing this package in the browser,
-                            # refresh the view to show that the package has been installed or uninstalled.
-                            #if self.application.back_button.get_active().get_label() == pkg_name:
-                            #    self.application.show_package(package)
-
-                    # Update apps tree
-                    tree_applications = self.self.builder.get_object("tree_applications")
-                    if tree_applications:
-                        model_apps = tree_applications.get_model()
-                        if isinstance(model_apps, Gtk.TreeModelFilter):
-                            model_apps = model_apps.get_model()
-
-                        if model_apps is not None:
-                            iter_apps = model_apps.get_iter_first()
-                            while iter_apps is not None:
-                                package = model_apps.get_value(iter_apps, 3)
-                                if package.pkg.name == pkg_name:
-                                    model_apps.set_value(iter_apps, 0, self.application.get_application_icon(package, ICON_SIZE))
-                                iter_apps = model_apps.iter_next(iter_apps)
-            else:
-                iter = self.model.iter_next(iter)
-        if progress_info["nb_tasks"] > 0:
-            fraction = progress_info["progress"]
-            progress = str(int(fraction)) + '%'
-        else:
-            fraction = 0
-            progress = ""
-        self.status_label.set_text(_("%d ongoing actions") % progress_info["nb_tasks"])
-        self.progressbar.set_text(progress)
-        self.progressbar.set_fraction(fraction / 100.)
-
-    def menuPopup(self, widget, event):
-        if event.button == 3:
-            model, iter = self.tree_transactions.get_selection().get_selected()
-            if iter is not None:
-                task = model.get_value(iter, 4)
-                menu = Gtk.Menu()
-                cancelMenuItem = Gtk.MenuItem(_("Cancel the task: %s") % model.get_value(iter, 0))
-                cancelMenuItem.set_sensitive(task["cancellable"])
-                menu.append(cancelMenuItem)
-                menu.show_all()
-                cancelMenuItem.connect("activate", self.cancelTask, task)
-                menu.popup(None, None, None, event.button, event.time)
-
-    def cancelTask(self, menu, task):
-        self.apt_client.cancel_task(task["task_id"])
-        self._update_display()
-
-    def get_status_description(self, transaction):
-        descriptions = {"waiting": _("Waiting"), "downloading": _("Downloading"), "running": _("Running"), "finished": _("Finished")}
-        if "status" in transaction:
-            if transaction["status"] in descriptions.keys():
-                return descriptions[transaction["status"]]
-            else:
-                return transaction["status"]
-        else:
-            return ""
-
-    def get_role_description(self, transaction):
-        if "role" in transaction:
-            if transaction["role"] == "install":
-                return _("Installing %s") % transaction["task_params"]["package_name"]
-            elif transaction["role"] == "remove":
-                return _("Removing %s") % transaction["task_params"]["package_name"]
-            elif transaction["role"] == "update_cache":
-                return _("Updating cache")
-            else:
-                return _("No role set")
-        else:
-            return _("No role set")
 
 class PackageTile(Gtk.Button):
 
@@ -493,6 +336,37 @@ class Review(object):
         self.comment = comment
         self.package = None
 
+class MetaTransaction():
+
+    def __init__(self, application, transaction):
+        self.application = application
+        self.transaction = transaction
+        self.package = self.application.current_package
+        transaction.connect("progress-changed", self.on_transaction_progress)
+        # transaction.connect("cancellable-changed", self.on_driver_changes_cancellable_changed)
+        transaction.connect("finished", self.on_transaction_finish)
+        # transaction.connect("error", self.on_driver_changes_error)
+        transaction.run()
+
+    def on_transaction_progress(self, transaction, progress):
+        # self.status_label.set_text(transaction.status)
+        # self.progressbar.set_fraction(progress / 100.0)
+        if self.application.current_package.name == self.package.name:
+            self.application.builder.get_object("notebook_progress").set_current_page(1)
+            self.application.builder.get_object("application_progress").set_fraction(progress / 100.0)
+
+        print(progress)
+
+    def on_transaction_finish(self, transaction, exit_state):
+        if (exit_state == aptdaemon.enums.EXIT_SUCCESS):
+            name = self.package.name
+            self.application.cache = apt.Cache() # reread cache
+            self.package.pkg = self.application.cache[name] # update package
+            if self.application.current_package.name == name:
+                self.application.builder.get_object("notebook_progress").set_current_page(0)
+                self.application.builder.get_object("application_progress").set_fraction(0 / 100.0)
+                self.application.show_package(self.application.current_package, self.application.previous_page)
+
 class CategoryListBoxRow(Gtk.ListBoxRow):
     def __init__(self, category):
         super(Gtk.ListBoxRow, self).__init__()
@@ -505,13 +379,15 @@ class Application():
     PAGE_LANDING = 0
     PAGE_LIST = 1
     PAGE_PACKAGE = 2
-    PAGE_TRANSACTIONS = 3
 
     FONT = "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
 
     @print_timing
     def load_cache(self):
         self.cache = apt.Cache()
+
+    def run(self):
+        self.loop.run()
 
     @print_timing
     def __init__(self):
@@ -523,7 +399,10 @@ class Application():
         self.add_packages()
         self.process_matching_packages()
 
-        self.shown_package = None
+        self.current_package = None
+        self.removals = []
+        self.additions = []
+        self.transactions = {}
 
         # Build the GUI
         glade_file = "/usr/share/linuxmint/mintinstall/mintinstall.glade"
@@ -535,8 +414,11 @@ class Application():
         self.main_window.set_icon_name("mintinstall")
         self.main_window.connect("delete_event", self.close_application)
 
-        self.apt_client = AptClient()
-        self.apt_progress_handler = APTProgressHandler(self, self.packages, self.apt_client, self.builder)
+        self.status_label = self.builder.get_object("label_ongoing")
+        self.progressbar = self.builder.get_object("progressbar1")
+
+        self.ac = aptdaemon.client.AptClient()
+        self.loop = GLib.MainLoop()
 
         self.add_reviews()
         downloadReviews = DownloadReviews(self)
@@ -614,9 +496,6 @@ class Application():
         self.builder.get_object("menubar1").append(viewMenu)
         self.builder.get_object("menubar1").append(helpMenu)
 
-        # Build the applications tables
-        self.tree_transactions = self.builder.get_object("tree_transactions")
-
         self.flowbox_applications = Gtk.FlowBox()
         self.flowbox_applications.set_min_children_per_line(1)
         self.flowbox_applications.set_max_children_per_line(3)
@@ -626,8 +505,6 @@ class Application():
 
         box = self.builder.get_object("scrolledwindow_applications")
         box.add(self.flowbox_applications)
-
-        self.build_transactions_tree(self.tree_transactions)
 
         self.back_button = self.builder.get_object("back_button")
         self.back_button.connect("clicked", self.on_back_button_clicked)
@@ -654,12 +531,6 @@ class Application():
         self.load_picks_on_landing()
         self.load_categories_on_landing()
 
-        self.builder.get_object("label_ongoing").set_text(_("No ongoing actions"))
-        self.builder.get_object("label_transactions_header").set_text(_("Active tasks:"))
-        self.builder.get_object("progressbar1").hide()
-
-        self.builder.get_object("button_transactions").connect("clicked", self.show_transactions)
-
         self.searchentry.grab_focus()
 
         self.builder.get_object("main_window").show_all()
@@ -669,13 +540,57 @@ class Application():
         self.listbox_categories.connect('row-activated', self.on_row_activated)
 
         self.builder.get_object("website_button").connect("clicked", self.on_website_button_clicked)
+        self.builder.get_object("action_button").connect("clicked", self.on_action_button_clicked)
+
+    def on_transaction_progress(self, transaction, progress):
+        self.status_label.set_text(transaction.status)
+        self.progressbar.set_fraction(progress / 100.0)
+
+    def on_transaction_finish(self, transaction, exit_state):
+        self.status_label.set_text()
+        self.progressbar.hide()
+
+    def _run_transaction(self, transaction):
+        self.transactions[self.current_package.name] = MetaTransaction(self, transaction)
+        # dia = AptProgressDialog(transaction, parent=self.main_window)
+        # dia.run(close_on_finished=True, show_error=True,
+        #         reply_handler=lambda: True,
+        #         error_handler=self._on_error)
+
+    def _simulate_trans(self, trans):
+        trans.simulate(reply_handler=lambda: self._confirm_deps(trans),
+                       error_handler=self._on_error)
+
+    def _confirm_deps(self, trans):
+        try:
+            if [pkgs for pkgs in trans.dependencies if pkgs]:
+                dia = AptConfirmDialog(trans, parent=self.main_window)
+                res = dia.run()
+                dia.hide()
+                if res != Gtk.ResponseType.OK:
+                    return
+            self._run_transaction(trans)
+        except Exception as e:
+            print(e)
+
+    def _on_error(self, error):
+        if isinstance(error, aptdaemon.errors.NotAuthorizedError):
+            # Silently ignore auth failures
+            return
+        elif not isinstance(error, aptdaemon.errors.TransactionFailed):
+            # Catch internal errors of the client
+            error = aptdaemon.errors.TransactionFailed(ERROR_UNKNOWN,
+                                                       str(error))
+        dia = AptErrorDialog(error)
+        dia.run()
+        dia.hide()
 
     def on_website_button_clicked(self, button):
-        if self.shown_package is not None:
-            if self.shown_package.pkg.is_installed:
-                homepage = self.shown_package.pkg.installed.homepage
+        if self.current_package is not None:
+            if self.current_package.pkg.is_installed:
+                homepage = self.current_package.pkg.installed.homepage
             else:
-                homepage = self.shown_package.pkg.candidate.homepage
+                homepage = self.current_package.pkg.candidate.homepage
             os.system("xdg-open %s" % homepage)
 
     def load_picks_on_landing(self):
@@ -863,34 +778,14 @@ class Application():
                 output = output[:-3]
             print output
 
-    def show_transactions(self, widget):
-        self.notebook.set_current_page(self.PAGE_TRANSACTIONS)
-
     def close_window(self, widget, window, extra=None):
         try:
             window.hide_all()
         except:
             pass
 
-    def build_transactions_tree(self, treeview):
-        column0 = Gtk.TreeViewColumn(_("Task"), Gtk.CellRendererText(), text=0)
-        column0.set_resizable(True)
-
-        column1 = Gtk.TreeViewColumn(_("Status"), Gtk.CellRendererText(), text=1)
-        column1.set_resizable(True)
-
-        column2 = Gtk.TreeViewColumn(_("Progress"), Gtk.CellRendererProgress(), text=2, value=3)
-        column2.set_resizable(True)
-
-        treeview.append_column(column0)
-        treeview.append_column(column1)
-        treeview.append_column(column2)
-        treeview.set_headers_visible(True)
-        treeview.show()
-
     def close_application(self, window, event=None, exit_code=0):
-        self.apt_client.call_on_completion(lambda c: self.do_close_application(c), exit_code)
-        window.hide()
+        self.do_close_application(exit_code)
 
     def do_close_application(self, exit_code):
         if exit_code == 0:
@@ -898,17 +793,24 @@ class Application():
             pid = os.getpid()
             os.system("kill -9 %s &" % pid)
         else:
-            Gtk.main_quit()
+            #Gtk.main_quit()
+            self.loop.quit()
             sys.exit(exit_code)
 
-    def on_install_button_clicked(self):
+    def on_action_button_clicked(self, button):
         package = self.current_package
         if package is not None:
+            if len(self.removals) > 0:
+                print("Warning, removals: " + " ".join(self.removals))
+            if len(self.additions) > 0:
+                print("Warning, removals: " + " ".join(self.additions))
             if package.pkg.is_installed:
-                self.apt_client.remove_package(package.pkg.name)
+                self.ac.remove_packages([package.pkg.name],
+                                reply_handler=self._simulate_trans,
+                                error_handler=self._on_error)
             else:
                 if package.pkg.name not in BROKEN_PACKAGES:
-                    self.apt_client.install_package(package.pkg.name)
+                    self.ac.install_packages([package.pkg.name], reply_handler=self._simulate_trans, error_handler=self._on_error)
 
     @print_timing
     def add_categories(self):
@@ -1301,6 +1203,8 @@ class Application():
         packages.sort(self.package_compare)
         packages = packages[0:200]
 
+        self.builder.get_object("notebook_progress").set_current_page(0)
+
         for package in packages:
 
             if ":" in package.name and package.name.split(":")[0] in self.packages_dict:
@@ -1332,8 +1236,6 @@ class Application():
     @print_timing
     def show_package(self, package, previous_page):
 
-        self.shown_package = package
-
         self.notebook.set_current_page(self.PAGE_PACKAGE)
         self.previous_page = previous_page
         self.back_button.set_sensitive(True)
@@ -1354,9 +1256,8 @@ class Application():
         summary = package.summary.capitalize()
 
         impacted_packages = []
-        js_removals = []
-        removals = []
-        installations = []
+        self.removals = []
+        self.installations = []
 
         pkg = self.cache[package.name]
         try:
@@ -1370,15 +1271,13 @@ class Application():
 
         changes = self.cache.get_changes()
         for pkg in changes:
+            print(pkg.name)
             if pkg.name == package.name:
                 continue
             if (pkg.is_installed):
-                js_removals.append("'%s'" % pkg.name)
-                removals.append(pkg.name)
+                self.removals.append(pkg.name)
             else:
-                installations.append(pkg.name)
-
-        # subs['removals'] = ", ".join(js_removals)
+                self.installations.append(pkg.name)
 
         downloadSize = str(self.cache.required_download) + _("B")
         if (self.cache.required_download >= 1000):
@@ -1412,10 +1311,7 @@ class Application():
 
         self.builder.get_object("application_size").set_label(sizeinfo)
 
-        if (len(installations) > 0):
-            impacted_packages.append("<li>%s %s</li>" % (_("The following packages would be installed: "), ', '.join(installations)))
-        if (len(removals) > 0):
-            impacted_packages.append("<li><font color=red>%s %s</font></li>" % (_("The following packages would be removed: "), ', '.join(removals)))
+        action_button = self.builder.get_object("action_button")
 
         if package.pkg.is_installed:
             action_button_label = _("Remove")
@@ -1423,16 +1319,23 @@ class Application():
             homepage = package.pkg.installed.homepage
             action_button_description = _("Installed")
             iconstatus = "/usr/share/linuxmint/mintinstall/data/installed.png"
+            action_button.set_sensitive(True)
         else:
             if package.pkg.name in BROKEN_PACKAGES:
                 action_button_label = _("Not available")
                 action_button_description = _("Please use apt-get to install this package.")
+                action_button.set_sensitive(False)
             else:
                 action_button_label = _("Install")
                 action_button_description = _("Not installed")
+                action_button.set_sensitive(True)
             version = package.pkg.candidate.version
             iconstatus = "/usr/share/linuxmint/mintinstall/data/available.png"
             homepage = package.pkg.candidate.homepage
+
+        action_button.set_label(action_button_label)
+        action_button.set_tooltip_text(action_button_description)
+
 
         self.builder.get_object("application_version").set_label(version)
 
@@ -1506,7 +1409,8 @@ class Application():
 if __name__ == "__main__":
     os.system("mkdir -p %s" % SCREENSHOT_DIR)
     model = Classes.Model()
-    Application()
-    Gdk.threads_enter()
-    Gtk.main()
-    Gdk.threads_leave()
+    app = Application()
+    app.run()
+    # Gdk.threads_enter()
+    # Gtk.main()
+    # Gdk.threads_leave()
