@@ -433,6 +433,7 @@ class Application():
 
         # Build the menu
         file_menu = Gtk.MenuItem(_("_File"))
+        file_menu.set_use_underline(True)
         file_submenu = Gtk.Menu()
         file_menu.set_submenu(file_submenu)
         close_menuitem = Gtk.ImageMenuItem(Gtk.STOCK_CLOSE)
@@ -441,6 +442,7 @@ class Application():
         file_submenu.append(close_menuitem)
 
         edit_menu = Gtk.MenuItem(_("_Edit"))
+        edit_menu.set_use_underline(True)
         edit_submenu = Gtk.Menu()
         edit_menu.set_submenu(edit_submenu)
         prefs_menuitem = Gtk.ImageMenuItem(Gtk.STOCK_PREFERENCES)
@@ -469,6 +471,7 @@ class Application():
             edit_submenu.append(sources_menuitem)
 
         view_menu = Gtk.MenuItem(_("_View"))
+        view_menu.set_use_underline(True)
         view_submenu = Gtk.Menu()
         view_menu.set_submenu(view_submenu)
 
@@ -484,6 +487,7 @@ class Application():
         view_submenu.append(installed_packages_menuitem)
 
         help_menu = Gtk.MenuItem(_("_Help"))
+        help_menu.set_use_underline(True)
         help_submenu = Gtk.Menu()
         help_menu.set_submenu(help_submenu)
         about_menuitem = Gtk.ImageMenuItem(Gtk.STOCK_ABOUT)
