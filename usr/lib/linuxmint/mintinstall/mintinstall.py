@@ -497,6 +497,9 @@ class Application():
         self.builder.get_object("menubar1").append(helpMenu)
 
         self.flowbox_applications = Gtk.FlowBox()
+        self.flowbox_applications.set_margin_start(12)
+        self.flowbox_applications.set_margin_end(12)
+        self.flowbox_applications.set_margin_top(6)
         self.flowbox_applications.set_min_children_per_line(1)
         self.flowbox_applications.set_max_children_per_line(3)
         self.flowbox_applications.set_row_spacing(6)
