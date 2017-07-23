@@ -1,6 +1,4 @@
 dropbox
-nemo-dropbox
-caja-dropbox
 googleearth
 virtualbox-qt
 miro
@@ -17,7 +15,6 @@ vlc
 cheese
 mpv
 minitube
-xfburn
 gimp
 inkscape
 blender
@@ -27,14 +24,14 @@ picasa
 scribus
 avidemux
 banshee
-gtk-recordmydesktop
 wine
 steam-launcher
 steam
 steam:i386
 minecraft-installer
 spotify
-spotify-client-0.9.17
 spotify-client
 sublime-text
 mint-meta-codecs
+gnome-maps
+gnome-clock

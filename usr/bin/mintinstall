@@ -1,18 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 import os
-import commands
-import gettext
-
-gettext.install("mintinstall", "/usr/share/linuxmint/locale")
-
-launcher = commands.getoutput("/usr/lib/linuxmint/common/mint-which-launcher.py \"%s\"" % _("Please enter your password to start the software manager"))
-
-status = 9  # status code 9 is used to restart the app
-
-if os.getuid() != 0:
-    os.system("LC_NUMERIC='C' %s mintinstall" % launcher)
-    status = 0  # Don't call mintinstall
-
-while status == 9:
-    status = int(os.system("LC_NUMERIC='C' /usr/lib/linuxmint/mintinstall/mintinstall.py") / 256)  # exit code is upper 8 bits
+os.system("/usr/lib/linuxmint/mintinstall/mintinstall.py")
