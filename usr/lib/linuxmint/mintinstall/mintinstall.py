@@ -517,6 +517,7 @@ class Application():
         self.flowbox_applications.set_row_spacing(6)
         self.flowbox_applications.set_column_spacing(6)
         self.flowbox_applications.set_homogeneous(True)
+        self.flowbox_applications.set_valign(Gtk.Align.START)
 
         box = self.builder.get_object("scrolledwindow_applications")
         box.add(self.flowbox_applications)
