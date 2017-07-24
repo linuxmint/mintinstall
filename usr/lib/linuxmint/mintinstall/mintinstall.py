@@ -196,25 +196,30 @@ class PackageTile(Gtk.Button):
         label_name = Gtk.Label(xalign=0)
         label_name.set_markup("<b>%s</b>" % package.name)
         label_name.set_justify(Gtk.Justification.LEFT)
-        label_summary = Gtk.Label(xalign=0)
+        label_summary = Gtk.Label()
         label_summary.set_markup("<small>%s</small>" % summary)
-        label_summary.set_justify(Gtk.Justification.LEFT)
+        label_summary.set_alignment(0.0, 0.0)
+        label_summary.set_line_wrap(True)
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vbox.set_margin_start(6)
+        vbox.set_margin_top(1)
+        vbox.set_spacing(2)
 
         name_box = Gtk.Box()
-        name_box.pack_start(label_name, False, False, 3)
+        name_box.set_spacing(6)
+        name_box.pack_start(label_name, False, False, 0)
         if package.pkg.is_installed:
             installed_mark = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/linuxmint/mintinstall/data/emblem-installed.png", 15, 15)
             installed_mark = Gtk.Image.new_from_pixbuf(installed_mark)
-            name_box.pack_start(installed_mark, False, False, 3)
+            name_box.pack_start(installed_mark, False, False, 0)
 
-        vbox.pack_start(name_box, True, True, 3)
-        vbox.pack_start(label_summary, True, True, 3)
+        vbox.pack_start(name_box, False, False, 0)
+        vbox.pack_start(label_summary, False, False, 0)
 
         hbox = Gtk.Box()
-        hbox.pack_start(icon, False, False, 3)
-        hbox.pack_start(vbox, True, True, 3)
+        hbox.pack_start(icon, False, False, 0)
+        hbox.pack_start(vbox, False, False, 0)
 
         self.add(hbox)
 
