@@ -765,7 +765,7 @@ class Application():
         dlg.set_logo(GdkPixbuf.Pixbuf.new_from_file("/usr/share/pixmaps/mintinstall.svg"))
 
         def close(w, res):
-            if res == Gtk.ResponseType.CANCEL:
+            if res == Gtk.ResponseType.CANCEL or res == Gtk.ResponseType.DELETE_EVENT:
                 w.hide()
         dlg.connect("response", close)
         dlg.show()
