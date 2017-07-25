@@ -742,6 +742,7 @@ class Application():
 
     def open_about(self, widget):
         dlg = Gtk.AboutDialog()
+        dlg.set_transient_for(self.main_window)
         dlg.set_title(_("About"))
         dlg.set_program_name("mintinstall")
         dlg.set_comments(_("Software Manager"))
