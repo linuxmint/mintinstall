@@ -88,6 +88,10 @@ ALIASES['mint-meta-codecs'] = "Multimedia Codecs"
 ALIASES['mint-meta-codecs-kde'] = "Multimedia Codecs for KDE"
 ALIASES['mint-meta-debian-codecs'] = "Multimedia Codecs"
 
+def list_header_func(row, before, user_data):
+    if before and not row.get_header():
+        row.set_header(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
+
 class DownloadReviews(threading.Thread):
 
     def __init__(self, application):
@@ -163,7 +167,7 @@ class ScreenshotDownloader(threading.Thread):
                 urllib.urlretrieve (thumb, local_thumb)
         if self.application.current_package.name == self.pkg_name:
             if (number == 1):
-                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, -1, 350)
+                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, 450, -1)
                 self.application.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
             else:
                 if (number == 2):
@@ -246,32 +250,44 @@ class VerticalPackageTile(Gtk.Button):
 
         self.add(vbox)
 
-class ReviewTile(Gtk.Box):
+class ReviewTile(Gtk.ListBoxRow):
     def __init__(self, username, date, comment, rating):
-        super(Gtk.Box, self).__init__()
+        super(Gtk.ListBoxRow, self).__init__()
 
-        box_stars = Gtk.Box()
+        main_box = Gtk.Box()
+        main_box.set_margin_start(12)
+        main_box.set_margin_end(12)
+        main_box.set_margin_top(12)
+        main_box.set_margin_bottom(12)
+
+        ratings_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        stars_box = Gtk.Box()
         for i in range(rating):
-            box_stars.pack_start(Gtk.Image.new_from_icon_name("starred", Gtk.IconSize.MENU), False, False, 0)
-        for i in range(5-rating):
-            box_stars.pack_start(Gtk.Image.new_from_icon_name("non-starred", Gtk.IconSize.MENU), False, False, 0)
+            stars_box.pack_start(Gtk.Image.new_from_icon_name("starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
+        for i in range(5 - rating):
+            stars_box.pack_start(Gtk.Image.new_from_icon_name("non-starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
+        ratings_box.pack_start(stars_box, False, False, 0)
+
+        label_name = Gtk.Label(xalign=0.0)
+        label_name.set_markup("<small>%s</small>" % username)
+        ratings_box.pack_start(label_name, False, False, 0)
+
+        label_date = Gtk.Label(xalign=0.0)
+        label_date.set_markup("<small>%s</small>" % date)
+        ratings_box.pack_start(label_date, False, False, 0)
 
         label_comment = Gtk.Label(xalign=0.0)
         label_comment.set_label(comment)
+        label_comment.set_line_wrap(True)
 
-        label_name = Gtk.Label(xalign=0.0)
-        label_name.set_markup("<small>%s (%s)</small>" % (username, date))
+        comment_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        comment_box.set_margin_start(12)
+        comment_box.pack_start(label_comment, False, False, 0)
 
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        vbox.set_border_width(6)
-        vbox.pack_start(label_comment, False, False, 0)
-        vbox.pack_start(label_name, False, False, 0)
+        main_box.pack_start(ratings_box, False, False, 0)
+        main_box.pack_start(comment_box, True, True, 0)
 
-        hbox = Gtk.Box()
-        hbox.pack_start(box_stars, True, True, 0)
-        hbox.pack_start(vbox, True, True, 0)
-
-        self.add(hbox)
+        self.add(main_box)
 
 class Category:
 
@@ -1355,12 +1371,15 @@ class Application():
 
         self.builder.get_object("application_version").set_label(version)
 
-        self.builder.get_object("application_num_reviews").set_label(str(package.num_reviews))
+        label_num_reviews = self.builder.get_object("application_num_reviews")
+        label_num_reviews.set_markup("<small><i>%s %s</i></small>" % (str(package.num_reviews), _("Reviews")))
         self.builder.get_object("application_avg_rating").set_label(str(package.avg_rating))
 
         box_reviews = self.builder.get_object("box_reviews")
         for child in box_reviews.get_children():
             box_reviews.remove(child)
+
+        box_reviews.set_header_func(list_header_func, None)
 
         reviews = package.reviews
         reviews.sort(key=lambda x: x.date, reverse=True)
@@ -1373,7 +1392,8 @@ class Application():
             comment = unicode(comment, 'UTF-8', 'replace')
             review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
             tile = ReviewTile(review.username, review_date, comment, review.rating)
-            box_reviews.pack_start(tile, False, False, 0)
+            # box_reviews.pack_start(tile, False, False, 0)
+            box_reviews.add(tile)
             i = i +1
             if i >= 10:
                 break
@@ -1398,7 +1418,9 @@ class Application():
         self.builder.get_object("application_icon").set_from_pixbuf(self.get_application_icon(package, 64))
         self.builder.get_object("application_name").set_label(appname)
         self.builder.get_object("application_summary").set_label(summary)
-        self.builder.get_object("application_description").set_label(description)
+        app_description = self.builder.get_object("application_description")
+        app_description.set_label(description)
+        app_description.set_line_wrap(True)
 
         if homepage is not None and homepage != "":
             self.builder.get_object("website_button").show()
