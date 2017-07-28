@@ -536,6 +536,7 @@ class Application():
         self.builder.get_object("main_window").show_all()
 
         self.listbox_categories = Gtk.ListBox()
+        self.listbox_categories.set_size_request(125, -1)
         self.builder.get_object("box_subcategories").pack_start(self.listbox_categories, False, False, 0)
         self.listbox_categories.connect('row-activated', self.on_row_activated)
 
