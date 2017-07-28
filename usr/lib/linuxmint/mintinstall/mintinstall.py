@@ -1,19 +1,16 @@
 #!/usr/bin/python2
 # -*- coding: UTF-8 -*-
 
-import Classes
 import sys
 import os
 import commands
 import gi
 import gettext
-import tempfile
 import threading
 import time
 import apt
 import urllib
 import urllib2
-import thread
 import httplib
 from urlparse import urlparse
 
@@ -66,8 +63,6 @@ else:
     elif os.path.exists('/lib/i386-linux-gnu/libc.so.6'):
         libc = dl.open('/lib/i386-linux-gnu/libc.so.6')
         libc.call('prctl', 15, 'mintinstall', 0, 0, 0)
-
-# Gdk.threads_init()
 
 CACHE_DIR = os.path.expanduser("~/.cache/mintinstall")
 SCREENSHOT_DIR = os.path.join(CACHE_DIR, "screenshots")
@@ -136,8 +131,11 @@ class ScreenshotDownloader(threading.Thread):
             resp = conn.getresponse()
             if resp.status < 400:
                 num_screenshots += 1
-                if self.application.current_package.name == self.pkg_name:
-                    self.add_screenshot(link, thumb, num_screenshots)
+                local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkg_name, num_screenshots))
+                local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.pkg_name, num_screenshots))
+                urllib.urlretrieve (link, local_name)
+                urllib.urlretrieve (thumb, local_thumb)
+                self.application.add_screenshot(self.pkg_name, num_screenshots)
         except Exception, detail:
             print detail
 
@@ -153,43 +151,13 @@ class ScreenshotDownloader(threading.Thread):
                     num_screenshots += 1
                     thumb = "http://screenshots.debian.net%s" % image['src']
                     link = thumb.replace("_small", "_large")
-                    self.add_screenshot(link, thumb, num_screenshots)
+                    local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkg_name, num_screenshots))
+                    local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.pkg_name, num_screenshots))
+                    urllib.urlretrieve (link, local_name)
+                    urllib.urlretrieve (thumb, local_thumb)
+                    self.application.add_screenshot(self.pkg_name, num_screenshots)
         except Exception, detail:
             print detail
-
-    def add_screenshot(self, link, thumb, number):
-        local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkg_name, number))
-        local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.pkg_name, number))
-        if self.application.current_package.name == self.pkg_name:
-            if not os.path.exists(local_name):
-                urllib.urlretrieve (link, local_name)
-            if not os.path.exists(local_thumb):
-                urllib.urlretrieve (thumb, local_thumb)
-        if self.application.current_package.name == self.pkg_name:
-            if (number == 1):
-                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, 450, -1)
-                self.application.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
-            else:
-                if (number == 2):
-                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % self.pkg_name), 100, -1)
-                    event_box = Gtk.EventBox()
-                    image = Gtk.Image.new_from_pixbuf(pixbuf)
-                    event_box.add(image)
-                    event_box.connect("button-release-event", self.on_screenshot_clicked, image, os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % self.pkg_name), os.path.join(SCREENSHOT_DIR, "%s_1.png" % self.pkg_name))
-                    self.application.builder.get_object("box_more_screenshots").pack_start(event_box, False, False, 0)
-                    event_box.show_all()
-                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_thumb, 100, -1)
-                event_box = Gtk.EventBox()
-                image = Gtk.Image.new_from_pixbuf(pixbuf)
-                event_box.add(image)
-                event_box.connect("button-release-event", self.on_screenshot_clicked, image, local_thumb, local_name)
-                self.application.builder.get_object("box_more_screenshots").pack_start(event_box, False, False, 0)
-                event_box.show_all()
-
-    def on_screenshot_clicked(self, eventbox, event, image, local_thumb, local_name):
-        # Set main screenshot
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, -1, 350)
-        self.application.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
 
 class PackageTile(Gtk.Button):
 
@@ -573,6 +541,38 @@ class Application():
 
         self.builder.get_object("website_button").connect("clicked", self.on_website_button_clicked)
         self.builder.get_object("action_button").connect("clicked", self.on_action_button_clicked)
+
+    def add_screenshot(self, pkg_name, number):
+        local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (pkg_name, number))
+        local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (pkg_name, number))
+        if self.current_package.name == pkg_name:
+            if (number == 1):
+                if os.path.exists(local_name):
+                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, 450, -1)
+                    self.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
+                    self.builder.get_object("main_screenshot").show()
+            else:
+                if os.path.exists(local_name) and os.path.exists(local_thumb):
+                    if (number == 2):
+                        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % pkg_name), 100, -1)
+                        event_box = Gtk.EventBox()
+                        image = Gtk.Image.new_from_pixbuf(pixbuf)
+                        event_box.add(image)
+                        event_box.connect("button-release-event", self.on_screenshot_clicked, image, os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % pkg_name), os.path.join(SCREENSHOT_DIR, "%s_1.png" % pkg_name))
+                        self.builder.get_object("box_more_screenshots").pack_start(event_box, False, False, 0)
+                        event_box.show_all()
+                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_thumb, 100, -1)
+                    event_box = Gtk.EventBox()
+                    image = Gtk.Image.new_from_pixbuf(pixbuf)
+                    event_box.add(image)
+                    event_box.connect("button-release-event", self.on_screenshot_clicked, image, local_thumb, local_name)
+                    self.builder.get_object("box_more_screenshots").pack_start(event_box, False, False, 0)
+                    event_box.show_all()
+
+    def on_screenshot_clicked(self, eventbox, event, image, local_thumb, local_name):
+        # Set main screenshot
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, -1, 350)
+        self.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
 
     def on_transaction_progress(self, transaction, progress):
         self.status_label.set_text(transaction.status)
@@ -1276,11 +1276,6 @@ class Application():
         self.searchentry.set_text("")
         self.current_package = package
 
-        self.builder.get_object("main_screenshot").set_from_file("/usr/share/linuxmint/mintinstall/data/no-screenshot.png")
-        box_more_screenshots = self.builder.get_object("box_more_screenshots")
-        for child in box_more_screenshots.get_children():
-            box_more_screenshots.remove(child)
-
         # Load package info
         score = 0
         appname = self.get_simple_name(package.name)
@@ -1304,7 +1299,6 @@ class Application():
 
         changes = self.cache.get_changes()
         for pkg in changes:
-            print(pkg.name)
             if pkg.name == package.name:
                 continue
             if (pkg.is_installed):
@@ -1351,7 +1345,6 @@ class Application():
             version = package.pkg.installed.version
             homepage = package.pkg.installed.homepage
             action_button_description = _("Installed")
-            iconstatus = "/usr/share/linuxmint/mintinstall/data/installed.png"
             action_button.set_sensitive(True)
         else:
             if package.pkg.name in BROKEN_PACKAGES:
@@ -1363,7 +1356,6 @@ class Application():
                 action_button_description = _("Not installed")
                 action_button.set_sensitive(True)
             version = package.pkg.candidate.version
-            iconstatus = "/usr/share/linuxmint/mintinstall/data/available.png"
             homepage = package.pkg.candidate.homepage
 
         action_button.set_label(action_button_label)
@@ -1428,8 +1420,23 @@ class Application():
         else:
             self.builder.get_object("website_button").hide()
 
-        downloadScreenshots = ScreenshotDownloader(self, package.name)
-        downloadScreenshots.start()
+        # Screenshots
+        box_more_screenshots = self.builder.get_object("box_more_screenshots")
+        for child in box_more_screenshots.get_children():
+            box_more_screenshots.remove(child)
+
+        main_screenshot = os.path.join(SCREENSHOT_DIR, "%s_1.png" % package.name)
+        main_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % package.name)
+        if os.path.exists(main_screenshot) and os.path.exists(main_thumb):
+            main_screenshot = GdkPixbuf.Pixbuf.new_from_file_at_size(main_screenshot, 450, -1)
+            self.builder.get_object("main_screenshot").set_from_pixbuf(main_screenshot)
+            self.builder.get_object("main_screenshot").show()
+            for i in range(2, 5):
+                self.add_screenshot(package.name, i)
+        else:
+            self.builder.get_object("main_screenshot").hide()
+            downloadScreenshots = ScreenshotDownloader(self, package.name)
+            downloadScreenshots.start()
 
     def package_compare(self, x, y):
         if x.score == y.score:
@@ -1447,9 +1454,5 @@ class Application():
 
 if __name__ == "__main__":
     os.system("mkdir -p %s" % SCREENSHOT_DIR)
-    model = Classes.Model()
     app = Application()
     app.run()
-    # Gdk.threads_enter()
-    # Gtk.main()
-    # Gdk.threads_leave()
