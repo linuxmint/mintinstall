@@ -357,11 +357,18 @@ class MetaTransaction():
                 self.application.show_package(self.application.current_package, self.application.previous_page)
 
 class CategoryListBoxRow(Gtk.ListBoxRow):
-    def __init__(self, category):
+
+    def __init__(self, category, is_all=False):
         super(Gtk.ListBoxRow, self).__init__()
+
         self.category = category
-        label = Gtk.Label(category.name, xalign=0, margin=10)
-        self.add(label)
+
+        if is_all:
+            label = Gtk.Label(_("All"), xalign=0, margin=10)
+            self.add(label)
+        else:
+            label = Gtk.Label(category.name, xalign=0, margin=10)
+            self.add(label)
 
 class Application():
 
@@ -1160,12 +1167,17 @@ class Application():
 
     def show_subcategories(self, category):
         # Load subcategories
+        box = self.builder.get_object("box_subcategories")
         if len(category.subcategories) > 0:
-            theme = Gtk.IconTheme.get_default()
+            row = CategoryListBoxRow(category, is_all=True)
+            self.listbox_categories.add(row)
+
             for cat in category.subcategories:
                 row = CategoryListBoxRow(cat)
                 self.listbox_categories.add(row)
-                self.listbox_categories.show_all()
+                box.show_all()
+        else:
+            box.hide()
 
     def on_row_activated(self, listbox, row):
         self.show_category(row.category)
