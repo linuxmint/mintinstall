@@ -25,8 +25,6 @@ from aptdaemon.enums import *
 from aptdaemon.gtk3widgets import AptErrorDialog, AptConfirmDialog, AptProgressDialog, AptStatusIcon
 import aptdaemon.errors
 
-HOME = os.path.expanduser("~")
-
 ICON_SIZE = 48
 
 #Hardcoded mouse back button key for button-press-event
@@ -153,6 +151,67 @@ class ScreenshotDownloader(threading.Thread):
                     self.application.add_screenshot(self.pkg_name, num_screenshots)
         except Exception, detail:
             print detail
+
+class FeatureTile(Gtk.Button):
+    def __init__(self, package, background, color, text_shadow, border_color):
+        self.package = package
+        super(Gtk.Button, self).__init__()
+
+        css = """
+#FeatureTile
+{
+    background: %(background)s;
+    color: %(color)s;
+    text-shadow: %(text_shadow)s;
+    border-color: %(border_color)s;
+    -GtkWidget-focus-padding: 0;
+    outline-color: alpha(%(color)s, 0.75);
+    outline-style: dashed;
+    outline-offset: 2px;
+}
+
+#FeatureTitle {
+    color: %(color)s;
+    text-shadow: %(text_shadow)s;
+    font-weight: bold;
+    font-size: 24px;
+}
+
+#FeatureSummary {
+    color: %(color)s;
+    text-shadow: %(text_shadow)s;
+    font-weight: bold;
+    font-size: 12px;
+}
+""" % {'background':background, 'color':color, 'text_shadow':text_shadow, 'border_color':border_color}
+
+        self.set_name("FeatureTile")
+
+        style_provider = Gtk.CssProvider()
+        style_provider.load_from_data(css)
+        Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(), style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+        label_name = Gtk.Label(xalign=0.0)
+        label_name.set_label(package.name)
+        label_name.set_name("FeatureTitle")
+
+        label_summary = Gtk.Label(xalign=0.0)
+        label_summary.set_label(package.summary)
+        label_summary.set_name("FeatureSummary")
+
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        vbox.set_border_width(6)
+
+        vbox.pack_start(Gtk.Label(), False, False, 50)
+        vbox.pack_start(label_name, False, False, 0)
+        vbox.pack_start(label_summary, True, True, 0)
+
+        hbox = Gtk.Box()
+        label_left = Gtk.Label()
+        hbox.pack_start(label_left, True, True, 200)
+        hbox.pack_start(vbox, True, True, 0)
+
+        self.add(hbox)
 
 class PackageTile(Gtk.Button):
 
@@ -495,6 +554,7 @@ class Application():
 
         self.generic_available_icon_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(self.generic_available_icon_path, ICON_SIZE, ICON_SIZE)
 
+        self.load_featured_on_landing()
         self.load_picks_on_landing()
         self.load_categories_on_landing()
 
@@ -584,6 +644,28 @@ class Application():
         dia.run()
         dia.hide()
 
+    def load_featured_on_landing(self):
+        box = self.builder.get_object("box_featured")
+        flowbox = Gtk.FlowBox()
+        flowbox.set_min_children_per_line(1)
+        flowbox.set_max_children_per_line(1)
+        flowbox.set_row_spacing(12)
+        flowbox.set_column_spacing(12)
+        flowbox.set_homogeneous(True)
+
+        background="url('/usr/share/linuxmint/mintinstall/featured/builder.png') left center / 100% auto no-repeat, url('/usr/share/linuxmint/mintinstall/featured/builder-bg.jpg') center / cover no-repeat"
+        stroke="#000000"
+        text="#ffffff"
+        text_shadow="0 1px 1px rgba(0,0,0,0.5)"
+
+        pkg = self.cache["glade"]
+        package = Package("glade", pkg)
+        tile = FeatureTile(package, background, text, text_shadow, stroke)
+        tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LANDING)
+        flowbox.insert(tile, -1)
+        box.pack_start(flowbox, True, True, 0)
+        box.show_all()
+
     def load_picks_on_landing(self):
         box = self.builder.get_object("box_picks")
         flowbox = Gtk.FlowBox()
@@ -593,16 +675,15 @@ class Application():
         flowbox.set_column_spacing(12)
         flowbox.set_homogeneous(True)
         featured = 0
-        for package in self.featured_category.packages:
-            if not package.pkg.is_installed:
-                icon = self.get_application_icon(package, ICON_SIZE)
-                icon = Gtk.Image.new_from_pixbuf(icon)
-                tile = VerticalPackageTile(package, icon)
-                tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LANDING)
-                flowbox.insert(tile, -1)
-                featured = featured + 1
-                if featured >= 12:
-                    break
+        for package in self.picks_category.packages:
+            icon = self.get_application_icon(package, ICON_SIZE)
+            icon = Gtk.Image.new_from_pixbuf(icon)
+            tile = VerticalPackageTile(package, icon)
+            tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LANDING)
+            flowbox.insert(tile, -1)
+            featured = featured + 1
+            if featured >= 12:
+                break
         box.pack_start(flowbox, True, True, 0)
         box.show_all()
 
@@ -745,7 +826,7 @@ class Application():
         self.sections = {}
         self.root_categories = {}
 
-        self.featured_category = Category("", None, self.categories)
+        self.picks_category = Category("", None, self.categories)
         edition = ""
         try:
             with open("/etc/linuxmint/info") as f:
@@ -754,9 +835,9 @@ class Application():
         except:
             pass
         if "KDE" in edition:
-            self.featured_category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/featured-kde.list")
+            self.picks_category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/picks-kde.list")
         else:
-            self.featured_category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/featured.list")
+            self.picks_category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/picks.list")
 
         # INTERNET
         category = Category(_("Internet"), None, self.categories)
