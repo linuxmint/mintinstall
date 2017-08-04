@@ -1109,7 +1109,7 @@ class Application():
     #Copied from the Cinnamon Project cinnamon-settings.py
     #Goes back when the Backspace or Home key on the keyboard is typed
     def on_keypress(self, widget, event):
-        if self.main_window.get_focus() != self.searchentry:
+        if self.main_window.get_focus() != self.searchentry and event.keyval in [Gdk.KEY_BackSpace, Gdk.KEY_Home]:
             self.go_back_action()
             return True
         return False
