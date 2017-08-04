@@ -19,14 +19,18 @@ set -e
 
 case "$1" in
     configure)
-	if which update-mime-database > /dev/null
-	then
-		update-mime-database /usr/share/mime
-	fi
-	if which /usr/bin/update-desktop-database > /dev/null
-	then
-		update-desktop-database
-	fi
+    if which update-mime-database > /dev/null 2>&1
+    then
+        update-mime-database /usr/share/mime
+    fi
+    if which /usr/bin/update-desktop-database > /dev/null 2>&1
+    then
+        update-desktop-database
+    fi
+    if which glib-compile-schemas >/dev/null 2>&1
+    then
+        glib-compile-schemas /usr/share/glib-2.0/schemas
+    fi
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

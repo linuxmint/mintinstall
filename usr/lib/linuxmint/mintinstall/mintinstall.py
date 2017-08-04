@@ -18,7 +18,7 @@ from datetime import datetime
 from subprocess import Popen, PIPE
 
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio
 
 import aptdaemon.client
 from aptdaemon.enums import *
@@ -33,14 +33,15 @@ ICON_SIZE = 48
 #May not work on all mice
 MOUSE_BACK_BUTTON = 8
 
+SEARCH_IN_SUMMARY = "search-in-summary"
+SEARCH_IN_DESCRIPTION = "search-in-description"
+
 # Don't let mintinstall run as root
 if os.getuid() == 0:
     print "The software manager should not be run as root. Please run it in user mode."
     sys.exit(1)
 
 gi.require_version("Gtk", "3.0")
-
-from configobj import ConfigObj
 
 def print_timing(func):
     def wrapper(*arg):
@@ -429,7 +430,7 @@ class Application():
             self.export_listing()
             sys.exit(0)
 
-        self.prefs = self.read_configuration()
+        self.settings = Gio.Settings("com.linuxmint.install")
 
         # Build the menu
         file_menu = Gtk.MenuItem(_("_File"))
@@ -453,12 +454,12 @@ class Application():
         prefs_menuitem.set_submenu(prefs_menu)
 
         search_summary_menuitem = Gtk.CheckMenuItem(_("Search in packages summary (slower search)"))
-        search_summary_menuitem.set_active(self.prefs["search_in_summary"])
-        search_summary_menuitem.connect("toggled", self.set_search_filter, "search_in_summary")
+        search_summary_menuitem.set_active(self.settings.get_boolean(SEARCH_IN_SUMMARY))
+        search_summary_menuitem.connect("toggled", self.set_search_filter, SEARCH_IN_SUMMARY)
 
         search_description_menuitem = Gtk.CheckMenuItem(_("Search in packages description (even slower search)"))
-        search_description_menuitem.set_active(self.prefs["search_in_description"])
-        search_description_menuitem.connect("toggled", self.set_search_filter, "search_in_description")
+        search_description_menuitem.set_active(self.settings.get_boolean(SEARCH_IN_DESCRIPTION))
+        search_description_menuitem.connect("toggled", self.set_search_filter, SEARCH_IN_DESCRIPTION)
 
         prefs_menu.append(search_summary_menuitem)
         prefs_menu.append(search_description_menuitem)
@@ -659,50 +660,13 @@ class Application():
 
     def on_search_terms_changed(self, entry):
         terms = entry.get_text()
-        print(terms)
         if terms != "" and len(terms) >= 3:
             self.show_search_results(terms)
 
-    def set_filter(self, checkmenuitem, configName):
-        config = ConfigObj(HOME + "/.linuxmint/mintinstall.conf")
-        if (config.has_key('filter')):
-            config['filter'][configName] = checkmenuitem.get_active()
-        else:
-            config['filter'] = {}
-            config['filter'][configName] = checkmenuitem.get_active()
-        config.write()
-        self.prefs = self.read_configuration()
-        if self.model_filter is not None:
-            self.model_filter.refilter()
-
-    def set_search_filter(self, checkmenuitem, configName):
-        config = ConfigObj(HOME + "/.linuxmint/mintinstall.conf")
-        if (config.has_key('search')):
-            config['search'][configName] = checkmenuitem.get_active()
-        else:
-            config['search'] = {}
-            config['search'][configName] = checkmenuitem.get_active()
-        config.write()
-        self.prefs = self.read_configuration()
+    def set_search_filter(self, checkmenuitem, key):
+        self.settings.set_boolean(key, checkmenuitem.get_active())
         if (self.searchentry.get_text() != ""):
             self.show_search_results(self.searchentry.get_text())
-
-    def read_configuration(self):
-
-        config = ConfigObj(HOME + "/.linuxmint/mintinstall.conf")
-        prefs = {}
-
-        #Read search info
-        try:
-            prefs["search_in_summary"] = (config['search']['search_in_summary'] == "True")
-        except:
-            prefs["search_in_summary"] = True
-        try:
-            prefs["search_in_description"] = (config['search']['search_in_description'] == "True")
-        except:
-            prefs["search_in_description"] = False
-
-        return prefs
 
     def open_repositories(self, widget):
         if os.path.exists("/usr/bin/software-sources"):
@@ -1199,15 +1163,18 @@ class Application():
 
         self._searched_packages = []
 
+        search_in_summary = self.settings.get_boolean(SEARCH_IN_SUMMARY)
+        search_in_description = self.settings.get_boolean(SEARCH_IN_DESCRIPTION)
+
         for package in self.packages:
             visible = False
             if termsUpper in package.name.upper():
                 visible = True
             else:
                 if (package.candidate is not None):
-                    if (self.prefs["search_in_summary"] and termsUpper in package.summary.upper()):
+                    if (search_in_summary and termsUpper in package.summary.upper()):
                         visible = True
-                    elif(self.prefs["search_in_description"] and termsUpper in package.candidate.description.upper()):
+                    elif(search_in_description and termsUpper in package.candidate.description.upper()):
                         visible = True
 
             if visible:
