@@ -55,19 +55,9 @@ def print_timing(func):
 # i18n
 gettext.install("mintinstall", "/usr/share/linuxmint/locale")
 
-architecture = commands.getoutput("uname -a")
-if (architecture.find("x86_64") >= 0):
-    import ctypes
-    libc = ctypes.CDLL('libc.so.6')
-    libc.prctl(15, 'mintinstall', 0, 0, 0)
-else:
-    import dl
-    if os.path.exists('/lib/libc.so.6'):
-        libc = dl.open('/lib/libc.so.6')
-        libc.call('prctl', 15, 'mintinstall', 0, 0, 0)
-    elif os.path.exists('/lib/i386-linux-gnu/libc.so.6'):
-        libc = dl.open('/lib/i386-linux-gnu/libc.so.6')
-        libc.call('prctl', 15, 'mintinstall', 0, 0, 0)
+
+import setproctitle
+setproctitle.setproctitle("mintinstall")
 
 CACHE_DIR = os.path.expanduser("~/.cache/mintinstall")
 SCREENSHOT_DIR = os.path.join(CACHE_DIR, "screenshots")
@@ -379,8 +369,6 @@ class Application():
     PAGE_LIST = 1
     PAGE_PACKAGE = 2
 
-    FONT = "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
-
     @print_timing
     def load_cache(self):
         self.cache = apt.Cache()
@@ -447,11 +435,6 @@ class Application():
         edit_menu.set_use_underline(True)
         edit_submenu = Gtk.Menu()
         edit_menu.set_submenu(edit_submenu)
-        prefs_menuitem = Gtk.ImageMenuItem.new_with_label(_("Preferences"))
-        image = Gtk.Image.new_from_icon_name("preferences-other-symbolic", Gtk.IconSize.MENU)
-        prefs_menuitem.set_image(image)
-        prefs_menu = Gtk.Menu()
-        prefs_menuitem.set_submenu(prefs_menu)
 
         search_summary_menuitem = Gtk.CheckMenuItem(_("Search in packages summary (slower search)"))
         search_summary_menuitem.set_active(self.settings.get_boolean(SEARCH_IN_SUMMARY))
@@ -461,17 +444,8 @@ class Application():
         search_description_menuitem.set_active(self.settings.get_boolean(SEARCH_IN_DESCRIPTION))
         search_description_menuitem.connect("toggled", self.set_search_filter, SEARCH_IN_DESCRIPTION)
 
-        prefs_menu.append(search_summary_menuitem)
-        prefs_menu.append(search_description_menuitem)
-
-        edit_submenu.append(prefs_menuitem)
-
-        if os.path.exists("/usr/bin/software-sources") or os.path.exists("/usr/bin/software-properties-gtk") or os.path.exists("/usr/bin/software-properties-kde"):
-            sources_menuitem = Gtk.ImageMenuItem(Gtk.STOCK_PREFERENCES)
-            sources_menuitem.set_image(Gtk.Image.new_from_icon_name("software-properties", Gtk.IconSize.MENU))
-            sources_menuitem.get_child().set_text(_("Software sources"))
-            sources_menuitem.connect("activate", self.open_repositories)
-            edit_submenu.append(sources_menuitem)
+        edit_submenu.append(search_summary_menuitem)
+        edit_submenu.append(search_description_menuitem)
 
         help_menu = Gtk.MenuItem(_("_Help"))
         help_menu.set_use_underline(True)
@@ -668,15 +642,6 @@ class Application():
         if (self.searchentry.get_text() != ""):
             self.show_search_results(self.searchentry.get_text())
 
-    def open_repositories(self, widget):
-        if os.path.exists("/usr/bin/software-sources"):
-            os.system("/usr/bin/software-sources")
-        elif os.path.exists("/usr/bin/software-properties-gtk"):
-            os.system("/usr/bin/software-properties-gtk")
-        elif os.path.exists("/usr/bin/software-properties-kde"):
-            os.system("/usr/bin/software-properties-kde")
-        self.close_application(None, None, 9) # Status code 9 means we want to restart ourselves
-
     def close_window(self, widget, window):
         window.hide()
 
@@ -757,18 +722,9 @@ class Application():
         except:
             pass
 
-    def close_application(self, window, event=None, exit_code=0):
-        self.do_close_application(exit_code)
-
-    def do_close_application(self, exit_code):
-        if exit_code == 0:
-            # Not happy with Python when it comes to closing threads, so here's a radical method to get what we want.
-            pid = os.getpid()
-            os.system("kill -9 %s &" % pid)
-        else:
-            #Gtk.main_quit()
-            self.loop.quit()
-            sys.exit(exit_code)
+    def close_application(self, window, event=None):
+        # Not happy with Python when it comes to closing threads, so here's a radical method to get what we want.
+        os.system("kill -9 %s &" % os.getpid())
 
     def on_action_button_clicked(self, button):
         package = self.current_package
