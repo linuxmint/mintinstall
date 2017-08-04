@@ -29,6 +29,10 @@ HOME = os.path.expanduser("~")
 
 ICON_SIZE = 48
 
+#Hardcoded mouse back button key for button-press-event
+#May not work on all mice
+MOUSE_BACK_BUTTON = 8
+
 # Don't let mintinstall run as root
 if os.getuid() == 0:
     print "The software manager should not be run as root. Please run it in user mode."
@@ -409,6 +413,8 @@ class Application():
         self.main_window.set_title(_("Software Manager"))
         self.main_window.set_icon_name("mintinstall")
         self.main_window.connect("delete_event", self.close_application)
+        self.main_window.connect("key-press-event", self.on_keypress)
+        self.main_window.connect("button-press-event", self.on_buttonpress)
 
         self.status_label = self.builder.get_object("label_ongoing")
         self.progressbar = self.builder.get_object("progressbar1")
@@ -1138,14 +1144,38 @@ class Application():
             package_name = ALIASES[package_name]
         return package_name.capitalize()
 
+    #Copied from the Cinnamon Project cinnamon-settings.py
+    #Goes back when the Backspace or Home key on the keyboard is typed
+    def on_keypress(self, widget, event):
+        grab = False
+        device = Gtk.get_current_event_device()
+        if device.get_source() == Gdk.InputSource.KEYBOARD:
+            grab = Gdk.Display.get_default().device_is_grabbed(device)
+        if not grab and event.keyval == Gdk.KEY_BackSpace or Gdk.KEY_Home and (type(self.main_window.get_focus()) not in
+                    (Gtk.TreeView, Gtk.Entry, Gtk.SpinButton, Gtk.TextView)):
+            self.go_back_action()
+            return True
+        return False
+
+    #Copied from the Cinnamon Project cinnamon-settings.py
+    #Goes back when the back button on the mouse is clicked        
+    def on_buttonpress(self, widget, event):
+        if event.button == MOUSE_BACK_BUTTON:
+            self.go_back_action()
+            return True
+        return False
+
     def on_back_button_clicked(self, button):
+        self.go_back_action()
+
+    def go_back_action(self):
         self.notebook.set_current_page(self.previous_page)
         if self.previous_page == self.PAGE_LANDING:
             self.back_button.set_sensitive(False)
         if self.previous_page == self.PAGE_LIST:
             self.previous_page = self.PAGE_LANDING
         self.searchentry.set_text("")
-
+        
     @print_timing
     def show_category(self, category):
 
