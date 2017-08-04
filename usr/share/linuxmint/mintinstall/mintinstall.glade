@@ -605,6 +605,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="orientation">vertical</property>
+                                <property name="spacing">6</property>
                                 <child>
                                   <object class="GtkLabel" id="application_description">
                                     <property name="visible">True</property>
@@ -620,17 +621,14 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="website_button">
-                                    <property name="label" translatable="yes">Website</property>
+                                  <object class="GtkLabel" id="website_link">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="receives_default">True</property>
-                                    <property name="halign">start</property>
-                                    <property name="margin_top">12</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="xalign">0</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">False</property>
+                                    <property name="fill">True</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>

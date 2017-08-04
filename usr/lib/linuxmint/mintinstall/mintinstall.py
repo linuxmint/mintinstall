@@ -551,7 +551,6 @@ class Application():
         self.builder.get_object("box_subcategories").pack_start(self.listbox_categories, False, False, 0)
         self.listbox_categories.connect('row-activated', self.on_row_activated)
 
-        self.builder.get_object("website_button").connect("clicked", self.on_website_button_clicked)
         self.builder.get_object("action_button").connect("clicked", self.on_action_button_clicked)
 
     def add_screenshot(self, pkg_name, number):
@@ -628,14 +627,6 @@ class Application():
         dia = AptErrorDialog(error)
         dia.run()
         dia.hide()
-
-    def on_website_button_clicked(self, button):
-        if self.current_package is not None:
-            if self.current_package.pkg.is_installed:
-                homepage = self.current_package.pkg.installed.homepage
-            else:
-                homepage = self.current_package.pkg.candidate.homepage
-            os.system("xdg-open %s" % homepage)
 
     def load_picks_on_landing(self):
         box = self.builder.get_object("box_picks")
@@ -1464,9 +1455,10 @@ class Application():
         app_description.set_line_wrap(True)
 
         if homepage is not None and homepage != "":
-            self.builder.get_object("website_button").show()
+            self.builder.get_object("website_link").show()
+            self.builder.get_object("website_link").set_markup("<a href='%s'>%s</a>" % (homepage, homepage))
         else:
-            self.builder.get_object("website_button").hide()
+            self.builder.get_object("website_link").hide()
 
         # Screenshots
         box_more_screenshots = self.builder.get_object("box_more_screenshots")
