@@ -1352,9 +1352,12 @@ class Application():
         self.builder.get_object("application_size").set_label(sizeinfo)
 
         action_button = self.builder.get_object("action_button")
+        style_context = action_button.get_style_context()
 
         if package.pkg.is_installed:
             action_button_label = _("Remove")
+            style_context.remove_class("suggested-action")
+            style_context.add_class("destructive-action")
             version = package.pkg.installed.version
             homepage = package.pkg.installed.homepage
             action_button_description = _("Installed")
@@ -1362,10 +1365,14 @@ class Application():
         else:
             if package.pkg.name in BROKEN_PACKAGES:
                 action_button_label = _("Not available")
+                style_context.remove_class("destructive-action")
+                style_context.remove_class("suggested-action")
                 action_button_description = _("Please use apt-get to install this package.")
                 action_button.set_sensitive(False)
             else:
                 action_button_label = _("Install")
+                style_context.remove_class("destructive-action")
+                style_context.add_class("suggested-action")
                 action_button_description = _("Not installed")
                 action_button.set_sensitive(True)
             version = package.pkg.candidate.version
