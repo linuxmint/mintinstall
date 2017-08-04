@@ -7,7 +7,7 @@ stella
 spectemu-x11
 sdlmame
 pearpc
-pcsx-df
+pcsxr
 pose-skins
 openmsx-catapult
 nestra
@@ -28,3 +28,7 @@ atari800
 playonlinux
 higan
 dolphin-emu
+mupen64plus
+nestopia
+mame
+hercules
