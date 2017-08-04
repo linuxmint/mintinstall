@@ -337,8 +337,6 @@ class MetaTransaction():
             self.application.builder.get_object("notebook_progress").set_current_page(1)
             self.application.builder.get_object("application_progress").set_fraction(progress / 100.0)
 
-        print(progress)
-
     def on_transaction_finish(self, transaction, exit_state):
         if (exit_state == aptdaemon.enums.EXIT_SUCCESS):
             name = self.package.name
@@ -747,7 +745,7 @@ class Application():
         self.sections = {}
         self.root_categories = {}
 
-        self.featured_category = Category(_("Featured"), None, self.categories)
+        self.featured_category = Category("", None, self.categories)
         edition = ""
         try:
             with open("/etc/linuxmint/info") as f:
@@ -1252,7 +1250,7 @@ class Application():
         self.builder.get_object("application_size").set_label(sizeinfo)
 
         community_link = "https://community.linuxmint.com/software/view/%s" % package.name
-        self.builder.get_object("label_community").set_markup("Click <a href='%s'>here</a> to add your own review." % community_link)
+        self.builder.get_object("label_community").set_markup(_("Click <a href='%s'>here</a> to add your own review.") % community_link)
 
         action_button = self.builder.get_object("action_button")
         style_context = action_button.get_style_context()
