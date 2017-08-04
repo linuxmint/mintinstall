@@ -7,3 +7,4 @@ Software Manager
 - Fine-tune selection of editors picks
 - Update app tiles in list and landing when its state changes
 - Show a list of installed apps?
+- Summaries and descriptions should be localized
