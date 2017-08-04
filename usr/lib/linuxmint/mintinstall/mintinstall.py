@@ -1251,6 +1251,9 @@ class Application():
 
         self.builder.get_object("application_size").set_label(sizeinfo)
 
+        community_link = "https://community.linuxmint.com/software/view/%s" % package.name
+        self.builder.get_object("label_community").set_markup("Click <a href='%s'>here</a> to add your own review." % community_link)
+
         action_button = self.builder.get_object("action_button")
         style_context = action_button.get_style_context()
 
