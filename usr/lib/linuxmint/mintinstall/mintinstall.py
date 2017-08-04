@@ -472,22 +472,6 @@ class Application():
             sources_menuitem.connect("activate", self.open_repositories)
             edit_submenu.append(sources_menuitem)
 
-        view_menu = Gtk.MenuItem(_("_View"))
-        view_menu.set_use_underline(True)
-        view_submenu = Gtk.Menu()
-        view_menu.set_submenu(view_submenu)
-
-        available_packages_menuitem = Gtk.CheckMenuItem(_("Available packages"))
-        available_packages_menuitem.set_active(self.prefs["available_packages_visible"])
-        available_packages_menuitem.connect("toggled", self.set_filter, "available_packages_visible")
-
-        installed_packages_menuitem = Gtk.CheckMenuItem(_("Installed packages"))
-        installed_packages_menuitem.set_active(self.prefs["installed_packages_visible"])
-        installed_packages_menuitem.connect("toggled", self.set_filter, "installed_packages_visible")
-
-        view_submenu.append(available_packages_menuitem)
-        view_submenu.append(installed_packages_menuitem)
-
         help_menu = Gtk.MenuItem(_("_Help"))
         help_menu.set_use_underline(True)
         help_submenu = Gtk.Menu()
@@ -500,7 +484,6 @@ class Application():
 
         self.builder.get_object("menubar1").append(file_menu)
         self.builder.get_object("menubar1").append(edit_menu)
-        self.builder.get_object("menubar1").append(view_menu)
         self.builder.get_object("menubar1").append(help_menu)
 
         self.flowbox_applications = Gtk.FlowBox()
@@ -708,16 +691,6 @@ class Application():
 
         config = ConfigObj(HOME + "/.linuxmint/mintinstall.conf")
         prefs = {}
-
-        #Read filter info
-        try:
-            prefs["available_packages_visible"] = (config['filter']['available_packages_visible'] == "True")
-        except:
-            prefs["available_packages_visible"] = True
-        try:
-            prefs["installed_packages_visible"] = (config['filter']['installed_packages_visible'] == "True")
-        except:
-            prefs["installed_packages_visible"] = True
 
         #Read search info
         try:
@@ -1136,18 +1109,13 @@ class Application():
     #Copied from the Cinnamon Project cinnamon-settings.py
     #Goes back when the Backspace or Home key on the keyboard is typed
     def on_keypress(self, widget, event):
-        grab = False
-        device = Gtk.get_current_event_device()
-        if device.get_source() == Gdk.InputSource.KEYBOARD:
-            grab = Gdk.Display.get_default().device_is_grabbed(device)
-        if not grab and event.keyval == Gdk.KEY_BackSpace or Gdk.KEY_Home and (type(self.main_window.get_focus()) not in
-                    (Gtk.TreeView, Gtk.Entry, Gtk.SpinButton, Gtk.TextView)):
+        if self.main_window.get_focus() != self.searchentry:
             self.go_back_action()
             return True
         return False
 
     #Copied from the Cinnamon Project cinnamon-settings.py
-    #Goes back when the back button on the mouse is clicked        
+    #Goes back when the back button on the mouse is clicked
     def on_buttonpress(self, widget, event):
         if event.button == MOUSE_BACK_BUTTON:
             self.go_back_action()
@@ -1164,7 +1132,7 @@ class Application():
         if self.previous_page == self.PAGE_LIST:
             self.previous_page = self.PAGE_LANDING
         self.searchentry.set_text("")
-        
+
     @print_timing
     def show_category(self, category):
 
@@ -1247,16 +1215,6 @@ class Application():
 
         self.clear_category_list()
         self.show_packages(self._searched_packages)
-
-    def visible_func(self, model, iter, data):
-        package = model.get_value(iter, 3)
-        if package is not None:
-            if package.pkg is not None:
-                if (package.pkg.is_installed and self.prefs["installed_packages_visible"] == True):
-                    return True
-                elif (package.pkg.is_installed == False and self.prefs["available_packages_visible"] == True):
-                    return True
-        return False
 
     def on_package_tile_clicked(self, tile, previous_page):
         self.show_package(tile.package, previous_page)
