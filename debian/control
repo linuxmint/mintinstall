@@ -13,6 +13,7 @@ Depends: python (>= 2.4), python (<< 3),
          python-aptdaemon.gtk3widgets,
          python-beautifulsoup,
          python-setproctitle,
+         gir1.2-appstream-1.0,
          mint-common,
          app-install-data
 Description: Software Manager

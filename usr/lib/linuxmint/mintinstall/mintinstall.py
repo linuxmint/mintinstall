@@ -18,7 +18,8 @@ from datetime import datetime
 from subprocess import Popen, PIPE
 
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio
+gi.require_version('AppStream', '1.0')
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, AppStream
 
 import aptdaemon.client
 from aptdaemon.enums import *
@@ -66,12 +67,12 @@ BROKEN_PACKAGES = ['pepperflashplugin-nonfree']
 
 # List of aliases
 ALIASES = {}
-ALIASES['spotify-client'] = "spotify"
-ALIASES['steam-launcher'] = "steam"
-ALIASES['minecraft-installer'] = "minecraft"
-ALIASES['virtualbox-qt'] = "virtualbox " # Added a space to force alias
-ALIASES['virtualbox'] = "virtualbox (base)"
-ALIASES['sublime-text'] = "sublime"
+ALIASES['spotify-client'] = "Spotify"
+ALIASES['steam-launcher'] = "Steam"
+ALIASES['minecraft-installer'] = "Minecraft"
+ALIASES['virtualbox-qt'] = "Virtualbox " # Added a space to force alias
+ALIASES['virtualbox'] = "Virtualbox (base)"
+ALIASES['sublime-text'] = "Sublime"
 ALIASES['mint-meta-codecs'] = "Multimedia Codecs"
 ALIASES['mint-meta-codecs-kde'] = "Multimedia Codecs for KDE"
 ALIASES['mint-meta-debian-codecs'] = "Multimedia Codecs"
@@ -192,7 +193,7 @@ class FeatureTile(Gtk.Button):
         Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(), style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         label_name = Gtk.Label(xalign=0.0)
-        label_name.set_label(package.name)
+        label_name.set_label(package.pkg.name)
         label_name.set_name("FeatureTitle")
 
         label_summary = Gtk.Label(xalign=0.0)
@@ -220,7 +221,7 @@ class PackageTile(Gtk.Button):
         super(Gtk.Button, self).__init__()
 
         label_name = Gtk.Label(xalign=0)
-        label_name.set_markup("<b>%s</b>" % package.name)
+        label_name.set_markup("<b>%s</b>" % package.title)
         label_name.set_justify(Gtk.Justification.LEFT)
         label_summary = Gtk.Label()
         label_summary.set_markup("<small>%s</small>" % summary)
@@ -254,7 +255,7 @@ class VerticalPackageTile(Gtk.Button):
         super(Gtk.Button, self).__init__()
 
         label_name = Gtk.Label(xalign=0.5)
-        label_name.set_markup("<b>%s</b>" % package.name)
+        label_name.set_markup("<b>%s</b>" % package.title)
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         vbox.set_border_width(6)
 
@@ -326,16 +327,17 @@ class Category:
 
 
 class Package(object):
-    __slots__ = 'name', 'pkg', 'reviews', 'categories', 'score', 'avg_rating', 'num_reviews', '_candidate', 'candidate', '_summary', 'summary' #To remove __dict__ memory overhead
+    __slots__ = 'title', 'pkg', 'reviews', 'categories', 'score', 'avg_rating', 'num_reviews', '_candidate', 'candidate', '_summary', 'summary', 'pool_component' #To remove __dict__ memory overhead
 
-    def __init__(self, name, pkg):
-        self.name = name
+    def __init__(self, pkg):
+        self.title = pkg.name
         self.pkg = pkg
         self.reviews = []
         self.categories = []
         self.score = 0
         self.avg_rating = 0
         self.num_reviews = 0
+        self.pool_component = None
 
     def _get_candidate(self):
         if not hasattr(self, "_candidate"):
@@ -392,16 +394,16 @@ class MetaTransaction():
     def on_transaction_progress(self, transaction, progress):
         # self.status_label.set_text(transaction.status)
         # self.progressbar.set_fraction(progress / 100.0)
-        if self.application.current_package.name == self.package.name:
+        if self.application.current_package.pkg.name == self.package.pkg.name:
             self.application.builder.get_object("notebook_progress").set_current_page(1)
             self.application.builder.get_object("application_progress").set_fraction(progress / 100.0)
 
     def on_transaction_finish(self, transaction, exit_state):
         if (exit_state == aptdaemon.enums.EXIT_SUCCESS):
-            name = self.package.name
+            name = self.package.pkg.name
             self.application.cache = apt.Cache() # reread cache
             self.package.pkg = self.application.cache[name] # update package
-            if self.application.current_package.name == name:
+            if self.application.current_package.pkg.name == name:
                 self.application.builder.get_object("notebook_progress").set_current_page(0)
                 self.application.builder.get_object("application_progress").set_fraction(0 / 100.0)
                 self.application.show_package(self.application.current_package, self.application.previous_page)
@@ -429,6 +431,8 @@ class Application():
     @print_timing
     def load_cache(self):
         self.cache = apt.Cache()
+        self.pool = AppStream.Pool()
+        self.pool.load()
 
     def run(self):
         self.loop.run()
@@ -572,7 +576,7 @@ class Application():
     def add_screenshot(self, pkg_name, number):
         local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (pkg_name, number))
         local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (pkg_name, number))
-        if self.current_package.name == pkg_name:
+        if self.current_package.pkg.name == pkg_name:
             if (number == 1):
                 if os.path.exists(local_name):
                     pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, 450, -1)
@@ -610,7 +614,7 @@ class Application():
         self.progressbar.hide()
 
     def _run_transaction(self, transaction):
-        self.transactions[self.current_package.name] = MetaTransaction(self, transaction)
+        self.transactions[self.current_package.pkg.name] = MetaTransaction(self, transaction)
         # dia = AptProgressDialog(transaction, parent=self.main_window)
         # dia.run(close_on_finished=True, show_error=True,
         #         reply_handler=lambda: True,
@@ -659,7 +663,8 @@ class Application():
         text_shadow="0 1px 1px rgba(0,0,0,0.5)"
 
         pkg = self.cache["glade"]
-        package = Package("glade", pkg)
+        package = Package(pkg)
+        self.load_pool_component(package)
         tile = FeatureTile(package, background, text, text_shadow, stroke)
         tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LANDING)
         flowbox.insert(tile, -1)
@@ -676,6 +681,7 @@ class Application():
         flowbox.set_homogeneous(True)
         featured = 0
         for package in self.picks_category.packages:
+            self.load_pool_component(package)
             icon = self.get_application_icon(package, ICON_SIZE)
             icon = Gtk.Image.new_from_pixbuf(icon)
             tile = VerticalPackageTile(package, icon)
@@ -768,7 +774,6 @@ class Application():
             summary = package.summary
             if summary is None:
                 summary = ""
-            summary = summary.capitalize()
             description = ""
             version = ""
             homepage = ""
@@ -785,7 +790,6 @@ class Application():
                 if (package.pkg.candidate.size >= 1000000000):
                     strSize = str(package.pkg.candidate.size / 1000000000) + _("GB")
 
-            description = description.capitalize()
             description = description.replace("\r\n", "<br>")
             description = description.replace("\n", "<br>")
             output = package.pkg.name + "#~#" + version + "#~#" + homepage + "#~#" + strSize + "#~#" + summary + "#~#" + description + "#~#"
@@ -993,7 +997,7 @@ class Application():
                 continue
 
             pkg = self.cache[name]
-            package = Package(name, pkg)
+            package = Package(pkg)
             self.packages.append(package)
             self.packages_dict[pkg.name] = package
 
@@ -1038,7 +1042,7 @@ class Application():
                 elements = line.split("~~~")
                 if len(elements) == 5:
                     review = Review(elements[0], float(elements[1]), elements[2], elements[3], elements[4])
-                    if last_package != None and last_package.name == elements[0]:
+                    if last_package != None and last_package.pkg.name == elements[0]:
                         #Comment is on the same package as previous comment.. no need to search for the package
                         last_package.reviews.append(review)
                         review.package = last_package
@@ -1062,7 +1066,7 @@ class Application():
                 elements = line.split("~~~")
                 if len(elements) == 5:
                     review = Review(elements[0], float(elements[1]), elements[2], elements[3], elements[4])
-                    if last_package != None and last_package.name == elements[0]:
+                    if last_package != None and last_package.pkg.name == elements[0]:
                         #Comment is on the same package as previous comment.. no need to search for the package
                         alreadyThere = False
                         for rev in last_package.reviews:
@@ -1098,12 +1102,6 @@ class Application():
 
     def _show_dialog_modal_clicked(self, dialog, *args):
         dialog.destroy()
-
-    def get_simple_name(self, package_name):
-        package_name = package_name.split(":")[0]
-        if package_name in ALIASES and ALIASES[package_name] not in self.packages_dict:
-            package_name = ALIASES[package_name]
-        return package_name.capitalize()
 
     #Copied from the Cinnamon Project cinnamon-settings.py
     #Goes back when the Backspace or Home key on the keyboard is typed
@@ -1172,16 +1170,16 @@ class Application():
         icon_path = None
 
         theme = Gtk.IconTheme.get_default()
-        for name in [package.name.split(":")[0], package.name.split("-")[0]]:
+        for name in [package.pkg.name.split(":")[0], package.pkg.name.split("-")[0]]:
             if theme.has_icon(name):
                 iconInfo = theme.lookup_icon(name, size, 0)
                 if iconInfo and os.path.exists(iconInfo.get_filename()):
                     return GdkPixbuf.Pixbuf.new_from_file_at_size(iconInfo.get_filename(), size, size)
 
         # Try app-install icons then
-        icon_path = "/usr/share/app-install/icons/%s" % package.name
+        icon_path = "/usr/share/app-install/icons/%s" % package.pkg.name
         for extension in ['svg', 'png', 'xpm']:
-            icon_path = "/usr/share/app-install/icons/%s.%s" % (package.name, extension)
+            icon_path = "/usr/share/app-install/icons/%s.%s" % (package.pkg.name, extension)
             if os.path.exists(icon_path):
                 return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, size, size)
 
@@ -1203,7 +1201,7 @@ class Application():
 
         for package in self.packages:
             visible = False
-            if termsUpper in package.name.upper():
+            if termsUpper in package.pkg.name.upper():
                 visible = True
             else:
                 if (package.candidate is not None):
@@ -1221,6 +1219,25 @@ class Application():
     def on_package_tile_clicked(self, tile, previous_page):
         self.show_package(tile.package, previous_page)
 
+    def load_pool_component(self, package):
+        if package.pool_component is None:
+            component = self.pool.get_components_by_id("%s.desktop" % package.pkg.name)
+            if component is not None and len(component) > 0:
+                package.pool_component = component[0]
+                package._summary = package.pool_component.get_summary()
+                package.title = package.pool_component.get_name()
+        package_name = package.title.split(":")[0]
+        if package_name in ALIASES and ALIASES[package_name] not in self.packages_dict:
+            package.title = ALIASES[package_name]
+        package.title = self.capitalize(package.title)
+        package._summary = self.capitalize(package.summary)
+
+    def capitalize(self, string):
+        if len(string) > 1:
+            return (string[0].upper() + string[1:])
+        else:
+            return (string)
+
     def show_packages(self, packages):
         for child in self.flowbox_applications.get_children():
             self.flowbox_applications.remove(child)
@@ -1232,15 +1249,11 @@ class Application():
 
         for package in packages:
 
-            if ":" in package.name and package.name.split(":")[0] in self.packages_dict:
+            self.load_pool_component(package)
+
+            if ":" in package.pkg.name and package.pkg.name.split(":")[0] in self.packages_dict:
                 # don't list arch packages when the root is represented in the cache
                 continue
-
-            if ":" in package.name and package.name.split(":")[0] in self.packages_dict:
-                # don't list arch packages when the root is represented in the cache
-                continue
-
-            package_name = self.get_simple_name(package.name)
 
             icon = self.get_application_icon(package, ICON_SIZE)
             icon = Gtk.Image.new_from_pixbuf(icon)
@@ -1270,18 +1283,21 @@ class Application():
 
         # Load package info
         score = 0
-        appname = self.get_simple_name(package.name)
 
-        description = package.pkg.candidate.description
-        summary = package.summary.capitalize()
+        if package.pool_component is not None:
+            description = package.pool_component.get_description()
+            description = description.replace("<p>", "").replace("</p>", "\n")
+        else:
+            description = package.pkg.candidate.description
+        description = self.capitalize(description)
 
         impacted_packages = []
         self.removals = []
         self.installations = []
 
-        pkg = self.cache[package.name]
+        pkg = package.pkg
         try:
-            if package.pkg.is_installed:
+            if pkg.is_installed:
                 pkg.mark_delete(True, True)
             else:
                 pkg.mark_install()
@@ -1291,7 +1307,7 @@ class Application():
 
         changes = self.cache.get_changes()
         for pkg in changes:
-            if pkg.name == package.name:
+            if pkg.name == package.pkg.name:
                 continue
             if (pkg.is_installed):
                 self.removals.append(pkg.name)
@@ -1330,7 +1346,7 @@ class Application():
 
         self.builder.get_object("application_size").set_label(sizeinfo)
 
-        community_link = "https://community.linuxmint.com/software/view/%s" % package.name
+        community_link = "https://community.linuxmint.com/software/view/%s" % package.pkg.name
         self.builder.get_object("label_community").set_markup(_("Click <a href='%s'>here</a> to add your own review.") % community_link)
 
         action_button = self.builder.get_object("action_button")
@@ -1383,8 +1399,8 @@ class Application():
             comment = review.comment.strip()
             comment = comment.replace("'", "\'")
             comment = comment.replace('"', '\"')
-            comment = comment.capitalize()
             comment = unicode(comment, 'UTF-8', 'replace')
+            comment = self.capitalize(comment)
             review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
             tile = ReviewTile(review.username, review_date, comment, review.rating)
             # box_reviews.pack_start(tile, False, False, 0)
@@ -1411,8 +1427,8 @@ class Application():
         box_stars.show_all()
 
         self.builder.get_object("application_icon").set_from_pixbuf(self.get_application_icon(package, 64))
-        self.builder.get_object("application_name").set_label(appname)
-        self.builder.get_object("application_summary").set_label(summary)
+        self.builder.get_object("application_name").set_label(package.title)
+        self.builder.get_object("application_summary").set_label(package.summary)
         app_description = self.builder.get_object("application_description")
         app_description.set_label(description)
         app_description.set_line_wrap(True)
@@ -1428,24 +1444,24 @@ class Application():
         for child in box_more_screenshots.get_children():
             box_more_screenshots.remove(child)
 
-        main_screenshot = os.path.join(SCREENSHOT_DIR, "%s_1.png" % package.name)
-        main_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % package.name)
+        main_screenshot = os.path.join(SCREENSHOT_DIR, "%s_1.png" % package.pkg.name)
+        main_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % package.pkg.name)
         if os.path.exists(main_screenshot) and os.path.exists(main_thumb):
             main_screenshot = GdkPixbuf.Pixbuf.new_from_file_at_size(main_screenshot, 450, -1)
             self.builder.get_object("main_screenshot").set_from_pixbuf(main_screenshot)
             self.builder.get_object("main_screenshot").show()
             for i in range(2, 5):
-                self.add_screenshot(package.name, i)
+                self.add_screenshot(package.pkg.name, i)
         else:
             self.builder.get_object("main_screenshot").hide()
-            downloadScreenshots = ScreenshotDownloader(self, package.name)
+            downloadScreenshots = ScreenshotDownloader(self, package.pkg.name)
             downloadScreenshots.start()
 
     def package_compare(self, x, y):
         if x.score == y.score:
-            if x.name < y.name:
+            if x.pkg.name < y.pkg.name:
                 return -1
-            elif x.name > y.name:
+            elif x.pkg.name > y.pkg.name:
                 return 1
             else:
                 return 0
