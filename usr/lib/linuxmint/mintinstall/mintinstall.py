@@ -186,8 +186,7 @@ class PackageTile(Gtk.Button):
         name_box.set_spacing(6)
         name_box.pack_start(label_name, False, False, 0)
         if package.pkg.is_installed:
-            installed_mark = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/linuxmint/mintinstall/data/emblem-installed.png", 15, 15)
-            installed_mark = Gtk.Image.new_from_pixbuf(installed_mark)
+            installed_mark = Gtk.Image.new_from_icon_name("emblem-installed", Gtk.IconSize.MENU)
             name_box.pack_start(installed_mark, False, False, 0)
 
         vbox.pack_start(name_box, False, False, 0)
@@ -214,8 +213,7 @@ class VerticalPackageTile(Gtk.Button):
         name_box = Gtk.Box()
         name_box.pack_start(label_name, True, True, 0)
         if package.pkg.is_installed:
-            installed_mark = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/linuxmint/mintinstall/data/emblem-installed.png", 15, 15)
-            installed_mark = Gtk.Image.new_from_pixbuf(installed_mark)
+            installed_mark = Gtk.Image.new_from_icon_name("emblem-installed", Gtk.IconSize.MENU)
             name_box.pack_start(installed_mark, False, False, 3)
 
         vbox.pack_start(name_box, True, True, 0)
@@ -777,7 +775,7 @@ class Application():
             print detail
 
         dlg.set_icon_name("mintinstall")
-        dlg.set_logo(GdkPixbuf.Pixbuf.new_from_file("/usr/share/pixmaps/mintinstall.svg"))
+        dlg.set_logo_icon_name("mintinstall")
 
         def close(w, res):
             if res == Gtk.ResponseType.CANCEL or res == Gtk.ResponseType.DELETE_EVENT:
