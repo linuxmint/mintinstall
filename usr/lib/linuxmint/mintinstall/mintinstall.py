@@ -199,7 +199,7 @@ class FeatureTile(Gtk.Button):
         Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(), style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         label_name = Gtk.Label(xalign=0.0)
-        label_name.set_label(package.pkg.name)
+        label_name.set_label(package.title)
         label_name.set_name("FeatureTitle")
 
         label_summary = Gtk.Label(xalign=0.0)
@@ -663,12 +663,19 @@ class Application():
         flowbox.set_column_spacing(12)
         flowbox.set_homogeneous(True)
 
-        background="url('/usr/share/linuxmint/mintinstall/featured/builder.png') left center / 100% auto no-repeat, url('/usr/share/linuxmint/mintinstall/featured/builder-bg.jpg') center / cover no-repeat"
-        stroke="#000000"
-        text="#ffffff"
-        text_shadow="0 1px 1px rgba(0,0,0,0.5)"
+        featured = []
+        with open("/usr/share/linuxmint/mintinstall/featured/featured.list", 'r') as f:
+            for line in f:
+                if line.startswith("#") or len(line.strip()) == 0:
+                    continue
+                elements = line.split("----")
+                if len(elements) == 5:
+                    featured.append(line)
 
-        pkg = self.cache["glade"]
+        selected = random.sample(featured, 1)[0]
+        (name, background, stroke, text, text_shadow) = selected.split('----')
+        background = background.replace("@prefix@", "/usr/share/linuxmint/mintinstall/featured/")
+        pkg = self.cache[name]
         package = Package(pkg)
         self.load_pool_component(package)
         tile = FeatureTile(package, background, text, text_shadow, stroke)
@@ -722,6 +729,11 @@ class Application():
             button.set_label(category.name)
             button.connect("clicked", self.category_button_clicked, category)
             flowbox.insert(button, -1)
+        # Add picks
+        button = Gtk.Button()
+        button.set_label(self.picks_category.name)
+        button.connect("clicked", self.category_button_clicked, self.picks_category)
+        flowbox.insert(button, -1)
         box.pack_start(flowbox, True, True, 0)
 
     def category_button_clicked(self, button, category):
@@ -857,8 +869,6 @@ class Application():
             self.picks_category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/picks-kde.list")
         else:
             self.picks_category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/picks.list")
-            
-        self.root_categories[self.picks_category.name] = self.picks_category
 
         # INTERNET
         category = Category(_("Internet"), None, self.categories)
@@ -1251,6 +1261,7 @@ class Application():
         if package_name in ALIASES and ALIASES[package_name] not in self.packages_dict:
             package.title = ALIASES[package_name]
         package.title = self.capitalize(package.title)
+        package.title = package.title.replace(":i386", "")
         package._summary = self.capitalize(package.summary)
 
     def capitalize(self, string):
