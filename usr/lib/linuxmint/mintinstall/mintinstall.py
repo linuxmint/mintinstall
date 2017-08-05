@@ -988,9 +988,14 @@ class Application():
         # PROGRAMMING
         category = Category(_("Programming"), None, self.categories)
         self.sections["devel"] = category
-        self.sections["java"] = category
-        self.sections["php"] = category
-        self.sections["python"] = category
+        subcat = Category(_("Java"), category, self.categories)
+        self.sections["java"] = subcat
+        subcat = Category(_("PHP"), category, self.categories)
+        self.sections["php"] = subcat
+        subcat = Category(_("Python"), category, self.categories)
+        self.sections["python"] = subcat
+        subcat = Category(_("Essentials"), category, self.categories)
+        subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/development-essentials.list")
         self.root_categories[category.name] = category
 
     def file_to_array(self, filename):
