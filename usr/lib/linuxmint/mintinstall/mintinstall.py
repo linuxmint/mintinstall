@@ -1048,6 +1048,8 @@ class Application():
                     continue
             except Exception, detail:
                 print detail
+                if name.endswith(":i386"):
+                    continue
             if name.endswith("-perl"):
                 continue
             if name.endswith("l10n"):
