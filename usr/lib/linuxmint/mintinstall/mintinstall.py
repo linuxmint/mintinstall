@@ -12,6 +12,7 @@ import apt
 import urllib
 import urllib2
 import httplib
+import random
 from urlparse import urlparse
 
 from datetime import datetime
@@ -684,15 +685,24 @@ class Application():
         flowbox.set_row_spacing(12)
         flowbox.set_column_spacing(12)
         flowbox.set_homogeneous(True)
-        featured = 0
+        installed = []
+        available = []
         for package in self.picks_category.packages:
+            if package.pkg.is_installed:
+                installed.append(package)
+            else:
+                available.append(package)
+        random.shuffle(installed)
+        random.shuffle(available)
+        featured = 0
+        for package in (available + installed):
             self.load_pool_component(package)
             icon = self.get_application_icon(package, ICON_SIZE)
             icon = Gtk.Image.new_from_pixbuf(icon)
             tile = VerticalPackageTile(package, icon)
             tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LANDING)
             flowbox.insert(tile, -1)
-            featured = featured + 1
+            featured += 1
             if featured >= 12:
                 break
         box.pack_start(flowbox, True, True, 0)
@@ -998,7 +1008,7 @@ class Application():
                 continue
             if name.endswith("-data"):
                 continue
-            if name.endswith(":i386"):
+            if name.endswith(":i386") and name != "steam:i386":
                 continue
             if name.endswith("-perl"):
                 continue
