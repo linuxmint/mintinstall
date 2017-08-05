@@ -77,6 +77,11 @@ ALIASES['mint-meta-codecs'] = "Multimedia Codecs"
 ALIASES['mint-meta-codecs-kde'] = "Multimedia Codecs for KDE"
 ALIASES['mint-meta-debian-codecs'] = "Multimedia Codecs"
 
+#Exceptions so packages like chromium-bsu don't get Chromium's
+# icon and cause confusion
+ICON_EXCEPTIONS = ["chromium-bsu"]
+
+
 def list_header_func(row, before, user_data):
     if before and not row.get_header():
         row.set_header(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
@@ -830,7 +835,7 @@ class Application():
         self.sections = {}
         self.root_categories = {}
 
-        self.picks_category = Category("", None, self.categories)
+        self.picks_category = Category(_("Editors Picks"), None, self.categories)
         edition = ""
         try:
             with open("/etc/linuxmint/info") as f:
@@ -842,6 +847,8 @@ class Application():
             self.picks_category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/picks-kde.list")
         else:
             self.picks_category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/picks.list")
+            
+        self.root_categories[self.picks_category.name] = self.picks_category
 
         # INTERNET
         category = Category(_("Internet"), None, self.categories)
@@ -904,7 +911,7 @@ class Application():
 
         subcat = Category(_("Board games"), category, self.categories)
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/games-board.list")
-        subcat = Category(_("First-person shooters"), category, self.categories)
+        subcat = Category(_("First-person"), category, self.categories)
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/games-fps.list")
         subcat = Category(_("Real-time strategy"), category, self.categories)
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/games-rts.list")
@@ -994,6 +1001,8 @@ class Application():
             if name.endswith(":i386"):
                 continue
             if name.endswith("-perl"):
+                continue
+            if name.endswith("l10n"):
                 continue
 
             pkg = self.cache[name]
@@ -1167,17 +1176,19 @@ class Application():
         self.show_category(row.category)
 
     def get_application_icon(self, package, size):
-        icon_path = None
+        icon_path = "/usr/share/app-install/icons/%s" % package.pkg.name
 
         theme = Gtk.IconTheme.get_default()
-        for name in [package.pkg.name.split(":")[0], package.pkg.name.split("-")[0]]:
-            if theme.has_icon(name):
-                iconInfo = theme.lookup_icon(name, size, 0)
-                if iconInfo and os.path.exists(iconInfo.get_filename()):
-                    return GdkPixbuf.Pixbuf.new_from_file_at_size(iconInfo.get_filename(), size, size)
+        #Checks to make sure the package name ins't in icon exceptions
+        if package.pkg.name not in ICON_EXCEPTIONS:
+            #Helps add icons to package addons
+            for name in [package.pkg.name.split(":")[0], package.pkg.name.split("-")[0]]:
+                if theme.has_icon(name):
+                    iconInfo = theme.lookup_icon(name, size, 0)
+                    if iconInfo and os.path.exists(iconInfo.get_filename()):
+                        return GdkPixbuf.Pixbuf.new_from_file_at_size(iconInfo.get_filename(), size, size)
 
         # Try app-install icons then
-        icon_path = "/usr/share/app-install/icons/%s" % package.pkg.name
         for extension in ['svg', 'png', 'xpm']:
             icon_path = "/usr/share/app-install/icons/%s.%s" % (package.pkg.name, extension)
             if os.path.exists(icon_path):
