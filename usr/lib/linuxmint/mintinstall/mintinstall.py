@@ -14,9 +14,9 @@ import urllib2
 import httplib
 import random
 from urlparse import urlparse
-
+import configobj
 from datetime import datetime
-from subprocess import Popen, PIPE
+import subprocess
 
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppStream', '1.0')
@@ -454,6 +454,7 @@ class Application():
         self.process_matching_packages()
 
         self.current_package = None
+        self.desktop_exec = None
         self.removals = []
         self.additions = []
         self.transactions = {}
@@ -578,6 +579,7 @@ class Application():
         self.listbox_categories.connect('row-activated', self.on_row_activated)
 
         self.builder.get_object("action_button").connect("clicked", self.on_action_button_clicked)
+        self.builder.get_object("launch_button").connect("clicked", self.on_launch_button_clicked)
 
     def add_screenshot(self, pkg_name, number):
         local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (pkg_name, number))
@@ -850,6 +852,14 @@ class Application():
             else:
                 if package.pkg.name not in BROKEN_PACKAGES:
                     self.ac.install_packages([package.pkg.name], reply_handler=self._simulate_trans, error_handler=self._on_error)
+
+    def on_launch_button_clicked(self, button):
+        if self.desktop_exec is not None:
+            exec_array = self.desktop_exec.split()
+            for element in exec_array:
+                if element.startswith('%'):
+                    exec_array.remove(element)
+            subprocess.Popen(exec_array)
 
     @print_timing
     def add_categories(self):
@@ -1470,6 +1480,26 @@ class Application():
             self.builder.get_object("website_link").set_markup("<a href='%s'>%s</a>" % (homepage, homepage))
         else:
             self.builder.get_object("website_link").hide()
+
+        # Get data from app-install-data
+        launch_button = self.builder.get_object("launch_button")
+        launch_button.hide()
+
+        self.builder.get_object("application_categories").set_label("")
+        self.builder.get_object("label_categories").hide()
+        self.desktop_exec = None
+        if package.pkg.is_installed:
+            desktop_file = "/usr/share/app-install/desktop/%s:%s.desktop" % (package.pkg.name, package.pkg.name)
+            if os.path.exists(desktop_file):
+                config = configobj.ConfigObj(desktop_file)
+                try:
+                    self.desktop_exec = config['Desktop Entry']['Exec']
+                    # TODO: Turn raw categories description into properly localized menu names..
+                    #self.builder.get_object("application_categories").set_label(config['Desktop Entry']['Categories'])
+                    #self.builder.get_object("label_categories").show()
+                    launch_button.show()
+                except:
+                    pass
 
         # Screenshots
         box_more_screenshots = self.builder.get_object("box_more_screenshots")
