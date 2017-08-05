@@ -859,7 +859,12 @@ class Application():
             for element in exec_array:
                 if element.startswith('%'):
                     exec_array.remove(element)
-            subprocess.Popen(exec_array)
+            if "sh" in exec_array:
+                print("Launching app with OS: " % " ".join(exec_array))
+                os.system("%s &" % " ".join(exec_array))
+            else:
+                print("Launching app with Popen: %s" % " ".join(exec_array))
+                subprocess.Popen(exec_array)
 
     @print_timing
     def add_categories(self):
@@ -1493,18 +1498,23 @@ class Application():
         self.builder.get_object("application_categories").set_label("")
         self.builder.get_object("label_categories").hide()
         self.desktop_exec = None
+        bin_name = package.pkg.name.replace(":i386", "")
         if package.pkg.is_installed:
-            desktop_file = "/usr/share/app-install/desktop/%s:%s.desktop" % (package.pkg.name, package.pkg.name)
-            if os.path.exists(desktop_file):
-                config = configobj.ConfigObj(desktop_file)
-                try:
-                    self.desktop_exec = config['Desktop Entry']['Exec']
-                    # TODO: Turn raw categories description into properly localized menu names..
-                    #self.builder.get_object("application_categories").set_label(config['Desktop Entry']['Categories'])
-                    #self.builder.get_object("label_categories").show()
-                    launch_button.show()
-                except:
-                    pass
+            for desktop_file in ["/usr/share/applications/%s.desktop" % bin_name, "/usr/share/app-install/desktop/%s:%s.desktop" % (bin_name, bin_name)]:
+                if os.path.exists(desktop_file):
+                    config = configobj.ConfigObj(desktop_file)
+                    try:
+                        self.desktop_exec = config['Desktop Entry']['Exec']
+                        # TODO: Turn raw categories description into properly localized menu names..
+                        #self.builder.get_object("application_categories").set_label(config['Desktop Entry']['Categories'])
+                        #self.builder.get_object("label_categories").show()
+                        launch_button.show()
+                        break
+                    except:
+                        pass
+            if self.desktop_exec is None and os.path.exists("/usr/bin/%s" % bin_name):
+                self.desktop_exec = "/usr/bin/%s" % bin_name
+                launch_button.show()
 
         # Screenshots
         box_more_screenshots = self.builder.get_object("box_more_screenshots")
