@@ -407,8 +407,11 @@ class MetaTransaction():
         # self.status_label.set_text(transaction.status)
         # self.progressbar.set_fraction(progress / 100.0)
         if self.application.current_package.pkg.name == self.package.pkg.name:
+            self.application.builder.get_object("notebook_progress").set_visible(True)
             self.application.builder.get_object("notebook_progress").set_current_page(1)
             self.application.builder.get_object("application_progress").set_fraction(progress / 100.0)
+        else:
+            self.application.builder.get_object("notebook_progress").set_visible(False)
 
     def on_transaction_finish(self, transaction, exit_state):
         if (exit_state == aptdaemon.enums.EXIT_SUCCESS):
@@ -1044,8 +1047,15 @@ class Application():
                 continue
             if name.endswith("-data"):
                 continue
-            if name.endswith(":i386") and name != "steam:i386":
-                continue
+            #Need to try/catch this because if it's running on a sysytem without steam in app cache,
+            #It will prevent mintinstall from starting
+            try:
+                if name.endswith(":i386") and name != "steam:i386":
+                    continue
+            except Exception, detail:
+                print detail
+                if name.endswith(":i386"):
+                    continue
             if name.endswith("-perl"):
                 continue
             if name.endswith("l10n"):
