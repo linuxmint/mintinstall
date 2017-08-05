@@ -77,6 +77,12 @@ ALIASES['sublime-text'] = "Sublime"
 ALIASES['mint-meta-codecs'] = "Multimedia Codecs"
 ALIASES['mint-meta-codecs-kde'] = "Multimedia Codecs for KDE"
 ALIASES['mint-meta-debian-codecs'] = "Multimedia Codecs"
+ALIASES['firefox'] = "Firefox"
+ALIASES['vlc'] = "VLC"
+ALIASES['mpv'] = "Mpv"
+ALIASES['gimp'] = "Gimp"
+ALIASES['gnome-maps'] = "GNOME Maps"
+ALIASES['thunderbird'] = "Thunderbird"
 
 #Exceptions so packages like chromium-bsu don't get Chromium's
 # icon and cause confusion
@@ -1277,7 +1283,7 @@ class Application():
                 package.pool_component = component[0]
                 package._summary = package.pool_component.get_summary()
                 package.title = package.pool_component.get_name()
-        package_name = package.title.split(":")[0]
+        package_name = package.pkg.name.split(":")[0]
         if package_name in ALIASES and ALIASES[package_name] not in self.packages_dict:
             package.title = ALIASES[package_name]
         package.title = self.capitalize(package.title)
