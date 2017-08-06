@@ -41,8 +41,6 @@ if os.getuid() == 0:
     print "The software manager should not be run as root. Please run it in user mode."
     sys.exit(1)
 
-gi.require_version("Gtk", "3.0")
-
 def print_timing(func):
     def wrapper(*arg):
         t1 = time.time()
