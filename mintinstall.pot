@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-08-07 13:20+0200\n"
+"POT-Creation-Date: 2017-08-07 13:57+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -78,7 +78,8 @@ msgid "GB"
 msgstr ""
 
 #: usr/lib/linuxmint/mintinstall/mintinstall.py:919
-msgid "Editors Picks"
+#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:2
+msgid "Editors' Picks"
 msgstr ""
 
 #: usr/lib/linuxmint/mintinstall/mintinstall.py:933
@@ -285,10 +286,6 @@ msgstr ""
 
 #: usr/share/linuxmint/mintinstall/mintinstall.glade.h:1
 msgid "Featured application"
-msgstr ""
-
-#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:2
-msgid "Editor's Picks"
 msgstr ""
 
 #: usr/share/linuxmint/mintinstall/mintinstall.glade.h:3

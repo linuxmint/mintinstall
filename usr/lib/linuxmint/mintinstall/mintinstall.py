@@ -916,7 +916,7 @@ class Application():
         self.installed_category = Category("", None, self.categories)
         self.installed_category.matchingPackages = self.settings.get_strv(INSTALLED_APPS)
 
-        self.picks_category = Category(_("Editors Picks"), None, self.categories)
+        self.picks_category = Category(_("Editors' Picks"), None, self.categories)
         edition = ""
         try:
             with open("/etc/linuxmint/info") as f:
