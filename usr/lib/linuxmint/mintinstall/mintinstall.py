@@ -226,11 +226,23 @@ class FeatureTile(Gtk.Button):
 
         self.add(hbox)
 
-class PackageTile(Gtk.Button):
+class Tile(Gtk.Button):
+
+    def __init__(self, package):
+        super(Gtk.Button, self).__init__()
+        self.package = package
+        self.installed_mark = Gtk.Image()
+
+    def refresh_state(self):
+        if self.package.pkg.is_installed:
+            self.installed_mark.set_from_icon_name("emblem-installed", Gtk.IconSize.MENU)
+        else:
+            self.installed_mark.clear()
+
+class PackageTile(Tile):
 
     def __init__(self, package, icon, summary):
-        self.package = package
-        super(Gtk.Button, self).__init__()
+        Tile.__init__(self, package)
 
         label_name = Gtk.Label(xalign=0)
         label_name.set_markup("<b>%s</b>" % package.title)
@@ -248,9 +260,8 @@ class PackageTile(Gtk.Button):
         name_box = Gtk.Box()
         name_box.set_spacing(6)
         name_box.pack_start(label_name, False, False, 0)
-        if package.pkg.is_installed:
-            installed_mark = Gtk.Image.new_from_icon_name("emblem-installed", Gtk.IconSize.MENU)
-            name_box.pack_start(installed_mark, False, False, 0)
+
+        name_box.pack_start(self.installed_mark, False, False, 0)
 
         vbox.pack_start(name_box, False, False, 0)
         vbox.pack_start(label_summary, False, False, 0)
@@ -261,10 +272,11 @@ class PackageTile(Gtk.Button):
 
         self.add(hbox)
 
-class VerticalPackageTile(Gtk.Button):
+        self.refresh_state()
+
+class VerticalPackageTile(Tile):
     def __init__(self, package, icon):
-        self.package = package
-        super(Gtk.Button, self).__init__()
+        Tile.__init__(self, package)
 
         label_name = Gtk.Label(xalign=0.5)
         label_name.set_markup("<b>%s</b>" % package.title)
@@ -278,16 +290,17 @@ class VerticalPackageTile(Gtk.Button):
 
         name_box = Gtk.Box()
         name_box.pack_start(label_name, True, True, 0)
-        if package.pkg.is_installed:
-            installed_mark = Gtk.Image.new_from_icon_name("emblem-installed", Gtk.IconSize.MENU)
-            installed_mark.set_valign(Gtk.Align.START)
-            installed_mark.set_halign(Gtk.Align.END)
-            installed_mark.set_margin_start(6)
-            overlay.add_overlay(installed_mark)
 
         vbox.pack_start(name_box, True, True, 0)
 
+        self.installed_mark.set_valign(Gtk.Align.START)
+        self.installed_mark.set_halign(Gtk.Align.END)
+        self.installed_mark.set_margin_start(6)
+        overlay.add_overlay(self.installed_mark)
+
         self.add(overlay)
+
+        self.refresh_state()
 
 class ReviewTile(Gtk.ListBoxRow):
     def __init__(self, username, date, comment, rating):
@@ -463,6 +476,10 @@ class Application():
 
         self.current_package = None
         self.current_category = None
+
+        self.picks_tiles = []
+        self.category_tiles = []
+
         self.desktop_exec = None
         self.removals = []
         self.additions = []
@@ -602,6 +619,9 @@ class Application():
             self.builder.get_object("application_progress").set_fraction(0 / 100.0)
             self.show_package(self.current_package, self.previous_page)
 
+        for tile in (self.picks_tiles + self.category_tiles):
+            if tile.package == package:
+                tile.refresh_state()
 
     def show_installed_apps(self, menuitem):
         self.show_category(self.installed_category)
@@ -728,6 +748,7 @@ class Application():
             tile = VerticalPackageTile(package, icon)
             tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LANDING)
             flowbox.insert(tile, -1)
+            self.picks_tiles.append(tile)
             featured += 1
             if featured >= 12:
                 break
@@ -1319,6 +1340,8 @@ class Application():
         for child in self.flowbox_applications.get_children():
             self.flowbox_applications.remove(child)
 
+        self.category_tiles = []
+
         packages.sort(self.package_compare)
         packages = packages[0:200]
 
@@ -1346,6 +1369,7 @@ class Application():
             tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LIST)
 
             self.flowbox_applications.insert(tile, -1)
+            self.category_tiles.append(tile)
             self.flowbox_applications.show_all()
 
     @print_timing
