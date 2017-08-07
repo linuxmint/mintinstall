@@ -1389,11 +1389,11 @@ class Application():
         # Load package info
         score = 0
 
+        description = package.pkg.candidate.description
         if package.pool_component is not None:
-            description = package.pool_component.get_description()
-            description = description.replace("<p>", "").replace("</p>", "\n")
-        else:
-            description = package.pkg.candidate.description
+            pool_description = package.pool_component.get_description()
+            if pool_description is not None:
+                description = pool_description.replace("<p>", "").replace("</p>", "\n")
         description = self.capitalize(description)
 
         impacted_packages = []
