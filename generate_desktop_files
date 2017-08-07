@@ -14,7 +14,7 @@ gettext.install(DOMAIN, PATH)
 
 prefix = "[Desktop Entry]\n"
 
-suffix = """Exec=gksu mintinstall
+suffix = """Exec=mintinstall
 Icon=mintinstall
 Terminal=false
 Type=Application
@@ -25,7 +25,7 @@ NotShowIn=KDE;
 
 additionalfiles.generate(DOMAIN, PATH, "usr/share/applications/mintinstall.desktop", prefix, _("Software Manager"), _("Install new applications"), suffix)
 
-suffix = """Exec=kdesudo -i /usr/share/icons/hicolors/48x48/apps/software-properties-mint.png -d --comment "<b>Please enter your password to start the software manager</b>" mintinstall
+suffix = """Exec=mintinstall
 Icon=software-properties-mint
 Terminal=false
 Type=Application
