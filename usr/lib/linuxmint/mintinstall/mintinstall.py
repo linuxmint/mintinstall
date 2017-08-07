@@ -521,6 +521,10 @@ class Application():
         menuitem.show()
         submenu.append(menuitem)
 
+        separator = Gtk.SeparatorMenuItem()
+        separator.show()
+        submenu.append(separator)
+
         search_summary_menuitem = Gtk.CheckMenuItem(_("Search in packages summary (slower search)"))
         search_summary_menuitem.set_active(self.settings.get_boolean(SEARCH_IN_SUMMARY))
         search_summary_menuitem.connect("toggled", self.set_search_filter, SEARCH_IN_SUMMARY)
@@ -537,9 +541,7 @@ class Application():
         separator.show()
         submenu.append(separator)
 
-        about_menuitem = Gtk.ImageMenuItem.new_with_label(_("About"))
-        image = Gtk.Image.new_from_icon_name("help-about-symbolic", Gtk.IconSize.MENU)
-        about_menuitem.set_image(image)
+        about_menuitem = Gtk.MenuItem(_("About"))
         about_menuitem.connect("activate", self.open_about)
         about_menuitem.show()
         submenu.append(about_menuitem)
