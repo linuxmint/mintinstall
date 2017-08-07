@@ -271,15 +271,21 @@ class VerticalPackageTile(Gtk.Button):
 
         vbox.pack_start(icon, False, False, 0)
 
+        overlay = Gtk.Overlay()
+        overlay.add(vbox)
+
         name_box = Gtk.Box()
         name_box.pack_start(label_name, True, True, 0)
         if package.pkg.is_installed:
             installed_mark = Gtk.Image.new_from_icon_name("emblem-installed", Gtk.IconSize.MENU)
-            name_box.pack_start(installed_mark, False, False, 3)
+            installed_mark.set_valign(Gtk.Align.START)
+            installed_mark.set_halign(Gtk.Align.END)
+            installed_mark.set_margin_start(6)
+            overlay.add_overlay(installed_mark)
 
         vbox.pack_start(name_box, True, True, 0)
 
-        self.add(vbox)
+        self.add(overlay)
 
 class ReviewTile(Gtk.ListBoxRow):
     def __init__(self, username, date, comment, rating):
