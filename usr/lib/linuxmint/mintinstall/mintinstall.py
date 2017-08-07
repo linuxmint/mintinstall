@@ -717,8 +717,7 @@ class Application():
         selected = random.sample(featured, 1)[0]
         (name, background, stroke, text, text_shadow) = selected.split('----')
         background = background.replace("@prefix@", "/usr/share/linuxmint/mintinstall/featured/")
-        pkg = self.cache[name]
-        package = Package(pkg)
+        package = self.packages_dict[name]
         self.load_pool_component(package)
         tile = FeatureTile(package, background, text, text_shadow, stroke)
         tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LANDING)
