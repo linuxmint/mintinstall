@@ -1253,6 +1253,7 @@ class Application():
         if len(category.subcategories) > 0:
             row = CategoryListBoxRow(category, is_all=True)
             self.listbox_categories.add(row)
+            self.listbox_categories.select_row(row)
 
             for cat in category.subcategories:
                 row = CategoryListBoxRow(cat)
