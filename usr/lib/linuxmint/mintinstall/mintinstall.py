@@ -33,8 +33,10 @@ ICON_SIZE = 48
 #May not work on all mice
 MOUSE_BACK_BUTTON = 8
 
+# Gsettings keys
 SEARCH_IN_SUMMARY = "search-in-summary"
 SEARCH_IN_DESCRIPTION = "search-in-description"
+INSTALLED_APPS = "installed-apps"
 
 # Don't let mintinstall run as root
 if os.getuid() == 0:
@@ -336,7 +338,8 @@ class Category:
         self.matchingPackages = []
         if parent is not None:
             parent.subcategories.append(self)
-        categories.append(self)
+        if categories is not None:
+            categories.append(self)
         cat = self
         while cat.parent is not None:
             cat = cat.parent
@@ -416,13 +419,7 @@ class MetaTransaction():
 
     def on_transaction_finish(self, transaction, exit_state):
         if (exit_state == aptdaemon.enums.EXIT_SUCCESS):
-            name = self.package.pkg.name
-            self.application.cache = apt.Cache() # reread cache
-            self.package.pkg = self.application.cache[name] # update package
-            if self.application.current_package.pkg.name == name:
-                self.application.builder.get_object("notebook_progress").set_current_page(0)
-                self.application.builder.get_object("application_progress").set_fraction(0 / 100.0)
-                self.application.show_package(self.application.current_package, self.application.previous_page)
+            self.application.update_state(self.package)
 
 class CategoryListBoxRow(Gtk.ListBoxRow):
 
@@ -457,6 +454,7 @@ class Application():
     def __init__(self):
 
         self.load_cache()
+        self.settings = Gio.Settings("com.linuxmint.install")
 
         self.add_categories()
         self.build_matched_packages()
@@ -464,6 +462,7 @@ class Application():
         self.process_matching_packages()
 
         self.current_package = None
+        self.current_category = None
         self.desktop_exec = None
         self.removals = []
         self.additions = []
@@ -496,10 +495,14 @@ class Application():
             self.export_listing()
             sys.exit(0)
 
-        self.settings = Gio.Settings("com.linuxmint.install")
-
         # Build the menu
         submenu = Gtk.Menu()
+
+        menuitem = Gtk.MenuItem(_("Show installed applications"))
+        menuitem.connect("activate", self.show_installed_apps)
+        menuitem.show()
+        submenu.append(menuitem)
+
         search_summary_menuitem = Gtk.CheckMenuItem(_("Search in packages summary (slower search)"))
         search_summary_menuitem.set_active(self.settings.get_boolean(SEARCH_IN_SUMMARY))
         search_summary_menuitem.connect("toggled", self.set_search_filter, SEARCH_IN_SUMMARY)
@@ -578,6 +581,31 @@ class Application():
         self.builder.get_object("action_button").connect("clicked", self.on_action_button_clicked)
         self.builder.get_object("launch_button").connect("clicked", self.on_launch_button_clicked)
 
+    def update_state(self, package):
+        self.cache = apt.Cache() # reread cache
+        package.pkg = self.cache[package.pkg.name] # update package
+        installed_packages = self.settings.get_strv(INSTALLED_APPS)
+        if package.pkg.is_installed:
+            if package.pkg.name not in installed_packages:
+                installed_packages.append(package.pkg.name)
+                self.installed_category.packages.append(package)
+        else:
+            if package.pkg.name in installed_packages:
+                installed_packages.remove(package.pkg.name)
+                for iter_package in self.installed_category.packages:
+                    if iter_package.pkg.name == package.pkg.name:
+                        self.installed_category.packages.remove(iter_package)
+        self.settings.set_strv(INSTALLED_APPS, installed_packages)
+
+        if self.current_package.pkg.name == package.pkg.name:
+            self.builder.get_object("notebook_progress").set_current_page(0)
+            self.builder.get_object("application_progress").set_fraction(0 / 100.0)
+            self.show_package(self.current_package, self.previous_page)
+
+
+    def show_installed_apps(self, menuitem):
+        self.show_category(self.installed_category)
+
     def add_screenshot(self, pkg_name, number):
         local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (pkg_name, number))
         local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (pkg_name, number))
@@ -609,14 +637,6 @@ class Application():
         # Set main screenshot
         pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, -1, 350)
         self.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
-
-    def on_transaction_progress(self, transaction, progress):
-        self.status_label.set_text(transaction.status)
-        self.progressbar.set_fraction(progress / 100.0)
-
-    def on_transaction_finish(self, transaction, exit_state):
-        self.status_label.set_text()
-        self.progressbar.hide()
 
     def _run_transaction(self, transaction):
         self.transactions[self.current_package.pkg.name] = MetaTransaction(self, transaction)
@@ -868,6 +888,9 @@ class Application():
         self.categories = []
         self.sections = {}
         self.root_categories = {}
+
+        self.installed_category = Category("", None, self.categories)
+        self.installed_category.matchingPackages = self.settings.get_strv(INSTALLED_APPS)
 
         self.picks_category = Category(_("Editors Picks"), None, self.categories)
         edition = ""
@@ -1174,10 +1197,15 @@ class Application():
             self.back_button.set_sensitive(False)
         if self.previous_page == self.PAGE_LIST:
             self.previous_page = self.PAGE_LANDING
+            if self.current_category == self.installed_category:
+                # special case, when going back to the installed-category, refresh it in case we removed something
+                self.show_category(self.installed_category)
         self.searchentry.set_text("")
 
     @print_timing
     def show_category(self, category):
+
+        self.current_category = category
 
         self.notebook.set_current_page(self.PAGE_LIST)
         self.previous_page = self.PAGE_LANDING

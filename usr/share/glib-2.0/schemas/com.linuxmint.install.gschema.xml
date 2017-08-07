@@ -11,5 +11,10 @@
       <summary></summary>
       <description></description>
     </key>
+    <key type="as" name="installed-apps">
+      <default>[]</default>
+      <summary></summary>
+      <description></description>
+    </key>
   </schema>
 </schemalist>
