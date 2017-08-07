@@ -426,7 +426,8 @@ class MetaTransaction():
     def on_transaction_progress(self, transaction, progress):
         # self.status_label.set_text(transaction.status)
         # self.progressbar.set_fraction(progress / 100.0)
-        if self.application.current_package.pkg.name == self.package.pkg.name:
+        current_package = self.application.current_package
+        if current_package is not None and current_package.pkg.name == self.package.pkg.name:
             self.application.builder.get_object("notebook_progress").set_current_page(1)
             self.application.builder.get_object("application_progress").set_fraction(progress / 100.0)
 
@@ -614,7 +615,7 @@ class Application():
                         self.installed_category.packages.remove(iter_package)
         self.settings.set_strv(INSTALLED_APPS, installed_packages)
 
-        if self.current_package.pkg.name == package.pkg.name:
+        if self.current_package is not None and self.current_package.pkg.name == package.pkg.name:
             self.builder.get_object("notebook_progress").set_current_page(0)
             self.builder.get_object("application_progress").set_fraction(0 / 100.0)
             self.show_package(self.current_package, self.previous_page)
@@ -629,7 +630,7 @@ class Application():
     def add_screenshot(self, pkg_name, number):
         local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (pkg_name, number))
         local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (pkg_name, number))
-        if self.current_package.pkg.name == pkg_name:
+        if self.current_package is not None and self.current_package.pkg.name == pkg_name:
             if (number == 1):
                 if os.path.exists(local_name):
                     pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, 450, -1)
@@ -1213,6 +1214,7 @@ class Application():
         self.go_back_action()
 
     def go_back_action(self):
+        self.current_package = None
         self.notebook.set_current_page(self.previous_page)
         if self.previous_page == self.PAGE_LANDING:
             self.back_button.set_sensitive(False)
@@ -1345,8 +1347,6 @@ class Application():
         packages.sort(self.package_compare)
         packages = packages[0:200]
 
-        self.builder.get_object("notebook_progress").set_current_page(0)
-
         for package in packages:
 
             self.load_pool_component(package)
@@ -1381,6 +1381,8 @@ class Application():
 
         self.searchentry.set_text("")
         self.current_package = package
+
+        self.builder.get_object("notebook_progress").set_current_page(0)
 
         # Load package info
         score = 0
