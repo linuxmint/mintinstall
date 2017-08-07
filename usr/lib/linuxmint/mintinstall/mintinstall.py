@@ -635,7 +635,7 @@ class Application():
         if self.current_package is not None and self.current_package.pkg.name == pkg_name:
             if (number == 1):
                 if os.path.exists(local_name):
-                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, 450, -1)
+                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, 625, -1)
                     self.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
                     self.builder.get_object("main_screenshot").show()
             else:
@@ -658,7 +658,7 @@ class Application():
 
     def on_screenshot_clicked(self, eventbox, event, image, local_thumb, local_name):
         # Set main screenshot
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, -1, 350)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, 625, -1)
         self.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
 
     def _run_transaction(self, transaction):
@@ -1576,7 +1576,7 @@ class Application():
         main_screenshot = os.path.join(SCREENSHOT_DIR, "%s_1.png" % package.pkg.name)
         main_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % package.pkg.name)
         if os.path.exists(main_screenshot) and os.path.exists(main_thumb):
-            main_screenshot = GdkPixbuf.Pixbuf.new_from_file_at_size(main_screenshot, 450, -1)
+            main_screenshot = GdkPixbuf.Pixbuf.new_from_file_at_size(main_screenshot, 625, -1)
             self.builder.get_object("main_screenshot").set_from_pixbuf(main_screenshot)
             self.builder.get_object("main_screenshot").show()
             for i in range(2, 5):
