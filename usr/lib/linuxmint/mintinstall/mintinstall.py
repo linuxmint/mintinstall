@@ -420,16 +420,20 @@ class MetaTransaction():
         transaction.connect("progress-changed", self.on_transaction_progress)
         # transaction.connect("cancellable-changed", self.on_driver_changes_cancellable_changed)
         transaction.connect("finished", self.on_transaction_finish)
-        # transaction.connect("error", self.on_driver_changes_error)
+        transaction.connect("error", self.on_transaction_error)
         transaction.run()
 
     def on_transaction_progress(self, transaction, progress):
-        # self.status_label.set_text(transaction.status)
-        # self.progressbar.set_fraction(progress / 100.0)
         current_package = self.application.current_package
         if current_package is not None and current_package.pkg.name == self.package.pkg.name:
             self.application.builder.get_object("notebook_progress").set_current_page(1)
             self.application.builder.get_object("application_progress").set_fraction(progress / 100.0)
+
+    def on_transaction_error(self, transaction, error_code, error_details):
+        current_package = self.application.current_package
+        if current_package is not None and current_package.pkg.name == self.package.pkg.name:
+            self.application.builder.get_object("notebook_progress").set_current_page(0)
+            self.application.builder.get_object("application_progress").set_fraction(0.0)
 
     def on_transaction_finish(self, transaction, exit_state):
         if (exit_state == aptdaemon.enums.EXIT_SUCCESS):
@@ -1258,7 +1262,7 @@ class Application():
             for cat in category.subcategories:
                 row = CategoryListBoxRow(cat)
                 self.listbox_categories.add(row)
-                box.show_all()
+            box.show_all()
         else:
             box.hide()
 
