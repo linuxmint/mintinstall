@@ -520,10 +520,10 @@ class Application():
         # Build the menu
         submenu = Gtk.Menu()
 
-        menuitem = Gtk.MenuItem(_("Show installed applications"))
-        menuitem.connect("activate", self.show_installed_apps)
-        menuitem.show()
-        submenu.append(menuitem)
+        self.installed_menuitem = Gtk.MenuItem(_("Show installed applications"))
+        self.installed_menuitem.connect("activate", self.show_installed_apps)
+        self.installed_menuitem.show()
+        submenu.append(self.installed_menuitem)
 
         separator = Gtk.SeparatorMenuItem()
         separator.show()
@@ -564,7 +564,7 @@ class Application():
         self.flowbox_applications.set_homogeneous(True)
         self.flowbox_applications.set_valign(Gtk.Align.START)
 
-        box = self.builder.get_object("scrolledwindow_applications")
+        box = self.builder.get_object("box_cat_page")
         box.add(self.flowbox_applications)
 
         self.back_button = self.builder.get_object("back_button")
@@ -916,7 +916,7 @@ class Application():
         self.sections = {}
         self.root_categories = {}
 
-        self.installed_category = Category("", None, self.categories)
+        self.installed_category = Category(_("Installed Applications"), None, self.categories)
         self.installed_category.matchingPackages = self.settings.get_strv(INSTALLED_APPS)
 
         self.picks_category = Category(_("Editors' Picks"), None, self.categories)
@@ -1223,6 +1223,7 @@ class Application():
         self.notebook.set_current_page(self.previous_page)
         if self.previous_page == self.PAGE_LANDING:
             self.back_button.set_sensitive(False)
+            self.installed_menuitem.set_sensitive(True)
         if self.previous_page == self.PAGE_LIST:
             self.previous_page = self.PAGE_LANDING
             if self.current_category == self.installed_category:
@@ -1233,6 +1234,8 @@ class Application():
     @print_timing
     def show_category(self, category):
 
+        label = self.builder.get_object("label_cat_name")
+
         self.current_category = category
 
         self.notebook.set_current_page(self.PAGE_LIST)
@@ -1241,11 +1244,16 @@ class Application():
 
         self.searchentry.set_text("")
 
+        label.set_text(self.current_category.name)
+
         if category.parent == None:
             self.clear_category_list()
             self.show_subcategories(category)
 
         self.show_packages(category.packages)
+
+        if self.current_category == self.installed_category:
+            self.installed_menuitem.set_sensitive(False)
 
     def clear_category_list(self):
         for child in self.listbox_categories.get_children():
@@ -1373,6 +1381,7 @@ class Application():
 
             tile = PackageTile(package, icon, summary)
             tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LIST)
+
 
             self.flowbox_applications.insert(tile, -1)
             self.category_tiles.append(tile)
