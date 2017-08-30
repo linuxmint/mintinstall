@@ -20,7 +20,8 @@ import subprocess
 
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppStream', '1.0')
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, AppStream
+gi.require_version('XApp', '1.0')
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, AppStream, XApp
 
 import aptdaemon.client
 from aptdaemon.enums import *
@@ -428,12 +429,14 @@ class MetaTransaction():
         if current_package is not None and current_package.pkg.name == self.package.pkg.name:
             self.application.builder.get_object("notebook_progress").set_current_page(1)
             self.application.builder.get_object("application_progress").set_fraction(progress / 100.0)
+            XApp.set_window_progress(self.application.main_window, progress)
 
     def on_transaction_error(self, transaction, error_code, error_details):
         current_package = self.application.current_package
         if current_package is not None and current_package.pkg.name == self.package.pkg.name:
             self.application.builder.get_object("notebook_progress").set_current_page(0)
             self.application.builder.get_object("application_progress").set_fraction(0.0)
+            XApp.set_window_progress(self.application.main_window, 0)
 
     def on_transaction_finish(self, transaction, exit_state):
         if (exit_state == aptdaemon.enums.EXIT_SUCCESS):
@@ -624,6 +627,7 @@ class Application():
         if self.current_package is not None and self.current_package.pkg.name == package.pkg.name:
             self.builder.get_object("notebook_progress").set_current_page(0)
             self.builder.get_object("application_progress").set_fraction(0 / 100.0)
+            XApp.set_window_progress(self.main_window, 0)
             self.show_package(self.current_package, self.previous_page)
 
         for tile in (self.picks_tiles + self.category_tiles):
@@ -1219,6 +1223,7 @@ class Application():
         self.go_back_action()
 
     def go_back_action(self):
+        XApp.set_window_progress(self.main_window, 0)
         self.current_package = None
         self.notebook.set_current_page(self.previous_page)
         if self.previous_page == self.PAGE_LANDING:
@@ -1300,6 +1305,7 @@ class Application():
 
     @print_timing
     def show_search_results(self, terms):
+        XApp.set_window_progress(self.main_window, 0)
         self.listbox_categories.hide()
         self.back_button.set_sensitive(True)
         self.previous_page = self.PAGE_LANDING
