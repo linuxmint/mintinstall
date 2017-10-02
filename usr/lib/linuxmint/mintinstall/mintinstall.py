@@ -84,6 +84,7 @@ ALIASES['mpv'] = "Mpv"
 ALIASES['gimp'] = "Gimp"
 ALIASES['gnome-maps'] = "GNOME Maps"
 ALIASES['thunderbird'] = "Thunderbird"
+ALIASES['pia-manager'] = "PIA Manager"
 
 #Exceptions so packages like chromium-bsu don't get Chromium's
 # icon and cause confusion
