@@ -136,7 +136,7 @@ class ScreenshotDownloader(threading.Thread):
             conn = httplib.HTTPConnection(p.netloc)
             conn.request('HEAD', p.path)
             resp = conn.getresponse()
-            if resp.status < 400:
+            if resp.status < 300:
                 num_screenshots += 1
                 local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkg_name, num_screenshots))
                 local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.pkg_name, num_screenshots))
@@ -643,9 +643,13 @@ class Application():
         if self.current_package is not None and self.current_package.pkg.name == pkg_name:
             if (number == 1):
                 if os.path.exists(local_name):
-                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, 625, -1)
-                    self.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
-                    self.builder.get_object("main_screenshot").show()
+                    try:
+                        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, 625, -1)
+                        self.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
+                        self.builder.get_object("main_screenshot").show()
+                    except:
+                        self.builder.get_object("main_screenshot").show()
+                        os.unlink(local_name)
             else:
                 if os.path.exists(local_name) and os.path.exists(local_thumb):
                     if (number == 2):
@@ -1596,9 +1600,13 @@ class Application():
         main_screenshot = os.path.join(SCREENSHOT_DIR, "%s_1.png" % package.pkg.name)
         main_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % package.pkg.name)
         if os.path.exists(main_screenshot) and os.path.exists(main_thumb):
-            main_screenshot = GdkPixbuf.Pixbuf.new_from_file_at_size(main_screenshot, 625, -1)
-            self.builder.get_object("main_screenshot").set_from_pixbuf(main_screenshot)
-            self.builder.get_object("main_screenshot").show()
+            try:
+                main_screenshot = GdkPixbuf.Pixbuf.new_from_file_at_size(main_screenshot, 625, -1)
+                self.builder.get_object("main_screenshot").set_from_pixbuf(main_screenshot)
+                self.builder.get_object("main_screenshot").show()
+            except:
+                self.builder.get_object("main_screenshot").hide()
+                os.unlink(main_screenshot)
             for i in range(2, 5):
                 self.add_screenshot(package.pkg.name, i)
         else:
