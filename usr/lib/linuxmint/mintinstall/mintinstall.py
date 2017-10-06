@@ -17,11 +17,13 @@ from urlparse import urlparse
 import configobj
 from datetime import datetime
 import subprocess
+import platform
 
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppStream', '1.0')
 gi.require_version('XApp', '1.0')
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, AppStream, XApp
+gi.require_version('Flatpak', '1.0')
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, AppStream, XApp, Flatpak
 
 import aptdaemon.client
 from aptdaemon.enums import *
@@ -44,6 +46,7 @@ if os.getuid() == 0:
     print "The software manager should not be run as root. Please run it in user mode."
     sys.exit(1)
 
+# Used as a decorator to time functions
 def print_timing(func):
     def wrapper(*arg):
         t1 = time.time()
@@ -51,6 +54,21 @@ def print_timing(func):
         t2 = time.time()
         print '%s took %0.3f ms' % (func.func_name, (t2 - t1) * 1000.0)
         return res
+    return wrapper
+
+# Used as a decorator to run things in the background
+def async(func):
+    def wrapper(*args, **kwargs):
+        thread = threading.Thread(target=func, args=args, kwargs=kwargs)
+        thread.daemon = True
+        thread.start()
+        return thread
+    return wrapper
+
+# Used as a decorator to run things in the main loop, from another thread
+def idle(func):
+    def wrapper(*args):
+        GObject.idle_add(func, *args)
     return wrapper
 
 # i18n
@@ -236,7 +254,7 @@ class Tile(Gtk.Button):
         self.installed_mark = Gtk.Image()
 
     def refresh_state(self):
-        if self.package.pkg.is_installed:
+        if self.package.is_installed():
             self.installed_mark.set_from_icon_name("emblem-installed", Gtk.IconSize.MENU)
         else:
             self.installed_mark.clear()
@@ -359,12 +377,15 @@ class Category:
         while cat.parent is not None:
             cat = cat.parent
 
+(PACKAGE_TYPE_APT, PACKAGE_TYPE_FLATPACK) = range(2)
+
 
 class Package(object):
-    __slots__ = 'title', 'pkg', 'reviews', 'categories', 'score', 'avg_rating', 'num_reviews', '_candidate', 'candidate', '_summary', 'summary', 'pool_component' #To remove __dict__ memory overhead
+    __slots__ = 'title', 'pkg_name', 'pkg', 'reviews', 'categories', 'score', 'avg_rating', 'num_reviews', '_candidate', 'candidate', '_summary', 'summary', 'pool_component', 'type' #To remove __dict__ memory overhead
 
     def __init__(self, pkg):
         self.title = pkg.name
+        self.pkg_name = pkg.name
         self.pkg = pkg
         self.reviews = []
         self.categories = []
@@ -372,6 +393,7 @@ class Package(object):
         self.avg_rating = 0
         self.num_reviews = 0
         self.pool_component = None
+        self.type = PACKAGE_TYPE_APT
 
     def _get_candidate(self):
         if not hasattr(self, "_candidate"):
@@ -401,6 +423,37 @@ class Package(object):
             self.avg_rating = round(float(sum_rating) / float(self.num_reviews), 1)
         self.score = points
 
+    def is_installed(self):
+        return self.pkg.is_installed
+
+class FlatpackPackage(object):
+
+    def __init__(self, installation, uuid):
+        self.installation = installation
+        self.arch = platform.machine()
+        self.branch = "stable"
+        elements = uuid.split()
+        try:
+            (self.remote, self.pkg_name, self.title, self.icon_name) = elements
+        except:
+            (self.remote, self.pkg_name) = elements
+            self.title = self.pkg_name.split(".")[-1]
+            self.icon_name = self.title.lower()
+        self.title = self.title + " (flatpak)"
+        self.categories = []
+        self.reviews = []
+        self.score = 0
+        self.avg_rating = 0
+        self.num_reviews = 0
+        self.pool_component = None
+        self.summary = self.pkg_name
+        self.type = PACKAGE_TYPE_FLATPACK
+
+    def is_installed(self):
+        for ref in self.installation.list_installed_refs_by_kind(Flatpak.RefKind.APP):
+            if ref.get_name() == self.pkg_name:
+                return True
+        return False
 
 class Review(object):
     __slots__ = 'date', 'packagename', 'username', 'rating', 'comment', 'package' #To remove __dict__ memory overhead
@@ -427,14 +480,14 @@ class MetaTransaction():
 
     def on_transaction_progress(self, transaction, progress):
         current_package = self.application.current_package
-        if current_package is not None and current_package.pkg.name == self.package.pkg.name:
+        if current_package is not None and current_package.pkg_name == self.package.pkg_name:
             self.application.builder.get_object("notebook_progress").set_current_page(1)
             self.application.builder.get_object("application_progress").set_fraction(progress / 100.0)
             XApp.set_window_progress(self.application.main_window, progress)
 
     def on_transaction_error(self, transaction, error_code, error_details):
         current_package = self.application.current_package
-        if current_package is not None and current_package.pkg.name == self.package.pkg.name:
+        if current_package is not None and current_package.pkg_name == self.package.pkg_name:
             self.application.builder.get_object("notebook_progress").set_current_page(0)
             self.application.builder.get_object("application_progress").set_fraction(0.0)
             XApp.set_window_progress(self.application.main_window, 0)
@@ -466,6 +519,7 @@ class Application():
     @print_timing
     def load_cache(self):
         self.cache = apt.Cache()
+        self.flatpak_installation = Flatpak.Installation.new_system()
         self.pool = AppStream.Pool()
         self.pool.load()
 
@@ -475,10 +529,14 @@ class Application():
     @print_timing
     def __init__(self):
 
+        self.packages = []
+        self.packages_dict = {}
+
         self.load_cache()
         self.settings = Gio.Settings("com.linuxmint.install")
 
         self.add_categories()
+        self.add_flatpaks()
         self.build_matched_packages()
         self.add_packages()
         self.process_matching_packages()
@@ -611,21 +669,21 @@ class Application():
 
     def update_state(self, package):
         self.cache = apt.Cache() # reread cache
-        package.pkg = self.cache[package.pkg.name] # update package
+        package.pkg = self.cache[package.pkg_name] # update package
         installed_packages = self.settings.get_strv(INSTALLED_APPS)
-        if package.pkg.is_installed:
-            if package.pkg.name not in installed_packages:
-                installed_packages.append(package.pkg.name)
+        if package.is_installed():
+            if package.pkg_name not in installed_packages:
+                installed_packages.append(package.pkg_name)
                 self.installed_category.packages.append(package)
         else:
-            if package.pkg.name in installed_packages:
-                installed_packages.remove(package.pkg.name)
+            if package.pkg_name in installed_packages:
+                installed_packages.remove(package.pkg_name)
                 for iter_package in self.installed_category.packages:
-                    if iter_package.pkg.name == package.pkg.name:
+                    if iter_package.pkg_name == package.pkg_name:
                         self.installed_category.packages.remove(iter_package)
         self.settings.set_strv(INSTALLED_APPS, installed_packages)
 
-        if self.current_package is not None and self.current_package.pkg.name == package.pkg.name:
+        if self.current_package is not None and self.current_package.pkg_name == package.pkg_name:
             self.builder.get_object("notebook_progress").set_current_page(0)
             self.builder.get_object("application_progress").set_fraction(0 / 100.0)
             XApp.set_window_progress(self.main_window, 0)
@@ -641,7 +699,7 @@ class Application():
     def add_screenshot(self, pkg_name, number):
         local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (pkg_name, number))
         local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (pkg_name, number))
-        if self.current_package is not None and self.current_package.pkg.name == pkg_name:
+        if self.current_package is not None and self.current_package.pkg_name == pkg_name:
             if (number == 1):
                 if os.path.exists(local_name):
                     try:
@@ -675,7 +733,7 @@ class Application():
         self.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
 
     def _run_transaction(self, transaction):
-        self.transactions[self.current_package.pkg.name] = MetaTransaction(self, transaction)
+        self.transactions[self.current_package.pkg_name] = MetaTransaction(self, transaction)
         # dia = AptProgressDialog(transaction, parent=self.main_window)
         # dia.run(close_on_finished=True, show_error=True,
         #         reply_handler=lambda: True,
@@ -749,7 +807,7 @@ class Application():
         installed = []
         available = []
         for package in self.picks_category.packages:
-            if package.pkg.is_installed:
+            if package.is_installed():
                 installed.append(package)
             else:
                 available.append(package)
@@ -788,6 +846,12 @@ class Application():
         button = Gtk.Button()
         button.set_label(self.picks_category.name)
         button.connect("clicked", self.category_button_clicked, self.picks_category)
+        flowbox.insert(button, -1)
+        box.pack_start(flowbox, True, True, 0)
+        # Add flatpaks
+        button = Gtk.Button()
+        button.set_label(self.flatpak_category.name)
+        button.connect("clicked", self.category_button_clicked, self.flatpak_category)
         flowbox.insert(button, -1)
         box.pack_start(flowbox, True, True, 0)
 
@@ -846,8 +910,8 @@ class Application():
     def export_listing(self):
         # packages
         for package in self.packages:
-            if package.pkg.name.endswith(":i386") or package.pkg.name.endswith(":amd64"):
-                root_name = package.pkg.name.split(":")[0]
+            if package.pkg_name.endswith(":i386") or package.pkg_name.endswith(":amd64"):
+                root_name = package.pkg_name.split(":")[0]
                 if root_name in self.packages_dict:
                     # foo is present in the cache, so ignore foo:i386 and foo:amd64
                     continue
@@ -874,7 +938,7 @@ class Application():
 
             description = description.replace("\r\n", "<br>")
             description = description.replace("\n", "<br>")
-            output = package.pkg.name + "#~#" + version + "#~#" + homepage + "#~#" + strSize + "#~#" + summary + "#~#" + description + "#~#"
+            output = package.pkg_name + "#~#" + version + "#~#" + homepage + "#~#" + strSize + "#~#" + summary + "#~#" + description + "#~#"
             for category in package.categories:
                 output = output + category.name + ":::"
             if output[-3:] == (":::"):
@@ -894,17 +958,53 @@ class Application():
     def on_action_button_clicked(self, button):
         package = self.current_package
         if package is not None:
-            if len(self.removals) > 0:
-                print("Warning, removals: " + " ".join(self.removals))
-            if len(self.additions) > 0:
-                print("Warning, removals: " + " ".join(self.additions))
-            if package.pkg.is_installed:
-                self.ac.remove_packages([package.pkg.name],
-                                reply_handler=self._simulate_trans,
-                                error_handler=self._on_error)
-            else:
-                if package.pkg.name not in BROKEN_PACKAGES:
-                    self.ac.install_packages([package.pkg.name], reply_handler=self._simulate_trans, error_handler=self._on_error)
+            if package.type == PACKAGE_TYPE_APT:
+                if len(self.removals) > 0:
+                    print("Warning, removals: " + " ".join(self.removals))
+                if len(self.additions) > 0:
+                    print("Warning, removals: " + " ".join(self.additions))
+                if package.is_installed():
+                    self.ac.remove_packages([package.pkg_name],
+                                    reply_handler=self._simulate_trans,
+                                    error_handler=self._on_error)
+                else:
+                    if package.pkg_name not in BROKEN_PACKAGES:
+                        self.ac.install_packages([package.pkg_name], reply_handler=self._simulate_trans, error_handler=self._on_error)
+            elif package.type == PACKAGE_TYPE_FLATPACK:
+                if package.is_installed():
+                    print("REMOVE %s" % package.pkg_name)
+                    self.flatpak_uninstall(package)
+                else:
+                    print("INSTALL %s" % package.pkg_name)
+                    self.flatpak_install(package)
+
+    @idle
+    def flatpak_progress_cb(self, status, progress, estimating, package):
+        print (status, progress, estimating, package)
+        if self.current_package is not None and self.current_package.pkg_name == package.pkg_name:
+            self.builder.get_object("notebook_progress").set_current_page(1)
+            self.builder.get_object("application_progress").set_fraction(progress / 100.0)
+            XApp.set_window_progress(self.main_window, progress)
+
+    @idle
+    def flatpak_completed(self, package):
+        if self.current_package is not None and self.current_package.pkg_name == package.pkg_name:
+            self.builder.get_object("notebook_progress").set_current_page(0)
+            self.builder.get_object("application_progress").set_fraction(0.0)
+            XApp.set_window_progress(self.main_window, 0)
+            self.show_package(self.current_package, self.previous_page)
+        for tile in (self.picks_tiles + self.category_tiles):
+            if tile.package == package:
+                tile.refresh_state()
+
+    @async
+    def flatpak_install(self, package):
+        self.flatpak_installation.install(package.remote, Flatpak.RefKind.APP, package.pkg_name, package.arch, package.branch, self.flatpak_progress_cb, package)
+        self.flatpak_completed(package)
+
+    def flatpak_uninstall(self, package):
+        self.flatpak_installation.uninstall(Flatpak.RefKind.APP, package.pkg_name, package.arch, package.branch)
+        self.flatpak_completed(package)
 
     def on_launch_button_clicked(self, button):
         if self.desktop_exec is not None:
@@ -940,6 +1040,8 @@ class Application():
             self.picks_category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/picks-kde.list")
         else:
             self.picks_category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/picks.list")
+
+        self.flatpak_category = Category("Flatpak", None, self.categories)
 
         # INTERNET
         category = Category(_("Internet"), None, self.categories)
@@ -1059,6 +1161,22 @@ class Application():
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/development-essentials.list")
         self.root_categories[category.name] = category
 
+    @async
+    def add_flatpaks(self):
+        remotes = self.flatpak_installation.list_remotes()
+        for remote in remotes:
+            subcat = Category(remote.get_name().capitalize(), self.flatpak_category, self.categories)
+            refs = self.flatpak_installation.list_remote_refs_sync(remote.get_name())
+            for ref in refs:
+                if ref.get_kind() == Flatpak.RefKind.APP and ref.get_arch() == platform.machine() and ref.get_branch() == "stable":
+                    try:
+                        package = FlatpackPackage(self.flatpak_installation, "%s %s" % (remote.get_name(), ref.get_name()))
+                        self.packages.append(package)
+                        self.packages_dict[ref.get_name()] = package
+                        self.add_package_to_category(package, subcat)
+                    except Exception, detail:
+                        print(detail)
+
     def file_to_array(self, filename):
         array = []
         f = open(filename)
@@ -1078,9 +1196,6 @@ class Application():
 
     @print_timing
     def add_packages(self):
-        self.packages = []
-        self.packages_dict = {}
-
         for name in self.cache.keys():
             if name.startswith("lib") and not name.startswith("libreoffice"):
                 continue
@@ -1121,11 +1236,13 @@ class Application():
         for category in self.categories:
             for package_name in category.matchingPackages:
                 try:
-                    package = self.packages_dict[package_name]
+                    if package_name.startswith("flatpak://"):
+                        package = FlatpackPackage(self.flatpak_installation, package_name.replace("flatpak://", ""))
+                    else:
+                        package = self.packages_dict[package_name]
                     self.add_package_to_category(package, category)
                 except Exception, detail:
                     pass
-                    #print detail
 
     def add_package_to_category(self, package, category):
         if category not in package.categories:
@@ -1139,7 +1256,7 @@ class Application():
         if not os.path.exists(REVIEWS_PATH):
             # No reviews found, use the ones from the packages itself
             os.system("cp /usr/share/linuxmint/mintinstall/reviews.list %s" % REVIEWS_PATH)
-            print "First run detected, initial set of reviews used"
+            print ("First run detected, initial set of reviews used")
 
         with open(REVIEWS_PATH) as reviews:
             last_package = None
@@ -1147,7 +1264,7 @@ class Application():
                 elements = line.split("~~~")
                 if len(elements) == 5:
                     review = Review(elements[0], float(elements[1]), elements[2], elements[3], elements[4])
-                    if last_package != None and last_package.pkg.name == elements[0]:
+                    if last_package != None and last_package.pkg_name == elements[0]:
                         #Comment is on the same package as previous comment.. no need to search for the package
                         last_package.reviews.append(review)
                         review.package = last_package
@@ -1171,7 +1288,7 @@ class Application():
                 elements = line.split("~~~")
                 if len(elements) == 5:
                     review = Review(elements[0], float(elements[1]), elements[2], elements[3], elements[4])
-                    if last_package != None and last_package.pkg.name == elements[0]:
+                    if last_package != None and last_package.pkg_name == elements[0]:
                         #Comment is on the same package as previous comment.. no need to search for the package
                         alreadyThere = False
                         for rev in last_package.reviews:
@@ -1278,8 +1395,9 @@ class Application():
             self.listbox_categories.select_row(row)
 
             for cat in category.subcategories:
-                row = CategoryListBoxRow(cat)
-                self.listbox_categories.add(row)
+                if len(cat.packages) > 0:
+                    row = CategoryListBoxRow(cat)
+                    self.listbox_categories.add(row)
             box.show_all()
         else:
             box.hide()
@@ -1288,13 +1406,17 @@ class Application():
         self.show_category(row.category)
 
     def get_application_icon(self, package, size):
-        icon_path = "/usr/share/app-install/icons/%s" % package.pkg.name
+        icon_name = package.pkg_name
+        if package.type == PACKAGE_TYPE_FLATPACK:
+            icon_name = package.icon_name
+
+        icon_path = "/usr/share/app-install/icons/%s" % icon_name
 
         theme = Gtk.IconTheme.get_default()
         #Checks to make sure the package name ins't in icon exceptions
-        if package.pkg.name not in ICON_EXCEPTIONS:
+        if icon_name not in ICON_EXCEPTIONS:
             #Helps add icons to package addons
-            for name in [package.pkg.name.split(":")[0], package.pkg.name.split("-")[0]]:
+            for name in [icon_name.split(":")[0], icon_name.split("-")[0]]:
                 if theme.has_icon(name):
                     iconInfo = theme.lookup_icon(name, size, 0)
                     if iconInfo and os.path.exists(iconInfo.get_filename()):
@@ -1302,7 +1424,7 @@ class Application():
 
         # Try app-install icons then
         for extension in ['svg', 'png', 'xpm']:
-            icon_path = "/usr/share/app-install/icons/%s.%s" % (package.pkg.name, extension)
+            icon_path = "/usr/share/app-install/icons/%s.%s" % (icon_name, extension)
             if os.path.exists(icon_path):
                 return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, size, size)
 
@@ -1325,10 +1447,10 @@ class Application():
 
         for package in self.packages:
             visible = False
-            if termsUpper in package.pkg.name.upper():
+            if termsUpper in package.pkg_name.upper():
                 visible = True
             else:
-                if (package.candidate is not None):
+                if (package.type == PACKAGE_TYPE_APT and package.candidate is not None):
                     if (search_in_summary and termsUpper in package.summary.upper()):
                         visible = True
                     elif(search_in_description and termsUpper in package.candidate.description.upper()):
@@ -1345,12 +1467,12 @@ class Application():
 
     def load_pool_component(self, package):
         if package.pool_component is None:
-            component = self.pool.get_components_by_id("%s.desktop" % package.pkg.name)
+            component = self.pool.get_components_by_id("%s.desktop" % package.pkg_name)
             if component is not None and len(component) > 0:
                 package.pool_component = component[0]
                 package._summary = package.pool_component.get_summary()
                 package.title = package.pool_component.get_name()
-        package_name = package.pkg.name.split(":")[0]
+        package_name = package.pkg_name.split(":")[0]
         if package_name in ALIASES and ALIASES[package_name] not in self.packages_dict:
             package.title = ALIASES[package_name]
         package.title = self.capitalize(package.title)
@@ -1373,10 +1495,9 @@ class Application():
         packages = packages[0:200]
 
         for package in packages:
-
             self.load_pool_component(package)
 
-            if ":" in package.pkg.name and package.pkg.name.split(":")[0] in self.packages_dict:
+            if ":" in package.pkg_name and package.pkg_name.split(":")[0] in self.packages_dict:
                 # don't list arch packages when the root is represented in the cache
                 continue
 
@@ -1413,84 +1534,16 @@ class Application():
         # Load package info
         score = 0
 
-        description = package.pkg.candidate.description
-        if package.pool_component is not None:
-            pool_description = package.pool_component.get_description()
-            if pool_description is not None:
-                description = pool_description.replace("<p>", "").replace("</p>", "\n")
-        description = self.capitalize(description)
-
-        impacted_packages = []
-        self.removals = []
-        self.installations = []
-
-        pkg = package.pkg
-        try:
-            if pkg.is_installed:
-                pkg.mark_delete(True, True)
-            else:
-                pkg.mark_install()
-        except:
-            if pkg.name not in BROKEN_PACKAGES:
-                BROKEN_PACKAGES.append(pkg.name)
-
-        changes = self.cache.get_changes()
-        for pkg in changes:
-            if pkg.name == package.pkg.name:
-                continue
-            if (pkg.is_installed):
-                self.removals.append(pkg.name)
-            else:
-                self.installations.append(pkg.name)
-
-        downloadSize = str(self.cache.required_download) + _("B")
-        if (self.cache.required_download >= 1000):
-            downloadSize = str(self.cache.required_download / 1000) + _("KB")
-        if (self.cache.required_download >= 1000000):
-            downloadSize = str(self.cache.required_download / 1000000) + _("MB")
-        if (self.cache.required_download >= 1000000000):
-            downloadSize = str(self.cache.required_download / 1000000000) + _("GB")
-
-        required_space = self.cache.required_space
-        if (required_space < 0):
-            required_space = (-1) * required_space
-        localSize = str(required_space) + _("B")
-        if (required_space >= 1000):
-            localSize = str(required_space / 1000) + _("KB")
-        if (required_space >= 1000000):
-            localSize = str(required_space / 1000000) + _("MB")
-        if (required_space >= 1000000000):
-            localSize = str(required_space / 1000000000) + _("GB")
-
-        if package.pkg.is_installed:
-            if self.cache.required_space < 0:
-                sizeinfo = _("%(localSize)s of disk space freed") % {'localSize': localSize}
-            else:
-                sizeinfo = _("%(localSize)s of disk space required") % {'localSize': localSize}
-        else:
-            if self.cache.required_space < 0:
-                sizeinfo = _("%(downloadSize)s to download, %(localSize)s of disk space freed") % {'downloadSize': downloadSize, 'localSize': localSize}
-            else:
-                sizeinfo = _("%(downloadSize)s to download, %(localSize)s of disk space required") % {'downloadSize': downloadSize, 'localSize': localSize}
-
-        self.builder.get_object("application_size").set_label(sizeinfo)
-
-        community_link = "https://community.linuxmint.com/software/view/%s" % package.pkg.name
-        self.builder.get_object("label_community").set_markup(_("Click <a href='%s'>here</a> to add your own review.") % community_link)
-
         action_button = self.builder.get_object("action_button")
         style_context = action_button.get_style_context()
-
-        if package.pkg.is_installed:
+        if package.is_installed():
             action_button_label = _("Remove")
             style_context.remove_class("suggested-action")
             style_context.add_class("destructive-action")
-            version = package.pkg.installed.version
-            homepage = package.pkg.installed.homepage
             action_button_description = _("Installed")
             action_button.set_sensitive(True)
         else:
-            if package.pkg.name in BROKEN_PACKAGES:
+            if package.pkg_name in BROKEN_PACKAGES:
                 action_button_label = _("Not available")
                 style_context.remove_class("destructive-action")
                 style_context.remove_class("suggested-action")
@@ -1502,12 +1555,100 @@ class Application():
                 style_context.add_class("suggested-action")
                 action_button_description = _("Not installed")
                 action_button.set_sensitive(True)
-            version = package.pkg.candidate.version
-            homepage = package.pkg.candidate.homepage
+
+        apt_specific_widgets = ["label_reviews", "frame_reviews", "label_community", "label_size"]
+        impacted_packages = []
+        self.removals = []
+        self.installations = []
+
+        if package.type == PACKAGE_TYPE_FLATPACK:
+            # Flatpak package
+            description = _("This is the Flatpak for %s.\nIt is provided by the %s Flatpak repository.") % (package.pkg_name, package.remote)
+            version = "%s (%s)" % (package.branch, package.arch)
+            homepage = "http://flatpak.org"
+            for widget in apt_specific_widgets:
+                self.builder.get_object(widget).hide()
+        else:
+            for widget in apt_specific_widgets:
+                self.builder.get_object(widget).show()
+
+            # APT package
+            description = package.pkg.candidate.description
+
+            pkg = package.pkg
+            try:
+                if pkg.is_installed:
+                    pkg.mark_delete(True, True)
+                else:
+                    pkg.mark_install()
+            except:
+                if pkg.name not in BROKEN_PACKAGES:
+                    BROKEN_PACKAGES.append(pkg.name)
+
+            changes = self.cache.get_changes()
+            for pkg in changes:
+                if pkg.name == package.pkg_name:
+                    continue
+                if (pkg.is_installed):
+                    self.removals.append(pkg.name)
+                else:
+                    self.installations.append(pkg.name)
+
+            downloadSize = str(self.cache.required_download) + _("B")
+            if (self.cache.required_download >= 1000):
+                downloadSize = str(self.cache.required_download / 1000) + _("KB")
+            if (self.cache.required_download >= 1000000):
+                downloadSize = str(self.cache.required_download / 1000000) + _("MB")
+            if (self.cache.required_download >= 1000000000):
+                downloadSize = str(self.cache.required_download / 1000000000) + _("GB")
+
+            required_space = self.cache.required_space
+            if (required_space < 0):
+                required_space = (-1) * required_space
+            localSize = str(required_space) + _("B")
+            if (required_space >= 1000):
+                localSize = str(required_space / 1000) + _("KB")
+            if (required_space >= 1000000):
+                localSize = str(required_space / 1000000) + _("MB")
+            if (required_space >= 1000000000):
+                localSize = str(required_space / 1000000000) + _("GB")
+
+            if package.is_installed():
+                if self.cache.required_space < 0:
+                    sizeinfo = _("%(localSize)s of disk space freed") % {'localSize': localSize}
+                else:
+                    sizeinfo = _("%(localSize)s of disk space required") % {'localSize': localSize}
+            else:
+                if self.cache.required_space < 0:
+                    sizeinfo = _("%(downloadSize)s to download, %(localSize)s of disk space freed") % {'downloadSize': downloadSize, 'localSize': localSize}
+                else:
+                    sizeinfo = _("%(downloadSize)s to download, %(localSize)s of disk space required") % {'downloadSize': downloadSize, 'localSize': localSize}
+            self.builder.get_object("application_size").set_label(sizeinfo)
+
+            if package.is_installed():
+                version = package.pkg.installed.version
+                homepage = package.pkg.installed.homepage
+            else:
+                version = package.pkg.candidate.version
+                homepage = package.pkg.candidate.homepage
+                if package.pkg_name in BROKEN_PACKAGES:
+                    action_button_label = _("Not available")
+                    style_context.remove_class("destructive-action")
+                    style_context.remove_class("suggested-action")
+                    action_button_description = _("Please use apt-get to install this package.")
+                    action_button.set_sensitive(False)
+
+        if package.pool_component is not None:
+            pool_description = package.pool_component.get_description()
+            if pool_description is not None:
+                description = pool_description.replace("<p>", "").replace("</p>", "\n")
+        description = self.capitalize(description)
+
+        community_link = "https://community.linuxmint.com/software/view/%s" % package.pkg_name
+        self.builder.get_object("label_community").set_markup(_("Click <a href='%s'>here</a> to add your own review.") % community_link)
 
         action_button.set_label(action_button_label)
         action_button.set_tooltip_text(action_button_description)
-
 
         self.builder.get_object("application_version").set_label(version)
 
@@ -1575,8 +1716,8 @@ class Application():
         self.builder.get_object("application_categories").set_label("")
         self.builder.get_object("label_categories").hide()
         self.desktop_exec = None
-        bin_name = package.pkg.name.replace(":i386", "")
-        if package.pkg.is_installed:
+        bin_name = package.pkg_name.replace(":i386", "")
+        if package.is_installed():
             for desktop_file in ["/usr/share/applications/%s.desktop" % bin_name, "/usr/share/app-install/desktop/%s:%s.desktop" % (bin_name, bin_name)]:
                 if os.path.exists(desktop_file):
                     config = configobj.ConfigObj(desktop_file)
@@ -1592,14 +1733,17 @@ class Application():
             if self.desktop_exec is None and os.path.exists("/usr/bin/%s" % bin_name):
                 self.desktop_exec = "/usr/bin/%s" % bin_name
                 launch_button.show()
+            if package.type == PACKAGE_TYPE_FLATPACK:
+                self.desktop_exec = "flatpak run %s" % package.pkg_name
+                launch_button.show()
 
         # Screenshots
         box_more_screenshots = self.builder.get_object("box_more_screenshots")
         for child in box_more_screenshots.get_children():
             box_more_screenshots.remove(child)
 
-        main_screenshot = os.path.join(SCREENSHOT_DIR, "%s_1.png" % package.pkg.name)
-        main_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % package.pkg.name)
+        main_screenshot = os.path.join(SCREENSHOT_DIR, "%s_1.png" % package.pkg_name)
+        main_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % package.pkg_name)
         if os.path.exists(main_screenshot) and os.path.exists(main_thumb):
             try:
                 main_screenshot = GdkPixbuf.Pixbuf.new_from_file_at_size(main_screenshot, 625, -1)
@@ -1609,17 +1753,17 @@ class Application():
                 self.builder.get_object("main_screenshot").hide()
                 os.unlink(main_screenshot)
             for i in range(2, 5):
-                self.add_screenshot(package.pkg.name, i)
+                self.add_screenshot(package.pkg_name, i)
         else:
             self.builder.get_object("main_screenshot").hide()
-            downloadScreenshots = ScreenshotDownloader(self, package.pkg.name)
+            downloadScreenshots = ScreenshotDownloader(self, package.pkg_name)
             downloadScreenshots.start()
 
     def package_compare(self, x, y):
         if x.score == y.score:
-            if x.pkg.name < y.pkg.name:
+            if x.pkg_name < y.pkg_name:
                 return -1
-            elif x.pkg.name > y.pkg.name:
+            elif x.pkg_name > y.pkg_name:
                 return 1
             else:
                 return 0

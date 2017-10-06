@@ -721,7 +721,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkLabel" id="label5">
+                          <object class="GtkLabel" id="label_details">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes">Details</property>
@@ -738,7 +738,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkGrid" id="grid1">
+                          <object class="GtkGrid" id="grid_details">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="halign">start</property>
@@ -759,7 +759,7 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkLabel" id="label10">
+                              <object class="GtkLabel" id="label_size">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="label" translatable="yes">Size</property>
@@ -829,7 +829,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkLabel" id="label1">
+                          <object class="GtkLabel" id="label_reviews">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes">Reviews</property>
@@ -846,7 +846,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkFrame" id="frame1">
+                          <object class="GtkFrame" id="frame_reviews">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="label_xalign">0</property>
