@@ -205,8 +205,6 @@ class ScreenshotDownloader(threading.Thread):
                             local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.package.pkg_name, num_screenshots))
                             urllib.urlretrieve (link, local_name)
                             urllib.urlretrieve (thumb, local_thumb)
-                            print ("%s: Saving %s as %s" % (self.package.pkg_name, link, local_name))
-                            print ("%s: Saving %s as %s" % (self.package.pkg_name, thumb, local_thumb))
                             self.application.add_screenshot(self.package.pkg_name, num_screenshots)
                         break # only get one image per screenshot
         except Exception, detail:
@@ -1221,6 +1219,7 @@ class Application():
                         self.packages.append(package)
                         self.packages_dict[ref.get_name()] = package
                         self.add_package_to_category(package, subcat)
+                        self.load_appstream_info(package)
                         if remote.get_name() not in non_empty_remotes:
                             non_empty_remotes.append(remote.get_name())
                     except Exception, detail:
