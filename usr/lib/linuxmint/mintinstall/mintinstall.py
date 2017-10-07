@@ -1641,7 +1641,7 @@ class Application():
                 action_button_description = _("Not installed")
                 action_button.set_sensitive(True)
 
-        apt_specific_widgets = ["label_reviews", "frame_reviews", "label_community", "label_size"]
+        apt_specific_widgets = ["label_size"]
         impacted_packages = []
         self.removals = []
         self.installations = []
@@ -1656,11 +1656,11 @@ class Application():
                 homepage = "https://wiki.gnome.org/Apps"
             else:
                 homepage = "http://flatpak.org"
-            # for widget in apt_specific_widgets:
-            #     self.builder.get_object(widget).hide()
+            for widget in apt_specific_widgets:
+                self.builder.get_object(widget).hide()
         else:
-            # for widget in apt_specific_widgets:
-            #     self.builder.get_object(widget).show()
+            for widget in apt_specific_widgets:
+                self.builder.get_object(widget).show()
 
             # APT package
             description = package.pkg.candidate.description
