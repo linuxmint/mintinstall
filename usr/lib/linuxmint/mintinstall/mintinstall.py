@@ -139,10 +139,10 @@ class DownloadReviews(threading.Thread):
 
 class ScreenshotDownloader(threading.Thread):
 
-    def __init__(self, application, pkg_name):
+    def __init__(self, application, package):
         threading.Thread.__init__(self)
         self.application = application
-        self.pkg_name = pkg_name
+        self.package = package
 
     def run(self):
         num_screenshots = 0
@@ -150,26 +150,26 @@ class ScreenshotDownloader(threading.Thread):
         self.application.screenshots = []
         # Add main screenshot
         try:
-            thumb = "http://community.linuxmint.com/thumbnail.php?w=250&pic=/var/www/community.linuxmint.com/img/screenshots/%s.png" % self.pkg_name
-            link = "http://community.linuxmint.com/img/screenshots/%s.png" % self.pkg_name
+            thumb = "http://community.linuxmint.com/thumbnail.php?w=250&pic=/var/www/community.linuxmint.com/img/screenshots/%s.png" % self.package.pkg_name
+            link = "http://community.linuxmint.com/img/screenshots/%s.png" % self.package.pkg_name
             p = urlparse(link)
             conn = httplib.HTTPConnection(p.netloc)
             conn.request('HEAD', p.path)
             resp = conn.getresponse()
             if resp.status < 300:
                 num_screenshots += 1
-                local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkg_name, num_screenshots))
-                local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.pkg_name, num_screenshots))
+                local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.package.pkg_name, num_screenshots))
+                local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.package.pkg_name, num_screenshots))
                 urllib.urlretrieve (link, local_name)
                 urllib.urlretrieve (thumb, local_thumb)
-                self.application.add_screenshot(self.pkg_name, num_screenshots)
+                self.application.add_screenshot(self.package.pkg_name, num_screenshots)
         except Exception, detail:
             print detail
 
         try:
-            # Add additional screenshots
+            # Add additional screenshots from Debian
             from BeautifulSoup import BeautifulSoup
-            page = BeautifulSoup(urllib2.urlopen("http://screenshots.debian.net/package/%s" % self.pkg_name))
+            page = BeautifulSoup(urllib2.urlopen("http://screenshots.debian.net/package/%s" % self.package.pkg_name))
             images = page.findAll('img')
             for image in images:
                 if num_screenshots >= 4:
@@ -178,11 +178,37 @@ class ScreenshotDownloader(threading.Thread):
                     num_screenshots += 1
                     thumb = "http://screenshots.debian.net%s" % image['src']
                     link = thumb.replace("_small", "_large")
-                    local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkg_name, num_screenshots))
-                    local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.pkg_name, num_screenshots))
+                    local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.package.pkg_name, num_screenshots))
+                    local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.package.pkg_name, num_screenshots))
                     urllib.urlretrieve (link, local_name)
                     urllib.urlretrieve (thumb, local_thumb)
-                    self.application.add_screenshot(self.pkg_name, num_screenshots)
+                    self.application.add_screenshot(self.package.pkg_name, num_screenshots)
+        except Exception, detail:
+            print detail
+
+        try:
+            # Add additional screenshots from AppStream
+            if self.package.appstream_component is not None:
+                for screenshot in self.package.appstream_component.get_screenshots():
+                    if num_screenshots >= 4:
+                            return
+                    for image in screenshot.get_images():
+                        thumb = image.get_url()
+                        link = image.get_url()
+                        p = urlparse(link)
+                        conn = httplib.HTTPConnection(p.netloc)
+                        conn.request('HEAD', p.path)
+                        resp = conn.getresponse()
+                        if resp.status < 400:
+                            num_screenshots += 1
+                            local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.package.pkg_name, num_screenshots))
+                            local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.package.pkg_name, num_screenshots))
+                            urllib.urlretrieve (link, local_name)
+                            urllib.urlretrieve (thumb, local_thumb)
+                            print ("%s: Saving %s as %s" % (self.package.pkg_name, link, local_name))
+                            print ("%s: Saving %s as %s" % (self.package.pkg_name, thumb, local_thumb))
+                            self.application.add_screenshot(self.package.pkg_name, num_screenshots)
+                        break # only get one image per screenshot
         except Exception, detail:
             print detail
 
@@ -519,7 +545,6 @@ class Application():
         self.apt_appstream_pool.load()
         self.flatpak_appstream_pool = AppStream.Pool()
         for path in glob.iglob('/var/lib/flatpak/appstream/*/*/active/'):
-            print(path)
             self.flatpak_appstream_pool.add_metadata_location(path)
         self.flatpak_appstream_pool.set_cache_flags(AppStream.CacheFlags.NONE)
         self.flatpak_appstream_pool.set_locale(self.locale)
@@ -709,25 +734,37 @@ class Application():
                         self.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
                         self.builder.get_object("main_screenshot").show()
                     except:
-                        self.builder.get_object("main_screenshot").show()
+                        self.builder.get_object("main_screenshot").hide()
+                        print("Invalid picture %s, deleting." % local_name)
                         os.unlink(local_name)
+                        os.unlink(local_thumb)
             else:
                 if os.path.exists(local_name) and os.path.exists(local_thumb):
                     if (number == 2):
-                        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % pkg_name), 100, -1)
+                        try:
+                            name = os.path.join(SCREENSHOT_DIR, "%s_1.png" % pkg_name)
+                            thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % pkg_name)
+                            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(thumb, 100, -1)
+                            event_box = Gtk.EventBox()
+                            image = Gtk.Image.new_from_pixbuf(pixbuf)
+                            event_box.add(image)
+                            event_box.connect("button-release-event", self.on_screenshot_clicked, image, thumb, name)
+                            self.builder.get_object("box_more_screenshots").pack_start(event_box, False, False, 0)
+                            event_box.show_all()
+                        except:
+                            pass
+                    try:
+                        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_thumb, 100, -1)
                         event_box = Gtk.EventBox()
                         image = Gtk.Image.new_from_pixbuf(pixbuf)
                         event_box.add(image)
-                        event_box.connect("button-release-event", self.on_screenshot_clicked, image, os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % pkg_name), os.path.join(SCREENSHOT_DIR, "%s_1.png" % pkg_name))
+                        event_box.connect("button-release-event", self.on_screenshot_clicked, image, local_thumb, local_name)
                         self.builder.get_object("box_more_screenshots").pack_start(event_box, False, False, 0)
                         event_box.show_all()
-                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_thumb, 100, -1)
-                    event_box = Gtk.EventBox()
-                    image = Gtk.Image.new_from_pixbuf(pixbuf)
-                    event_box.add(image)
-                    event_box.connect("button-release-event", self.on_screenshot_clicked, image, local_thumb, local_name)
-                    self.builder.get_object("box_more_screenshots").pack_start(event_box, False, False, 0)
-                    event_box.show_all()
+                    except:
+                        print("Invalid picture %s, deleting." % local_name)
+                        os.unlink(local_name)
+                        os.unlink(local_thumb)
 
     def on_screenshot_clicked(self, eventbox, event, image, local_thumb, local_name):
         # Set main screenshot
@@ -1395,6 +1432,7 @@ class Application():
         self.searchentry.set_text("")
 
         label.set_text(self.current_category.name)
+        label.show()
 
         if category.parent == None:
             self.clear_category_list()
@@ -1449,6 +1487,10 @@ class Application():
             if os.path.exists(icon_path):
                 return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, size, size)
 
+            icon_path = "/usr/share/pixmaps/%s.%s" % (icon_name, extension)
+            if os.path.exists(icon_path):
+                return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, size, size)
+
         # We should be able to retrieve the icon from AppStream.. but that doesn't work
         # with Flathub/Gnome-apps for some reason..
         if package.type == PACKAGE_TYPE_FLATPACK:
@@ -1456,10 +1498,19 @@ class Application():
             if os.path.exists(icon_path):
                 return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, size, size)
 
+            name = package.title.lower()
+            if theme.has_icon(name):
+                iconInfo = theme.lookup_icon(name, size, 0)
+                if iconInfo and os.path.exists(iconInfo.get_filename()):
+                    return GdkPixbuf.Pixbuf.new_from_file_at_size(iconInfo.get_filename(), size, size)
+
         return self.generic_available_icon_pixbuf
 
     @print_timing
     def show_search_results(self, terms):
+        label = self.builder.get_object("label_cat_name")
+        label.hide()
+
         XApp.set_window_progress(self.main_window, 0)
         self.listbox_categories.hide()
         self.back_button.set_sensitive(True)
@@ -1478,10 +1529,13 @@ class Application():
             if termsUpper in package.pkg_name.upper():
                 visible = True
             else:
-                if (package.type == PACKAGE_TYPE_APT and package.candidate is not None):
-                    if (search_in_summary and termsUpper in package.summary.upper()):
+                if (search_in_summary and termsUpper in package.summary.upper()):
+                    visible = True
+                if (package.type == PACKAGE_TYPE_APT and package.pkg.candidate is not None):
+                    if(search_in_description and termsUpper in package.pkg.candidate.description.upper()):
                         visible = True
-                    elif(search_in_description and termsUpper in package.candidate.description.upper()):
+                elif package.appstream_component is not None:
+                    if(search_in_description and termsUpper in package.appstream_component.get_description().upper()):
                         visible = True
 
             if visible:
@@ -1675,6 +1729,8 @@ class Application():
                 homepage = package.appstream_component.get_url(AppStream.UrlKind.HOMEPAGE)
             if package.appstream_component.get_description() is not None:
                 description = package.appstream_component.get_description().replace("<p>", "").replace("</p>", "\n")
+                for tags in ["<ul>", "</ul>", "<li>", "</li>"]:
+                    description = description.replace(tags, "")
         description = self.capitalize(description)
 
         community_link = "https://community.linuxmint.com/software/view/%s" % package.pkg_name
@@ -1789,7 +1845,7 @@ class Application():
                 self.add_screenshot(package.pkg_name, i)
         else:
             self.builder.get_object("main_screenshot").hide()
-            downloadScreenshots = ScreenshotDownloader(self, package.pkg_name)
+            downloadScreenshots = ScreenshotDownloader(self, package)
             downloadScreenshots.start()
 
     def package_compare(self, x, y):
