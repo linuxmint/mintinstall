@@ -1649,8 +1649,13 @@ class Application():
         if package.type == PACKAGE_TYPE_FLATPACK:
             # Flatpak package
             description = _("This is the Flatpak for %s.\nIt is provided by the %s Flatpak repository.") % (package.pkg_name, package.remote)
-            version = "%s (%s)" % (package.branch, package.arch)
-            homepage = "http://flatpak.org"
+            version = "Flatpak %s (%s)" % (package.branch, package.arch)
+            if package.remote == "flathub":
+                homepage = "https://flathub.org"
+            elif package.remote == "gnome-apps":
+                homepage = "https://wiki.gnome.org/Apps"
+            else:
+                homepage = "http://flatpak.org"
             # for widget in apt_specific_widgets:
             #     self.builder.get_object(widget).hide()
         else:
