@@ -18,12 +18,13 @@ import configobj
 from datetime import datetime
 import subprocess
 import platform
+import glob
 
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppStream', '1.0')
 gi.require_version('XApp', '1.0')
 gi.require_version('Flatpak', '1.0')
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, AppStream, XApp, Flatpak
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, XApp, Flatpak, AppStream
 
 import aptdaemon.client
 from aptdaemon.enums import *
@@ -379,37 +380,30 @@ class Category:
 
 (PACKAGE_TYPE_APT, PACKAGE_TYPE_FLATPACK) = range(2)
 
-
 class Package(object):
-    __slots__ = 'title', 'pkg_name', 'pkg', 'reviews', 'categories', 'score', 'avg_rating', 'num_reviews', '_candidate', 'candidate', '_summary', 'summary', 'pool_component', 'type' #To remove __dict__ memory overhead
 
-    def __init__(self, pkg):
-        self.title = pkg.name
-        self.pkg_name = pkg.name
-        self.pkg = pkg
+    def __init__(self):
+        self.title = ""
+        self.summary = ""
+        self.pkg_name = ""
         self.reviews = []
         self.categories = []
         self.score = 0
         self.avg_rating = 0
         self.num_reviews = 0
-        self.pool_component = None
+        self.appstream_component = None
+
+
+class APTPackage(Package):
+
+    def __init__(self, pkg):
+        Package.__init__(self)
+        self.title = pkg.name
+        self.pkg_name = pkg.name
+        self.pkg = pkg
         self.type = PACKAGE_TYPE_APT
-
-    def _get_candidate(self):
-        if not hasattr(self, "_candidate"):
-            self._candidate = self.pkg.candidate
-        return self._candidate
-    candidate = property(_get_candidate)
-
-    def _get_summary(self):
-        if not hasattr(self, "_summary"):
-            candidate = self.candidate
-            if candidate is not None:
-                self._summary = candidate.summary
-            else:
-                self._summary = None
-        return self._summary
-    summary = property(_get_summary)
+        if pkg.candidate is not None:
+            self.summary = pkg.candidate.summary
 
     def update_stats(self):
         points = 0
@@ -426,9 +420,10 @@ class Package(object):
     def is_installed(self):
         return self.pkg.is_installed
 
-class FlatpackPackage(object):
+class FlatpackPackage(Package):
 
     def __init__(self, installation, uuid):
+        Package.__init__(self)
         self.installation = installation
         self.arch = platform.machine()
         self.branch = "stable"
@@ -439,13 +434,7 @@ class FlatpackPackage(object):
             (self.remote, self.pkg_name) = elements
             self.title = self.pkg_name.split(".")[-1]
             self.icon_name = self.title.lower()
-        self.title = self.title + " (flatpak)"
-        self.categories = []
-        self.reviews = []
-        self.score = 0
-        self.avg_rating = 0
-        self.num_reviews = 0
-        self.pool_component = None
+
         self.summary = self.pkg_name
         self.type = PACKAGE_TYPE_FLATPACK
 
@@ -518,10 +507,23 @@ class Application():
 
     @print_timing
     def load_cache(self):
+        self.locale = os.getenv('LANGUAGE')
+        if self.locale is None:
+            self.locale = "C"
+        else:
+            self.locale = self.locale.split("_")[0]
         self.cache = apt.Cache()
         self.flatpak_installation = Flatpak.Installation.new_system()
-        self.pool = AppStream.Pool()
-        self.pool.load()
+        self.apt_appstream_pool = AppStream.Pool()
+        self.apt_appstream_pool.set_locale(self.locale)
+        self.apt_appstream_pool.load()
+        self.flatpak_appstream_pool = AppStream.Pool()
+        for path in glob.iglob('/var/lib/flatpak/appstream/*/*/active/'):
+            print(path)
+            self.flatpak_appstream_pool.add_metadata_location(path)
+        self.flatpak_appstream_pool.set_cache_flags(AppStream.CacheFlags.NONE)
+        self.flatpak_appstream_pool.set_locale(self.locale)
+        self.flatpak_appstream_pool.load()
 
     def run(self):
         self.loop.run()
@@ -789,7 +791,7 @@ class Application():
         (name, background, stroke, text, text_shadow) = selected.split('----')
         background = background.replace("@prefix@", "/usr/share/linuxmint/mintinstall/featured/")
         package = self.packages_dict[name]
-        self.load_pool_component(package)
+        self.load_appstream_info(package)
         tile = FeatureTile(package, background, text, text_shadow, stroke)
         tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LANDING)
         flowbox.insert(tile, -1)
@@ -815,7 +817,7 @@ class Application():
         random.shuffle(available)
         featured = 0
         for package in (available + installed):
-            self.load_pool_component(package)
+            self.load_appstream_info(package)
             icon = self.get_application_icon(package, ICON_SIZE)
             icon = Gtk.Image.new_from_pixbuf(icon)
             tile = VerticalPackageTile(package, icon)
@@ -1002,6 +1004,7 @@ class Application():
         self.flatpak_installation.install(package.remote, Flatpak.RefKind.APP, package.pkg_name, package.arch, package.branch, self.flatpak_progress_cb, package)
         self.flatpak_completed(package)
 
+    @async
     def flatpak_uninstall(self, package):
         self.flatpak_installation.uninstall(Flatpak.RefKind.APP, package.pkg_name, package.arch, package.branch)
         self.flatpak_completed(package)
@@ -1161,9 +1164,16 @@ class Application():
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/development-essentials.list")
         self.root_categories[category.name] = category
 
+    @print_timing
+    def sync_flatpaks_into_appstream(self, remote_name):
+        self.flatpak_installation.update_appstream_sync(remote_name, platform.machine(), False)
+        print("Synced %s" % remote_name)
+
     @async
     def add_flatpaks(self):
+        # Add flatpak packages
         remotes = self.flatpak_installation.list_remotes()
+        non_empty_remotes = []
         for remote in remotes:
             subcat = Category(remote.get_name().capitalize(), self.flatpak_category, self.categories)
             refs = self.flatpak_installation.list_remote_refs_sync(remote.get_name())
@@ -1174,8 +1184,21 @@ class Application():
                         self.packages.append(package)
                         self.packages_dict[ref.get_name()] = package
                         self.add_package_to_category(package, subcat)
+                        if remote.get_name() not in non_empty_remotes:
+                            non_empty_remotes.append(remote.get_name())
                     except Exception, detail:
                         print(detail)
+
+        # Refresh the appstream info for flatpaks
+        if len(non_empty_remotes) > 0:
+            for remote_name in non_empty_remotes:
+                self.sync_flatpaks_into_appstream(remote_name)
+            self.flatpak_appstream_pool = AppStream.Pool()
+            for path in glob.iglob('/var/lib/flatpak/appstream/*/*/active/'):
+                self.flatpak_appstream_pool.add_metadata_location(path)
+            self.flatpak_appstream_pool.set_cache_flags(AppStream.CacheFlags.NONE)
+            self.flatpak_appstream_pool.set_locale(self.locale)
+            self.flatpak_appstream_pool.load()
 
     def file_to_array(self, filename):
         array = []
@@ -1217,7 +1240,7 @@ class Application():
                 continue
 
             pkg = self.cache[name]
-            package = Package(pkg)
+            package = APTPackage(pkg)
             self.packages.append(package)
             self.packages_dict[pkg.name] = package
 
@@ -1410,8 +1433,6 @@ class Application():
         if package.type == PACKAGE_TYPE_FLATPACK:
             icon_name = package.icon_name
 
-        icon_path = "/usr/share/app-install/icons/%s" % icon_name
-
         theme = Gtk.IconTheme.get_default()
         #Checks to make sure the package name ins't in icon exceptions
         if icon_name not in ICON_EXCEPTIONS:
@@ -1425,6 +1446,13 @@ class Application():
         # Try app-install icons then
         for extension in ['svg', 'png', 'xpm']:
             icon_path = "/usr/share/app-install/icons/%s.%s" % (icon_name, extension)
+            if os.path.exists(icon_path):
+                return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, size, size)
+
+        # We should be able to retrieve the icon from AppStream.. but that doesn't work
+        # with Flathub/Gnome-apps for some reason..
+        if package.type == PACKAGE_TYPE_FLATPACK:
+            icon_path = icon_path = "/var/lib/flatpak/appstream/%s/%s/active/icons/64x64/%s.png" % (package.remote, package.arch, package.pkg_name)
             if os.path.exists(icon_path):
                 return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, size, size)
 
@@ -1465,19 +1493,23 @@ class Application():
     def on_package_tile_clicked(self, tile, previous_page):
         self.show_package(tile.package, previous_page)
 
-    def load_pool_component(self, package):
-        if package.pool_component is None:
-            component = self.pool.get_components_by_id("%s.desktop" % package.pkg_name)
+    def load_appstream_info(self, package):
+        if package.appstream_component is None:
+            if package.type == PACKAGE_TYPE_APT:
+                pool = self.apt_appstream_pool
+            else:
+                pool = self.flatpak_appstream_pool
+            component = pool.get_components_by_id("%s.desktop" % package.pkg_name)
             if component is not None and len(component) > 0:
-                package.pool_component = component[0]
-                package._summary = package.pool_component.get_summary()
-                package.title = package.pool_component.get_name()
+                package.appstream_component = component[0]
+                package.summary = package.appstream_component.get_summary()
+                package.title = package.appstream_component.get_name()
         package_name = package.pkg_name.split(":")[0]
         if package_name in ALIASES and ALIASES[package_name] not in self.packages_dict:
             package.title = ALIASES[package_name]
         package.title = self.capitalize(package.title)
         package.title = package.title.replace(":i386", "")
-        package._summary = self.capitalize(package.summary)
+        package.summary = self.capitalize(package.summary)
 
     def capitalize(self, string):
         if len(string) > 1:
@@ -1495,7 +1527,7 @@ class Application():
         packages = packages[0:200]
 
         for package in packages:
-            self.load_pool_component(package)
+            self.load_appstream_info(package)
 
             if ":" in package.pkg_name and package.pkg_name.split(":")[0] in self.packages_dict:
                 # don't list arch packages when the root is represented in the cache
@@ -1566,11 +1598,11 @@ class Application():
             description = _("This is the Flatpak for %s.\nIt is provided by the %s Flatpak repository.") % (package.pkg_name, package.remote)
             version = "%s (%s)" % (package.branch, package.arch)
             homepage = "http://flatpak.org"
-            for widget in apt_specific_widgets:
-                self.builder.get_object(widget).hide()
+            # for widget in apt_specific_widgets:
+            #     self.builder.get_object(widget).hide()
         else:
-            for widget in apt_specific_widgets:
-                self.builder.get_object(widget).show()
+            # for widget in apt_specific_widgets:
+            #     self.builder.get_object(widget).show()
 
             # APT package
             description = package.pkg.candidate.description
@@ -1638,10 +1670,11 @@ class Application():
                     action_button_description = _("Please use apt-get to install this package.")
                     action_button.set_sensitive(False)
 
-        if package.pool_component is not None:
-            pool_description = package.pool_component.get_description()
-            if pool_description is not None:
-                description = pool_description.replace("<p>", "").replace("</p>", "\n")
+        if package.appstream_component is not None:
+            if package.appstream_component.get_url(AppStream.UrlKind.HOMEPAGE) is not None:
+                homepage = package.appstream_component.get_url(AppStream.UrlKind.HOMEPAGE)
+            if package.appstream_component.get_description() is not None:
+                description = package.appstream_component.get_description().replace("<p>", "").replace("</p>", "\n")
         description = self.capitalize(description)
 
         community_link = "https://community.linuxmint.com/software/view/%s" % package.pkg_name
