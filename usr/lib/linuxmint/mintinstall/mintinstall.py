@@ -494,6 +494,8 @@ class Application():
         self.additions = []
         self.transactions = {}
 
+        self.search_idle_id = 0
+
         # Build the GUI
         glade_file = "/usr/share/linuxmint/mintinstall/mintinstall.glade"
 
@@ -794,20 +796,38 @@ class Application():
     def category_button_clicked(self, button, category):
         self.show_category(category)
 
+    def on_idle_update_search_results(self, terms):
+        self.show_search_results(terms)
+
+        self.search_idle_id = 0
+        return False
+
+    def update_search_at_idle(self, terms):
+        if self.search_idle_id > 0:
+            GObject.source_remove(self.search_idle_id)
+            self.search_idle_id = 0
+
+        self.search_idle_id = GObject.timeout_add(250, self.on_idle_update_search_results, terms)
+
     def on_search_entry_activated(self, searchentry):
         terms = searchentry.get_text()
-        if terms != "":
-            self.show_search_results(terms)
 
-    def on_search_terms_changed(self, entry):
-        terms = entry.get_text()
+        if terms != "":
+            self.update_search_at_idle(terms)
+
+    def on_search_terms_changed(self, searchentry):
+        terms = searchentry.get_text()
+
         if terms != "" and len(terms) >= 3:
-            self.show_search_results(terms)
+            self.update_search_at_idle(terms)
 
     def set_search_filter(self, checkmenuitem, key):
         self.settings.set_boolean(key, checkmenuitem.get_active())
+
+        terms = self.searchentry.get_text()
+
         if (self.searchentry.get_text() != ""):
-            self.show_search_results(self.searchentry.get_text())
+            self.update_search_at_idle(terms)
 
     def close_window(self, widget, window):
         window.hide()
