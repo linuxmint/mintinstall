@@ -1569,7 +1569,9 @@ class Application():
                     if(search_in_description and termsUpper in package.pkg.candidate.description.upper()):
                         visible = True
                 elif package.appstream_component is not None:
-                    if(search_in_description and termsUpper in package.appstream_component.get_description().upper()):
+                    desc = package.appstream_component.get_description()
+
+                    if search_in_description and (desc and (termsUpper in desc.upper())):
                         visible = True
 
             if visible:
