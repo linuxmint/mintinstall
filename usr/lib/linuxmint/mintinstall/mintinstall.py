@@ -1,7 +1,11 @@
 #!/usr/bin/python2
+# encoding=utf8
 # -*- coding: UTF-8 -*-
 
 import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
+
 import os
 import commands
 import gi
@@ -122,18 +126,19 @@ class DownloadReviews(threading.Thread):
 
     def run(self):
         try:
+            print("Downloading new reviews")
             reviews_path_tmp = REVIEWS_PATH + ".tmp"
-            url = urllib.urlretrieve("http://community.linuxmint.com/data/new-reviews.list", reviews_path_tmp)
+            url = urllib.urlretrieve("https://community.linuxmint.com/data/new-reviews.list", reviews_path_tmp)
             numlines = 0
             numlines_new = 0
             if os.path.exists(REVIEWS_PATH):
                 numlines = int(commands.getoutput("cat " + REVIEWS_PATH + " | wc -l"))
             if os.path.exists(reviews_path_tmp):
                 numlines_new = int(commands.getoutput("cat " + reviews_path_tmp + " | wc -l"))
-            if numlines_new > numlines:
-                os.system("mv " + reviews_path_tmp + " " + REVIEWS_PATH)
-                print "Overwriting reviews file in " + REVIEWS_PATH
-                self.application.update_reviews()
+                if numlines_new != numlines:
+                    os.system("mv " + reviews_path_tmp + " " + REVIEWS_PATH)
+                    print "Overwriting reviews file in " + REVIEWS_PATH
+                    self.application.update_reviews()
         except Exception, detail:
             print detail
 
@@ -417,18 +422,6 @@ class Package(object):
         self.num_reviews = 0
         self.appstream_component = None
 
-
-class APTPackage(Package):
-
-    def __init__(self, pkg):
-        Package.__init__(self)
-        self.title = pkg.name
-        self.pkg_name = pkg.name
-        self.pkg = pkg
-        self.type = PACKAGE_TYPE_APT
-        if pkg.candidate is not None:
-            self.summary = pkg.candidate.summary
-
     def update_stats(self):
         points = 0
         sum_rating = 0
@@ -440,6 +433,17 @@ class APTPackage(Package):
         if self.num_reviews > 0:
             self.avg_rating = round(float(sum_rating) / float(self.num_reviews), 1)
         self.score = points
+
+class APTPackage(Package):
+
+    def __init__(self, pkg):
+        Package.__init__(self)
+        self.title = pkg.name
+        self.pkg_name = pkg.name
+        self.pkg = pkg
+        self.type = PACKAGE_TYPE_APT
+        if pkg.candidate is not None:
+            self.summary = pkg.candidate.summary
 
     def is_installed(self):
         return self.pkg.is_installed
@@ -531,11 +535,6 @@ class Application():
 
     @print_timing
     def load_cache(self):
-        self.locale = os.getenv('LANGUAGE')
-        if self.locale is None:
-            self.locale = "C"
-        else:
-            self.locale = self.locale.split("_")[0]
         self.cache = apt.Cache()
         self.flatpak_installation = Flatpak.Installation.new_system()
         self.apt_appstream_pool = AppStream.Pool()
@@ -556,12 +555,22 @@ class Application():
 
         self.packages = []
         self.packages_dict = {}
-
-        self.load_cache()
         self.settings = Gio.Settings("com.linuxmint.install")
 
+        if len(sys.argv) > 1 and sys.argv[1] == "list":
+            # Print packages and their categories and exit
+            self.export_listing()
+            sys.exit(0)
+
+        self.locale = os.getenv('LANGUAGE')
+        if self.locale is None:
+            self.locale = "C"
+        else:
+            self.locale = self.locale.split("_")[0]
+
+        self.load_cache()
         self.add_categories()
-        self.add_flatpaks()
+        self.add_flatpaks_async()
         self.build_matched_packages()
         self.add_packages()
         self.process_matching_packages()
@@ -598,11 +607,6 @@ class Application():
         self.add_reviews()
         downloadReviews = DownloadReviews(self)
         downloadReviews.start()
-
-        if len(sys.argv) > 1 and sys.argv[1] == "list":
-            # Print packages and their categories and exit
-            self.export_listing()
-            sys.exit(0)
 
         # Build the menu
         submenu = Gtk.Menu()
@@ -945,6 +949,17 @@ class Application():
         dlg.show()
 
     def export_listing(self):
+        if (os.getenv('LANGUAGE') != "C"):
+            print("Please prefix this command with LANGUAGE=C, to prevent content from being translated in the host's locale.")
+            sys.exit(1)
+        self.locale = "C"
+        self.load_cache()
+        self.add_categories()
+        self.add_flatpaks()
+        self.build_matched_packages()
+        self.add_packages()
+        self.process_matching_packages()
+
         # packages
         for package in self.packages:
             if package.pkg_name.endswith(":i386") or package.pkg_name.endswith(":amd64"):
@@ -958,28 +973,41 @@ class Application():
             if summary is None:
                 summary = ""
             description = ""
-            version = ""
             homepage = ""
-            strSize = ""
-            if package.pkg.candidate is not None:
-                description = package.pkg.candidate.description
-                version = package.pkg.candidate.version
-                homepage = package.pkg.candidate.homepage
-                strSize = str(package.pkg.candidate.size) + _("B")
-                if (package.pkg.candidate.size >= 1000):
-                    strSize = str(package.pkg.candidate.size / 1000) + _("KB")
-                if (package.pkg.candidate.size >= 1000000):
-                    strSize = str(package.pkg.candidate.size / 1000000) + _("MB")
-                if (package.pkg.candidate.size >= 1000000000):
-                    strSize = str(package.pkg.candidate.size / 1000000000) + _("GB")
 
+            if package.type == PACKAGE_TYPE_FLATPACK:
+                # Flatpak package
+                description = _("This is the Flatpak for %s.\nIt is provided by the %s Flatpak repository.") % (package.pkg_name, package.remote)
+                if package.remote == "flathub":
+                    homepage = "https://flathub.org"
+                elif package.remote == "gnome-apps":
+                    homepage = "https://wiki.gnome.org/Apps"
+                else:
+                    homepage = "http://flatpak.org"
+            else:
+                # APT package
+                if package.pkg.candidate is not None:
+                    description = package.pkg.candidate.description
+                    homepage = package.pkg.candidate.homepage
+
+            if package.appstream_component is not None:
+                if package.appstream_component.get_description() is not None:
+                    description = package.appstream_component.get_description()
+                if package.appstream_component.get_url(AppStream.UrlKind.HOMEPAGE) is not None:
+                    homepage = package.appstream_component.get_url(AppStream.UrlKind.HOMEPAGE)
+
+            description = self.capitalize(description)
             description = description.replace("\r\n", "<br>")
             description = description.replace("\n", "<br>")
-            output = package.pkg_name + "#~#" + version + "#~#" + homepage + "#~#" + strSize + "#~#" + summary + "#~#" + description + "#~#"
+            categories = []
             for category in package.categories:
-                output = output + category.name + ":::"
-            if output[-3:] == (":::"):
-                output = output[:-3]
+                categories.append(category.name)
+            try:
+                output = "#~#".join([package.pkg_name, homepage, summary, description, ":::".join(categories)])
+            except Exception as e:
+                print (e)
+                print(package.pkg_name, homepage, summary, description)
+                sys.exit(1)
             print output
 
     def close_window(self, widget, window, extra=None):
@@ -1205,6 +1233,10 @@ class Application():
         print("Synced %s" % remote_name)
 
     @async
+    def add_flatpaks_async(self):
+        self.add_flatpaks()
+
+    @print_timing
     def add_flatpaks(self):
         # Add flatpak packages
         remotes = self.flatpak_installation.list_remotes()
@@ -1224,6 +1256,9 @@ class Application():
                             non_empty_remotes.append(remote.get_name())
                     except Exception, detail:
                         print(detail)
+
+        # Update reviews
+        self.update_reviews()
 
         # Refresh the appstream info for flatpaks
         if len(non_empty_remotes) > 0:
