@@ -291,11 +291,17 @@ class Tile(Gtk.Button):
 
 class PackageTile(Tile):
 
-    def __init__(self, package, icon, summary):
+    def __init__(self, package, icon, summary, show_more_info=False):
         Tile.__init__(self, package)
 
         label_name = Gtk.Label(xalign=0)
-        label_name.set_markup("<b>%s</b>" % package.title)
+        if show_more_info:
+            if package.type == PACKAGE_TYPE_FLATPACK:
+                label_name.set_markup("<b>%s (%s)</b>" % (package.title, package.remote))
+            else:
+                label_name.set_markup("<b>%s</b>" % package.title)
+        else:
+            label_name.set_markup("<b>%s</b>" % package.title)
         label_name.set_justify(Gtk.Justification.LEFT)
         label_summary = Gtk.Label()
         label_summary.set_markup("<small>%s</small>" % summary)
@@ -1644,6 +1650,15 @@ class Application():
         packages.sort(self.package_compare)
         packages = packages[0:200]
 
+        # Identify name collisions (to show more info when multiple apps have the same name)
+        package_names = []
+        collisions = []
+
+        for package in packages:
+            if package.title in package_names and package.title not in collisions:
+                collisions.append(package.title)
+            package_names.append(package.title)
+
         for package in packages:
             self.load_appstream_info(package)
 
@@ -1661,7 +1676,7 @@ class Application():
                 summary = summary.replace("<", "&lt;")
                 summary = summary.replace("&", "&amp;")
 
-            tile = PackageTile(package, icon, summary)
+            tile = PackageTile(package, icon, summary, show_more_info=(package.title in collisions))
             tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LIST)
 
 
@@ -1709,7 +1724,8 @@ class Application():
                 action_button_description = _("Not installed")
                 action_button.set_sensitive(True)
 
-        apt_specific_widgets = ["label_size"]
+        apt_specific_widgets = ["label_package", "application_package", "label_size", "application_size", "label_version", "application_version"]
+        flatpak_specific_widgets = ["label_flatpak", "application_flatpak", "label_remote", "application_remote", "label_branch", "application_branch", "label_architecture", "application_architecture"]
         impacted_packages = []
         self.removals = []
         self.installations = []
@@ -1717,7 +1733,10 @@ class Application():
         if package.type == PACKAGE_TYPE_FLATPACK:
             # Flatpak package
             description = _("This is the Flatpak for %s.\nIt is provided by the %s Flatpak repository.") % (package.pkg_name, package.remote)
-            version = "Flatpak %s (%s)" % (package.branch, package.arch)
+            self.builder.get_object("application_flatpak").set_label(package.pkg_name)
+            self.builder.get_object("application_remote").set_label(package.remote)
+            self.builder.get_object("application_architecture").set_label(package.arch)
+            self.builder.get_object("application_branch").set_label(package.branch)
             if package.remote == "flathub":
                 homepage = "https://flathub.org"
             elif package.remote == "gnome-apps":
@@ -1726,7 +1745,12 @@ class Application():
                 homepage = "http://flatpak.org"
             for widget in apt_specific_widgets:
                 self.builder.get_object(widget).hide()
+            for widget in flatpak_specific_widgets:
+                self.builder.get_object(widget).show()
         else:
+            self.builder.get_object("application_package").set_label(package.pkg_name)
+            for widget in flatpak_specific_widgets:
+                self.builder.get_object(widget).hide()
             for widget in apt_specific_widgets:
                 self.builder.get_object(widget).show()
 
@@ -1795,6 +1819,7 @@ class Application():
                     style_context.remove_class("suggested-action")
                     action_button_description = _("Please use apt-get to install this package.")
                     action_button.set_sensitive(False)
+            self.builder.get_object("application_version").set_label(version)
 
         if package.appstream_component is not None:
             if package.appstream_component.get_url(AppStream.UrlKind.HOMEPAGE) is not None:
@@ -1810,8 +1835,6 @@ class Application():
 
         action_button.set_label(action_button_label)
         action_button.set_tooltip_text(action_button_description)
-
-        self.builder.get_object("application_version").set_label(version)
 
         label_num_reviews = self.builder.get_object("application_num_reviews")
         label_num_reviews.set_markup("<small><i>%s %s</i></small>" % (str(package.num_reviews), _("Reviews")))
@@ -1874,8 +1897,6 @@ class Application():
         launch_button = self.builder.get_object("launch_button")
         launch_button.hide()
 
-        self.builder.get_object("application_categories").set_label("")
-        self.builder.get_object("label_categories").hide()
         self.desktop_exec = None
         bin_name = package.pkg_name.replace(":i386", "")
         if package.is_installed():
@@ -1884,9 +1905,6 @@ class Application():
                     config = configobj.ConfigObj(desktop_file)
                     try:
                         self.desktop_exec = config['Desktop Entry']['Exec']
-                        # TODO: Turn raw categories description into properly localized menu names..
-                        #self.builder.get_object("application_categories").set_label(config['Desktop Entry']['Categories'])
-                        #self.builder.get_object("label_categories").show()
                         launch_button.show()
                         break
                     except:
