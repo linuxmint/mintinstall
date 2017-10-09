@@ -1,0 +1,3 @@
+#!/bin/bash
+mkdir -p ~/.cache/mintinstall
+flatpak update -y > ~/.cache/mintinstall/flatpak-update.log
