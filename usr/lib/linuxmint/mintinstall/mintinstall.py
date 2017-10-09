@@ -498,14 +498,14 @@ class MetaTransaction():
     def on_transaction_progress(self, transaction, progress):
         current_package = self.application.current_package
         if current_package is not None and current_package.pkg_name == self.package.pkg_name:
-            self.application.builder.get_object("notebook_progress").set_current_page(1)
+            self.application.builder.get_object("notebook_progress").set_current_page(self.PROGRESS_TAB)
             self.application.builder.get_object("application_progress").set_fraction(progress / 100.0)
             XApp.set_window_progress(self.application.main_window, progress)
 
     def on_transaction_error(self, transaction, error_code, error_details):
         current_package = self.application.current_package
         if current_package is not None and current_package.pkg_name == self.package.pkg_name:
-            self.application.builder.get_object("notebook_progress").set_current_page(0)
+            self.application.builder.get_object("notebook_progress").set_current_page(self.ACTION_TAB)
             self.application.builder.get_object("application_progress").set_fraction(0.0)
             XApp.set_window_progress(self.application.main_window, 0)
 
@@ -529,9 +529,8 @@ class CategoryListBoxRow(Gtk.ListBoxRow):
 
 class Application():
 
-    PAGE_LANDING = 0
-    PAGE_LIST = 1
-    PAGE_PACKAGE = 2
+    (PAGE_LANDING, PAGE_LIST, PAGE_PACKAGE) = range(3)
+    (ACTION_TAB, PROGRESS_TAB, SPINNER_TAB) = range(3)
 
     @print_timing
     def load_cache(self):
@@ -556,6 +555,7 @@ class Application():
         self.packages = []
         self.packages_dict = {}
         self.settings = Gio.Settings("com.linuxmint.install")
+        self.flatpak_postinstall_is_running = False
 
         if len(sys.argv) > 1 and sys.argv[1] == "list":
             # Print packages and their categories and exit
@@ -713,7 +713,7 @@ class Application():
         self.settings.set_strv(INSTALLED_APPS, installed_packages)
 
         if self.current_package is not None and self.current_package.pkg_name == package.pkg_name:
-            self.builder.get_object("notebook_progress").set_current_page(0)
+            self.builder.get_object("notebook_progress").set_current_page(self.ACTION_TAB)
             self.builder.get_object("application_progress").set_fraction(0 / 100.0)
             XApp.set_window_progress(self.main_window, 0)
             self.show_package(self.current_package, self.previous_page)
@@ -890,10 +890,13 @@ class Application():
         flowbox.insert(button, -1)
         box.pack_start(flowbox, True, True, 0)
         # Add flatpaks
-        button = Gtk.Button()
-        button.set_label(self.flatpak_category.name)
-        button.connect("clicked", self.category_button_clicked, self.flatpak_category)
-        flowbox.insert(button, -1)
+        self.flatpak_category_button = Gtk.Button()
+        self.flatpak_category_button.set_label(self.flatpak_category.name)
+        self.flatpak_category_button.connect("clicked", self.category_button_clicked, self.flatpak_category)
+        # Loading flatpaks is async, so we make this sensitive after flatpaks are loaded
+        self.flatpak_category_button.set_sensitive(False)
+
+        flowbox.insert(self.flatpak_category_button, -1)
         box.pack_start(flowbox, True, True, 0)
 
     def category_button_clicked(self, button, category):
@@ -956,6 +959,7 @@ class Application():
         self.load_cache()
         self.add_categories()
         self.add_flatpaks()
+        self.sync_flatpak_appstream()
         self.build_matched_packages()
         self.add_packages()
         self.process_matching_packages()
@@ -1047,17 +1051,25 @@ class Application():
     def flatpak_progress_cb(self, status, progress, estimating, package):
         print (status, progress, estimating, package)
         if self.current_package is not None and self.current_package.pkg_name == package.pkg_name:
-            self.builder.get_object("notebook_progress").set_current_page(1)
+            self.builder.get_object("notebook_progress").set_current_page(self.PROGRESS_TAB)
             self.builder.get_object("application_progress").set_fraction(progress / 100.0)
             XApp.set_window_progress(self.main_window, progress)
 
     @idle
+    def flatpak_postinstall_started(self, package):
+        if self.current_package is not None and self.current_package.type == PACKAGE_TYPE_FLATPACK:
+            self.builder.get_object("notebook_progress").set_current_page(self.SPINNER_TAB)
+
+    @idle
     def flatpak_completed(self, package):
-        if self.current_package is not None and self.current_package.pkg_name == package.pkg_name:
-            self.builder.get_object("notebook_progress").set_current_page(0)
+        if self.current_package is not None and self.current_package.type == PACKAGE_TYPE_FLATPACK:
+            self.builder.get_object("notebook_progress").set_current_page(self.ACTION_TAB)
             self.builder.get_object("application_progress").set_fraction(0.0)
             XApp.set_window_progress(self.main_window, 0)
+
+        if self.current_package is not None and self.current_package.pkg_name == package.pkg_name:
             self.show_package(self.current_package, self.previous_page)
+
         for tile in (self.picks_tiles + self.category_tiles):
             if tile.package == package:
                 tile.refresh_state()
@@ -1065,6 +1077,15 @@ class Application():
     @async
     def flatpak_install(self, package):
         self.flatpak_installation.install(package.remote, Flatpak.RefKind.APP, package.pkg_name, package.arch, package.branch, self.flatpak_progress_cb, package)
+        # Call flatpak update on the newly installed package
+        # to trigger the installation of missing dependencies
+        # Some of them are in AppStream (Bundle's runtime) but not available via AppStream's API
+        # Some of them are in Flatpak's API (associated refs, such as the Locale/Debug packages)
+        # Some of them aren't listed anywhere... (Vaapi, NVIDIA etc..)
+        self.flatpak_postinstall_is_running = True
+        self.flatpak_postinstall_started(package)
+        subprocess.call(["flatpak", "update", package.pkg_name, "-y"])
+        self.flatpak_postinstall_is_running = False
         self.flatpak_completed(package)
 
     @async
@@ -1235,12 +1256,18 @@ class Application():
     @async
     def add_flatpaks_async(self):
         self.add_flatpaks()
+        self.enable_flatpak_category()
+        self.sync_flatpak_appstream()
+
+    @idle
+    def enable_flatpak_category(self):
+        self.flatpak_category_button.set_sensitive(True)
 
     @print_timing
     def add_flatpaks(self):
         # Add flatpak packages
         remotes = self.flatpak_installation.list_remotes()
-        non_empty_remotes = []
+        self.non_empty_remotes = []
         for remote in remotes:
             subcat = Category(remote.get_name().capitalize(), self.flatpak_category, self.categories)
             refs = self.flatpak_installation.list_remote_refs_sync(remote.get_name())
@@ -1252,17 +1279,18 @@ class Application():
                         self.packages_dict[ref.get_name()] = package
                         self.add_package_to_category(package, subcat)
                         self.load_appstream_info(package)
-                        if remote.get_name() not in non_empty_remotes:
-                            non_empty_remotes.append(remote.get_name())
+                        if remote.get_name() not in self.non_empty_remotes:
+                            self.non_empty_remotes.append(remote.get_name())
                     except Exception, detail:
                         print(detail)
 
         # Update reviews
         self.update_reviews()
 
+    def sync_flatpak_appstream(self):
         # Refresh the appstream info for flatpaks
-        if len(non_empty_remotes) > 0:
-            for remote_name in non_empty_remotes:
+        if len(self.non_empty_remotes) > 0:
+            for remote_name in self.non_empty_remotes:
                 self.sync_flatpaks_into_appstream(remote_name)
             self.flatpak_appstream_pool = AppStream.Pool()
             for path in glob.iglob('/var/lib/flatpak/appstream/*/*/active/'):
@@ -1651,7 +1679,10 @@ class Application():
         self.searchentry.set_text("")
         self.current_package = package
 
-        self.builder.get_object("notebook_progress").set_current_page(0)
+        if package.type == PACKAGE_TYPE_FLATPACK and self.flatpak_postinstall_is_running:
+            self.builder.get_object("notebook_progress").set_current_page(self.SPINNER_TAB)
+        else:
+            self.builder.get_object("notebook_progress").set_current_page(self.ACTION_TAB)
 
         # Load package info
         score = 0

@@ -580,6 +580,20 @@
                                 <child type="tab">
                                   <placeholder/>
                                 </child>
+                                <child>
+                                  <object class="GtkSpinner" id="spinner_progress">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip_text" translatable="yes">Please wait. Flatpak runtime dependencies are being installed.</property>
+                                    <property name="active">True</property>
+                                  </object>
+                                  <packing>
+                                    <property name="position">2</property>
+                                  </packing>
+                                </child>
+                                <child type="tab">
+                                  <placeholder/>
+                                </child>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
