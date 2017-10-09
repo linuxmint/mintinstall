@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-10-09 12:34+0100\n"
+"POT-Creation-Date: 2017-10-09 12:55+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -51,14 +51,6 @@ msgstr ""
 #: usr/lib/linuxmint/mintinstall/mintinstall.py:647
 #: usr/lib/linuxmint/mintinstall/mintinstall.py:952
 msgid "About"
-msgstr ""
-
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1010
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1755
-#, python-format
-msgid ""
-"This is the Flatpak for %s.\n"
-"It is provided by the %s Flatpak repository."
 msgstr ""
 
 #: usr/lib/linuxmint/mintinstall/mintinstall.py:1141
@@ -286,7 +278,7 @@ msgid "Click <a href='%s'>here</a> to add your own review."
 msgstr ""
 
 #: usr/lib/linuxmint/mintinstall/mintinstall.py:1860
-#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:15
+#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:14
 msgid "Reviews"
 msgstr ""
 
@@ -303,45 +295,41 @@ msgid "Categories"
 msgstr ""
 
 #: usr/share/linuxmint/mintinstall/mintinstall.glade.h:4
-msgid "Category_Name"
-msgstr ""
-
-#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:5
 msgid "Launch"
 msgstr ""
 
-#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:6
+#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:5
 msgid "Please wait. Flatpak runtime dependencies are being installed."
 msgstr ""
 
-#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:7
+#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:6
 msgid "Details"
 msgstr ""
 
-#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:8
+#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:7
 msgid "Size"
 msgstr ""
 
-#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:9
+#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:8
 msgid "Version"
 msgstr ""
 
-#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:10
+#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:9
 msgid "Package"
 msgstr ""
 
-#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:11
+#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:10
 msgid "Branch"
 msgstr ""
 
-#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:12
+#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:11
 msgid "Architecture"
 msgstr ""
 
-#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:13
+#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:12
 msgid "Remote"
 msgstr ""
 
-#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:14
+#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:13
 msgid "Flatpak"
 msgstr ""

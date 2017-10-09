@@ -1007,7 +1007,7 @@ class Application():
 
             if package.type == PACKAGE_TYPE_FLATPACK:
                 # Flatpak package
-                description = _("This is the Flatpak for %s.\nIt is provided by the %s Flatpak repository.") % (package.pkg_name, package.remote)
+                description = ""
                 if package.remote == "flathub":
                     homepage = "https://flathub.org"
                 elif package.remote == "gnome-apps":
@@ -1752,7 +1752,7 @@ class Application():
 
         if package.type == PACKAGE_TYPE_FLATPACK:
             # Flatpak package
-            description = _("This is the Flatpak for %s.\nIt is provided by the %s Flatpak repository.") % (package.pkg_name, package.remote)
+            description = ""
             self.builder.get_object("application_flatpak").set_label(package.pkg_name)
             self.builder.get_object("application_remote").set_label(package.remote)
             self.builder.get_object("application_architecture").set_label(package.arch)
