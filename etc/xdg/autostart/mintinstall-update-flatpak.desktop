@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Flatpak
+Comment=Apply Flatpak updates
+Icon=stock_lock
+Exec=mintinstall-update-flatpak
+Terminal=false
+Type=Application
+Categories=
+X-GNOME-Autostart-Delay=20
+X-MATE-Autostart-Delay=20
