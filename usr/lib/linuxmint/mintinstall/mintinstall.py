@@ -1112,11 +1112,26 @@ class Application():
         self.flatpak_postinstall_started(package)
         subprocess.call(["flatpak", "update", package.pkg_name, "-y"])
         self.flatpak_postinstall_is_running = False
+        # Add flatpak package to installed list
+        installed_packages = self.settings.get_strv(INSTALLED_APPS)
+        if package.pkg_name not in installed_packages:
+            installed_packages.append(package.pkg_name)
+            self.installed_category.packages.append(package)
+        self.settings.set_strv(INSTALLED_APPS, installed_packages)
+
         self.flatpak_completed(package)
 
     @async
     def flatpak_uninstall(self, package):
         self.flatpak_installation.uninstall(Flatpak.RefKind.APP, package.pkg_name, package.arch, package.branch)
+         # Remove flatpak package to installed list
+        installed_packages = self.settings.get_strv(INSTALLED_APPS)
+        installed_packages.remove(package.pkg_name)
+        for iter_package in self.installed_category.packages:
+            if iter_package.pkg_name == package.pkg_name:
+                self.installed_category.packages.remove(iter_package)
+        self.settings.set_strv(INSTALLED_APPS, installed_packages)
+
         self.flatpak_completed(package)
 
     def on_launch_button_clicked(self, button):
