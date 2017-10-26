@@ -161,13 +161,16 @@ class ScreenshotDownloader(threading.Thread):
             conn = httplib.HTTPConnection(p.netloc)
             conn.request('HEAD', p.path)
             resp = conn.getresponse()
-            if resp.status < 300:
+            print(link)
+            if resp.status < 400:
                 num_screenshots += 1
                 local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.package.pkg_name, num_screenshots))
                 local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.package.pkg_name, num_screenshots))
                 urllib.urlretrieve (link, local_name)
                 urllib.urlretrieve (thumb, local_thumb)
                 self.application.add_screenshot(self.package.pkg_name, num_screenshots)
+            else:
+                print(resp.status)
         except Exception, detail:
             print detail
 
