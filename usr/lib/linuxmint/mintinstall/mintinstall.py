@@ -1299,19 +1299,22 @@ class Application():
         self.non_empty_remotes = []
         for remote in remotes:
             subcat = Category(remote.get_name().capitalize(), self.flatpak_category, self.categories)
-            refs = self.flatpak_installation.list_remote_refs_sync(remote.get_name())
-            for ref in refs:
-                if ref.get_kind() == Flatpak.RefKind.APP and ref.get_arch() == platform.machine() and ref.get_branch() == "stable":
-                    try:
-                        package = FlatpackPackage(self.flatpak_installation, "%s %s" % (remote.get_name(), ref.get_name()))
-                        self.packages.append(package)
-                        self.packages_dict[ref.get_name()] = package
-                        self.add_package_to_category(package, subcat)
-                        self.load_appstream_info(package)
-                        if remote.get_name() not in self.non_empty_remotes:
-                            self.non_empty_remotes.append(remote.get_name())
-                    except Exception, detail:
-                        print(detail)
+            try:
+                refs = self.flatpak_installation.list_remote_refs_sync(remote.get_name())
+                for ref in refs:
+                    if ref.get_kind() == Flatpak.RefKind.APP and ref.get_arch() == platform.machine() and ref.get_branch() == "stable":
+                        try:
+                            package = FlatpackPackage(self.flatpak_installation, "%s %s" % (remote.get_name(), ref.get_name()))
+                            self.packages.append(package)
+                            self.packages_dict[ref.get_name()] = package
+                            self.add_package_to_category(package, subcat)
+                            self.load_appstream_info(package)
+                            if remote.get_name() not in self.non_empty_remotes:
+                                self.non_empty_remotes.append(remote.get_name())
+                        except Exception, detail:
+                            print(detail)
+            except Exception as detail:
+                print("The Flatpak remote %s could not be scanned: %s" % (remote.get_name(), str(detail)))
 
         # Update reviews
         self.update_reviews()
