@@ -1,3 +1,113 @@
+mintinstall (7.7.9) sylvia; urgency=medium
+
+  [ Clement Lefebvre ]
+  * Port to Gtk3 and AptDaemon (#129)
+  * Create README.md
+
+  [ JosephMcc ]
+  * menu: Use python style variable names
+  * menu: Properly set mnemonics
+  * menu: Quit using GtkStock
+  * Fix the placement of scrollbar
+  * Clean up the layout of PackageTile a bit
+  * applications-list: Don't expand the tiles to fill the scrolled window
+  * details-view: Fix mouse wheel scrolling in the margins
+  * Redesign the UI on the package page
+  * about-dialog: Actually close the dialog when hitting the close button
+  * about-dialog: Set the transient for hint
+  * toolbar: Use a symbolic icon for the back button
+
+  [ Clement Lefebvre ]
+  * Show available screenshots immediately
+
+  [ JosephMcc ]
+  * applications-view: Set a min width on the sidebar listbox
+  * applications-list: Add an "All" button in the categories sidebar
+  * Add suggested/destructive style classes to the install/remove buttons (#134)
+
+  [ Corbin Auriti ]
+  * Added support for going back with keys and buttons (#137)
+
+  [ JosephMcc ]
+  * Icons cleanup (#135)
+
+  [ Clement Lefebvre ]
+  * Replace website button with a link
+  * Remove View menu/filters and fix keypress detection
+  * Properly fix keypress detection
+  * Port settings to GSettings
+  * Various fixes
+  * Update README
+  * Show a link to the community website to add a review
+  * l10n: Update makepot and POT file
+  * Add missing schema
+  * Update README
+  * Implement featured tile
+  * Localize names, summaries and descriptions
+
+  [ Corbin Auriti ]
+  * Fix an icon issue, updates sub cat lists, and add Editors Picks category (#138)
+
+  [ Clement Lefebvre ]
+  * Feature Steam:i386, fix randomly picking editor's picks
+  * Load featured app from a featured.list file
+  * Add the ability to launch applications
+  * l10n: Update POT file
+  * Fine-tune development category
+  * Fix special cases when launching apps
+  * Add aliases for long names in featured tiles
+
+  [ monsta ]
+  * add missing runtime dependencies on GI packages
+  * remove duplicate gi.require_version
+  * build: use https link to fetch reviews to avoid "301 Moved" message
+
+  [ Clement Lefebvre ]
+  * Featured tiles: Use an overlay to show installed mark
+  * Replace menubar with toolbar menu button
+  * Add the ability to see installed apps
+  * Refresh loaded tiles when the state of an app changes
+  * Fix updating state and progress widgets
+  * Reduce height of featured app to fit manager within 1204x768
+  * Menu: Add a separator and remove the icon on about
+  * Fix case where appstream returns a Null description
+  * l10n: Update POT file
+  * Generate desktop files
+  * Fix missing i18n
+  * l10n: Fix typo
+  * Fix featured app missing reviews/score
+  * Fix layout issue
+
+  [ JosephMcc ]
+  * subcategories: Ensure the "All" category is selected initially (#142)
+
+  [ Clement Lefebvre ]
+  * Fix progressbar remaining on cancelled pkit auth.
+
+  [ Corbin Auriti ]
+  * UI Polish (#143)
+
+  [ NikoKrause ]
+  * use constant width for the main/big screenshot (#141)
+
+  [ Clement Lefebvre ]
+  * Add support for window progress
+  * Screenshots: Handle/remove buggy screenshots, treat HTTP 300+ codes as errors
+  * Add PIA Manager to the list of featured software
+
+  [ Michael Webster ]
+  * search: Don't update immediately after each keystroke, allow for a delay to reduce choppiness.
+
+  [ Clement Lefebvre ]
+  * Add support for Flatpak (#146)
+  * l10n: Update POT file
+  * l10n: Fix a few msgid.
+  * Screenshots: Don't treat 300 HTTP status as errors
+  * Flatpak: Catch exceptions while scanning remotes
+  * Flatpak: Only set up Flathub by default
+
+ -- Clement Lefebvre <root@linuxmint.com>  Thu, 26 Oct 2017 13:16:43 +0100
+
 mintinstall (7.7.8) sonya; urgency=medium
 
   * Add exception handling around the loading of app icons
