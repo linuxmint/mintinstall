@@ -1,3 +1,10 @@
+mintinstall (7.8.0) sylvia; urgency=medium
+
+  * Add missing dependency on python-configobj
+  * Fix progress when installing/removing software.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Sun, 05 Nov 2017 12:31:27 +0000
+
 mintinstall (7.7.9) sylvia; urgency=medium
 
   [ Clement Lefebvre ]
