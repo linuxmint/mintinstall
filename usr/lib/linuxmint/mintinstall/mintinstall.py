@@ -507,14 +507,14 @@ class MetaTransaction():
     def on_transaction_progress(self, transaction, progress):
         current_package = self.application.current_package
         if current_package is not None and current_package.pkg_name == self.package.pkg_name:
-            self.application.builder.get_object("notebook_progress").set_current_page(self.PROGRESS_TAB)
+            self.application.builder.get_object("notebook_progress").set_current_page(self.application.PROGRESS_TAB)
             self.application.builder.get_object("application_progress").set_fraction(progress / 100.0)
             XApp.set_window_progress(self.application.main_window, progress)
 
     def on_transaction_error(self, transaction, error_code, error_details):
         current_package = self.application.current_package
         if current_package is not None and current_package.pkg_name == self.package.pkg_name:
-            self.application.builder.get_object("notebook_progress").set_current_page(self.ACTION_TAB)
+            self.application.builder.get_object("notebook_progress").set_current_page(self.application.ACTION_TAB)
             self.application.builder.get_object("application_progress").set_fraction(0.0)
             XApp.set_window_progress(self.application.main_window, 0)
 
