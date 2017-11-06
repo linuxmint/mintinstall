@@ -13,6 +13,7 @@ import gettext
 import threading
 import time
 import apt
+import locale
 import urllib
 import urllib2
 import httplib
@@ -77,8 +78,12 @@ def idle(func):
     return wrapper
 
 # i18n
-gettext.install("mintinstall", "/usr/share/linuxmint/locale")
-
+APP = 'mintinstall'
+LOCALE_DIR = "/usr/share/linuxmint/locale"
+locale.bindtextdomain(APP, LOCALE_DIR)
+gettext.bindtextdomain(APP, LOCALE_DIR)
+gettext.textdomain(APP)
+_ = gettext.gettext
 
 import setproctitle
 setproctitle.setproctitle("mintinstall")
@@ -601,6 +606,7 @@ class Application():
         glade_file = "/usr/share/linuxmint/mintinstall/mintinstall.glade"
 
         self.builder = Gtk.Builder()
+        self.builder.set_translation_domain(APP)
         self.builder.add_from_file(glade_file)
         self.main_window = self.builder.get_object("main_window")
         self.main_window.set_title(_("Software Manager"))
