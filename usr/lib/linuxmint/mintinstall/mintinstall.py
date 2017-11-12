@@ -113,6 +113,8 @@ ALIASES['gimp'] = "Gimp"
 ALIASES['gnome-maps'] = "GNOME Maps"
 ALIASES['thunderbird'] = "Thunderbird"
 ALIASES['pia-manager'] = "PIA Manager"
+ALIASES['skypeforlinux'] = "Skype"
+ALIASES['google-earth-pro-stable'] = "Google Earth"
 
 #Exceptions so packages like chromium-bsu don't get Chromium's
 # icon and cause confusion
