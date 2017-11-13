@@ -908,7 +908,6 @@ class Application():
         button.set_label(self.picks_category.name)
         button.connect("clicked", self.category_button_clicked, self.picks_category)
         flowbox.insert(button, -1)
-        box.pack_start(flowbox, True, True, 0)
         # Add flatpaks
         self.flatpak_category_button = Gtk.Button()
         self.flatpak_category_button.set_label(self.flatpak_category.name)
