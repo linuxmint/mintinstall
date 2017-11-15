@@ -1089,7 +1089,6 @@ class Application():
     def flatpak_progress_cb(self, status, progress, estimating, package):
         print (status, progress, estimating, package)
         if self.current_package is not None and self.current_package.pkg_name == package.pkg_name:
-            self.builder.get_object("notebook_progress").set_current_page(self.PROGRESS_TAB)
             self.builder.get_object("application_progress").set_fraction(progress / 100.0)
             XApp.set_window_progress(self.main_window, progress)
 
@@ -1114,6 +1113,9 @@ class Application():
 
     @async
     def flatpak_install(self, package):
+        if self.current_package is not None and self.current_package.pkg_name == package.pkg_name:
+            self.builder.get_object("notebook_progress").set_current_page(self.PROGRESS_TAB)
+
         self.flatpak_installation.install(package.remote, Flatpak.RefKind.APP, package.pkg_name, package.arch, package.branch, self.flatpak_progress_cb, package)
         # Call flatpak update on the newly installed package
         # to trigger the installation of missing dependencies
@@ -1737,6 +1739,8 @@ class Application():
         # Load package info
         score = 0
 
+        progress_label = self.builder.get_object("application_progress_label")
+
         action_button = self.builder.get_object("action_button")
         style_context = action_button.get_style_context()
         if package.is_installed():
@@ -1745,6 +1749,7 @@ class Application():
             style_context.add_class("destructive-action")
             action_button_description = _("Installed")
             action_button.set_sensitive(True)
+            progress_label.set_text(_("Removing"))
         else:
             if package.pkg_name in BROKEN_PACKAGES:
                 action_button_label = _("Not available")
@@ -1758,6 +1763,7 @@ class Application():
                 style_context.add_class("suggested-action")
                 action_button_description = _("Not installed")
                 action_button.set_sensitive(True)
+                progress_label.set_text(_("Installing"))
 
         apt_specific_widgets = ["label_package", "application_package", "label_size", "application_size", "label_version", "application_version"]
         flatpak_specific_widgets = ["label_flatpak", "application_flatpak", "label_remote", "application_remote", "label_branch", "application_branch", "label_architecture", "application_architecture"]
