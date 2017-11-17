@@ -1,3 +1,17 @@
+mintinstall (7.8.4) sylvia; urgency=medium
+
+  [ JosephMcc ]
+  * loading: Don't attempt to add the add the same widget twice (#150)
+  * Make installation and removal a bit more user friendly (#152)
+  * Reduce the vertical size of the window (#154)
+  * reviews: Hide the empty frame when there are no reviews to shows (#151)
+
+  [ Clement Lefebvre ]
+  * Featured: Remove glade and improve PIA background
+  * l10n: Update POT file
+
+ -- Clement Lefebvre <root@linuxmint.com>  Fri, 17 Nov 2017 12:01:10 +0000
+
 mintinstall (7.8.3) sylvia; urgency=medium
 
   * Feature WhatsApp
