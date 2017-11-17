@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-10-09 12:55+0100\n"
+"POT-Creation-Date: 2017-11-17 11:59+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,289 +17,299 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:101
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:103
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:106
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:108
 msgid "Multimedia Codecs"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:102
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:107
 msgid "Multimedia Codecs for KDE"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:530
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:541
 msgid "All"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:603
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:954 generate_desktop_files:26
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:615
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:965 generate_desktop_files:26
 #: generate_desktop_files:37
 msgid "Software Manager"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:622
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:634
 msgid "Show installed applications"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:631
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:643
 msgid "Search in packages summary (slower search)"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:637
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:649
 msgid "Search in packages description (even slower search)"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:647
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:952
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:659
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:963
 msgid "About"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1141
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1154
 msgid "Installed Applications"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1144
-#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:2
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1157
+#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:1
 msgid "Editors' Picks"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1160
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1173
 msgid "Internet"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1162
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1175
 msgid "Web"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1167
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1180
 msgid "Email"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1171
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1184
 msgid "Chat"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1174
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1187
 msgid "File sharing"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1180
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1193
 msgid "Sound and video"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1182
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1195
 msgid "Sound"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1184
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1197
 msgid "Video"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1189
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1202
 msgid "Graphics"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1193
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1206
 msgid "3D"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1195
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1208
 msgid "Drawing"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1197
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1210
 msgid "Photography"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1199
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1212
 msgid "Publishing"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1201
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1214
 msgid "Scanning"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1203
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1216
 msgid "Viewers"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1208
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1221
 msgid "Office"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1214
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1227
 msgid "Games"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1218
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1231
 msgid "Board games"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1220
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1233
 msgid "First-person"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1222
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1235
 msgid "Real-time strategy"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1224
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1237
 msgid "Turn-based strategy"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1226
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1239
 msgid "Emulators"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1228
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1241
 msgid "Simulation and racing"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1233
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1246
 msgid "Accessories"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1239
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1252
 msgid "System tools"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1246
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1259
 msgid "Fonts"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1252
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1265
 msgid "Science and Education"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1253
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1266
 msgid "Science"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1255
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1268
 msgid "Maths"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1257
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1270
 msgid "Education"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1259
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1272
 msgid "Electronics"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1265
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1278
 msgid "Programming"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1267
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1280
 msgid "Java"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1269
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1282
 msgid "PHP"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1271
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1284
 msgid "Python"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1273
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1286
 msgid "Essentials"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1728
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1746
 msgid "Remove"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1731
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1749
 msgid "Installed"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1735
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1837
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1751
+msgid "Removing"
+msgstr ""
+
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1754
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1857
 msgid "Not available"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1738
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1840
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1757
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1860
 msgid "Please use apt-get to install this package."
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1741
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1760
 msgid "Install"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1744
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1763
 msgid "Not installed"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1799
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1810
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1765
+#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:4
+msgid "Installing"
+msgstr ""
+
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1819
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1830
 msgid "B"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1801
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1812
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1821
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1832
 msgid "KB"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1803
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1814
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1823
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1834
 msgid "MB"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1805
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1816
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1825
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1836
 msgid "GB"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1820
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1840
 #, python-format
 msgid "%(localSize)s of disk space freed"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1822
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1842
 #, python-format
 msgid "%(localSize)s of disk space required"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1825
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1845
 #, python-format
 msgid "%(downloadSize)s to download, %(localSize)s of disk space freed"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1827
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1847
 #, python-format
 msgid "%(downloadSize)s to download, %(localSize)s of disk space required"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1854
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1874
 #, python-format
 msgid "Click <a href='%s'>here</a> to add your own review."
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:1860
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1880
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1898
 #: usr/share/linuxmint/mintinstall/mintinstall.glade.h:14
 msgid "Reviews"
+msgstr ""
+
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:1915
+msgid "No reviews available"
 msgstr ""
 
 #: generate_desktop_files:26 generate_desktop_files:37
 msgid "Install new applications"
 msgstr ""
 
-#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:1
-msgid "Featured application"
-msgstr ""
-
-#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:3
+#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:2
 msgid "Categories"
 msgstr ""
 
-#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:4
+#: usr/share/linuxmint/mintinstall/mintinstall.glade.h:3
 msgid "Launch"
 msgstr ""
 
 #: usr/share/linuxmint/mintinstall/mintinstall.glade.h:5
-msgid "Please wait. Flatpak runtime dependencies are being installed."
+msgid "Installing additional dependencies"
 msgstr ""
 
 #: usr/share/linuxmint/mintinstall/mintinstall.glade.h:6
