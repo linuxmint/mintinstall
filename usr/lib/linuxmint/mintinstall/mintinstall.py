@@ -276,7 +276,7 @@ class FeatureTile(Gtk.Button):
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         vbox.set_border_width(6)
 
-        vbox.pack_start(Gtk.Label(), False, False, 50)
+        vbox.pack_start(Gtk.Label(), False, False, 30)
         vbox.pack_start(label_name, False, False, 0)
         vbox.pack_start(label_summary, True, True, 0)
 
