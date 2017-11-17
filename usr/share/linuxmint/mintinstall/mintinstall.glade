@@ -524,6 +524,7 @@
                                   <object class="GtkBox" id="box9">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
+                                    <property name="margin_right">5</property>
                                     <property name="spacing">6</property>
                                     <child>
                                       <object class="GtkButton" id="launch_button">
@@ -531,6 +532,8 @@
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">True</property>
+                                        <property name="valign">center</property>
+                                        <property name="vexpand">False</property>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -543,6 +546,8 @@
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">True</property>
+                                        <property name="valign">center</property>
+                                        <property name="vexpand">False</property>
                                       </object>
                                       <packing>
                                         <property name="expand">True</property>
@@ -561,6 +566,21 @@
                                     <property name="can_focus">False</property>
                                     <property name="orientation">vertical</property>
                                     <child>
+                                      <object class="GtkLabel" id="application_progress_label">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="label" translatable="yes">Installing</property>
+                                        <style>
+                                          <class name="dim-label"/>
+                                        </style>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">0</property>
+                                      </packing>
+                                    </child>
+                                    <child>
                                       <object class="GtkProgressBar" id="application_progress">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
@@ -568,7 +588,7 @@
                                       <packing>
                                         <property name="expand">False</property>
                                         <property name="fill">True</property>
-                                        <property name="position">0</property>
+                                        <property name="position">1</property>
                                       </packing>
                                     </child>
                                   </object>
@@ -580,11 +600,38 @@
                                   <placeholder/>
                                 </child>
                                 <child>
-                                  <object class="GtkSpinner" id="spinner_progress">
+                                  <object class="GtkBox" id="box12">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="tooltip_text" translatable="yes">Please wait. Flatpak runtime dependencies are being installed.</property>
-                                    <property name="active">True</property>
+                                    <property name="orientation">vertical</property>
+                                    <property name="spacing">4</property>
+                                    <child>
+                                      <object class="GtkLabel" id="label1">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="label" translatable="yes">Installing additional dependencies</property>
+                                        <style>
+                                          <class name="dim-label"/>
+                                        </style>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">0</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkSpinner" id="spinner_progress">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="active">True</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
                                   </object>
                                   <packing>
                                     <property name="position">2</property>
