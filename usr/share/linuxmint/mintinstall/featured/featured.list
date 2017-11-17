@@ -7,7 +7,6 @@ inkscape----url('@prefix@inkscape.png') 20% / 60% auto no-repeat, linear-gradien
 hexchat----url('@prefix@irc.svg') 70% 80% / 120% auto no-repeat, #43a570----#4e9a06----#a8c74f----0 2px #418e64
 gnome-weather----url('@prefix@weather.png') left 80% / 50% auto no-repeat, url('@prefix@weather-bg.png'), linear-gradient(to bottom, #25486d, #6693ce)----#d8e0ef----#ffffff----0 1px 1px rgba(0,0,0,0.5)
 transmission-gtk----url('@prefix@transmission.png') 10% 20% / 427px auto no-repeat, -gtk-gradient (radial, center bottom, 0, center center, 0.8, from(#ffc124), to(#b75200))----#a40000----#ffffff----0 1px 1px rgba(0,0,0,0.5)
-glade----url('@prefix@builder.png') left center / 100% auto no-repeat, url('@prefix@builder-bg.jpg') center / cover no-repeat----#000000----#ffffff----0 1px 1px rgba(0,0,0,0.5)
 gnome-maps----url('@prefix@maps.png') left -10px / 352px auto no-repeat, url('@prefix@maps-bg.png') bottom center / contain no-repeat----#ff0000----#000000----0 1px 1px rgba(255,255,255,0.5)
 steam:i386----url('@prefix@joystick.svg') left center / 30% auto no-repeat, url('@prefix@steam-bg.png') center / cover no-repeat----#000000----#ffffff----0 1px 1px rgba(0,0,0,0.5)
-pia-manager----url('@prefix@pia-bg.png') 10px 10px / 452px auto no-repeat, linear-gradient(to bottom, #119c46, #119c46)----#d8e0ef----#ffffff----0 1px 1px rgba(0,0,0,0.5)
+pia-manager----url('@prefix@pia-bg.png') 10px 10px / 452px auto no-repeat, linear-gradient(to bottom, #119c46, #086b2d)----#d8e0ef----#ffffff----0 1px 1px rgba(0,0,0,0.5)
