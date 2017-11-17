@@ -1880,29 +1880,40 @@ class Application():
         label_num_reviews.set_markup("<small><i>%s %s</i></small>" % (str(package.num_reviews), _("Reviews")))
         self.builder.get_object("application_avg_rating").set_label(str(package.avg_rating))
 
+        label_reviews = self.builder.get_object("label_reviews")
+
         box_reviews = self.builder.get_object("box_reviews")
         for child in box_reviews.get_children():
             box_reviews.remove(child)
 
         box_reviews.set_header_func(list_header_func, None)
 
+        frame_reviews = self.builder.get_object("frame_reviews")
+        frame_reviews.set_no_show_all(True)
+
         reviews = package.reviews
         reviews.sort(key=lambda x: x.date, reverse=True)
-        i = 0
-        for review in reviews:
-            comment = review.comment.strip()
-            comment = comment.replace("'", "\'")
-            comment = comment.replace('"', '\"')
-            comment = unicode(comment, 'UTF-8', 'replace')
-            comment = self.capitalize(comment)
-            review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
-            tile = ReviewTile(review.username, review_date, comment, review.rating)
-            # box_reviews.pack_start(tile, False, False, 0)
-            box_reviews.add(tile)
-            i = i +1
-            if i >= 10:
-                break
-        box_reviews.show_all()
+
+        if len(reviews) > 0:
+            label_reviews.set_text(_("Reviews"))
+            i = 0
+            for review in reviews:
+                comment = review.comment.strip()
+                comment = comment.replace("'", "\'")
+                comment = comment.replace('"', '\"')
+                comment = unicode(comment, 'UTF-8', 'replace')
+                comment = self.capitalize(comment)
+                review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
+                tile = ReviewTile(review.username, review_date, comment, review.rating)
+                box_reviews.add(tile)
+                i = i +1
+                if i >= 10:
+                    break
+            frame_reviews.show()
+            box_reviews.show_all()
+        else:
+            label_reviews.set_text(_("No reviews available"))
+            frame_reviews.hide()
 
         box_stars = self.builder.get_object("box_stars")
         for child in box_stars.get_children():
