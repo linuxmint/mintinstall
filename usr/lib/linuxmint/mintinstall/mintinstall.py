@@ -1115,7 +1115,17 @@ class Application():
         if self.current_package is not None and self.current_package.pkg_name == package.pkg_name:
             self.builder.get_object("notebook_progress").set_current_page(self.PROGRESS_TAB)
 
-        self.flatpak_installation.install(package.remote, Flatpak.RefKind.APP, package.pkg_name, package.arch, package.branch, self.flatpak_progress_cb, package)
+        try:
+            self.flatpak_installation.install(package.remote, Flatpak.RefKind.APP, package.pkg_name, package.arch, package.branch, self.flatpak_progress_cb, package)
+        except Exception as e:
+            print("Error during automatic installation of Flatpak %s, trying manually: %s" % (package.pkg_name, e))
+            self.flatpak_postinstall_is_running = True
+            self.flatpak_postinstall_started(package)
+            try:
+                subprocess.call(["flatpak", "install", package.remote, package.pkg_name, "-y"])
+            except Exception as ex:
+                print("Error during manual installation of Flatpak %s: %s" % (package.pkg_name, ex))
+            self.flatpak_postinstall_is_running = False
         # Call flatpak update on the newly installed package
         # to trigger the installation of missing dependencies
         # Some of them are in AppStream (Bundle's runtime) but not available via AppStream's API
