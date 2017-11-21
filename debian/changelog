@@ -1,3 +1,21 @@
+mintinstall (7.8.6) sylvia; urgency=medium
+
+  [ Clement Lefebvre ]
+  * Categories: Sorted/Reviewed some of the lists
+  * Reset scrolledwindows to the top when appropriate
+  * Fix name collisions
+  * Postinst: Create share dirs for flatpak
+  * Depend on xdg-desktop-portal-gtk
+
+  [ JosephMcc ]
+  * Change the logic a bit for finding flatpak icons (#157)
+
+  [ Clement Lefebvre ]
+  * Add support for Debconf
+  * Flatpak: Add tooltips on spinner
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue, 21 Nov 2017 12:52:32 +0000
+
 mintinstall (7.8.5) sylvia; urgency=medium
 
   [ Clement Lefebvre ]
