@@ -1619,7 +1619,14 @@ class Application():
             if os.path.exists(icon_path):
                 return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, size, size)
 
-            name = package.title.lower()
+            # Look for the icon by package name, for example org.gnome.Calculator
+            name = package.pkg_name
+            if theme.has_icon(name):
+                iconInfo = theme.lookup_icon(name, size, 0)
+                if iconInfo and os.path.exists(iconInfo.get_filename()):
+                    return GdkPixbuf.Pixbuf.new_from_file_at_size(iconInfo.get_filename(), size, size)
+            # If that fails look for the icon by a generic name. org.gnome.Calculator becomes calculator
+            name = name.split(".")[-1].lower()
             if theme.has_icon(name):
                 iconInfo = theme.lookup_icon(name, size, 0)
                 if iconInfo and os.path.exists(iconInfo.get_filename()):
