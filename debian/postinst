@@ -36,6 +36,11 @@ case "$1" in
         # flatpak remote-add --if-not-exists gnome https://sdk.gnome.org/gnome.flatpakrepo
         # flatpak remote-add --if-not-exists gnome-apps https://sdk.gnome.org/gnome-apps.flatpakrepo
         flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+        # Create share dirs for flatpak, they're in XDG_DATA_DIRS already but if they don't exist
+        # they won't be monitored by some of the DEs and the first apps installed with Flatpak won't
+        # show in the menu until the user logs out.
+        mkdir -p /var/lib/flatpak/exports/share/applications
+        mkdir -p /var/lib/flatpak/exports/share/icons
     fi
     ;;
 
