@@ -1515,6 +1515,10 @@ class Application():
             return True
         return False
 
+    def update_scroll_position(self, scrolledwindow):
+        adjustment = scrolledwindow.get_vadjustment()
+        adjustment.set_value(adjustment.get_lower())
+
     def on_back_button_clicked(self, button):
         self.go_back_action()
 
@@ -1542,6 +1546,9 @@ class Application():
         self.notebook.set_current_page(self.PAGE_LIST)
         self.previous_page = self.PAGE_LANDING
         self.back_button.set_sensitive(True)
+
+        # Reset the position of our scrolled window back to the top
+        self.update_scroll_position(self.builder.get_object("scrolledwindow_applications"))
 
         self.searchentry.set_text("")
 
@@ -1630,6 +1637,9 @@ class Application():
         self.back_button.set_sensitive(True)
         self.previous_page = self.PAGE_LANDING
         self.notebook.set_current_page(self.PAGE_LIST)
+
+        # Reset the position of our scrolled window back to the top
+        self.update_scroll_position(self.builder.get_object("scrolledwindow_applications"))
 
         termsUpper = terms.upper()
 
@@ -1736,6 +1746,9 @@ class Application():
         self.notebook.set_current_page(self.PAGE_PACKAGE)
         self.previous_page = previous_page
         self.back_button.set_sensitive(True)
+
+        # Reset the position of our scrolled window back to the top
+        self.update_scroll_position(self.builder.get_object("scrolled_details"))
 
         self.searchentry.set_text("")
         self.current_package = package
