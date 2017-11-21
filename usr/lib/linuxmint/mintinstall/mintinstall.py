@@ -1515,6 +1515,10 @@ class Application():
             return True
         return False
 
+    def update_scroll_position(self, scw):
+        adj = scw.get_vadjustment()
+        adj.set_value(adj.get_lower())
+
     def on_back_button_clicked(self, button):
         self.go_back_action()
 
@@ -1531,6 +1535,12 @@ class Application():
                 # special case, when going back to the installed-category, refresh it in case we removed something
                 self.show_category(self.installed_category)
         self.searchentry.set_text("")
+
+        # Reset the position of our scrolled windows back to 0
+        scw = self.builder.get_object("scrolledwindow_applications")
+        self.update_scroll_position(scw)
+        scw = self.builder.get_object("scrolled_details")
+        self.update_scroll_position(scw)
 
     @print_timing
     def show_category(self, category):
