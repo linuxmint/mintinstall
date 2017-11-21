@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.18.3 -->
+<!-- Generated with glade 3.20.0 -->
 <interface>
   <requires lib="gtk+" version="3.12"/>
   <object class="GtkImage" id="image1">
@@ -591,6 +591,7 @@
                                       <object class="GtkLabel" id="label1">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
+                                        <property name="tooltip_text" translatable="yes">Please be patient. This can take some time...</property>
                                         <property name="label" translatable="yes">Installing additional dependencies</property>
                                         <style>
                                           <class name="dim-label"/>
@@ -606,6 +607,7 @@
                                       <object class="GtkSpinner" id="spinner_progress">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
+                                        <property name="tooltip_text" translatable="yes">Please be patient. This can take some time...</property>
                                         <property name="active">True</property>
                                       </object>
                                       <packing>
