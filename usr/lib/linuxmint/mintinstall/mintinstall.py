@@ -1707,17 +1707,17 @@ class Application():
         packages = packages[0:200]
 
         # Identify name collisions (to show more info when multiple apps have the same name)
-        package_names = []
+        package_titles = []
         collisions = []
 
         for package in packages:
-            if package.title in package_names and package.title not in collisions:
-                collisions.append(package.title)
-            package_names.append(package.title)
+            self.load_appstream_info(package)
+            title = package.title.lower()
+            if title in package_titles and title not in collisions:
+                collisions.append(title)
+            package_titles.append(title)
 
         for package in packages:
-            self.load_appstream_info(package)
-
             if ":" in package.pkg_name and package.pkg_name.split(":")[0] in self.packages_dict:
                 # don't list arch packages when the root is represented in the cache
                 continue
@@ -1732,7 +1732,7 @@ class Application():
                 summary = summary.replace("<", "&lt;")
                 summary = summary.replace("&", "&amp;")
 
-            tile = PackageTile(package, icon, summary, show_more_info=(package.title in collisions))
+            tile = PackageTile(package, icon, summary, show_more_info=(package.title.lower() in collisions))
             tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LIST)
 
 
