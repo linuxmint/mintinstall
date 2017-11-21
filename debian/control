@@ -22,6 +22,7 @@ Depends: python (>= 2.4), python (<< 3),
          gir1.2-xapp-1.0,
          mint-common,
          app-install-data,
-         flatpak
+         flatpak,
+         xdg-desktop-portal-gtk
 Description: Software Manager
  A software manager to easily install new applications.
