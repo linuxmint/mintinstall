@@ -506,6 +506,7 @@ class MetaTransaction():
         self.application = application
         self.transaction = transaction
         self.package = self.application.current_package
+        transaction.set_debconf_frontend("gnome")
         transaction.connect("progress-changed", self.on_transaction_progress)
         # transaction.connect("cancellable-changed", self.on_driver_changes_cancellable_changed)
         transaction.connect("finished", self.on_transaction_finish)
