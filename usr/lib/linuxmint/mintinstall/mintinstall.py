@@ -985,6 +985,11 @@ class Application():
         dlg.show()
 
     def export_listing(self):
+        for filename in os.listdir("/var/lib/apt/lists/"):
+            if "i18n" in filename and not filename.endswith("-en"):
+                print("Your APT cache is localized. Please remove all translations first.")
+                print("sudo rm -rf /var/lib/apt/lists/*Translation%s" % filename[-3:])
+                sys.exit(1)
         if (os.getenv('LANGUAGE') != "C"):
             print("Please prefix this command with LANGUAGE=C, to prevent content from being translated in the host's locale.")
             sys.exit(1)
