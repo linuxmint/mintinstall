@@ -1,3 +1,10 @@
+mintinstall (7.8.7) sylvia; urgency=medium
+
+  * Improve get_application_icon()
+  * Flatpak: Provide missing icons
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 22 Nov 2017 17:32:46 +0000
+
 mintinstall (7.8.6) sylvia; urgency=medium
 
   [ Clement Lefebvre ]
