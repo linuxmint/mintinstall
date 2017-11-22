@@ -117,11 +117,6 @@ ALIASES['skypeforlinux'] = "Skype"
 ALIASES['google-earth-pro-stable'] = "Google Earth"
 ALIASES['whatsapp-desktop'] = "WhatsApp"
 
-#Exceptions so packages like chromium-bsu don't get Chromium's
-# icon and cause confusion
-ICON_EXCEPTIONS = ["chromium-bsu"]
-
-
 def list_header_func(row, before, user_data):
     if before and not row.get_header():
         row.set_header(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
@@ -1589,49 +1584,33 @@ class Application():
         self.show_category(row.category)
 
     def get_application_icon(self, package, size):
-        icon_name = package.pkg_name
-        if package.type == PACKAGE_TYPE_FLATPACK:
-            icon_name = package.icon_name
-
+        # Look in the icon theme first
         theme = Gtk.IconTheme.get_default()
-        #Checks to make sure the package name ins't in icon exceptions
-        if icon_name not in ICON_EXCEPTIONS:
-            #Helps add icons to package addons
-            for name in [icon_name.split(":")[0], icon_name.split("-")[0]]:
-                if theme.has_icon(name):
-                    iconInfo = theme.lookup_icon(name, size, 0)
-                    if iconInfo and os.path.exists(iconInfo.get_filename()):
-                        return GdkPixbuf.Pixbuf.new_from_file_at_size(iconInfo.get_filename(), size, size)
+        for name in [package.pkg_name, package.pkg_name.split(":")[0], package.pkg_name.split("-")[0], package.pkg_name.split(".")[-1].lower()]:
+            if theme.has_icon(name):
+                iconInfo = theme.lookup_icon(name, size, 0)
+                if iconInfo and os.path.exists(iconInfo.get_filename()):
+                    return GdkPixbuf.Pixbuf.new_from_file_at_size(iconInfo.get_filename(), size, size)
 
-        # Try app-install icons then
-        for extension in ['svg', 'png', 'xpm']:
-            icon_path = "/usr/share/app-install/icons/%s.%s" % (icon_name, extension)
-            if os.path.exists(icon_path):
-                return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, size, size)
-
-            icon_path = "/usr/share/pixmaps/%s.%s" % (icon_name, extension)
-            if os.path.exists(icon_path):
-                return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, size, size)
-
-        # We should be able to retrieve the icon from AppStream.. but that doesn't work
-        # with Flathub/Gnome-apps for some reason..
+        # For Flatpak, look in Appstream and mintinstall provided flatpak icons
         if package.type == PACKAGE_TYPE_FLATPACK:
-            icon_path = icon_path = "/var/lib/flatpak/appstream/%s/%s/active/icons/64x64/%s.png" % (package.remote, package.arch, package.pkg_name)
+            icon_path = "/var/lib/flatpak/appstream/%s/%s/active/icons/64x64/%s.png" % (package.remote, package.arch, package.pkg_name)
             if os.path.exists(icon_path):
                 return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, size, size)
 
-            # Look for the icon by package name, for example org.gnome.Calculator
-            name = package.pkg_name
-            if theme.has_icon(name):
-                iconInfo = theme.lookup_icon(name, size, 0)
-                if iconInfo and os.path.exists(iconInfo.get_filename()):
-                    return GdkPixbuf.Pixbuf.new_from_file_at_size(iconInfo.get_filename(), size, size)
-            # If that fails look for the icon by a generic name. org.gnome.Calculator becomes calculator
-            name = name.split(".")[-1].lower()
-            if theme.has_icon(name):
-                iconInfo = theme.lookup_icon(name, size, 0)
-                if iconInfo and os.path.exists(iconInfo.get_filename()):
-                    return GdkPixbuf.Pixbuf.new_from_file_at_size(iconInfo.get_filename(), size, size)
+            icon_path = "/usr/share/linuxmint/mintinstall/flatpak/icons/64x64/%s.png" % package.pkg_name
+            if os.path.exists(icon_path):
+                return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, size, size)
+
+        # Look in app-install-data and pixmaps
+        for extension in ['svg', 'png', 'xpm']:
+            icon_path = "/usr/share/app-install/icons/%s.%s" % (package.pkg_name, extension)
+            if os.path.exists(icon_path):
+                return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, size, size)
+
+            icon_path = "/usr/share/pixmaps/%s.%s" % (package.pkg_name, extension)
+            if os.path.exists(icon_path):
+                return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, size, size)
 
         return self.generic_available_icon_pixbuf
 
