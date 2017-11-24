@@ -7,13 +7,13 @@ Standards-Version: 3.9.5
 
 Package: mintinstall
 Architecture: all
-Depends: python (>= 2.4), python (<< 3),
-         python-apt,
-         python-aptdaemon,
-         python-aptdaemon.gtk3widgets,
-         python-beautifulsoup,
-         python-configobj,
-         python-setproctitle,
+Depends: python3 (>= 3.4),
+         python3-apt,
+         python3-aptdaemon,
+         python3-aptdaemon.gtk3widgets,
+         python3-bs4,
+         python3-configobj,
+         python3-setproctitle,
          gir1.2-appstream-1.0,
          gir1.2-flatpak-1.0,
          gir1.2-gdkpixbuf-2.0,
