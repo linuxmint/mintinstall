@@ -1,29 +1,26 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # encoding=utf8
 # -*- coding: UTF-8 -*-
 
 import sys
-reload(sys)
-sys.setdefaultencoding('utf8')
-
 import os
-import commands
 import gi
 import gettext
 import threading
 import time
 import apt
 import locale
-import urllib
-import urllib2
-import httplib
+import urllib.request, urllib.parse, urllib.error
+import http.client
 import random
-from urlparse import urlparse
+from urllib.parse import urlparse
 import configobj
 from datetime import datetime
 import subprocess
 import platform
 import glob
+
+from operator import attrgetter
 
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppStream', '1.0')
@@ -32,8 +29,7 @@ gi.require_version('Flatpak', '1.0')
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, XApp, Flatpak, AppStream
 
 import aptdaemon.client
-from aptdaemon.enums import *
-from aptdaemon.gtk3widgets import AptErrorDialog, AptConfirmDialog, AptProgressDialog, AptStatusIcon
+from aptdaemon.gtk3widgets import AptErrorDialog, AptConfirmDialog
 import aptdaemon.errors
 
 ICON_SIZE = 48
@@ -49,7 +45,7 @@ INSTALLED_APPS = "installed-apps"
 
 # Don't let mintinstall run as root
 if os.getuid() == 0:
-    print "The software manager should not be run as root. Please run it in user mode."
+    print("The software manager should not be run as root. Please run it in user mode.")
     sys.exit(1)
 
 # Used as a decorator to time functions
@@ -58,7 +54,7 @@ def print_timing(func):
         t1 = time.time()
         res = func(*arg)
         t2 = time.time()
-        print '%s took %0.3f ms' % (func.func_name, (t2 - t1) * 1000.0)
+        print('%s took %0.3f ms' % (func.__name__, (t2 - t1) * 1000.0))
         return res
     return wrapper
 
@@ -131,19 +127,19 @@ class DownloadReviews(threading.Thread):
         try:
             print("Downloading new reviews")
             reviews_path_tmp = REVIEWS_PATH + ".tmp"
-            url = urllib.urlretrieve("https://community.linuxmint.com/data/new-reviews.list", reviews_path_tmp)
-            numlines = 0
-            numlines_new = 0
+            urllib.request.urlretrieve("https://community.linuxmint.com/data/new-reviews.list", reviews_path_tmp)
+            size = 0
+            new_size = 0
             if os.path.exists(REVIEWS_PATH):
-                numlines = int(commands.getoutput("cat " + REVIEWS_PATH + " | wc -l"))
+                size = os.path.getsize(REVIEWS_PATH)
             if os.path.exists(reviews_path_tmp):
-                numlines_new = int(commands.getoutput("cat " + reviews_path_tmp + " | wc -l"))
-                if numlines_new != numlines:
+                new_size = os.path.getsize(reviews_path_tmp)
+                if size != new_size:
                     os.system("mv " + reviews_path_tmp + " " + REVIEWS_PATH)
-                    print "Overwriting reviews file in " + REVIEWS_PATH
+                    print("Overwriting reviews file in %s" % REVIEWS_PATH)
                     self.application.update_reviews()
-        except Exception, detail:
-            print detail
+        except Exception as e:
+            print(e)
 
 class ScreenshotDownloader(threading.Thread):
 
@@ -161,7 +157,7 @@ class ScreenshotDownloader(threading.Thread):
             thumb = "http://community.linuxmint.com/thumbnail.php?w=250&pic=/var/www/community.linuxmint.com/img/screenshots/%s.png" % self.package.pkg_name
             link = "http://community.linuxmint.com/img/screenshots/%s.png" % self.package.pkg_name
             p = urlparse(link)
-            conn = httplib.HTTPConnection(p.netloc)
+            conn = http.client.HTTPConnection(p.netloc)
             conn.request('HEAD', p.path)
             resp = conn.getresponse()
             print(link)
@@ -169,18 +165,18 @@ class ScreenshotDownloader(threading.Thread):
                 num_screenshots += 1
                 local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.package.pkg_name, num_screenshots))
                 local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.package.pkg_name, num_screenshots))
-                urllib.urlretrieve (link, local_name)
-                urllib.urlretrieve (thumb, local_thumb)
+                urllib.request.urlretrieve (link, local_name)
+                urllib.request.urlretrieve (thumb, local_thumb)
                 self.application.add_screenshot(self.package.pkg_name, num_screenshots)
             else:
                 print(resp.status)
-        except Exception, detail:
-            print detail
+        except Exception as e:
+            print(e)
 
         try:
             # Add additional screenshots from Debian
-            from BeautifulSoup import BeautifulSoup
-            page = BeautifulSoup(urllib2.urlopen("http://screenshots.debian.net/package/%s" % self.package.pkg_name))
+            from bs4 import BeautifulSoup
+            page = BeautifulSoup(urllib.request.urlopen("http://screenshots.debian.net/package/%s" % self.package.pkg_name), "lxml")
             images = page.findAll('img')
             for image in images:
                 if num_screenshots >= 4:
@@ -191,11 +187,11 @@ class ScreenshotDownloader(threading.Thread):
                     link = thumb.replace("_small", "_large")
                     local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.package.pkg_name, num_screenshots))
                     local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.package.pkg_name, num_screenshots))
-                    urllib.urlretrieve (link, local_name)
-                    urllib.urlretrieve (thumb, local_thumb)
+                    urllib.request.urlretrieve (link, local_name)
+                    urllib.request.urlretrieve (thumb, local_thumb)
                     self.application.add_screenshot(self.package.pkg_name, num_screenshots)
-        except Exception, detail:
-            print detail
+        except Exception as e:
+            print(e)
 
         try:
             # Add additional screenshots from AppStream
@@ -207,19 +203,19 @@ class ScreenshotDownloader(threading.Thread):
                         thumb = image.get_url()
                         link = image.get_url()
                         p = urlparse(link)
-                        conn = httplib.HTTPConnection(p.netloc)
+                        conn = http.client.HTTPConnection(p.netloc)
                         conn.request('HEAD', p.path)
                         resp = conn.getresponse()
                         if resp.status < 400:
                             num_screenshots += 1
                             local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.package.pkg_name, num_screenshots))
                             local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.package.pkg_name, num_screenshots))
-                            urllib.urlretrieve (link, local_name)
-                            urllib.urlretrieve (thumb, local_thumb)
+                            urllib.request.urlretrieve (link, local_name)
+                            urllib.request.urlretrieve (thumb, local_thumb)
                             self.application.add_screenshot(self.package.pkg_name, num_screenshots)
                         break # only get one image per screenshot
-        except Exception, detail:
-            print detail
+        except Exception as e:
+            print(e)
 
 class FeatureTile(Gtk.Button):
     def __init__(self, package, background, color, text_shadow, border_color):
@@ -255,9 +251,8 @@ class FeatureTile(Gtk.Button):
 """ % {'background':background, 'color':color, 'text_shadow':text_shadow, 'border_color':border_color}
 
         self.set_name("FeatureTile")
-
         style_provider = Gtk.CssProvider()
-        style_provider.load_from_data(css)
+        style_provider.load_from_data(str.encode(css))
         Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(), style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         label_name = Gtk.Label(xalign=0.0)
@@ -419,7 +414,7 @@ class Category:
         while cat.parent is not None:
             cat = cat.parent
 
-(PACKAGE_TYPE_APT, PACKAGE_TYPE_FLATPACK) = range(2)
+(PACKAGE_TYPE_APT, PACKAGE_TYPE_FLATPACK) = list(range(2))
 
 class Package(object):
 
@@ -542,8 +537,8 @@ class CategoryListBoxRow(Gtk.ListBoxRow):
 
 class Application():
 
-    (PAGE_LANDING, PAGE_LIST, PAGE_PACKAGE) = range(3)
-    (ACTION_TAB, PROGRESS_TAB, SPINNER_TAB) = range(3)
+    (PAGE_LANDING, PAGE_LIST, PAGE_PACKAGE) = list(range(3))
+    (ACTION_TAB, PROGRESS_TAB, SPINNER_TAB) = list(range(3))
 
     @print_timing
     def load_cache(self):
@@ -823,7 +818,7 @@ class Application():
             return
         elif not isinstance(error, aptdaemon.errors.TransactionFailed):
             # Catch internal errors of the client
-            error = aptdaemon.errors.TransactionFailed(ERROR_UNKNOWN,
+            error = aptdaemon.errors.TransactionFailed(aptdaemon.enums.ERROR_UNKNOWN,
                                                        str(error))
         dia = AptErrorDialog(error)
         dia.run()
@@ -955,9 +950,6 @@ class Application():
         if (self.searchentry.get_text() != ""):
             self.update_search_at_idle(terms)
 
-    def close_window(self, widget, window):
-        window.hide()
-
     def open_about(self, widget):
         dlg = Gtk.AboutDialog()
         dlg.set_transient_for(self.main_window)
@@ -972,13 +964,13 @@ class Application():
                 gpl += line
             h.close()
             dlg.set_license(gpl)
-        except Exception, detail:
-            print detail
+        except Exception as e:
+            print(e)
         try:
-            version = commands.getoutput("/usr/lib/linuxmint/common/version.py mintinstall")
+            version = subprocess.check_output(["/usr/lib/linuxmint/common/version.py", "mintinstall"]).decode()
             dlg.set_version(version)
-        except Exception, detail:
-            print detail
+        except Exception as e:
+            print(e)
 
         dlg.set_icon_name("mintinstall")
         dlg.set_logo_icon_name("mintinstall")
@@ -1055,13 +1047,7 @@ class Application():
                 print (e)
                 print(package.pkg_name, homepage, summary, description)
                 sys.exit(1)
-            print output
-
-    def close_window(self, widget, window, extra=None):
-        try:
-            window.hide_all()
-        except:
-            pass
+            print(output)
 
     def close_application(self, window, event=None):
         # Not happy with Python when it comes to closing threads, so here's a radical method to get what we want.
@@ -1337,8 +1323,8 @@ class Application():
                             self.load_appstream_info(package)
                             if remote.get_name() not in self.non_empty_remotes:
                                 self.non_empty_remotes.append(remote.get_name())
-                        except Exception, detail:
-                            print(detail)
+                        except Exception as e:
+                            print(e)
             except Exception as detail:
                 print("The Flatpak remote %s could not be scanned: %s" % (remote.get_name(), str(detail)))
 
@@ -1376,7 +1362,7 @@ class Application():
 
     @print_timing
     def add_packages(self):
-        for name in self.cache.keys():
+        for name in list(self.cache.keys()):
             if name.startswith("lib") and not name.startswith("libreoffice"):
                 continue
             if name.endswith("-dev"):
@@ -1427,7 +1413,7 @@ class Application():
                     else:
                         package = self.packages_dict[package_name]
                     self.add_package_to_category(package, category)
-                except Exception, detail:
+                except Exception as e:
                     pass
 
     def add_package_to_category(self, package, category):
@@ -1706,7 +1692,9 @@ class Application():
 
         self.category_tiles = []
 
-        packages.sort(self.package_compare)
+        packages.sort(key=attrgetter("pkg_name"))
+        packages.sort(key=attrgetter("score"), reverse=True)
+
         packages = packages[0:200]
 
         # Identify name collisions (to show more info when multiple apps have the same name)
@@ -1731,7 +1719,6 @@ class Application():
             summary = ""
             if package.summary is not None:
                 summary = package.summary
-                summary = unicode(summary, 'UTF-8', 'replace')
                 summary = summary.replace("<", "&lt;")
                 summary = summary.replace("&", "&amp;")
 
@@ -1762,8 +1749,6 @@ class Application():
             self.builder.get_object("notebook_progress").set_current_page(self.ACTION_TAB)
 
         # Load package info
-        score = 0
-
         progress_label = self.builder.get_object("application_progress_label")
 
         action_button = self.builder.get_object("action_button")
@@ -1792,7 +1777,7 @@ class Application():
 
         apt_specific_widgets = ["label_package", "application_package", "label_size", "application_size", "label_version", "application_version"]
         flatpak_specific_widgets = ["label_flatpak", "application_flatpak", "label_remote", "application_remote", "label_branch", "application_branch", "label_architecture", "application_architecture"]
-        impacted_packages = []
+
         self.removals = []
         self.installations = []
 
@@ -1927,7 +1912,6 @@ class Application():
                 comment = review.comment.strip()
                 comment = comment.replace("'", "\'")
                 comment = comment.replace('"', '\"')
-                comment = unicode(comment, 'UTF-8', 'replace')
                 comment = self.capitalize(comment)
                 review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
                 tile = ReviewTile(review.username, review_date, comment, review.rating)
@@ -2015,19 +1999,7 @@ class Application():
             downloadScreenshots = ScreenshotDownloader(self, package)
             downloadScreenshots.start()
 
-    def package_compare(self, x, y):
-        if x.score == y.score:
-            if x.pkg_name < y.pkg_name:
-                return -1
-            elif x.pkg_name > y.pkg_name:
-                return 1
-            else:
-                return 0
 
-        if x.score > y.score:
-            return -1
-        else:  #x < y
-            return 1
 
 if __name__ == "__main__":
     os.system("mkdir -p %s" % SCREENSHOT_DIR)
