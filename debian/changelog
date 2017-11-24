@@ -1,3 +1,13 @@
+mintinstall (7.8.8) sylvia; urgency=medium
+
+  [ Clement Lefebvre ]
+  * Export: Ensure the APT cache is in English
+
+  [ Corbin Auriti ]
+  *  Remove minitube from editors picks as it is broken (#160)
+
+ -- Clement Lefebvre <root@linuxmint.com>  Fri, 24 Nov 2017 12:02:18 +0000
+
 mintinstall (7.8.7) sylvia; urgency=medium
 
   * Improve get_application_icon()
