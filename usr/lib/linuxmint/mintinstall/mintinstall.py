@@ -1378,6 +1378,8 @@ class Application():
                 continue
             if name.endswith("-dbg"):
                continue
+            if name.endswith("-dbgsym"):
+               continue
             if name.endswith("-doc"):
                 continue
             if name.endswith("-common"):
@@ -1389,6 +1391,10 @@ class Application():
             if name.endswith("-perl"):
                 continue
             if name.endswith("l10n"):
+                continue
+            if "-locale-" in name:
+                continue
+            if "-l10n-" in name:
                 continue
 
             pkg = self.cache[name]
