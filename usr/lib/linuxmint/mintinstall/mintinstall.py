@@ -462,10 +462,10 @@ class APTPackage(Package):
 
 class FlatpackPackage(Package):
 
-    def __init__(self, installation, uuid):
+    def __init__(self, installation, uuid, arch):
         Package.__init__(self)
         self.installation = installation
-        self.arch = platform.machine()
+        self.arch = arch
         self.branch = "stable"
         elements = uuid.split()
         try:
@@ -574,6 +574,8 @@ class Application():
             # Print packages and their categories and exit
             self.export_listing()
             sys.exit(0)
+
+        self.arch = platform.machine().replace("i686", "i386")
 
         self.locale = os.getenv('LANGUAGE')
         if self.locale is None:
@@ -1300,7 +1302,7 @@ class Application():
 
     @print_timing
     def sync_flatpaks_into_appstream(self, remote_name):
-        self.flatpak_installation.update_appstream_sync(remote_name, platform.machine(), False)
+        self.flatpak_installation.update_appstream_sync(remote_name, self.arch, False)
         print("Synced %s" % remote_name)
 
     @async
@@ -1323,9 +1325,9 @@ class Application():
             try:
                 refs = self.flatpak_installation.list_remote_refs_sync(remote.get_name())
                 for ref in refs:
-                    if ref.get_kind() == Flatpak.RefKind.APP and ref.get_arch() == platform.machine() and ref.get_branch() == "stable":
+                    if ref.get_kind() == Flatpak.RefKind.APP and ref.get_arch() == self.arch and ref.get_branch() == "stable":
                         try:
-                            package = FlatpackPackage(self.flatpak_installation, "%s %s" % (remote.get_name(), ref.get_name()))
+                            package = FlatpackPackage(self.flatpak_installation, "%s %s" % (remote.get_name(), ref.get_name()), self.arch)
                             self.packages.append(package)
                             self.packages_dict[ref.get_name()] = package
                             self.add_package_to_category(package, subcat)
@@ -1418,7 +1420,7 @@ class Application():
             for package_name in category.matchingPackages:
                 try:
                     if package_name.startswith("flatpak://"):
-                        package = FlatpackPackage(self.flatpak_installation, package_name.replace("flatpak://", ""))
+                        package = FlatpackPackage(self.flatpak_installation, package_name.replace("flatpak://", ""), self.arch)
                     else:
                         package = self.packages_dict[package_name]
                     self.add_package_to_category(package, category)
