@@ -575,7 +575,10 @@ class Application():
             self.export_listing()
             sys.exit(0)
 
-        self.arch = platform.machine().replace("i686", "i386")
+        raw_arch = platform.machine()
+        self.arch = raw_arch.replace("i686", "i386")
+
+        print("Detected system architecture: '%s' (using '%s')" % (raw_arch, self.arch))
 
         self.locale = os.getenv('LANGUAGE')
         if self.locale is None:
