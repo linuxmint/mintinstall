@@ -1,3 +1,12 @@
+mintinstall (7.8.9) sylvia; urgency=medium
+
+  [ Michael Webster ]
+  * mintinstall.py: Add a couple more package name filters for apt packages.
+  * Fix i386 arch flatpak detection
+  * Print detected system architecture at startup.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon, 04 Dec 2017 10:46:19 +0000
+
 mintinstall (7.8.8) sylvia; urgency=medium
 
   [ Clement Lefebvre ]
