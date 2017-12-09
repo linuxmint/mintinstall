@@ -516,6 +516,7 @@ class MetaTransaction():
             XApp.set_window_progress(self.application.main_window, progress)
 
     def on_transaction_error(self, transaction, error_code, error_details):
+        print("Apt transaction error: %s" % error_details)
         current_package = self.application.current_package
         if current_package is not None and current_package.pkg_name == self.package.pkg_name:
             self.application.builder.get_object("notebook_progress").set_current_page(self.application.ACTION_TAB)
@@ -603,6 +604,8 @@ class Application():
         self.removals = []
         self.additions = []
         self.transactions = {}
+
+        self.essentials = []
 
         self.search_idle_id = 0
 
@@ -1374,9 +1377,66 @@ class Application():
             self.matchedPackages.extend(category.matchingPackages)
         self.matchedPackages.sort()
 
+    def is_required(self, pkg):
+        v = pkg.versions[0]
+
+        return v.priority == "required"
+
+    DEBUG_FILTER = False
+
     @print_timing
     def add_packages(self):
+        self.essentials = []
+
         for name in self.cache.keys():
+            if self.cache[name].essential or self.is_required(self.cache[name]):
+                if self.DEBUG_FILTER:
+                    print("essential or req'd: %s" % name)
+
+                def collect_essential_dep_names(n):
+                    try:
+                        p = self.cache[n]
+                    except KeyError:
+                        # no such package
+                        return
+
+                    v = p.versions[0]
+
+                    deps = v.dependencies
+                    for d in deps:
+                        for base_dep in d.or_dependencies:
+                            if base_dep.name not in self.essentials:
+                                self.essentials.append(base_dep.name)
+
+                                if self.DEBUG_FILTER:
+                                    print("...adding dep... %s" % base_dep.name)
+
+                                collect_essential_dep_names(base_dep.name)
+                    for provide in v.provides:
+                        if provide == n:
+                            continue
+
+                        if provide not in self.essentials:
+                            if self.DEBUG_FILTER:
+                                print("...adding alias... %s" % provide)
+
+                            self.essentials.append(provide)
+
+                if name not in self.essentials:
+                    self.essentials.append(name)
+                    collect_essential_dep_names(name)
+
+        hidden_extra_packages = [
+            # "poorly-packaged-essential-program"
+        ]
+
+        for name in self.cache.keys():
+            if name in self.essentials:
+                continue
+
+            if name in hidden_extra_packages:
+                continue
+
             if name.startswith("lib") and not name.startswith("libreoffice"):
                 continue
             if name.endswith("-dev"):
@@ -1403,6 +1463,20 @@ class Application():
                 continue
 
             pkg = self.cache[name]
+
+            alias_matches = False
+
+            for alias in pkg.versions[0].provides:
+                if alias in self.essentials:
+                    if self.DEBUG_FILTER:
+                        print("skipping %s, alias of %s" % (alias, name))
+
+                    alias_matches = True
+                    break
+
+            if alias_matches:
+                continue
+
             package = APTPackage(pkg)
             self.packages.append(package)
             self.packages_dict[pkg.name] = package
@@ -1415,6 +1489,10 @@ class Application():
                 if section in self.sections:
                     category = self.sections[section]
                     self.add_package_to_category(package, category)
+        if self.DEBUG_FILTER:
+            print("number of visible APT packages: %d" % len(self.packages))
+            print("APT essentials and dependencies:", len(self.essentials), self.essentials)
+
 
     @print_timing
     def process_matching_packages(self):
