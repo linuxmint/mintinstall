@@ -680,7 +680,7 @@ class Application():
         self.back_button.set_sensitive(False)
 
         self.searchentry = self.builder.get_object("search_entry")
-        self.searchentry.connect("changed", self.on_search_terms_changed)
+        self.searchentry.connect("search-changed", self.on_search_changed)
         self.searchentry.connect("activate", self.on_search_entry_activated)
 
         self.notebook = self.builder.get_object("notebook1")
@@ -917,30 +917,17 @@ class Application():
     def category_button_clicked(self, button, category):
         self.show_category(category)
 
-    def on_idle_update_search_results(self, terms):
-        self.show_search_results(terms)
-
-        self.search_idle_id = 0
-        return False
-
-    def update_search_at_idle(self, terms):
-        if self.search_idle_id > 0:
-            GObject.source_remove(self.search_idle_id)
-            self.search_idle_id = 0
-
-        self.search_idle_id = GObject.timeout_add(250, self.on_idle_update_search_results, terms)
-
     def on_search_entry_activated(self, searchentry):
         terms = searchentry.get_text()
 
         if terms != "":
-            self.update_search_at_idle(terms)
+            self.show_search_results(terms);
 
-    def on_search_terms_changed(self, searchentry):
+    def on_search_changed(self, searchentry):
         terms = searchentry.get_text()
 
         if terms != "" and len(terms) >= 3:
-            self.update_search_at_idle(terms)
+            self.show_search_results(terms)
 
     def set_search_filter(self, checkmenuitem, key):
         self.settings.set_boolean(key, checkmenuitem.get_active())
@@ -948,7 +935,7 @@ class Application():
         terms = self.searchentry.get_text()
 
         if (self.searchentry.get_text() != ""):
-            self.update_search_at_idle(terms)
+            self.show_search_results(terms)
 
     def open_about(self, widget):
         dlg = Gtk.AboutDialog()
