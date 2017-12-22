@@ -670,6 +670,8 @@ class Application():
         self.flowbox_applications.set_column_spacing(6)
         self.flowbox_applications.set_homogeneous(True)
         self.flowbox_applications.set_valign(Gtk.Align.START)
+        self.flowbox_applications.connect("child-activated", self.on_flowbox_app_activated)
+        self.flowbox_applications.connect("selected-children-changed", self.on_navigate_flowbox)
 
         box = self.builder.get_object("box_cat_page")
         box.add(self.flowbox_applications)
@@ -712,6 +714,15 @@ class Application():
         self.builder.get_object("action_button").connect("clicked", self.on_action_button_clicked)
         self.builder.get_object("launch_button").connect("clicked", self.on_launch_button_clicked)
 
+        self.update_show_installed_sensitivity()
+
+    def update_show_installed_sensitivity(self):
+        sensitive = len(self.installed_category.packages) > 0 and \
+                    not (self.current_category == self.installed_category and \
+                    self.notebook.get_current_page() == self.PAGE_LIST)
+
+        self.installed_menuitem.set_sensitive(sensitive)
+
     def update_state(self, package):
         self.cache = apt.Cache() # reread cache
         package.pkg = self.cache[package.pkg_name] # update package
@@ -739,6 +750,7 @@ class Application():
                 tile.refresh_state()
 
     def show_installed_apps(self, menuitem):
+        print(len(self.installed_category.packages))
         self.show_category(self.installed_category)
 
     def add_screenshot(self, pkg_name, number):
@@ -1513,13 +1525,16 @@ class Application():
         self.notebook.set_current_page(self.previous_page)
         if self.previous_page == self.PAGE_LANDING:
             self.back_button.set_sensitive(False)
-            self.installed_menuitem.set_sensitive(True)
+            self.searchentry.grab_focus()
+            self.searchentry.set_text("")
+
         if self.previous_page == self.PAGE_LIST:
             self.previous_page = self.PAGE_LANDING
             if self.current_category == self.installed_category:
                 # special case, when going back to the installed-category, refresh it in case we removed something
                 self.show_category(self.installed_category)
-        self.searchentry.set_text("")
+
+        self.update_show_installed_sensitivity()
 
     @print_timing
     def show_category(self, category):
@@ -1546,8 +1561,7 @@ class Application():
 
         self.show_packages(category.packages)
 
-        if self.current_category == self.installed_category:
-            self.installed_menuitem.set_sensitive(False)
+        self.update_show_installed_sensitivity()
 
     def clear_category_list(self):
         for child in self.listbox_categories.get_children():
@@ -1643,11 +1657,31 @@ class Application():
             if visible:
                 self._searched_packages.append(package)
 
+        self.current_category = None
         self.clear_category_list()
         self.show_packages(self._searched_packages)
 
     def on_package_tile_clicked(self, tile, previous_page):
         self.show_package(tile.package, previous_page)
+
+    def on_flowbox_app_activated(self, flowbox, child, data=None):
+        self.on_package_tile_clicked(child.get_child(), self.PAGE_LIST)
+
+    def on_navigate_flowbox(self, box, data=None):
+        sw = self.builder.get_object("scrolledwindow_applications")
+        selected = box.get_selected_children()[0]
+
+        adj = sw.get_vadjustment()
+        current = adj.get_value()
+        sel_box = selected.get_allocation()
+        sw_box = sw.get_allocation()
+
+        unit = sel_box.height + box.get_row_spacing()
+
+        if (sel_box.y + unit) > (current + sw_box.height):
+            adj.set_value((sel_box.y + unit) - sw_box.height + box.get_row_spacing())
+        elif sel_box.y < current:
+            adj.set_value(sel_box.y)
 
     def load_appstream_info(self, package):
         if package.appstream_component is None:
@@ -1727,7 +1761,7 @@ class Application():
         # Reset the position of our scrolled window back to the top
         self.update_scroll_position(self.builder.get_object("scrolled_details"))
 
-        self.searchentry.set_text("")
+        # self.searchentry.set_text("")
         self.current_package = package
 
         if package.type == PACKAGE_TYPE_FLATPACK and self.flatpak_postinstall_is_running:
