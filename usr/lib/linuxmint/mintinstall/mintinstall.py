@@ -1361,6 +1361,12 @@ class Application():
 
     @print_timing
     def add_packages(self):
+        # List extra packages that aren't necessarily marked in their control files, but
+        # we know better...
+        extra_critical_packages = ["mint-common", "mint-meta-core", "mintdesktop"]
+
+        self.critical_packages = []
+
         for name in list(self.cache.keys()):
             if name.startswith("lib") and not name.startswith("libreoffice"):
                 continue
@@ -1386,6 +1392,17 @@ class Application():
                 continue
             if "-l10n-" in name:
                 continue
+            if name in extra_critical_packages:
+                continue
+            try:
+                if self.cache[name].essential or self.cache[name].versions[0].priority == "required":
+                    if name not in extra_critical_packages:
+                        self.critical_packages.append(name)
+                    continue
+            except Exception:
+                continue
+
+            self.critical_packages += extra_critical_packages
 
             pkg = self.cache[name]
             package = APTPackage(pkg)
@@ -1758,6 +1775,9 @@ class Application():
         self.previous_page = previous_page
         self.back_button.set_sensitive(True)
 
+        # Reset any previous changes staged in the cache.
+        self.cache.clear()
+
         # Reset the position of our scrolled window back to the top
         self.update_scroll_position(self.builder.get_object("scrolled_details"))
 
@@ -1845,6 +1865,18 @@ class Application():
                     continue
                 if (pkg.is_installed):
                     self.removals.append(pkg.name)
+                    if pkg.name in self.critical_packages:
+                        if package.pkg.is_installed:
+                            action_button_label = _("Cannot remove")
+                            action_button_description = _("Removing this package could cause irreparable damage to your system.")
+                        else:
+                            action_button_label = _("Cannot install")
+                            action_button_description = _("Installing this package could cause irreparable damage to your system.")
+
+                        style_context.remove_class("suggested-action")
+                        style_context.add_class("destructive-action")
+                        action_button.set_sensitive(False)
+                        progress_label.set_text("")
                 else:
                     self.installations.append(pkg.name)
 
