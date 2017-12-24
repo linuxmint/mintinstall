@@ -602,7 +602,7 @@ class Application():
         self.additions = []
         self.transactions = {}
 
-        self.search_idle_id = 0
+        self.one_package_idle_timer = 0
 
         # Build the GUI
         glade_file = "/usr/share/linuxmint/mintinstall/mintinstall.glade"
@@ -669,7 +669,7 @@ class Application():
         self.flowbox_applications.set_margin_top(6)
         self.flowbox_applications.set_margin_bottom(6)
         self.flowbox_applications.set_min_children_per_line(1)
-        self.flowbox_applications.set_max_children_per_line(3)
+        self.flowbox_applications.set_max_children_per_line(1)
         self.flowbox_applications.set_row_spacing(6)
         self.flowbox_applications.set_column_spacing(6)
         self.flowbox_applications.set_homogeneous(True)
@@ -1599,7 +1599,6 @@ class Application():
         try:
             first = flowbox.get_children()[0]
             flowbox.select_child(first)
-            first.grab_focus()
         except IndexError:
             pass
 
@@ -1650,7 +1649,6 @@ class Application():
 
         self.show_packages(category.packages)
 
-        self.reset_scroll_view(self.builder.get_object("scrolledwindow_applications"), self.flowbox_applications)
         self.update_show_installed_sensitivity()
 
     def clear_category_list(self):
@@ -1720,7 +1718,7 @@ class Application():
 
         termsUpper = terms.upper()
 
-        self._searched_packages = []
+        searched_packages = []
 
         search_in_summary = self.settings.get_boolean(SEARCH_IN_SUMMARY)
         search_in_description = self.settings.get_boolean(SEARCH_IN_DESCRIPTION)
@@ -1742,13 +1740,11 @@ class Application():
                         visible = True
 
             if visible:
-                self._searched_packages.append(package)
+                searched_packages.append(package)
 
         self.current_category = None
         self.clear_category_list()
-        self.show_packages(self._searched_packages)
-
-        self.reset_scroll_view(self.builder.get_object("scrolledwindow_applications"), self.flowbox_applications)
+        self.show_packages(searched_packages)
 
     def on_flowbox_item_clicked(self, tile, data=None):
         # This ties the GtkButton.clicked signal for the Tile class
@@ -1808,6 +1804,10 @@ class Application():
             return (string)
 
     def show_packages(self, packages):
+        if self.one_package_idle_timer > 0:
+            GObject.source_remove(self.one_package_idle_timer)
+            self.one_package_idle_timer = 0
+
         for child in self.flowbox_applications.get_children():
             self.flowbox_applications.remove(child)
 
@@ -1829,11 +1829,20 @@ class Application():
                 collisions.append(title)
             package_titles.append(title)
 
-        for package in packages:
-            if ":" in package.pkg_name and package.pkg_name.split(":")[0] in self.packages_dict:
-                # don't list arch packages when the root is represented in the cache
-                continue
+        self.one_package_idle_timer = GObject.idle_add(self.idle_show_one_package, packages, collisions)
+        self.flowbox_applications.show_all()
 
+    def idle_show_one_package(self, packages, collisions):
+        try:
+            package = packages.pop(0)
+        except IndexError:
+            self.one_package_idle_timer = 0
+            return False
+
+        if ":" in package.pkg_name and package.pkg_name.split(":")[0] in self.packages_dict:
+            # don't list arch packages when the root is represented in the cache
+            pass
+        else:
             icon = self.get_application_icon(package, ICON_SIZE)
             icon = Gtk.Image.new_from_pixbuf(icon)
 
@@ -1846,9 +1855,19 @@ class Application():
             tile = PackageTile(package, icon, summary, show_more_info=(package.title.lower() in collisions))
             tile.connect("clicked", self.on_flowbox_item_clicked)
 
-            self.flowbox_applications.insert(tile, -1)
+            box = Gtk.FlowBoxChild(child=tile)
+            box.show_all()
+
+            self.flowbox_applications.insert(box, -1)
             self.category_tiles.append(tile)
-            self.flowbox_applications.show_all()
+
+        # Repeat until empty
+        if len(packages) > 0:
+            return True
+
+        self.reset_scroll_view(self.builder.get_object("scrolledwindow_applications"), self.flowbox_applications)
+        self.one_package_idle_timer = 0
+        return False
 
     @print_timing
     def show_package(self, package, previous_page):
