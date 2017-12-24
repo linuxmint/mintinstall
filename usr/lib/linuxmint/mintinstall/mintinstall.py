@@ -661,9 +661,10 @@ class Application():
         menu_button.set_popup(submenu)
 
         self.flowbox_applications = Gtk.FlowBox()
-        self.flowbox_applications.set_margin_start(12)
-        self.flowbox_applications.set_margin_end(12)
+        self.flowbox_applications.set_margin_start(6)
+        self.flowbox_applications.set_margin_end(6)
         self.flowbox_applications.set_margin_top(6)
+        self.flowbox_applications.set_margin_bottom(6)
         self.flowbox_applications.set_min_children_per_line(1)
         self.flowbox_applications.set_max_children_per_line(3)
         self.flowbox_applications.set_row_spacing(6)
@@ -714,7 +715,58 @@ class Application():
         self.builder.get_object("action_button").connect("clicked", self.on_action_button_clicked)
         self.builder.get_object("launch_button").connect("clicked", self.on_launch_button_clicked)
 
+        class RevealerData:
+            def __init__(self, rev):
+                self.start_val = 0
+                self.down = False
+                self.revealer = rev
+
+        self.scrolled_details_vector_start_val = -1
+        self.scrolled_details_direction_down = False
+
+        revealer = self.builder.get_object("detail_header_revealer")
+        data = RevealerData(revealer)
+
+        self.builder.get_object("scrolled_details") \
+                .get_vadjustment().connect("value-changed", self.on_adjust_changed, data)
+
+        revealer = self.builder.get_object("list_header_revealer")
+        data = RevealerData(revealer)
+
+        self.builder.get_object("scrolledwindow_applications") \
+                .get_vadjustment().connect("value-changed", self.on_adjust_changed, data)
+
         self.update_show_installed_sensitivity()
+
+    def on_adjust_changed(self, adjustment, data):
+        threshold = 100
+        val = adjustment.get_value()
+        down = val > data.start_val
+        visible = data.revealer.get_reveal_child()
+
+        if data.start_val == -1:
+            data.start_val = val
+            data.down = down
+            return
+
+        if val == 0 and not visible:
+            data.revealer.set_reveal_child(True)
+
+        if down != data.down:
+            data.down = down
+            data.val = val
+            return
+
+        if (down and not visible) or (not down and visible):
+            data.start_val = val
+            return
+
+        if val > data.start_val:
+            if val - data.start_val > threshold:
+                data.revealer.set_reveal_child(False)
+        elif val < data.start_val:
+            if data.start_val - val > threshold:
+                data.revealer.set_reveal_child(True)
 
     def update_show_installed_sensitivity(self):
         sensitive = len(self.installed_category.packages) > 0 and \
@@ -1686,7 +1738,11 @@ class Application():
 
     def on_navigate_flowbox(self, box, data=None):
         sw = self.builder.get_object("scrolledwindow_applications")
-        selected = box.get_selected_children()[0]
+
+        try:
+            selected = box.get_selected_children()[0]
+        except IndexError:
+            return
 
         adj = sw.get_vadjustment()
         current = adj.get_value()
