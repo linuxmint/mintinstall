@@ -537,8 +537,11 @@ class CategoryListBoxRow(Gtk.ListBoxRow):
 
 class Application():
 
-    (PAGE_LANDING, PAGE_LIST, PAGE_PACKAGE) = list(range(3))
     (ACTION_TAB, PROGRESS_TAB, SPINNER_TAB) = list(range(3))
+
+    PAGE_LANDING = "landing"
+    PAGE_LIST = "list"
+    PAGE_PACKAGE = "details"
 
     @print_timing
     def load_cache(self):
@@ -686,7 +689,7 @@ class Application():
         self.searchentry.connect("search-changed", self.on_search_changed)
         self.searchentry.connect("activate", self.on_search_entry_activated)
 
-        self.notebook = self.builder.get_object("notebook1")
+        self.page_stack = self.builder.get_object("page_stack")
 
         self.generic_available_icon_path = "/usr/share/linuxmint/mintinstall/data/available.png"
         theme = Gtk.IconTheme.get_default()
@@ -771,7 +774,7 @@ class Application():
     def update_show_installed_sensitivity(self):
         sensitive = len(self.installed_category.packages) > 0 and \
                     not (self.current_category == self.installed_category and \
-                    self.notebook.get_current_page() == self.PAGE_LIST)
+                    self.page_stack.get_visible_child_name() == self.PAGE_LIST)
 
         self.installed_menuitem.set_sensitive(sensitive)
 
@@ -1606,7 +1609,7 @@ class Application():
     def go_back_action(self):
         XApp.set_window_progress(self.main_window, 0)
         self.current_package = None
-        self.notebook.set_current_page(self.previous_page)
+        self.page_stack.set_visible_child_name(self.previous_page)
         if self.previous_page == self.PAGE_LANDING:
             self.back_button.set_sensitive(False)
             self.searchentry.grab_focus()
@@ -1634,7 +1637,7 @@ class Application():
 
         self.current_category = category
 
-        self.notebook.set_current_page(self.PAGE_LIST)
+        self.page_stack.set_visible_child_name(self.PAGE_LIST)
         self.previous_page = self.PAGE_LANDING
         self.back_button.set_sensitive(True)
 
@@ -1713,7 +1716,7 @@ class Application():
         self.listbox_categories.hide()
         self.back_button.set_sensitive(True)
         self.previous_page = self.PAGE_LANDING
-        self.notebook.set_current_page(self.PAGE_LIST)
+        self.page_stack.set_visible_child_name(self.PAGE_LIST)
 
         termsUpper = terms.upper()
 
@@ -1850,7 +1853,7 @@ class Application():
     @print_timing
     def show_package(self, package, previous_page):
 
-        self.notebook.set_current_page(self.PAGE_PACKAGE)
+        self.page_stack.set_visible_child_name(self.PAGE_PACKAGE)
         self.previous_page = previous_page
         self.back_button.set_sensitive(True)
 

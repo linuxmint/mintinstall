@@ -134,11 +134,10 @@
           </packing>
         </child>
         <child>
-          <object class="GtkNotebook" id="notebook1">
+          <object class="GtkStack" id="page_stack">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="show_tabs">False</property>
-            <property name="show_border">False</property>
+            <property name="transition_type">crossfade</property>
             <child>
               <object class="GtkBox" id="box_landing">
                 <property name="visible">True</property>
@@ -229,9 +228,10 @@
                   </packing>
                 </child>
               </object>
-            </child>
-            <child type="tab">
-              <placeholder/>
+              <packing>
+                <property name="name">landing</property>
+                <property name="title" translatable="yes">page0</property>
+              </packing>
             </child>
             <child>
               <object class="GtkBox" id="box_list">
@@ -273,8 +273,6 @@
                           <object class="GtkLabel" id="label_cat_name">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="margin_left">6</property>
-                            <property name="margin_right">6</property>
                             <property name="margin_top">6</property>
                             <property name="margin_bottom">6</property>
                             <property name="xpad">6</property>
@@ -344,18 +342,10 @@
                 </child>
               </object>
               <packing>
+                <property name="name">list</property>
+                <property name="title" translatable="yes">page1</property>
                 <property name="position">1</property>
-                <property name="tab_fill">False</property>
               </packing>
-            </child>
-            <child type="tab">
-              <placeholder/>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
-            <child type="tab">
-              <placeholder/>
             </child>
             <child>
               <object class="GtkBox" id="box_details">
@@ -371,8 +361,6 @@
                       <object class="GtkBox" id="box_application_header">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="margin_left">6</property>
-                        <property name="margin_right">6</property>
                         <property name="margin_top">6</property>
                         <property name="margin_bottom">6</property>
                         <property name="spacing">12</property>
@@ -1114,17 +1102,16 @@
                 </child>
               </object>
               <packing>
-                <property name="position">3</property>
+                <property name="name">details</property>
+                <property name="title" translatable="yes">page2</property>
+                <property name="position">2</property>
               </packing>
-            </child>
-            <child type="tab">
-              <placeholder/>
             </child>
           </object>
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
-            <property name="position">1</property>
+            <property name="position">2</property>
           </packing>
         </child>
       </object>
