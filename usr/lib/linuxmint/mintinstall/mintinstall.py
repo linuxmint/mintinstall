@@ -1581,9 +1581,19 @@ class Application():
             return True
         return False
 
-    def update_scroll_position(self, scrolledwindow):
+    def reset_scroll_view(self, scrolledwindow, flowbox=None):
         adjustment = scrolledwindow.get_vadjustment()
         adjustment.set_value(adjustment.get_lower())
+
+        if not flowbox:
+            return
+
+        try:
+            first = flowbox.get_children()[0]
+            flowbox.select_child(first)
+            first.grab_focus()
+        except IndexError:
+            pass
 
     def on_back_button_clicked(self, button):
         self.go_back_action()
@@ -1602,6 +1612,13 @@ class Application():
             if self.current_category == self.installed_category:
                 # special case, when going back to the installed-category, refresh it in case we removed something
                 self.show_category(self.installed_category)
+            else:
+                try:
+                    fc = self.flowbox_applications.get_selected_children()[0]
+                    fc.grab_focus()
+                except IndexError:
+                    pass
+
 
         self.update_show_installed_sensitivity()
 
@@ -1616,11 +1633,6 @@ class Application():
         self.previous_page = self.PAGE_LANDING
         self.back_button.set_sensitive(True)
 
-        # Reset the position of our scrolled window back to the top
-        self.update_scroll_position(self.builder.get_object("scrolledwindow_applications"))
-
-        self.searchentry.set_text("")
-
         label.set_text(self.current_category.name)
         label.show()
 
@@ -1630,6 +1642,7 @@ class Application():
 
         self.show_packages(category.packages)
 
+        self.reset_scroll_view(self.builder.get_object("scrolledwindow_applications"), self.flowbox_applications)
         self.update_show_installed_sensitivity()
 
     def clear_category_list(self):
@@ -1697,9 +1710,6 @@ class Application():
         self.previous_page = self.PAGE_LANDING
         self.notebook.set_current_page(self.PAGE_LIST)
 
-        # Reset the position of our scrolled window back to the top
-        self.update_scroll_position(self.builder.get_object("scrolledwindow_applications"))
-
         termsUpper = terms.upper()
 
         self._searched_packages = []
@@ -1730,10 +1740,14 @@ class Application():
         self.clear_category_list()
         self.show_packages(self._searched_packages)
 
+        self.reset_scroll_view(self.builder.get_object("scrolledwindow_applications"), self.flowbox_applications)
+
     def on_package_tile_clicked(self, tile, previous_page):
         self.show_package(tile.package, previous_page)
 
     def on_flowbox_app_activated(self, flowbox, child, data=None):
+        flowbox.select_child(child)
+
         self.on_package_tile_clicked(child.get_child(), self.PAGE_LIST)
 
     def on_navigate_flowbox(self, box, data=None):
@@ -1835,7 +1849,7 @@ class Application():
         self.cache.clear()
 
         # Reset the position of our scrolled window back to the top
-        self.update_scroll_position(self.builder.get_object("scrolled_details"))
+        self.reset_scroll_view(self.builder.get_object("scrolled_details"), None)
 
         # self.searchentry.set_text("")
         self.current_package = package
