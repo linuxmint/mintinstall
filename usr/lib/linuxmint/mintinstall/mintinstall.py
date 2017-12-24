@@ -671,7 +671,7 @@ class Application():
         self.flowbox_applications.set_column_spacing(6)
         self.flowbox_applications.set_homogeneous(True)
         self.flowbox_applications.set_valign(Gtk.Align.START)
-        self.flowbox_applications.connect("child-activated", self.on_flowbox_app_activated)
+        self.flowbox_applications.connect("child-activated", self.on_flowbox_child_activated, self.PAGE_LIST)
         self.flowbox_applications.connect("selected-children-changed", self.on_navigate_flowbox)
 
         box = self.builder.get_object("box_cat_page")
@@ -897,6 +897,8 @@ class Application():
         flowbox.set_column_spacing(12)
         flowbox.set_homogeneous(True)
 
+        flowbox.connect("child-activated", self.on_flowbox_child_activated, self.PAGE_LANDING)
+
         featured = []
         with open("/usr/share/linuxmint/mintinstall/featured/featured.list", 'r') as f:
             for line in f:
@@ -912,7 +914,7 @@ class Application():
         package = self.packages_dict[name]
         self.load_appstream_info(package)
         tile = FeatureTile(package, background, text, text_shadow, stroke)
-        tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LANDING)
+        tile.connect("clicked", self.on_flowbox_item_clicked)
         flowbox.insert(tile, -1)
         box.pack_start(flowbox, True, True, 0)
         box.show_all()
@@ -925,6 +927,9 @@ class Application():
         flowbox.set_row_spacing(12)
         flowbox.set_column_spacing(12)
         flowbox.set_homogeneous(True)
+
+        flowbox.connect("child-activated", self.on_flowbox_child_activated, self.PAGE_LANDING)
+
         installed = []
         available = []
         for package in self.picks_category.packages:
@@ -940,7 +945,7 @@ class Application():
             icon = self.get_application_icon(package, ICON_SIZE)
             icon = Gtk.Image.new_from_pixbuf(icon)
             tile = VerticalPackageTile(package, icon)
-            tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LANDING)
+            tile.connect("clicked", self.on_flowbox_item_clicked)
             flowbox.insert(tile, -1)
             self.picks_tiles.append(tile)
             featured += 1
@@ -1742,13 +1747,18 @@ class Application():
 
         self.reset_scroll_view(self.builder.get_object("scrolledwindow_applications"), self.flowbox_applications)
 
-    def on_package_tile_clicked(self, tile, previous_page):
-        self.show_package(tile.package, previous_page)
+    def on_flowbox_item_clicked(self, tile, data=None):
+        # This ties the GtkButton.clicked signal for the Tile class
+        # to the flowbox mechanics.  Clicks would be handled by
+        # GtkFlowBox.child-activated if we weren't using a GtkButton
+        # as each flowbox entry.  This could probably fixed eventually
+        # but we like the button styling and highlighting.
+        tile.get_parent().activate()
 
-    def on_flowbox_app_activated(self, flowbox, child, data=None):
+    def on_flowbox_child_activated(self, flowbox, child, previous_page):
         flowbox.select_child(child)
 
-        self.on_package_tile_clicked(child.get_child(), self.PAGE_LIST)
+        self.show_package(child.get_child().package, previous_page)
 
     def on_navigate_flowbox(self, box, data=None):
         sw = self.builder.get_object("scrolledwindow_applications")
@@ -1831,8 +1841,7 @@ class Application():
                 summary = summary.replace("&", "&amp;")
 
             tile = PackageTile(package, icon, summary, show_more_info=(package.title.lower() in collisions))
-            tile.connect("clicked", self.on_package_tile_clicked, self.PAGE_LIST)
-
+            tile.connect("clicked", self.on_flowbox_item_clicked)
 
             self.flowbox_applications.insert(tile, -1)
             self.category_tiles.append(tile)
