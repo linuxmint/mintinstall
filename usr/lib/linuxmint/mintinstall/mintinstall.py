@@ -1430,27 +1430,27 @@ class Application():
         for name in list(self.cache.keys()):
             if name.startswith("lib") and not name.startswith("libreoffice"):
                 continue
+            if name.endswith(":i386") and name != "steam:i386":
+                continue
             if name.endswith("-dev"):
                 continue
             if name.endswith("-dbg"):
-               continue
-            if name.endswith("-dbgsym"):
-               continue
+                continue
             if name.endswith("-doc"):
                 continue
             if name.endswith("-common"):
                 continue
             if name.endswith("-data"):
                 continue
-            if name.endswith(":i386") and name != "steam:i386":
-                continue
-            if name.endswith("-perl"):
-                continue
-            if name.endswith("l10n"):
-                continue
             if "-locale-" in name:
                 continue
             if "-l10n-" in name:
+                continue
+            if name.endswith("-dbgsym"):
+                continue
+            if name.endswith("l10n"):
+                continue
+            if name.endswith("-perl"):
                 continue
             if name in extra_critical_packages:
                 continue
@@ -1461,6 +1461,9 @@ class Application():
                     continue
             except Exception:
                 continue
+
+
+
 
             self.critical_packages += extra_critical_packages
 
