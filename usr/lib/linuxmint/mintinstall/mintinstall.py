@@ -592,7 +592,6 @@ class Application():
 
 
         self.add_packages()
-        self.process_matching_packages()
 
         self.current_package = None
         self.current_category = None
@@ -1454,88 +1453,100 @@ class Application():
 
         self.critical_packages = []
 
+        self.cache_queue = self.cache.keys()
+
         GObject.idle_add(self.add_one_package_idle,
-                         self.cache.keys(),
+                         self.cache_queue,
                          extra_critical_packages)
 
     def add_one_package_idle(self, queue, extra_critical_packages):
         try:
-            name = queue.pop()
+            n = 250
+
+            if n > len(self.cache_queue):
+                n = len(self.cache_queue)
+
+            names = self.cache_queue[0:n]
+
+            self.cache_queue = self.cache_queue[n:]
         except Exception as e:
             print(e)
             return False
 
-        skip = False
+        for name in names:
+            skip = False
 
-        if name.startswith("lib") and not name.startswith("libreoffice"):
-            skip = True
-        if name.endswith(":i386") and name != "steam:i386":
-            skip = True
-        if name.endswith("-dev"):
-            skip = True
-        if name.endswith("-dbg"):
-            skip = True
-        if name.endswith("-doc"):
-            skip = True
-        if name.endswith("-common"):
-            skip = True
-        if name.endswith("-data"):
-            skip = True
-        if "-locale-" in name:
-            skip = True
-        if "-l10n-" in name:
-            skip = True
-        if name.endswith("-dbgsym"):
-            skip = True
-        if name.endswith("l10n"):
-            skip = True
-        if name.endswith("-perl"):
-            skip = True
-        if name in extra_critical_packages:
-            skip = True
-        try:
-            if self.cache[name].essential or self.cache[name].versions[0].priority == "required":
-                self.critical_packages.append(name)
+            if name.startswith("lib") and not name.startswith("libreoffice"):
                 skip = True
-        except Exception:
-            skip = True
+            if name.endswith(":i386") and name != "steam:i386":
+                skip = True
+            if name.endswith("-dev"):
+                skip = True
+            if name.endswith("-dbg"):
+                skip = True
+            if name.endswith("-doc"):
+                skip = True
+            if name.endswith("-common"):
+                skip = True
+            if name.endswith("-data"):
+                skip = True
+            if "-locale-" in name:
+                skip = True
+            if "-l10n-" in name:
+                skip = True
+            if name.endswith("-dbgsym"):
+                skip = True
+            if name.endswith("l10n"):
+                skip = True
+            if name.endswith("-perl"):
+                skip = True
+            if name in extra_critical_packages:
+                skip = True
+            try:
+                if self.cache[name].essential or self.cache[name].versions[0].priority == "required":
+                    self.critical_packages.append(name)
+                    skip = True
+            except Exception:
+                skip = True
 
-        if skip and len(queue) > 0:
-            return True
+            if skip:
+                continue
 
-        pkg = self.cache[name]
-        package = APTPackage(pkg)
-        self.packages.append(package)
-        self.packages_dict[pkg.name] = package
+            pkg = self.cache[name]
+            package = APTPackage(pkg)
+            self.packages.append(package)
+            self.packages_dict[pkg.name] = package
 
-        matched = None
+            matched = None
 
-        for category in self.categories:
-            if pkg.name in category.matchingPackages:
-                matched = category
-                self.add_package_to_category(package, category)
-                break
+            for category in self.categories:
+                if pkg.name in category.matchingPackages:
+                    matched = category
+                    self.add_package_to_category(package, category)
+                    break
 
-        if not matched:
-        # If the package is not a "matching package", find categories with matching sections
-            section = pkg.section
-            if "/" in section:
-                section = section.split("/")[1]
-            if section in self.sections:
-                matched = self.sections[section]
-                self.add_package_to_category(package, matched)
+            if not matched:
+            # If the package is not a "matching package", find categories with matching sections
+                section = pkg.section
+                if "/" in section:
+                    section = section.split("/")[1]
+                if section in self.sections:
+                    matched = self.sections[section]
+                    self.add_package_to_category(package, matched)
 
-        if matched != None:
-            if matched.parent:
-                matched.parent.landing_widget.set_sensitive(True)
-            else:
-                if matched.landing_widget:
-                    matched.landing_widget.set_sensitive(True)
+            if matched != None:
+                if matched.parent:
+                    matched.parent.landing_widget.set_sensitive(True)
+                else:
+                    if matched.landing_widget:
+                        matched.landing_widget.set_sensitive(True)
 
-        if len(queue) > 0:
+        if len(self.cache_queue) > 0:
             return True
         else:
             self.critical_packages += extra_critical_packages
+
+            self.process_matching_packages()
 
             self.add_reviews()
             downloadReviews = DownloadReviews(self)
