@@ -406,6 +406,7 @@ class Category:
         self.subcategories = []
         self.packages = []
         self.matchingPackages = []
+        self.landing_widget = None
         if parent is not None:
             parent.subcategories.append(self)
         if categories is not None:
@@ -588,6 +589,8 @@ class Application():
         self.add_categories()
         self.add_flatpaks_async()
         self.build_matched_packages()
+
+
         self.add_packages()
         self.process_matching_packages()
 
@@ -622,10 +625,6 @@ class Application():
 
         self.ac = aptdaemon.client.AptClient()
         self.loop = GLib.MainLoop()
-
-        self.add_reviews()
-        downloadReviews = DownloadReviews(self)
-        downloadReviews.start()
 
         # Build the menu
         submenu = Gtk.Menu()
@@ -914,7 +913,17 @@ class Application():
         selected = random.sample(featured, 1)[0]
         (name, background, stroke, text, text_shadow) = selected.split('----')
         background = background.replace("@prefix@", "/usr/share/linuxmint/mintinstall/featured/")
-        package = self.packages_dict[name]
+
+        # We're iterating thru the apt-cache asynchronously during this time, we'll make the same check
+        # here before overwriting.
+
+        if name in self.packages_dict:
+            package = self.packages_dict[name]
+        else:
+            # TODO: Should handle Flatpak also
+            package = APTPackage(self.cache[name])
+            self.packages_dict[name] = package
+
         self.load_appstream_info(package)
         tile = FeatureTile(package, background, text, text_shadow, stroke)
         tile.connect("clicked", self.on_flowbox_item_clicked)
@@ -935,7 +944,17 @@ class Application():
 
         installed = []
         available = []
-        for package in self.picks_category.packages:
+        for name in self.picks_category.matchingPackages:
+            if name in self.packages_dict:
+                package = self.packages_dict[name]
+            else:
+                # TODO: Should handle Flatpak also
+                try:
+                    package = APTPackage(self.cache[name])
+                    self.packages_dict[name] = package
+                except KeyError as e:
+                    continue
+
             if package.is_installed():
                 installed.append(package)
             else:
@@ -970,20 +989,24 @@ class Application():
             button = Gtk.Button()
             button.set_label(category.name)
             button.connect("clicked", self.category_button_clicked, category)
+            button.set_sensitive(False)
+            category.landing_widget = button
             flowbox.insert(button, -1)
         # Add picks
         button = Gtk.Button()
         button.set_label(self.picks_category.name)
         button.connect("clicked", self.category_button_clicked, self.picks_category)
+        self.picks_category.landing_widget = button
         flowbox.insert(button, -1)
         # Add flatpaks
-        self.flatpak_category_button = Gtk.Button()
-        self.flatpak_category_button.set_label(self.flatpak_category.name)
-        self.flatpak_category_button.connect("clicked", self.category_button_clicked, self.flatpak_category)
+        button = Gtk.Button()
+        button.set_label(self.flatpak_category.name)
+        button.connect("clicked", self.category_button_clicked, self.flatpak_category)
+        self.flatpak_category.landing_widget = button
         # Loading flatpaks is async, so we make this sensitive after flatpaks are loaded
-        self.flatpak_category_button.set_sensitive(False)
+        button.set_sensitive(False)
 
-        flowbox.insert(self.flatpak_category_button, -1)
+        flowbox.insert(button, -1)
         box.pack_start(flowbox, True, True, 0)
 
     def category_button_clicked(self, button, category):
@@ -1361,7 +1384,7 @@ class Application():
 
     @idle
     def enable_flatpak_category(self):
-        self.flatpak_category_button.set_sensitive(True)
+        self.flatpak_category.landing_widget.set_sensitive(True)
 
     @print_timing
     def add_flatpaks(self):
@@ -1419,70 +1442,113 @@ class Application():
             self.matchedPackages.extend(category.matchingPackages)
         self.matchedPackages.sort()
 
-    @print_timing
+
     def add_packages(self):
         # List extra packages that aren't necessarily marked in their control files, but
         # we know better...
+
+        self.add_package_time_start = time.time()
+        print("Starting add_packages loop")
+
         extra_critical_packages = ["mint-common", "mint-meta-core", "mintdesktop"]
 
         self.critical_packages = []
 
-        for name in list(self.cache.keys()):
-            if name.startswith("lib") and not name.startswith("libreoffice"):
-                continue
-            if name.endswith(":i386") and name != "steam:i386":
-                continue
-            if name.endswith("-dev"):
-                continue
-            if name.endswith("-dbg"):
-                continue
-            if name.endswith("-doc"):
-                continue
-            if name.endswith("-common"):
-                continue
-            if name.endswith("-data"):
-                continue
-            if "-locale-" in name:
-                continue
-            if "-l10n-" in name:
-                continue
-            if name.endswith("-dbgsym"):
-                continue
-            if name.endswith("l10n"):
-                continue
-            if name.endswith("-perl"):
-                continue
-            if name in extra_critical_packages:
-                continue
-            try:
-                if self.cache[name].essential or self.cache[name].versions[0].priority == "required":
-                    if name not in extra_critical_packages:
-                        self.critical_packages.append(name)
-                    continue
-            except Exception:
-                continue
+        GObject.idle_add(self.add_one_package_idle,
+                         self.cache.keys(),
+                         extra_critical_packages)
 
+    def add_one_package_idle(self, queue, extra_critical_packages):
+        try:
+            name = queue.pop()
+        except Exception as e:
+            print(e)
+            return False
 
+        skip = False
 
+        if name.startswith("lib") and not name.startswith("libreoffice"):
+            skip = True
+        if name.endswith(":i386") and name != "steam:i386":
+            skip = True
+        if name.endswith("-dev"):
+            skip = True
+        if name.endswith("-dbg"):
+            skip = True
+        if name.endswith("-doc"):
+            skip = True
+        if name.endswith("-common"):
+            skip = True
+        if name.endswith("-data"):
+            skip = True
+        if "-locale-" in name:
+            skip = True
+        if "-l10n-" in name:
+            skip = True
+        if name.endswith("-dbgsym"):
+            skip = True
+        if name.endswith("l10n"):
+            skip = True
+        if name.endswith("-perl"):
+            skip = True
+        if name in extra_critical_packages:
+            skip = True
+        try:
+            if self.cache[name].essential or self.cache[name].versions[0].priority == "required":
+                self.critical_packages.append(name)
+                skip = True
+        except Exception:
+            skip = True
 
+        if skip and len(queue) > 0:
+            return True
+
+        pkg = self.cache[name]
+        package = APTPackage(pkg)
+        self.packages.append(package)
+        self.packages_dict[pkg.name] = package
+
+        matched = None
+
+        for category in self.categories:
+            if pkg.name in category.matchingPackages:
+                matched = category
+                self.add_package_to_category(package, category)
+                break
+
+        if not matched:
+        # If the package is not a "matching package", find categories with matching sections
+            section = pkg.section
+            if "/" in section:
+                section = section.split("/")[1]
+            if section in self.sections:
+                matched = self.sections[section]
+                self.add_package_to_category(package, matched)
+
+        if matched != None:
+            if matched.parent:
+                matched.parent.landing_widget.set_sensitive(True)
+            else:
+                if matched.landing_widget:
+                    matched.landing_widget.set_sensitive(True)
+
+        if len(queue) > 0:
+            return True
+        else:
             self.critical_packages += extra_critical_packages
 
-            pkg = self.cache[name]
-            package = APTPackage(pkg)
-            self.packages.append(package)
-            self.packages_dict[pkg.name] = package
+            self.add_reviews()
+            downloadReviews = DownloadReviews(self)
+            downloadReviews.start()
 
-            # If the package is not a "matching package", find categories with matching sections
-            if (name not in self.matchedPackages):
-                section = pkg.section
-                if "/" in section:
-                    section = section.split("/")[1]
-                if section in self.sections:
-                    category = self.sections[section]
-                    self.add_package_to_category(package, category)
+            fin = time.time()
+            print('add_packages loop took %0.3fs' % ((fin - self.add_package_time_start) * 1000.0))
+
+            return False
 
     @print_timing
     def process_matching_packages(self):
+        return
         # Process matching packages
         for category in self.categories:
             for package_name in category.matchingPackages:
