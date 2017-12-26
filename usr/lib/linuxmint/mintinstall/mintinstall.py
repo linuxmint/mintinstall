@@ -803,7 +803,6 @@ class Application():
                 tile.refresh_state()
 
     def show_installed_apps(self, menuitem):
-        print(len(self.installed_category.packages))
         self.show_category(self.installed_category)
 
     def add_screenshot(self, pkg_name, number):
@@ -1553,6 +1552,12 @@ class Application():
             downloadReviews.start()
 
             self.stop_loading_visual()
+
+            if self.page_stack.get_visible_child_name() == self.PAGE_LIST:
+                if self.current_category != None:
+                    self.show_category(self.current_category)
+                else:
+                    self.on_search_changed(self.searchentry)
 
             fin = time.time()
             print('add_packages loop took %0.3fs' % ((fin - self.add_package_time_start) * 1000.0))
