@@ -1461,7 +1461,7 @@ class Application():
 
     def add_one_package_idle(self, queue, extra_critical_packages):
         try:
-            n = 250
+            n = 500
 
             if n > len(self.cache_queue):
                 n = len(self.cache_queue)
@@ -1552,6 +1552,8 @@ class Application():
             downloadReviews = DownloadReviews(self)
             downloadReviews.start()
 
+            self.stop_loading_visual()
+
             fin = time.time()
             print('add_packages loop took %0.3fs' % ((fin - self.add_package_time_start) * 1000.0))
 
@@ -1578,6 +1580,10 @@ class Application():
             category.packages.append(package)
         if category.parent is not None:
             self.add_package_to_category(package, category.parent)
+
+    def stop_loading_visual(self):
+        self.builder.get_object("loading_spinner").stop()
+        self.builder.get_object("loading_box").hide()
 
     @print_timing
     def add_reviews(self):
