@@ -569,7 +569,6 @@ class Application():
     def reset_apt_cache_now(self):
         # Reset any previous changes staged in the cache.
         if self.cache_maybe_dirty:
-            print("clearing cache")
             self.cache.clear()
             self.cache_maybe_dirty = False
 
@@ -1472,7 +1471,10 @@ class Application():
         self.add_package_time_start = time.time()
         print("Starting add_packages loop")
 
-        self.chunk_position = 0
+        # This would all be cleaner if done on a thread like
+        # flatpaks are done, but the apt package processing here
+        # is all CPU work, and runs up against the GIL, causing
+        # serious lag in the main thread until it finishes (I tried it.)
 
         idle_data = {
             "queue" : self.cache.keys(),
