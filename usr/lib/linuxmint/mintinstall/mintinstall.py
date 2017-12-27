@@ -43,6 +43,10 @@ SEARCH_IN_SUMMARY = "search-in-summary"
 SEARCH_IN_DESCRIPTION = "search-in-description"
 INSTALLED_APPS = "installed-apps"
 
+# List extra packages that aren't necessarily marked in their control files, but
+# we know better...
+CRITICAL_PACKAGES = ["mint-common", "mint-meta-core", "mintdesktop"]
+
 # Don't let mintinstall run as root
 if os.getuid() == 0:
     print("The software manager should not be run as root. Please run it in user mode.")
@@ -125,7 +129,7 @@ class DownloadReviews(threading.Thread):
 
     def run(self):
         try:
-            print("Downloading new reviews")
+            print("Checking new reviews")
             reviews_path_tmp = REVIEWS_PATH + ".tmp"
             urllib.request.urlretrieve("https://community.linuxmint.com/data/new-reviews.list", reviews_path_tmp)
             size = 0
@@ -138,6 +142,8 @@ class DownloadReviews(threading.Thread):
                     os.system("mv " + reviews_path_tmp + " " + REVIEWS_PATH)
                     print("Overwriting reviews file in %s" % REVIEWS_PATH)
                     self.application.update_reviews()
+                else:
+                    print("No new reviews")
         except Exception as e:
             print(e)
 
@@ -587,11 +593,13 @@ class Application():
 
         self.load_cache()
         self.add_categories()
-        self.add_flatpaks_async()
         self.build_matched_packages()
 
+        self.flatpaks_done = False
+        self.debs_done = False
 
-        self.add_packages()
+        self.add_flatpaks_async()
+        self.add_debs_async()
 
         self.current_package = None
         self.current_category = None
@@ -1227,6 +1235,15 @@ class Application():
                 print("Launching app with Popen: %s" % " ".join(exec_array))
                 subprocess.Popen(exec_array)
 
+    def file_to_array(self, filename):
+        array = []
+        f = open(filename)
+        for line in f:
+            line = line.replace("\n", "").replace("\r", "").strip()
+            if line != "":
+                array.append(line)
+        return array
+
     @print_timing
     def add_categories(self):
         self.categories = []
@@ -1370,19 +1387,38 @@ class Application():
         self.root_categories[category.name] = category
 
     @print_timing
-    def sync_flatpaks_into_appstream(self, remote_name):
-        self.flatpak_installation.update_appstream_sync(remote_name, self.arch, False)
-        print("Synced %s" % remote_name)
+    def build_matched_packages(self):
+        # Build a list of matched packages
+        self.matchedPackages = []
+        for category in self.categories:
+            self.matchedPackages.extend(category.matchingPackages)
+        self.matchedPackages.sort()
+
+    def add_package_to_category(self, package, category):
+        if category not in package.categories:
+            package.categories.append(category)
+            category.packages.append(package)
+        if category.parent is not None:
+            self.add_package_to_category(package, category.parent)
 
     @async
     def add_flatpaks_async(self):
         self.add_flatpaks()
         self.enable_flatpak_category()
+
+        self.flatpaks_done = True
+        self.finished_loading_packages()
+
         self.sync_flatpak_appstream()
 
     @idle
     def enable_flatpak_category(self):
         self.flatpak_category.landing_widget.set_sensitive(True)
+
+    @print_timing
+    def sync_flatpaks_into_appstream(self, remote_name):
+        self.flatpak_installation.update_appstream_sync(remote_name, self.arch, False)
+        print("Synced %s" % remote_name)
 
     @print_timing
     def add_flatpaks(self):
@@ -1408,9 +1444,6 @@ class Application():
             except Exception as detail:
                 print("The Flatpak remote %s could not be scanned: %s" % (remote.get_name(), str(detail)))
 
-        # Update reviews
-        self.update_reviews()
-
     def sync_flatpak_appstream(self):
         # Refresh the appstream info for flatpaks
         if len(self.non_empty_remotes) > 0:
@@ -1423,92 +1456,61 @@ class Application():
             self.flatpak_appstream_pool.set_locale(self.locale)
             self.flatpak_appstream_pool.load()
 
-    def file_to_array(self, filename):
-        array = []
-        f = open(filename)
-        for line in f:
-            line = line.replace("\n", "").replace("\r", "").strip()
-            if line != "":
-                array.append(line)
-        return array
-
-    @print_timing
-    def build_matched_packages(self):
-        # Build a list of matched packages
-        self.matchedPackages = []
-        for category in self.categories:
-            self.matchedPackages.extend(category.matchingPackages)
-        self.matchedPackages.sort()
-
-
-    def add_packages(self):
-        # List extra packages that aren't necessarily marked in their control files, but
-        # we know better...
-
+    def add_debs_async(self):
         self.add_package_time_start = time.time()
         print("Starting add_packages loop")
 
-        extra_critical_packages = ["mint-common", "mint-meta-core", "mintdesktop"]
+        self.chunk_position = 0
 
-        self.critical_packages = []
+        idle_data = {
+            "queue" : self.cache.keys(),
+            "position" : 0
+        }
 
-        self.cache_queue = self.cache.keys()
+        self.add_debs_chunk_idle(idle_data)
 
-        GObject.idle_add(self.add_one_package_idle,
-                         self.cache_queue,
-                         extra_critical_packages)
-
-    def add_one_package_idle(self, queue, extra_critical_packages):
+    @idle
+    def add_debs_chunk_idle(self, idle_data):
         try:
             n = 500
 
-            if n > len(self.cache_queue):
-                n = len(self.cache_queue)
+            old_position = idle_data["position"]
+            new_position = idle_data["position"] + n
 
-            names = self.cache_queue[0:n]
+            if new_position > len(idle_data["queue"]):
+                new_position = len(idle_data["queue"])
 
-            self.cache_queue = self.cache_queue[n:]
+            idle_data["position"] = new_position
         except Exception as e:
             print(e)
             return False
 
-        for name in names:
-            skip = False
+        for i in range(old_position, new_position):
+            name = idle_data["queue"][i]
 
             if name.startswith("lib") and not name.startswith("libreoffice"):
-                skip = True
+                continue
             if name.endswith(":i386") and name != "steam:i386":
-                skip = True
+                continue
             if name.endswith("-dev"):
-                skip = True
+                continue
             if name.endswith("-dbg"):
-                skip = True
+                continue
             if name.endswith("-doc"):
-                skip = True
+                continue
             if name.endswith("-common"):
-                skip = True
+                continue
             if name.endswith("-data"):
-                skip = True
+                continue
             if "-locale-" in name:
-                skip = True
+                continue
             if "-l10n-" in name:
-                skip = True
+                continue
             if name.endswith("-dbgsym"):
-                skip = True
+                continue
             if name.endswith("l10n"):
-                skip = True
+                continue
             if name.endswith("-perl"):
-                skip = True
-            if name in extra_critical_packages:
-                skip = True
-            try:
-                if self.cache[name].essential or self.cache[name].versions[0].priority == "required":
-                    self.critical_packages.append(name)
-                    skip = True
-            except Exception:
-                skip = True
-
-            if skip:
                 continue
 
             pkg = self.cache[name]
@@ -1534,57 +1536,61 @@ class Application():
                     self.add_package_to_category(package, matched)
 
             if matched != None:
-                if matched.parent:
+                if matched.parent and matched.parent.landing_widget:
                     matched.parent.landing_widget.set_sensitive(True)
                 else:
                     if matched.landing_widget:
                         matched.landing_widget.set_sensitive(True)
 
-        if len(self.cache_queue) > 0:
+        if idle_data["position"] < len(idle_data["queue"]):
             return True
         else:
-            self.critical_packages += extra_critical_packages
+            # self.process_matching_packages()
+            self.debs_done = True
 
-            self.process_matching_packages()
-
-            self.add_reviews()
-            downloadReviews = DownloadReviews(self)
-            downloadReviews.start()
-
-            self.stop_loading_visual()
-
-            if self.page_stack.get_visible_child_name() == self.PAGE_LIST:
-                if self.current_category != None:
-                    self.show_category(self.current_category)
-                else:
-                    self.on_search_changed(self.searchentry)
+            self.finished_loading_packages()
 
             fin = time.time()
-            print('add_packages loop took %0.3fs' % ((fin - self.add_package_time_start) * 1000.0))
+            print('add_debs loop took %0.3fs' % ((fin - self.add_package_time_start) * 1000.0))
 
             return False
+
+    @idle
+    def finished_loading_packages(self):
+        if not (self.debs_done and self.flatpaks_done):
+            return False
+
+        self.add_reviews()
+
+        downloadReviews = DownloadReviews(self)
+        downloadReviews.start()
+
+        self.stop_loading_visual()
+
+        if self.page_stack.get_visible_child_name() == self.PAGE_LIST:
+            if self.current_category != None:
+                self.show_category(self.current_category)
+            else:
+                self.on_search_changed(self.searchentry)
+
+        return False
 
     @print_timing
     def process_matching_packages(self):
         return
         # Process matching packages
-        for category in self.categories:
-            for package_name in category.matchingPackages:
-                try:
-                    if package_name.startswith("flatpak://"):
-                        package = FlatpackPackage(self.flatpak_installation, package_name.replace("flatpak://", ""), self.arch)
-                    else:
-                        package = self.packages_dict[package_name]
-                    self.add_package_to_category(package, category)
-                except Exception as e:
-                    pass
+        # for category in self.categories:
+        #     for package_name in category.matchingPackages:
+        #         try:
+        #             if package_name.startswith("flatpak://"):
+        #                 package = FlatpackPackage(self.flatpak_installation, package_name.replace("flatpak://", ""), self.arch)
+        #             else:
+        #                 package = self.packages_dict[package_name]
+        #             self.add_package_to_category(package, category)
+        #         except Exception as e:
+        #             pass
 
-    def add_package_to_category(self, package, category):
-        if category not in package.categories:
-            package.categories.append(category)
-            category.packages.append(package)
-        if category.parent is not None:
-            self.add_package_to_category(package, category.parent)
+
 
     def stop_loading_visual(self):
         self.builder.get_object("loading_spinner").stop()
@@ -1960,6 +1966,15 @@ class Application():
         self.one_package_idle_timer = 0
         return False
 
+    def is_critical_package(self, name):
+        try:
+            if self.cache[name].essential or self.cache[name].versions[0].priority == "required" or name in CRITICAL_PACKAGES:
+                return True
+            else:
+                return False
+        except Exception:
+            return False
+
     @print_timing
     def show_package(self, package, previous_page):
 
@@ -2053,11 +2068,10 @@ class Application():
 
             changes = self.cache.get_changes()
             for pkg in changes:
-                if pkg.name == package.pkg_name:
-                    continue
                 if (pkg.is_installed):
-                    self.removals.append(pkg.name)
-                    if pkg.name in self.critical_packages:
+                    if pkg.name != package.pkg_name:
+                        self.removals.append(pkg.name)
+                    if self.is_critical_package(pkg.name):
                         if package.pkg.is_installed:
                             action_button_label = _("Cannot remove")
                             action_button_description = _("Removing this package could cause irreparable damage to your system.")
