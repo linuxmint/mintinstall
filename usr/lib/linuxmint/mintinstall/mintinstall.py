@@ -553,6 +553,8 @@ class Application():
     @print_timing
     def load_cache(self):
         self.cache = apt.Cache()
+        self.cache_maybe_dirty = False
+
         self.flatpak_installation = Flatpak.Installation.new_system()
         self.apt_appstream_pool = AppStream.Pool()
         self.apt_appstream_pool.set_locale(self.locale)
@@ -563,6 +565,16 @@ class Application():
         self.flatpak_appstream_pool.set_cache_flags(AppStream.CacheFlags.NONE)
         self.flatpak_appstream_pool.set_locale(self.locale)
         self.flatpak_appstream_pool.load()
+
+    def reset_apt_cache_now(self):
+        # Reset any previous changes staged in the cache.
+        if self.cache_maybe_dirty:
+            print("clearing cache")
+            self.cache.clear()
+            self.cache_maybe_dirty = False
+
+    def reset_apt_cache_idle(self):
+        GObject.timeout_add(300, self.reset_apt_cache_now)
 
     def run(self):
         self.loop.run()
@@ -1723,8 +1735,8 @@ class Application():
                 except IndexError:
                     pass
 
-
         self.update_show_installed_sensitivity()
+        self.reset_apt_cache_idle()
 
     @print_timing
     def show_category(self, category):
@@ -1977,13 +1989,11 @@ class Application():
 
     @print_timing
     def show_package(self, package, previous_page):
-
         self.page_stack.set_visible_child_name(self.PAGE_PACKAGE)
         self.previous_page = previous_page
         self.back_button.set_sensitive(True)
 
-        # Reset any previous changes staged in the cache.
-        self.cache.clear()
+        self.reset_apt_cache_now()
 
         # Reset the position of our scrolled window back to the top
         self.reset_scroll_view(self.builder.get_object("scrolled_details"), None)
@@ -2053,6 +2063,8 @@ class Application():
             for widget in apt_specific_widgets:
                 self.builder.get_object(widget).show()
 
+            self.cache_maybe_dirty = True
+
             # APT package
             description = package.pkg.candidate.description
 
@@ -2086,24 +2098,13 @@ class Application():
                 else:
                     self.installations.append(pkg.name)
 
-            downloadSize = str(self.cache.required_download) + _("B")
-            if (self.cache.required_download >= 1000):
-                downloadSize = str(self.cache.required_download / 1000) + _("KB")
-            if (self.cache.required_download >= 1000000):
-                downloadSize = str(self.cache.required_download / 1000000) + _("MB")
-            if (self.cache.required_download >= 1000000000):
-                downloadSize = str(self.cache.required_download / 1000000000) + _("GB")
+            downloadSize = GLib.format_size(self.cache.required_download)
 
             required_space = self.cache.required_space
             if (required_space < 0):
                 required_space = (-1) * required_space
-            localSize = str(required_space) + _("B")
-            if (required_space >= 1000):
-                localSize = str(required_space / 1000) + _("KB")
-            if (required_space >= 1000000):
-                localSize = str(required_space / 1000000) + _("MB")
-            if (required_space >= 1000000000):
-                localSize = str(required_space / 1000000000) + _("GB")
+
+            localSize = GLib.format_size(required_space)
 
             if package.is_installed():
                 if self.cache.required_space < 0:
@@ -2257,8 +2258,6 @@ class Application():
             self.builder.get_object("main_screenshot").hide()
             downloadScreenshots = ScreenshotDownloader(self, package)
             downloadScreenshots.start()
-
-
 
 if __name__ == "__main__":
     os.system("mkdir -p %s" % SCREENSHOT_DIR)
