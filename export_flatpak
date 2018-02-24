@@ -1,0 +1,5 @@
+#!/bin/bash
+
+LANGUAGE=C usr/lib/linuxmint/mintinstall/mintinstall.py list-flatpak > list.list
+
+echo "Flatpaks were exported to list.list"

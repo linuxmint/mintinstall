@@ -586,11 +586,6 @@ class Application():
         self.settings = Gio.Settings("com.linuxmint.install")
         self.flatpak_postinstall_is_running = False
 
-        if len(sys.argv) > 1 and sys.argv[1] == "list":
-            # Print packages and their categories and exit
-            self.export_listing()
-            sys.exit(0)
-
         raw_arch = platform.machine()
         self.arch = raw_arch.replace("i686", "i386")
 
@@ -601,6 +596,16 @@ class Application():
             self.locale = "C"
         else:
             self.locale = self.locale.split("_")[0]
+
+        if len(sys.argv) > 1 and sys.argv[1] == "list":
+            # Print packages and flatpaks and their categories and exit
+            self.export_listing(flatpak_only=False)
+            sys.exit(0)
+
+        if len(sys.argv) > 1 and sys.argv[1] == "list-flatpak":
+            # Print flatpaks and their categories and exit
+            self.export_listing(flatpak_only=True)
+            sys.exit(0)
 
         self.load_cache()
         self.add_categories()
@@ -1080,12 +1085,13 @@ class Application():
         dlg.connect("response", close)
         dlg.show()
 
-    def export_listing(self):
-        for filename in os.listdir("/var/lib/apt/lists/"):
-            if "i18n" in filename and not filename.endswith("-en"):
-                print("Your APT cache is localized. Please remove all translations first.")
-                print("sudo rm -rf /var/lib/apt/lists/*Translation%s" % filename[-3:])
-                sys.exit(1)
+    def export_listing(self, flatpak_only=False):
+        if not flatpak_only:
+            for filename in os.listdir("/var/lib/apt/lists/"):
+                if "i18n" in filename and not filename.endswith("-en"):
+                    print("Your APT cache is localized. Please remove all translations first.")
+                    print("sudo rm -rf /var/lib/apt/lists/*Translation%s" % filename[-3:])
+                    sys.exit(1)
         if (os.getenv('LANGUAGE') != "C"):
             print("Please prefix this command with LANGUAGE=C, to prevent content from being translated in the host's locale.")
             sys.exit(1)
@@ -1094,12 +1100,15 @@ class Application():
         self.add_categories()
         self.add_flatpaks()
         self.sync_flatpak_appstream()
-        self.build_matched_packages()
-        self.add_packages()
-        self.process_matching_packages()
+        if not flatpak_only:
+            self.build_matched_packages()
+            self.add_packages()
+            self.process_matching_packages()
 
         # packages
         for package in self.packages:
+            if package.type == PACKAGE_TYPE_APT and flatpak_only:
+                continue
             if package.pkg_name.endswith(":i386") or package.pkg_name.endswith(":amd64"):
                 root_name = package.pkg_name.split(":")[0]
                 if root_name in self.packages_dict:
