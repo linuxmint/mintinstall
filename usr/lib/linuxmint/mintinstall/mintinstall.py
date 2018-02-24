@@ -129,21 +129,23 @@ class DownloadReviews(threading.Thread):
 
     def run(self):
         try:
-            print("Checking new reviews")
+            print("Checking for new reviews")
             reviews_path_tmp = REVIEWS_PATH + ".tmp"
-            urllib.request.urlretrieve("https://community.linuxmint.com/data/new-reviews.list", reviews_path_tmp)
             size = 0
             new_size = 0
+            reviews_url = "https://community.linuxmint.com/data/new-reviews.list"
             if os.path.exists(REVIEWS_PATH):
                 size = os.path.getsize(REVIEWS_PATH)
-            if os.path.exists(reviews_path_tmp):
-                new_size = os.path.getsize(reviews_path_tmp)
-                if size != new_size:
-                    os.system("mv " + reviews_path_tmp + " " + REVIEWS_PATH)
-                    print("Overwriting reviews file in %s" % REVIEWS_PATH)
-                    self.application.update_reviews()
-                else:
-                    print("No new reviews")
+            new_size = urllib.request.urlopen(reviews_url).info()['content-length']
+            if size != int(new_size):
+                print("Local reviews size: " + str(size) + ". Remote reviews size: " + new_size)
+                print("Downloading new reviews")
+                urllib.request.urlretrieve(reviews_url, reviews_path_tmp)
+                print("Overwriting reviews file in %s" % REVIEWS_PATH)
+                os.system("mv " + reviews_path_tmp + " " + REVIEWS_PATH)
+                self.application.update_reviews()
+            else:
+                print("No new reviews")
         except Exception as e:
             print(e)
 
