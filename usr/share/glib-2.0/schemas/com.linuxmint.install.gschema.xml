@@ -16,5 +16,9 @@
       <summary></summary>
       <description></description>
     </key>
+    <key type="b" name="search-in-category">
+      <default>true</default>
+      <summary>Remembers the state of the 'search in category' button</summary>
+    </key>
   </schema>
 </schemalist>
