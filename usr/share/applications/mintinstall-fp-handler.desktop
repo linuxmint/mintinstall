@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Software Manager
+Comment=Mime handler for mintinstall
+Exec=mintinstall-fp-handler %u
+Icon=mintinstall
+Terminal=false
+Type=Application
+Encoding=UTF-8
+NoDisplay=true
+MimeType=application/vnd.flatpak.ref
