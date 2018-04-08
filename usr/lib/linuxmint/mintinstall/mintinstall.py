@@ -237,7 +237,7 @@ class FeatureTile(Gtk.Button):
     color: %(color)s;
     text-shadow: %(text_shadow)s;
     border-color: %(border_color)s;
-    -GtkWidget-focus-padding: 0;
+    padding: 4px;
     outline-color: alpha(%(color)s, 0.75);
     outline-style: dashed;
     outline-offset: 2px;
