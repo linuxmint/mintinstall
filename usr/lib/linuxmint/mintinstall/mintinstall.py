@@ -25,6 +25,7 @@ from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, Flatpak, AppS
 
 from installer import installer
 import reviews
+import housekeeping
 
 ICON_SIZE = 48
 
@@ -681,6 +682,7 @@ class Application(Gtk.Application):
         GObject.idle_add(self.process_unmatched_packages)
 
         self.review_cache = reviews.ReviewCache()
+        housekeeping.run()
 
     def load_featured_on_landing(self):
         box = self.builder.get_object("box_featured")
