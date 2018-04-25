@@ -1,7 +1,4 @@
-import sys
-if sys.version_info.major < 3:
-    raise "python3 required"
-
+#!/usr/bin/python3
 import threading
 import signal
 import time
@@ -12,6 +9,7 @@ gi.require_version('Flatpak', '1.0')
 from gi.repository import GLib, GObject, Gio
 
 from installer import cache, _flatpak, _apt
+from misc import print_timing
 
 PKG_TYPE_NONE = None
 PKG_TYPE_APT = "a"
@@ -21,15 +19,6 @@ PKG_TYPE_FLATPAK = "f"
 INSTALL_TASK = "install"
 UNINSTALL_TASK = "remove"
 UPDATE_TASK = "update"
-
-def print_timing(func):
-    def wrapper(*arg):
-        t1 = time.time()
-        res = func(*arg)
-        t2 = time.time()
-        print('%s took %0.3f ms' % (func.__name__, (t2 - t1) * 1000.0))
-        return res
-    return wrapper
 
 class InstallerTask:
     # Set after a package selection, reflects whether task can proceed or not
@@ -56,33 +45,38 @@ class InstallerTask:
 
         self.name = None
 
-        # Set by .select_pkginfo(), the re-entry point after a task is fully calculated,
-        # and the UI should be updated with detailed info about the pending operation (disk use, etc..)
+        # Set by .select_pkginfo(), the re-entry point after a task is fully
+        # calculated, and the UI should be updated with detailed info about
+        # the pending operation (disk use, etc..)
         self.info_ready_callback = info_ready_callback
-        # To be checked by the info_ready_callback, to allow the UI to reflect the ability to proceed with a task, or
-        # report that something is not right.
+        # To be checked by the info_ready_callback, to allow the UI to reflect
+        # the ability to proceed with a task, or report that something is not right.
         self.info_ready_status = self.STATUS_NONE
 
-        # Set by the backend, the function to call to actually perform the task (will be none on STATUS_BROKEN or _FORBIDDEN)
+        # Set by the backend, the function to call to actually perform the task (will
+        # be none on STATUS_BROKEN or _FORBIDDEN)
         self.execute = None
 
-        # Passed to _flatpak operations to respond to the Cancel button in the standalone progress window.
-        # eventually it may be used elsewhere.
+        # Passed to _flatpak operations to respond to the Cancel button in the
+        # standalone progress window. eventually it may be used elsewhere.
         self.cancellable = Gio.Cancellable()
 
-        # Callbacks that will be used at various points during a task being operated on.  The .client_* callbacks are arguments
-        # of Installer.execute_task().  The client_finished_cb is required.  If the progress callback is missing, a standalone
+        # Callbacks that will be used at various points during a task being operated on.
+        # The .client_* callbacks are arguments of Installer.execute_task().  The
+        # client_finished_cb is required.  If the progress callback is missing, a standalone
         # progress window will be provided.
         self.client_progress_cb = None
         self.client_finished_cb = None
 
-        # These are internally used - called as the 'real' error and finished callback, to do some cleanup
-        # like removing the task and reloading the apt cache before finally calling task.client_finished_cb
+        # These are internally used - called as the 'real' error and finished callback,
+        # to do some cleanup like removing the task and reloading the apt cache before
+        # finally calling task.client_finished_cb
         self.error_cleanup_cb = None
         self.finished_cleanup_cb = None
 
         self.has_window = False
-        # Updated throughout a flatpak operation - for now it's used for updating the standalone flatpak progress window
+        # Updated throughout a flatpak operation - for now it's used for updating the
+        # standalone flatpak progress window
         self.progress_state = self.PROGRESS_STATE_INIT
         # Same - allows the flatpak window to update the current package being installed/removed
         self.current_package_name = None
@@ -95,9 +89,9 @@ class InstallerTask:
         # The command that can be used to launch the current target package, if it's installed
         self.exec_string = None
 
-        # List of additional packages to install, remove or update, based on the selected pkginfo.
-        # Always lists of strings, but depending on the backend, they will consist of package names (apt)
-        # or stringified flatpak refs (the result of ref.format_ref())
+        # List of additional packages to install, remove or update, based on the selected
+        # pkginfo. Always lists of strings, but depending on the backend, they will consist
+        # of package names (apt) or stringified flatpak refs (the result of ref.format_ref())
         self.to_install = []
         self.to_remove = []
         self.to_update = []
@@ -147,8 +141,8 @@ class Installer:
             GObject.idle_add(self.initialize_appstream)
 
             return True
-        else:
-            return False
+
+        return False
 
     def init(self, ready_callback=None):
         """
@@ -173,19 +167,22 @@ class Installer:
 
         GObject.idle_add(self.initialize_appstream)
 
-        print('installer startup full took %0.3f ms' % ((time.time() - self.startup_timer) * 1000.0))
+        print('Full installer startup took %0.3f ms' % ((time.time() - self.startup_timer) * 1000.0))
 
         if self._init_cb:
             self._init_cb()
 
     def select_pkginfo(self, pkginfo, ready_callback):
         """
-        Initiates calculations for installing or removing a particular package (depending upon whether or not
-        the selected package is installed.  Creates an InstallerTask instance and populates it with info relevant
-        for display and for execution later.  When this is completed, ready_callback is called, with the newly-created
-        task as its argument.  Note:  At that point, this is the *only* reference to the task object.  It can be safely
-        discarded.  If the task is to be run, Installer.execute_task() is called, passing this task object, along with
-        callback functions.  The task object is then added to a queue (and is tracked in self.tasks from there on out.)
+        Initiates calculations for installing or removing a particular package
+        (depending upon whether or not the selected package is installed.  Creates
+        an InstallerTask instance and populates it with info relevant for display
+        and for execution later.  When this is completed, ready_callback is called,
+        with the newly-created task as its argument.  Note:  At that point, this is
+        the *only* reference to the task object.  It can be safely discarded.  If
+        the task is to be run, Installer.execute_task() is called, passing this task
+        object, along with callback functions.  The task object is then added to a
+        queue (and is tracked in self.tasks from there on out.)
         """
         if pkginfo.pkg_hash in self.tasks.keys():
             task = self.tasks[pkginfo.pkg_hash]
@@ -208,8 +205,9 @@ class Installer:
 
     def prepare_flatpak_update(self, ready_callback):
         """
-        Creates an InstallerTask populated with all flatpak packages that can be updated.  Note, unlike select_pkginfo,
-        there is no 'primary' package here.  Only disk utilization and download info, along with the list of ref strings
+        Creates an InstallerTask populated with all flatpak packages that can be
+        updated.  Note, unlike select_pkginfo, there is no 'primary' package here.
+        Only disk utilization and download info, along with the list of ref strings
         (in task.to_update) will be populated.
         """
         task = InstallerTask(None, self, ready_callback)
@@ -220,45 +218,47 @@ class Installer:
 
     def list_updated_flatpak_pkginfos(self):
         """
-        Returns a list of flatpak pkginfos that can be updated.  Unlike prepare_flatpak_update, this is for the convenience
-        of displaying information to the user.
+        Returns a list of flatpak pkginfos that can be updated.  Unlike
+        prepare_flatpak_update, this is for the convenience of displaying information
+        to the user.
         """
         return _flatpak.list_updated_pkginfos(self.cache)
 
     def find_pkginfo(self, name, pkg_type=PKG_TYPE_NONE):
         """
-        Attempts to find and return a PkgInfo object, given a package name.  If pkg_type is None, looks in first apt,
-        then flatpaks.
+        Attempts to find and return a PkgInfo object, given a package name.  If
+        pkg_type is None, looks in first apt, then flatpaks.
         """
         return self.cache.find_pkginfo(name, pkg_type)
 
     def get_pkginfo_from_ref_file(self, uri, ready_callback):
         """
-        Accepts a uri to a .flatpakref on a local path.  If the flatpak's remote has not been previously added to the system
-        installation, this also adds it and downloads Appstream info as well, before calling ready_callback with the created
-        (or existing) PkgInfo as an argument.
+        Accepts a uri to a .flatpakref on a local path.  If the flatpak's remote
+        has not been previously added to the system installation, this also adds
+        it and downloads Appstream info as well, before calling ready_callback with
+        the created (or existing) PkgInfo as an argument.
         """
         _flatpak.get_pkginfo_from_file(self.cache, uri, ready_callback)
 
     def list_flatpak_remotes(self):
         """
-        Returns a list of tuples of (remote name, remote title).  The remote_name can be used to match with PkgInfo.remote
-        and the title is for display.
+        Returns a list of tuples of (remote name, remote title).  The remote_name
+        can be used to match with PkgInfo.remote and the title is for display.
         """
         return _flatpak.list_remotes()
 
     def pkginfo_is_installed(self, pkginfo):
         """
-        Returns whether or not a given package is currently installed.  This uses the AptCache or the FlatpakInstallation
-        to check.
+        Returns whether or not a given package is currently installed.  This uses
+        the AptCache or the FlatpakInstallation to check.
         """
         if self.inited:
             if pkginfo.pkg_hash.startswith("a"):
                 return _apt.pkginfo_is_installed(pkginfo)
             elif pkginfo.pkg_hash.startswith("f"):
                 return _flatpak.pkginfo_is_installed(pkginfo)
-        else:
-            return False
+
+        return False
 
     @print_timing
     def initialize_appstream(self):
@@ -283,9 +283,10 @@ class Installer:
             self.backend_table[pkginfo] = backend_component
 
             # It's possible at some point we'll refresh appstream at runtime, if so we'll
-            # want to clear cached data so it can be re-fetched anew.  For now there's no need.
-            # The only possible case is on-demand adding of a remote (from launching a .flatpakref
-            # file), and in this case, we won't have had anything cached for it to clear anyhow.
+            # want to clear cached data so it can be re-fetched anew.  For now there's
+            # no need. The only possible case is on-demand adding of a remote (from
+            # launching a .flatpakref file), and in this case, we won't have had anything
+            # cached for it to clear anyhow.
 
             # pkginfo.clear_cached_info()
 
@@ -385,9 +386,10 @@ class Installer:
 
     def execute_task(self, task, client_finished_cb, client_progress_cb=None):
         """
-        Executes a given task.  The client_finished_cb is required always, to notify when the task completes.
-        The progress and error callbacks are optional.  If they're left out, a standalone progress window is created
-        to allow the user to see the task's progress (and cancel it if desired.)
+        Executes a given task.  The client_finished_cb is required always, to notify
+        when the task completes. The progress and error callbacks are optional.  If
+        they're left out, a standalone progress window is created to allow the user to
+        see the task's progress (and cancel it if desired.)
         """
         self.tasks[task.pkginfo.pkg_hash] = task
         print("Starting task for package %s, type '%s'" % (task.pkginfo.pkg_hash, task.type))

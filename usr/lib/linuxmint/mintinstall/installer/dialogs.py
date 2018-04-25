@@ -1,14 +1,13 @@
-import sys
-if sys.version_info.major < 3:
-    raise "python3 required"
-
 import gi
 gi.require_version('XApp', '1.0')
 from gi.repository import GLib, Gtk, GObject, Gdk, XApp, Flatpak
 
 import gettext
+APP = 'mintinstall'
+LOCALE_DIR = "/usr/share/linuxmint/locale"
+gettext.bindtextdomain(APP, LOCALE_DIR)
+gettext.textdomain(APP)
 _ = gettext.gettext
-
 
 from aptdaemon.gtk3widgets import AptConfirmDialog
 

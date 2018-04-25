@@ -2,7 +2,6 @@ import sys
 if sys.version_info.major < 3:
     raise "python3 required"
 
-import gi
 from gi.repository import GLib
 
 import time
@@ -16,7 +15,7 @@ SCREENSHOT_DIR = os.path.join(GLib.get_user_cache_dir(), "mintinstall", "screens
 MAX_AGE = 14 * (60 * 60 * 24) # days
 
 def run():
-    print("MintInstall: deleting old screenshots")
+    print("MintInstall: Deleting old screenshots")
 
     thread = threading.Thread(target=_clean_screenshots_thread)
     thread.start()

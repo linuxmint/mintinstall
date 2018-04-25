@@ -1,29 +1,16 @@
-#!/usr/bin/python3
-# encoding=utf8
-# -*- coding: UTF-8 -*-
-
 import os
 import threading
-import time
 import pickle
 import requests
 import multiprocessing
-import signal
 
 from pathlib import Path
 
 from gi.repository import GLib
 
-REVIEWS_CACHE = os.path.join(GLib.get_user_cache_dir(), "mintinstall", "reviews.cache")
+from misc import print_timing
 
-def print_timing(func):
-    def wrapper(*arg):
-        t1 = time.time()
-        res = func(*arg)
-        t2 = time.time()
-        print('%s took %0.3f ms' % (func.__name__, (t2 - t1) * 1000.0))
-        return res
-    return wrapper
+REVIEWS_CACHE = os.path.join(GLib.get_user_cache_dir(), "mintinstall", "reviews.cache")
 
 class ReviewInfo:
     def __init__(self, name):
@@ -118,8 +105,9 @@ class ReviewCache(object):
                         cache = pobj.cache
                         size = pobj.size
                 except Exception as e:
-                    print(e)
-                    cache = None
+                    print("MintInstall: Cannot open reviews cache: %s" % str(e))
+                    cache = {}
+                    size = 0
 
         return cache, size
 
@@ -137,7 +125,7 @@ class ReviewCache(object):
                     pobj = PickleObject(cache, size)
                     pickle.dump(pobj, f)
             except Exception as e:
-                print("Could not save review cache:", str(e))
+                print("MintInstall: Could not save review cache:" % str(e))
 
     def _update_cache(self):
         thread = threading.Thread(target=self._update_reviews_thread)
@@ -202,29 +190,13 @@ class ReviewCache(object):
                         last_package.update_stats()
 
                     self._save_cache(new_reviews, r.headers.get("content-length"))
-                    print("Downloaded new reviews")
+                    print("MintInstall: Downloaded new reviews")
                     success.value = True
                 else:
-                    print("No new reviews")
+                    print("MintInstall: No new reviews")
             else:
-                print("Could not download updated reviews: %s" % r.reason)
+                print("MintInstall: Could not download updated reviews: %s" % r.reason)
                 success.value = False
         except Exception as e:
-            print("Problem attempting to access reviews url: %s" % str(e))
+            print("MintInstall: Problem attempting to access reviews url: %s" % str(e))
 
-# Debugging - you can run reviews.py on its own, and inspect the ReviewCache (i)
-
-if __name__ == "__main__":
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
-
-    i = ReviewCache()
-
-    import readline
-    import code
-    variables = globals().copy()
-    variables.update(locals())
-    shell = code.InteractiveConsole(variables)
-    shell.interact()
-
-    ml = GLib.MainLoop.new(None, True)
-    ml.run()
