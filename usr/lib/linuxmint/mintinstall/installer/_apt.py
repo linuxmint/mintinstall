@@ -1,19 +1,14 @@
-import sys
-if sys.version_info.major < 3:
-    raise "python3 required"
+import time
+import threading
+import apt
+import aptdaemon.client
+from aptdaemon.gtk3widgets import AptErrorDialog, AptProgressDialog
+import aptdaemon.errors
 
 import gi
 gi.require_version('AppStream', '1.0')
 gi.require_version('Gtk', '3.0')
 from gi.repository import GObject, Gtk
-import apt
-import time
-import threading
-import dbus
-
-import aptdaemon.client
-from aptdaemon.gtk3widgets import AptErrorDialog, AptProgressDialog
-import aptdaemon.errors
 
 from installer.pkgInfo import AptPkgInfo
 from installer.dialogs import ChangesConfirmDialog
@@ -28,8 +23,8 @@ CRITICAL_PACKAGES = ["mint-common", "mint-meta-core", "mintdesktop"]
 def capitalize(string):
     if len(string) > 1:
         return (string[0].upper() + string[1:])
-    else:
-        return (string)
+
+    return (string)
 
 _apt_cache = None
 _apt_cache_lock = threading.Lock()
@@ -111,7 +106,7 @@ def process_full_apt_cache(cache):
 
         cache[pkg_hash] = AptPkgInfo(pkg_hash, pkg)
 
-    print('apt cache took %0.3f s' % ((time.time() - apt_time) * 1000.0))
+    print('MintInstall: Processing APT packages for cache took %0.3f ms' % ((time.time() - apt_time) * 1000.0))
 
     return cache, sections
 
@@ -160,8 +155,8 @@ def _is_critical_package(pkg):
     try:
         if pkg.essential or pkg.versions[0].priority == "required" or pkg.name in CRITICAL_PACKAGES:
             return True
-        else:
-            return False
+
+        return False
     except Exception:
         return False
 
@@ -171,6 +166,8 @@ def _calculate_apt_changes(task):
 
     with _apt_cache_lock:
         apt_cache.clear()
+
+        print("MintInstall: Calculating changes required for APT package: %s" % task.pkginfo.name)
 
         pkginfo = task.pkginfo
 
@@ -208,11 +205,11 @@ def _calculate_apt_changes(task):
 
         for pkg_name in task.to_remove:
             if _is_critical_package(apt_cache[pkg_name]):
-                print("Cannot remove critical package: %s" % pkg_name)
+                print("MintInstall: apt - cannot remove critical package: %s" % pkg_name)
                 task.info_ready_status = task.STATUS_FORBIDDEN
 
         if aptpkg.name in BROKEN_PACKAGES:
-            print("Cannot execute task, package is broken: %s" % aptpkg.name)
+            print("MintInstall: apt- cannot execute task, package is broken: %s" % aptpkg.name)
             task.info_ready_status = task.STATUS_BROKEN
 
         print("For install:", task.to_install)
