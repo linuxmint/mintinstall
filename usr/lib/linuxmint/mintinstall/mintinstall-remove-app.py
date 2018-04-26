@@ -31,7 +31,7 @@ class AppUninstaller:
 
         if pkg_name == None:
             print("Package for '%s' not found" % self.desktopFile)
-            self.on_finished()
+            self.on_finished(None, 1)
 
         pkginfo = self.installer.find_pkginfo(pkg_name)
 
