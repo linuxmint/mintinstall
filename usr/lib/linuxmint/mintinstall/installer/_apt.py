@@ -1,14 +1,16 @@
 import time
 import threading
 import apt
-import aptdaemon.client
-from aptdaemon.gtk3widgets import AptErrorDialog, AptProgressDialog
-import aptdaemon.errors
 
 import gi
 gi.require_version('AppStream', '1.0')
 gi.require_version('Gtk', '3.0')
+gi.require_version('Gdk', '3.0')
 from gi.repository import GObject, Gtk
+
+import aptdaemon.client
+from aptdaemon.gtk3widgets import AptErrorDialog, AptProgressDialog
+import aptdaemon.errors
 
 from installer.pkgInfo import AptPkgInfo
 from installer.dialogs import ChangesConfirmDialog
