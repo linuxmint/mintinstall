@@ -4,9 +4,5 @@
 
 	dh ${@}
 
-override_dh_install:
-	dh_install
-	wget https://community.linuxmint.com/data/new-reviews.list -O $(CURDIR)/debian/mintinstall/usr/share/linuxmint/mintinstall/reviews.list
-
 override_dh_builddeb:
 	dh_builddeb -- -Zxz -z9
