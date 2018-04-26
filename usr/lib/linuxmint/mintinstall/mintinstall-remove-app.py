@@ -30,7 +30,7 @@ class AppUninstaller:
             pkg_name = self.get_fp_name()
 
         if pkg_name == None:
-            print("Package for '%s' not found")
+            print("Package for '%s' not found" % self.desktopFile)
             self.on_finished()
 
         pkginfo = self.installer.find_pkginfo(pkg_name)
@@ -38,8 +38,8 @@ class AppUninstaller:
         if pkginfo and self.installer.pkginfo_is_installed(pkginfo):
             self.installer.select_pkginfo(pkginfo, self.on_installer_ready_to_remove)
         else:
-            print("Package '%s' is not installed")
-            self.on_finished()
+            print("Package '%s' is not installed" % pkginfo.name)
+            self.on_finished(None, 1)
 
     def on_installer_ready_to_remove(self, task):
         self.installer.execute_task(task, self.on_finished)
@@ -63,6 +63,11 @@ class AppUninstaller:
 
     def on_finished(self, pkginfo=None, error=None):
         Gtk.main_quit()
+
+        if error:
+            sys.exit(1)
+        else:
+            sys.exit(0)
 
 if __name__ == "__main__":
 

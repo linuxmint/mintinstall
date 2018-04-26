@@ -3,4 +3,4 @@
 import subprocess
 import sys
 
-subprocess.call(["/usr/lib/linuxmint/mintinstall/mintinstall-remove-app.py"] + sys.argv[1:])
+sys.exit(subprocess.call(["/usr/lib/linuxmint/mintinstall/mintinstall-remove-app.py"] + sys.argv[1:]))
