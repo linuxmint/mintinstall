@@ -42,6 +42,8 @@ case "$1" in
         mkdir -p /var/lib/flatpak/exports/share/applications
         mkdir -p /var/lib/flatpak/exports/share/icons
     fi
+
+    python3 -m compileall /usr/lib/linuxmint/mintinstall
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
