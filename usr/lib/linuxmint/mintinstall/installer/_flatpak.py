@@ -212,7 +212,7 @@ def search_for_pkginfo_as_component(pkginfo):
     else:
         return None
 
-def _is_ref_installed(fp_sys, remote, ref):
+def _is_ref_installed(fp_sys, ref):
     try:
         iref = fp_sys.get_installed_ref(ref.get_kind(),
                                         ref.get_name(),
@@ -413,17 +413,17 @@ def _pick_refs_for_installation(task):
 
         runtime_ref = _get_runtime_ref(fp_sys, remote_name, ref)
 
-        if not _is_ref_installed(fp_sys, remote_name, runtime_ref):
+        if not _is_ref_installed(fp_sys, runtime_ref):
             _add_ref_to_task(fp_sys, task, runtime_ref)
         else:
             if runtime_ref in update_list:
                 _add_ref_to_task(fp_sys, task, runtime_ref, needs_update=True)
 
         all_related_refs = _get_remote_related_refs(fp_sys, remote_name, ref)
-        all_related_refs += _get_remote_related_refs(fp_sys, remote_name, runtime_ref)
+        all_related_refs += _get_remote_related_refs(fp_sys, runtime_ref.get_remote_name(), runtime_ref)
 
         for related_ref in all_related_refs:
-            if (not _is_ref_installed(fp_sys, remote_name, related_ref)) and related_ref.should_download():
+            if (not _is_ref_installed(fp_sys, related_ref)) and related_ref.should_download():
                 _add_ref_to_task(fp_sys, task, related_ref)
             else:
                 if related_ref in update_list:
@@ -467,7 +467,7 @@ def _pick_refs_for_removal(task):
         related_refs = _get_installed_related_refs(fp_sys, remote, ref)
 
         for related_ref in related_refs:
-            if _is_ref_installed(fp_sys, remote, related_ref) and related_ref.should_delete():
+            if _is_ref_installed(fp_sys, related_ref) and related_ref.should_delete():
                 _add_ref_to_task(fp_sys, task, related_ref)
 
     except Exception as e:
