@@ -510,8 +510,52 @@ class Application(Gtk.Application):
             self.install_on_startup_file = files[0]
 
     def handle_command_line_install(self, file):
-        self.installer.get_pkginfo_from_ref_file(file.get_uri(),
-                                                 self.on_pkginfo_from_uri_complete)
+        if file.get_path().endswith(".flatpakrepo"):
+            if self.installer.is_busy():
+                dialog = Gtk.MessageDialog(self.main_window,
+                                           Gtk.DialogFlags.MODAL,
+                                           Gtk.MessageType.WARNING,
+                                           Gtk.ButtonsType.OK,
+                                           _("Cannot process this file while there are active operations.\nPlease try again after they finish."))
+                res = dialog.run()
+                dialog.destroy()
+                return
+
+            self.start_add_new_flatpak_remote(file)
+        elif file.get_path().endswith(".flatpakref"):
+            self.installer.get_pkginfo_from_ref_file(file, self.on_pkginfo_from_uri_complete)
+
+    def start_add_new_flatpak_remote(self, file):
+        self.builder.get_object("loading_spinner").start()
+        self.page_stack.set_visible_child_name(self.PAGE_LOADING)
+        self.installer.add_remote_from_repo_file(file, self.add_new_flatpak_remote_finished)
+
+    def add_new_flatpak_remote_finished(self, file=None, error=None):
+        if error:
+            if error == "exists":
+                dialog = Gtk.MessageDialog(self.main_window,
+                                           Gtk.DialogFlags.MODAL,
+                                           Gtk.MessageType.WARNING,
+                                           Gtk.ButtonsType.OK,
+                                           _("The Flatpak repo you are trying to add already exists."))
+                res = dialog.run()
+                dialog.destroy()
+            elif error == "error":
+                dialog = Gtk.MessageDialog(self.main_window,
+                                           Gtk.DialogFlags.MODAL,
+                                           Gtk.MessageType.ERROR,
+                                           Gtk.ButtonsType.OK,
+                                           _("An error occurred attempting to add the Flatpak repo."))
+                res = dialog.run()
+                dialog.destroy()
+            elif error == "cancel":
+                pass
+
+            self.finish_loading_visual()
+            return
+
+        self.add_categories()
+        self.installer.init(self.on_installer_ready)
 
     def on_pkginfo_from_uri_complete(self, pkginfo):
         if pkginfo:
@@ -674,6 +718,9 @@ class Application(Gtk.Application):
 
     def load_featured_on_landing(self):
         box = self.builder.get_object("box_featured")
+        for child in box.get_children():
+            child.destroy()
+
         flowbox = Gtk.FlowBox()
         flowbox.set_min_children_per_line(1)
         flowbox.set_max_children_per_line(1)
@@ -722,6 +769,9 @@ class Application(Gtk.Application):
 
     def load_picks_on_landing(self):
         box = self.builder.get_object("box_picks")
+        for child in box.get_children():
+            child.destroy()
+
         flowbox = Gtk.FlowBox()
         flowbox.set_min_children_per_line(6)
         flowbox.set_max_children_per_line(6)
@@ -763,6 +813,9 @@ class Application(Gtk.Application):
     @print_timing
     def load_categories_on_landing(self):
         box = self.builder.get_object("box_categories")
+        for child in box.get_children():
+            child.destroy()
+
         flowbox = Gtk.FlowBox()
         flowbox.set_min_children_per_line(4)
         flowbox.set_max_children_per_line(4)

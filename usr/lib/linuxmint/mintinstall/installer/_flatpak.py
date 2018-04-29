@@ -1,6 +1,11 @@
 import time
 import threading
 import math
+from pathlib import Path
+import subprocess
+import requests
+import tempfile
+import os
 
 import gi
 gi.require_version('AppStream', '1.0')
@@ -73,7 +78,7 @@ def _should_update_appstream_data(fp_sys, remote, arch):
 
     return ret
 
-def _process_remote(cache, fp_sys, remote, arch, force_noenumerate=False):
+def _process_remote(cache, fp_sys, remote, arch):
     remote_name = remote.get_name()
 
     if remote.get_disabled():
@@ -93,10 +98,10 @@ def _process_remote(cache, fp_sys, remote, arch, force_noenumerate=False):
     else:
         print("MintInstall: flatpak - no new appstream data for remote '%s', skipping download" % remote_name)
 
-    # get_no_enumerate indicates whether a remote should be used to list applications.
+    # get_noenumerate indicates whether a remote should be used to list applications.
     # Instead, they're intended for single downloads (via .flatpakref files)
-    if remote.get_noenumerate() or force_noenumerate:
-        print("MintInstall: flatpak - remote '%s' is marked as no-enumerate (or we're working on a .flatpakref file,) skipping package listing" % remote_name)
+    if remote.get_noenumerate():
+        print("MintInstall: flatpak - remote '%s' is marked as no-enumerate skipping package listing" % remote_name)
         return
 
     try:
@@ -234,7 +239,8 @@ def _get_remote_sizes(fp_sys, remote, ref):
         success, dl_s, inst_s = fp_sys.fetch_remote_size_sync(remote,
                                                               ref,
                                                               None)
-    except GLib.Error:
+    except GLib.Error as e:
+        print(e.message)
         # Not fatal?
         dl_s = 0
         inst_s = 0
@@ -253,28 +259,29 @@ def _get_installed_size(fp_sys, ref):
                                             None)
             return iref.get_installed_size()
         except GLib.Error as e:
+            print(e.message)
             # This isn't fatal I guess?
             return 0
 
 def _add_ref_to_task(fp_sys, task, ref, needs_update=False):
     if task.type == "install":
         if needs_update:
-            task.to_update.append(ref.format_ref())
+            task.to_update.append(ref)
         else:
-            task.to_install.append(ref.format_ref())
+            task.to_install.append(ref)
 
-        dl_s, inst_s = _get_remote_sizes(fp_sys, task.remote, ref)
+        dl_s, inst_s = _get_remote_sizes(fp_sys, ref.get_remote_name(), ref)
 
         task.download_size += dl_s
         task.install_size = inst_s
     elif task.type == "remove":
-        task.to_remove.append(ref.format_ref())
+        task.to_remove.append(ref)
         task.freed_size += _get_installed_size(fp_sys, ref)
     else:
-        task.to_update.append(ref.format_ref())
+        task.to_update.append(ref)
 
         current_inst_s = _get_installed_size(fp_sys, ref)
-        remote_dl_s, remote_inst_s = _get_remote_sizes(fp_sys, task.remote, ref)
+        remote_dl_s, remote_inst_s = _get_remote_sizes(fp_sys, ref.get_remote_name(), ref)
 
         task.download_size += remote_dl_s
 
@@ -285,6 +292,7 @@ def _add_ref_to_task(fp_sys, task, ref, needs_update=False):
 
 def _get_runtime_ref(fp_sys, remote_name, ref):
     runtime_ref = None
+    ref_string = None
 
     try:
         meta = fp_sys.fetch_remote_metadata_sync(remote_name, ref, None)
@@ -292,13 +300,18 @@ def _get_runtime_ref(fp_sys, remote_name, ref):
         keyfile = GLib.KeyFile.new()
 
         data = meta.get_data().decode()
+
         keyfile.load_from_data(data, len(data), GLib.KeyFileFlags.NONE)
 
         runtime = keyfile.get_string("Application", "runtime")
         basic_ref = Flatpak.Ref.parse("runtime/%s" % runtime)
 
+        ref_string = basic_ref.format_ref() # for error reporting only
+
+        print("Looking for %s in %s" % (ref_string, remote_name))
+
+        # prefer the same-remote's runtimes
         try:
-            # prefer the same-remote's runtimes
             runtime_ref = fp_sys.fetch_remote_ref_sync(remote_name,
                                                        basic_ref.get_kind(),
                                                        basic_ref.get_name(),
@@ -306,44 +319,116 @@ def _get_runtime_ref(fp_sys, remote_name, ref):
                                                        basic_ref.get_branch(),
                                                        None)
         except GLib.Error as e:
-            # check other remotes if this fails
+            pass
+        # if nothing is found, check other remotes
+        if runtime_ref == None:
             for other_remote in fp_sys.list_remotes():
                 other_remote_name = other_remote.get_name()
 
                 if other_remote_name == remote_name:
                     continue
 
-                runtime_ref = fp_sys.fetch_remote_ref_sync(other_remote_name,
-                                                           basic_ref.get_kind(),
-                                                           basic_ref.get_name(),
-                                                           basic_ref.get_arch(),
-                                                           basic_ref.get_branch(),
-                                                           None)
-                break
+                print("Looking for %s in alternate remote %s" % (ref_string, other_remote_name))
+
+                try:
+                    runtime_ref = fp_sys.fetch_remote_ref_sync(other_remote_name,
+                                                               basic_ref.get_kind(),
+                                                               basic_ref.get_name(),
+                                                               basic_ref.get_arch(),
+                                                               basic_ref.get_branch(),
+                                                               None)
+                except GLib.Error:
+                    continue
+
+                if runtime_ref:
+                    break
+            if runtime_ref == None:
+                raise Exception("Could not locate runtime '%s' in any registered remotes" % ref_string)
     except GLib.Error as e:
-        raise Exception("Could not determine runtime info for app: %s" % e.message)
+        runtime_ref = None
+        raise Exception("Error finding runtimes for flatpak: %s" % e.message)
 
     return runtime_ref
 
 def _get_remote_related_refs(fp_sys, remote, ref):
-    related_refs = []
+    return_refs = []
 
     try:
         related_refs = fp_sys.list_remote_related_refs_sync(remote,
                                                             ref.format_ref(),
                                                             None)
+
+        for related_ref in related_refs:
+            real_ref = None
+
+            if not related_ref.should_download():
+                continue
+
+            print("Looking for related ref %s in remote %s" % (related_ref.get_name(), remote))
+
+            try:
+                real_ref = fp_sys.fetch_remote_ref_sync(remote,
+                                                        related_ref.get_kind(),
+                                                        related_ref.get_name(),
+                                                        related_ref.get_arch(),
+                                                        related_ref.get_branch(),
+                                                        None)
+            except GLib.Error:
+                pass
+
+            if real_ref == None:
+                for other_remote in fp_sys.list_remotes():
+                    other_remote_name = other_remote.get_name()
+
+                    if other_remote_name == remote:
+                        continue
+
+                    print("Looking for related ref %s in alternate remote %s" % (related_ref.get_name(), other_remote_name))
+
+                    try:
+                        real_ref = fp_sys.fetch_remote_ref_sync(other_remote_name,
+                                                                related_ref.get_kind(),
+                                                                related_ref.get_name(),
+                                                                related_ref.get_arch(),
+                                                                related_ref.get_branch(),
+                                                                None)
+                    except GLib.Error:
+                        continue
+
+                    if real_ref:
+                        break
+            if real_ref == None:
+                real_ref = Flatpak.RemoteRef(remote_name=remote,
+                                             kind=related_ref.get_kind(),
+                                             arch=related_ref.get_arch(),
+                                             branch=related_ref.get_branch(),
+                                             name=related_ref.get_name(),
+                                             commit=related_ref.get_commit(),
+                                             collection_id=related_ref.get_collection_id())
+
+            return_refs.append(real_ref)
     except GLib.Error as e:
         raise Exception("Could not determine remote related refs for app: %s" % e.message)
 
-    return related_refs
+    return return_refs
 
 def _get_installed_related_refs(fp_sys, remote, ref):
-    related_refs = []
+    return_refs = []
 
     try:
         related_refs = fp_sys.list_installed_related_refs_sync(remote,
                                                                ref.format_ref(),
                                                                None)
+
+        for related_ref in related_refs:
+            real_ref = fp_sys.fetch_remote_ref_sync(remote,
+                                                    related_ref.get_kind(),
+                                                    related_ref.get_name(),
+                                                    related_ref.get_arch(),
+                                                    related_ref.get_branch(),
+                                                    None)
+
+            return_refs.append(real_ref)
     except GLib.Error as e:
         raise Exception("Could not determine installed refs for app: %s" % e.message)
 
@@ -372,7 +457,7 @@ def _select_updates_thread(task):
     if len(task.to_update) > 0:
         print("flatpaks that can be updated:")
         for ref in task.to_update:
-            print(ref)
+            print(ref.format_ref())
 
         task.info_ready_status = task.STATUS_OK
         task.execute = execute_transaction
@@ -401,17 +486,23 @@ def _pick_refs_for_installation(task):
     pkginfo = task.pkginfo
     refid = pkginfo.refid
 
-    # We don't need a real RemoteRef to pass to add_ref_to_task, the disk space calls go thru
-    # fp_sys
     ref = Flatpak.Ref.parse(refid)
     remote_name = pkginfo.remote
 
-    _add_ref_to_task(fp_sys, task, ref)
-
     try:
+        remote_ref = Flatpak.RemoteRef(remote_name=remote_name,
+                                       kind=ref.get_kind(),
+                                       arch=ref.get_arch(),
+                                       branch=ref.get_branch(),
+                                       name=ref.get_name(),
+                                       commit=ref.get_commit(),
+                                       collection_id=ref.get_collection_id())
+
+        _add_ref_to_task(fp_sys, task, remote_ref)
+
         update_list = fp_sys.list_installed_refs_for_update(None)
 
-        runtime_ref = _get_runtime_ref(fp_sys, remote_name, ref)
+        runtime_ref = _get_runtime_ref(fp_sys, remote_name, remote_ref)
 
         if not _is_ref_installed(fp_sys, runtime_ref):
             _add_ref_to_task(fp_sys, task, runtime_ref)
@@ -419,11 +510,11 @@ def _pick_refs_for_installation(task):
             if runtime_ref in update_list:
                 _add_ref_to_task(fp_sys, task, runtime_ref, needs_update=True)
 
-        all_related_refs = _get_remote_related_refs(fp_sys, remote_name, ref)
+        all_related_refs = _get_remote_related_refs(fp_sys, remote_ref.get_remote_name(), remote_ref)
         all_related_refs += _get_remote_related_refs(fp_sys, runtime_ref.get_remote_name(), runtime_ref)
 
         for related_ref in all_related_refs:
-            if (not _is_ref_installed(fp_sys, related_ref)) and related_ref.should_download():
+            if not _is_ref_installed(fp_sys, related_ref):
                 _add_ref_to_task(fp_sys, task, related_ref)
             else:
                 if related_ref in update_list:
@@ -440,7 +531,7 @@ def _pick_refs_for_installation(task):
 
     print("For installation:")
     for ref in task.to_install:
-        print(ref)
+        print(ref.format_ref())
 
     task.info_ready_status = task.STATUS_OK
     task.execute = execute_transaction
@@ -460,7 +551,7 @@ def _pick_refs_for_removal(task):
                                        pkginfo.branch,
                                        None)
 
-        remote = pkginfo.remote
+        remote = ref.get_origin()
 
         _add_ref_to_task(fp_sys, task, ref)
 
@@ -479,7 +570,7 @@ def _pick_refs_for_removal(task):
 
     print("For removal:")
     for ref in task.to_remove:
-        print(ref)
+        print(ref.format_ref())
 
     task.info_ready_status = task.STATUS_OK
     task.execute = execute_transaction
@@ -554,20 +645,18 @@ def list_remotes():
 
     return remotes
 
-def get_pkginfo_from_file(cache, uri, callback):
-    thread = threading.Thread(target=_pkginfo_from_file_thread, args=(cache, uri, callback))
+def get_pkginfo_from_file(cache, file, callback):
+    thread = threading.Thread(target=_pkginfo_from_file_thread, args=(cache, file, callback))
     thread.start()
 
-def _pkginfo_from_file_thread(cache, uri, callback):
+def _pkginfo_from_file_thread(cache, file, callback):
     fp_sys = get_fp_sys()
 
-    from urllib.parse import urlparse
+    path = file.get_path()
 
-    if uri == None:
-        print("MintInstall: flatpak - no valid uri provided")
+    if path == None:
+        print("MintInstall: flatpak - no valid .flatpakref path provided")
         return None
-
-    path = urlparse(uri).path
 
     ref = None
     pkginfo = None
@@ -584,15 +673,73 @@ def _pkginfo_from_file_thread(cache, uri, callback):
             if ref:
                 remote_name = ref.get_remote_name()
                 remote = fp_sys.get_remote_by_name(remote_name, None)
-                _process_remote(None, fp_sys, remote, Flatpak.get_default_arch(), force_noenumerate=True)
+                print("remote", remote.get_name())
 
+                # Add the ref's remote if it doesn't already exist
+                _process_remote(cache, fp_sys, remote, Flatpak.get_default_arch())
+
+                # Add the ref to the cache, so we can work with it like any other in mintinstall
                 pkginfo = _add_package_to_cache(cache, ref, remote.get_url(), False)
 
+                # Fetch the appstream info for the ref
                 global _as_pools
 
-                if remote_name not in _as_pools.keys():
-                    _load_appstream_pool(_as_pools, remote)
+                with _as_pool_lock:
+                    if remote_name not in _as_pools.keys():
+                        _load_appstream_pool(_as_pools, remote)
 
+                # Some flatpakref files will have a pointer to a runtime .flatpakrepo file
+                # We need to process and possibly add that remote as well.
+
+                kf = GLib.KeyFile()
+                if kf.load_from_file(path, GLib.KeyFileFlags.NONE):
+                    try:
+                        url = kf.get_string("Flatpak Ref", "RuntimeRepo")
+                    except GLib.Error:
+                        url = None
+
+                    if url:
+                        # Fetch the .flatpakrepo file
+                        r = requests.get(url, stream=True)
+
+                        file = tempfile.NamedTemporaryFile(delete=False)
+
+                        with file as fd:
+                            for chunk in r.iter_content(chunk_size=128):
+                                fd.write(chunk)
+
+                        # Get the true runtime url from the repo file
+                        runtime_repo_url = _get_repofile_repo_url(file.name)
+
+                        if runtime_repo_url:
+                            existing = False
+
+                            path = Path(file.name)
+                            runtime_remote_name = Path(url).stem
+
+                            # Check if the remote is already installed
+                            for remote in fp_sys.list_remotes(None):
+                                # See comments below in _remote_from_repo_file_thread about get_noenumerate() use.
+                                if remote.get_url() == runtime_repo_url and not remote.get_noenumerate():
+                                    print("MintInstall: runtime remote '%s' already in system, skipping" % runtime_remote_name)
+                                    existing = True
+                                    break
+
+                            # if not existing:
+                            if True:
+                                print("MintInstall: Adding additional runtime remote named '%s' at '%s'" % (runtime_remote_name, runtime_repo_url))
+
+                                cmd_v = ['flatpak',
+                                         'remote-add',
+                                         '--from',
+                                         runtime_remote_name,
+                                         file.name]
+
+                                add_repo_proc = subprocess.Popen(cmd_v)
+                                retcode = add_repo_proc.wait()
+
+                                fp_sys.drop_caches(None)
+                        os.unlink(file.name)
         except GLib.Error as e:
             pkginfo = None
 
@@ -610,6 +757,78 @@ def _pkginfo_from_file_thread(cache, uri, callback):
                 dialogs.show_flatpak_error(e.message)
 
     GLib.idle_add(callback, pkginfo, priority=GLib.PRIORITY_DEFAULT)
+
+def add_remote_from_repo_file(cache, file, callback):
+    thread = threading.Thread(target=_remote_from_repo_file_thread, args=(cache, file, callback))
+    thread.start()
+
+def _remote_from_repo_file_thread(cache, file, callback):
+    try:
+        path = Path(file.get_path())
+    except TypeError:
+        print("MintInstall: flatpak - no valid .flatpakrepo path provided")
+        return
+
+    fp_sys = get_fp_sys()
+
+    # Make sure the remote isn't already setup (even under a different name)
+    # We need to exclude -origin repos - they're added for .flatpakref files
+    # if the remote isn't installed already, and get auto-removed when the app
+    # the ref file describes gets uninstalled.  -origin remotes are also marked
+    # no-enumerate, so we can filter them here by that.
+
+    existing = False
+
+    url = _get_repofile_repo_url(path)
+
+    if url:
+        for remote in fp_sys.list_remotes(None):
+            if remote.get_url() == url and not remote.get_noenumerate():
+                existing = True
+                break
+
+    if existing:
+        GObject.idle_add(callback, file, "exists")
+        return
+
+    cmd_v = ['flatpak',
+             'remote-add',
+             '--from',
+             path.stem,
+             path]
+
+    add_repo_proc = subprocess.Popen(cmd_v, stderr=subprocess.PIPE)
+    stdout, stderr = add_repo_proc.communicate()
+
+    if "Error.AccessDenied" in stderr.decode():
+        GObject.idle_add(callback, file, "cancel")
+        return
+
+    if add_repo_proc.returncode != 0 and "already exists" not in stderr.decode():
+        GObject.idle_add(callback, file, "error")
+        return
+
+    # We'll do a full cache rebuild - otherwise, after this installer session, the
+    # new apps from this remote won't show up until the next scheduled cache rebuild.
+    try:
+        fp_sys.drop_caches(None)
+    except GLib.Error:
+        pass
+
+    cache.force_new_cache_async(callback)
+
+def _get_repofile_repo_url(path):
+    kf = GLib.KeyFile()
+
+    try:
+        if kf.load_from_file(str(path), GLib.KeyFileFlags.NONE):
+            url = kf.get_string("Flatpak Repo", "Url")
+
+            return url
+    except GLib.Error as e:
+        print(e.message)
+
+    return None
 
 def execute_transaction(task):
     if len(task.to_install + task.to_remove + task.to_update) > 1:
@@ -648,14 +867,12 @@ class MetaTransaction():
         self.current_count = 0
 
         try:
-            for str_ref in task.to_install:
-                ref = Flatpak.Ref.parse(str_ref)
-
+            for ref in task.to_install:
                 task.progress_state = task.PROGRESS_STATE_INSTALLING
                 task.current_package_name = ref.get_name()
 
-                print("installing: %s" % str_ref)
-                self.fp_sys.install(pkginfo.remote,
+                print("installing: %s" % ref.format_ref())
+                self.fp_sys.install(ref.get_remote_name(),
                                     ref.get_kind(),
                                     ref.get_name(),
                                     ref.get_arch(),
@@ -666,13 +883,11 @@ class MetaTransaction():
 
                 self.current_count += 1
 
-            for str_ref in task.to_remove:
-                ref = Flatpak.Ref.parse(str_ref)
-
+            for ref in task.to_remove:
                 task.progress_state = task.PROGRESS_STATE_REMOVING
                 task.current_package_name = ref.get_name()
 
-                print("removing: %s" % str_ref)
+                print("removing: %s" % ref.format_ref())
                 self.fp_sys.uninstall(ref.get_kind(),
                                       ref.get_name(),
                                       ref.get_arch(),
@@ -683,15 +898,13 @@ class MetaTransaction():
 
                 self.current_count += 1
 
-            for str_ref in task.to_update:
-                ref = Flatpak.Ref.parse(str_ref)
-
+            for ref in task.to_update:
                 task.progress_state = task.PROGRESS_STATE_UPDATING
                 task.current_package_name = ref.get_name()
 
-                print("updating: %s" % str_ref)
+                print("updating: %s" % ref.format_ref())
                 self.fp_sys.update(Flatpak.UpdateFlags.NONE,
-                                   pkginfo.remote,
+                                   ref.get_remote_name(),
                                    ref.get_kind(),
                                    ref.get_name(),
                                    ref.get_arch(),

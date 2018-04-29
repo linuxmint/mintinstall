@@ -38,29 +38,29 @@ class ChangesConfirmDialog(AptConfirmDialog):
             if len(self.task.to_install) > 0:
                 piter = self.treestore.append(None, ["<b>%s</b>" % _("Install")])
 
-                for str_ref in self.task.to_install:
-                    if self.task.pkginfo.refid == str_ref:
+                for ref in self.task.to_install:
+                    if self.task.pkginfo.refid == ref.format_ref():
                         continue
 
-                    self.treestore.append(piter, [Flatpak.Ref.parse(str_ref).get_name()])
+                    self.treestore.append(piter, [ref.get_name()])
 
             if len(self.task.to_remove) > 0:
                 piter = self.treestore.append(None, ["<b>%s</b>" % _("Remove")])
 
-                for str_ref in self.task.to_remove:
-                    if self.task.pkginfo.refid == str_ref:
+                for ref in self.task.to_remove:
+                    if self.task.pkginfo.refid == ref.format_ref():
                         continue
 
-                    self.treestore.append(piter, [Flatpak.Ref.parse(str_ref).get_name()])
+                    self.treestore.append(piter, [ref.get_name()])
 
             if len(self.task.to_update) > 0:
                 piter = self.treestore.append(None, ["<b>%s</b>" % _("Upgrade")])
 
-                for str_ref in self.task.to_update:
-                    if self.task.pkginfo.refid == str_ref:
+                for ref in self.task.to_update:
+                    if self.task.pkginfo.refid == ref.format_ref():
                         continue
 
-                    self.treestore.append(piter, [Flatpak.Ref.parse(str_ref).get_name()])
+                    self.treestore.append(piter, [ref.get_name()])
 
             msg = _("Please take a look at the list of changes below.")
 

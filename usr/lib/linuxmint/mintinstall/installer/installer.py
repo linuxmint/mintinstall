@@ -123,7 +123,6 @@ class Installer:
         self.inited = False
 
         self.cache = {}
-        self.backend_table = {}
         self._init_cb = None
 
         self.startup_timer = time.time()
@@ -133,6 +132,8 @@ class Installer:
         Loads the cache asynchronously.  If there is no cache (or it's too old,) it causes
         one to be generated and saved.  The ready_callback is called on idle once this is finished.
         """
+        self.backend_table = {}
+
         self.cache = cache.PkgCache()
 
         if self.cache.status == self.cache.STATUS_OK:
@@ -149,6 +150,8 @@ class Installer:
         Loads the cache asynchronously.  If there is no cache (or it's too old,) it causes
         one to be generated and saved.  The ready_callback is called on idle once this is finished.
         """
+        self.backend_table = {}
+
         self.cache = cache.PkgCache()
 
         self._init_cb = ready_callback
@@ -231,14 +234,22 @@ class Installer:
         """
         return self.cache.find_pkginfo(name, pkg_type)
 
-    def get_pkginfo_from_ref_file(self, uri, ready_callback):
+    def get_pkginfo_from_ref_file(self, file, ready_callback):
         """
-        Accepts a uri to a .flatpakref on a local path.  If the flatpak's remote
+        Accepts a GFile to a .flatpakref on a local path.  If the flatpak's remote
         has not been previously added to the system installation, this also adds
         it and downloads Appstream info as well, before calling ready_callback with
         the created (or existing) PkgInfo as an argument.
         """
-        _flatpak.get_pkginfo_from_file(self.cache, uri, ready_callback)
+        _flatpak.get_pkginfo_from_file(self.cache, file, ready_callback)
+
+    def add_remote_from_repo_file(self, file, ready_callback):
+        """
+        Accepts a GFile to a .flatpakrepo on a local path.  Adds the remote if it
+        doesn't exist already, fetches any appstream data, and then calls
+        ready_callback
+        """
+        _flatpak.add_remote_from_repo_file(self.cache, file, ready_callback)
 
     def list_flatpak_remotes(self):
         """
