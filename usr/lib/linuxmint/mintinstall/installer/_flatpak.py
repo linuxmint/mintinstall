@@ -313,16 +313,13 @@ def _get_runtime_ref(fp_sys, remote_name, ref):
                 if other_remote_name == remote_name:
                     continue
 
-                try:
-                    runtime_ref = fp_sys.fetch_remote_ref_sync(other_remote_name,
-                                                               basic_ref.get_kind(),
-                                                               basic_ref.get_name(),
-                                                               basic_ref.get_arch(),
-                                                               basic_ref.get_branch(),
-                                                               None)
-                    break
-                except GLib.Error as e:
-                    continue
+                runtime_ref = fp_sys.fetch_remote_ref_sync(other_remote_name,
+                                                           basic_ref.get_kind(),
+                                                           basic_ref.get_name(),
+                                                           basic_ref.get_arch(),
+                                                           basic_ref.get_branch(),
+                                                           None)
+                break
     except GLib.Error as e:
         raise Exception("Could not determine runtime info for app: %s" % e.message)
 
@@ -597,6 +594,8 @@ def _pkginfo_from_file_thread(cache, uri, callback):
                     _load_appstream_pool(_as_pools, remote)
 
         except GLib.Error as e:
+            pkginfo = None
+
             if e.code == Flatpak.Error.ALREADY_INSTALLED:
                 try:
                     kf = GLib.KeyFile()
@@ -606,8 +605,9 @@ def _pkginfo_from_file_thread(cache, uri, callback):
                             pkginfo = find_pkginfo(cache, name)
                 except GLib.Error:
                     print("MintInstall: flatpak package already installed, but an error occurred finding it")
-            else:
+            elif e.code != Gio.DBusError.ACCESS_DENIED: # user cancelling auth prompt for adding a remote
                 print("MintInstall: could not read .flatpakref file: %s" % e.message)
+                dialogs.show_flatpak_error(e.message)
 
     GLib.idle_add(callback, pkginfo, priority=GLib.PRIORITY_DEFAULT)
 

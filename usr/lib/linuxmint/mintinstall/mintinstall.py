@@ -514,7 +514,8 @@ class Application(Gtk.Application):
                                                  self.on_pkginfo_from_uri_complete)
 
     def on_pkginfo_from_uri_complete(self, pkginfo):
-        self.show_package(pkginfo, self.PAGE_LANDING)
+        if pkginfo:
+            self.show_package(pkginfo, self.PAGE_LANDING)
 
     def create_window(self, starting_page):
         if self.main_window != None:
