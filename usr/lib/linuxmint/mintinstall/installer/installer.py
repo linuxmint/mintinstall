@@ -120,6 +120,7 @@ class Installer:
     def __init__(self):
         self.tasks = {}
 
+        self.remotes_changed = False
         self.inited = False
 
         self.cache = {}
@@ -129,12 +130,19 @@ class Installer:
 
     def init_sync(self):
         """
-        Loads the cache asynchronously.  If there is no cache (or it's too old,) it causes
-        one to be generated and saved.  The ready_callback is called on idle once this is finished.
+        Loads the cache asynchronously.  Returns True if all went ok, and returns False if there
+        is no cache (or it's too old.)  You should then call init() with a callback so the cache
+        can be regenerated.
         """
+        self.settings = Gio.Settings(schema_id="com.linuxmint.install")
+
         self.backend_table = {}
 
         self.cache = cache.PkgCache()
+
+        if self._fp_remotes_have_changed():
+            self.remotes_changed = True
+            return False
 
         if self.cache.status == self.cache.STATUS_OK:
             self.inited = True
@@ -156,7 +164,7 @@ class Installer:
 
         self._init_cb = ready_callback
 
-        if self.cache.status == self.cache.STATUS_OK:
+        if self.cache.status == self.cache.STATUS_OK and not self.remotes_changed:
             self.inited = True
 
             GObject.idle_add(self._idle_cache_load_done)
@@ -167,6 +175,8 @@ class Installer:
 
     def _idle_cache_load_done(self):
         self.inited = True
+        self.remotes_changed = False
+        self._store_remotes()
 
         GObject.idle_add(self.initialize_appstream)
 
@@ -174,6 +184,37 @@ class Installer:
 
         if self._init_cb:
             self._init_cb()
+
+    @print_timing
+    def _fp_remotes_have_changed(self):
+        changed = False
+
+        saved_remotes = self.settings.get_strv("flatpak-remotes")
+        fp_remotes = self.list_flatpak_remotes()
+
+        if len(saved_remotes) != len(fp_remotes):
+            return True
+
+        for name, title, url, disabled in fp_remotes:
+            item = "%s::%s::%s" % (name, url, str(disabled))
+            if item not in saved_remotes:
+                changed = True
+                break
+
+        return changed
+
+    @print_timing
+    def _store_remotes(self):
+        new_remotes = []
+
+        fp_remotes = self.list_flatpak_remotes()
+
+        for name, title, url, disabled in fp_remotes:
+            item = "%s::%s::%s" % (name, url, str(disabled))
+
+            new_remotes.append(item)
+
+        self.settings.set_strv("flatpak-remotes", new_remotes)
 
     def select_pkginfo(self, pkginfo, ready_callback):
         """

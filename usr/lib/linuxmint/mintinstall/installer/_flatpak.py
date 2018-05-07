@@ -634,11 +634,13 @@ def list_remotes():
         for remote in fp_sys.list_remotes():
             name = remote.get_name()
             title = remote.get_title()
+            url = remote.get_url()
+            disabled = remote.get_disabled()
 
             if title == None:
                 title = name.capitalize()
 
-            remotes.append((name, title))
+            remotes.append((name, title, url, disabled))
     except GLib.Error as e:
         print("MintInstall: flatpak - could not fetch remote list", e.message)
         remotes = []

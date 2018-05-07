@@ -20,5 +20,10 @@
       <default>true</default>
       <summary>Remembers the state of the 'search in category' button</summary>
     </key>
+    <key type="as" name="flatpak-remotes">
+      <default>[]</default>
+      <summary>Check this against the FlatpakInstallation to determine if we need to refresh the cache at startup.</summary>
+      <description>name::uri::disabled tuples</description>
+    </key>
   </schema>
 </schemalist>
