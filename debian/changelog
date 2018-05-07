@@ -1,3 +1,63 @@
+mintinstall (7.9.0) tara; urgency=medium
+
+  [ Eduardo Orochena ]
+  * replaced os module with the subprocess one (#163)
+
+  [ Michael Webster ]
+  * Port to python3
+  * Simplify search entry handling - GtkSearchEntry implements its own idle callback if we connect to "search-changed," so we don't have to.
+  * Improve keyboard nav in result lists, improve sensitivity logic for the "show installed" menu item, fix the installed list becoming stuck as the listing page, even after entering a search query, don't allow showing the installed page if the user has never installed anything (the installed list is empty.)
+  * Check removals when displaying package details, and prevent removal or installation if the side effects could break the system.
+  * Place header labels outside the scrolled window for the listing and details pages.  Place the labels into revealers, and implement dynamically showing/hiding the labels depending on the scrolling direction.
+  * Pre-select the first child in list result, ensure its focus when entering the list page, and when returning to it from the details page.
+  * Simplify click/activate handling of package tiles - use the flowbox child activation signal exclusively, by just having the GtkButton clicked signal call GtkFlowBoxChild.activate.
+  * Use GtkRevealer instead of notebook for the main page switching.
+  * Setup list view asynchronously, but switch to it immediately.
+  * Optimize add_package checks by highest match count to lowest (roughly)
+  * Load package data from the apt cache asynchronously.  Load landing items immediately.  This allows the application to become useable in about 1 second (down from 3-5)
+  * Take chunks of the apt cache rather than one at a time.  250 per callback seems to have little impact on gui, while still keeping time to a minimum.
+  * Add loading indicator for cache state
+  * Update the list page once loading is complete
+  * Add left/right spacing to the details page header box.
+  * Clean up add_package stuff, rename to add_deb* to be consistent with flatpaks.  Move critical check directly to the show_package code, this reduces async load time significantly during startup.
+  * Speed up package details page - simplify formatting of download/disk space values, and reset the cache when leaving the details page, and only reset upon loading one, if for some reason it isn't clear.
+  * Remove an unused variable, comment, add a comment about idle vs threading.
+
+  [ Clement Lefebvre ]
+  * Fix export_listing for flatpaks
+
+  [ milangfx ]
+  * Use HEAD request to check new-reviews file size (#184)
+
+  [ JosephMcc ]
+  * Gtk3.22 fixes: Fix a warning about deprecated functionality (#187)
+  * ui: Fix the alignment of the toolbar menu button (#188)
+
+  [ Michael Webster ]
+  * Refactor to separate UI code from package management.
+
+  [ JosephMcc ]
+  * Ui: Restyle the main toolbar
+
+  [ Michael Webster ]
+  * Add script to periodically clean out old screenshots.
+  * Code cleanup, pylint, pyflakes, de-duplication, logging consistency.
+  * Compile python files to bytecode during postinst.
+  * _apt.py: Re-arrange imports and set a min version on Gdk.  This keeps the mintinstall-update-pkgcache script from complaining about the aptdaemon.gtk3widgets import.
+  * debian/rules: Remove dh_install override, we don't use the packaged review file any more.  Mintinstall can start without a review set, and will pick it up once it's been downloaded and cached at runtime.
+  * mintinstall-remove-app: return a useful exit code
+  * mintinstall-remove-app: Fix missing error return.
+  * flatpaks: Fix handling of a couple of failure cases - the cancellation of an auth prompt when adding a new remote, and failure to resolve runtime dependencies.
+  * flatpaks: Fetch runtime related refs from the remote that actually has the runtime, not the app's remote - if a runtime is not found from the preferred remote, we check other remotes just in case.  If a runtime ref is found elsewhere, it's likely any related refs for it will be there as well.
+
+  [ JosephMcc ]
+  * UI: Add a small margin between the application icon and window edge (#191)
+
+  [ Clement Lefebvre ]
+  * l10n: Update files
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon, 07 May 2018 12:02:28 +0100
+
 mintinstall (7.8.9) sylvia; urgency=medium
 
   [ Michael Webster ]
