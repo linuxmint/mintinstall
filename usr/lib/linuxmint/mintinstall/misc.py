@@ -17,3 +17,8 @@ def print_timing(func):
             print('%s took %0.3f ms' % (func.__qualname__, (t2 - t1) * 1000.0))
             return res
         return wrapper
+
+def debug(str):
+    if not DEBUG_MODE:
+        return
+    print("Mintinstall (DEBUG): %s" % str)

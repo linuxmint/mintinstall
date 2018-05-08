@@ -14,20 +14,12 @@ from gi.repository import AppStream, Flatpak, GLib, GObject, Gtk, Gio
 from installer.pkgInfo import FlatpakPkgInfo
 from installer import dialogs
 from installer.dialogs import ChangesConfirmDialog, FlatpakProgressWindow
+from misc import debug
 
 _fp_sys = None
 
 _as_pool_lock = threading.Lock()
 _as_pools = {} # keyed to remote name
-
-def print_timing(func):
-    def wrapper(*arg):
-        t1 = time.time()
-        res = func(*arg)
-        t2 = time.time()
-        print('%s took %0.3f ms' % (func.__name__, (t2 - t1) * 1000.0))
-        return res
-    return wrapper
 
 def get_fp_sys():
     global _fp_sys
@@ -412,6 +404,101 @@ def _get_remote_related_refs(fp_sys, remote, ref):
 
     return return_refs
 
+def _get_theme_refs(fp_sys, remote_name, ref):
+    theme_refs = []
+
+    gtksettings = Gtk.Settings.get_default()
+
+    icon_theme = "org.freedesktop.Platform.Icontheme.%s" % gtksettings.props.gtk_icon_theme_name
+    gtk_theme = "org.gtk.Gtk3theme.%s" % gtksettings.props.gtk_theme_name
+
+    def sortref(ref):
+        try:
+            val = float(ref.get_branch())
+        except ValueError:
+            val = 9.9
+
+        return val
+
+    for name in (icon_theme, gtk_theme):
+        theme_ref = None
+
+        try:
+            print("Looking for theme %s in %s" % (name, remote_name))
+
+            all_refs = fp_sys.list_remote_refs_sync(remote_name, None)
+
+            matching_refs = []
+
+            for listed_ref in all_refs:
+                if listed_ref.get_name() == name:
+                    matching_refs.append(listed_ref)
+
+            if not matching_refs:
+                continue
+
+            # Sort highest version first.
+            matching_refs = sorted(matching_refs, key=sortref, reverse=True)
+
+            for matching_ref in matching_refs:
+                if matching_ref.get_arch() != ref.get_arch():
+                    continue
+                try:
+                    if float(matching_ref.get_branch()) > float(ref.get_branch()):
+                        continue
+                except ValueError:
+                    continue
+
+                theme_ref = matching_ref
+
+            # if nothing is found, check other remotes
+            if theme_ref == None:
+                for other_remote in fp_sys.list_remotes():
+                    other_remote_name = other_remote.get_name()
+
+                    if other_remote_name == remote_name:
+                        continue
+
+                    print("Looking for theme %s in alternate remote %s" % (name, other_remote_name))
+
+                    all_refs = fp_sys.list_remote_refs_sync(other_remote_name, None)
+
+                    matching_refs = []
+
+                    for listed_ref in all_refs:
+                        if listed_ref.get_name() == name:
+                            matching_refs.append(listed_ref)
+
+                    if not matching_refs:
+                        continue
+
+                    # Sort highest version first.
+                    matching_refs = sorted(matching_refs, key=sortref, reverse=True)
+
+                    for matching_ref in matching_refs:
+                        if matching_ref.get_arch() != ref.get_arch():
+                            continue
+                        try:
+                            if float(matching_ref.get_branch()) > float(ref.get_branch()):
+                                continue
+                        except ValueError:
+                            continue
+
+                        theme_ref = matching_ref
+
+                    if theme_ref:
+                        break
+                if theme_ref == None:
+                    debug("Could not locate theme '%s' in any registered remotes" % name)
+        except GLib.Error as e:
+            theme_ref = None
+            debug("Error finding themes for flatpak: %s" % e.message)
+
+        if theme_ref:
+            theme_refs.append(theme_ref)
+
+    return theme_refs
+
 def _get_installed_related_refs(fp_sys, remote, ref):
     return_refs = []
 
@@ -512,6 +599,7 @@ def _pick_refs_for_installation(task):
 
         all_related_refs = _get_remote_related_refs(fp_sys, remote_ref.get_remote_name(), remote_ref)
         all_related_refs += _get_remote_related_refs(fp_sys, runtime_ref.get_remote_name(), runtime_ref)
+        all_related_refs += _get_theme_refs(fp_sys, runtime_ref.get_remote_name(), runtime_ref)
 
         for related_ref in all_related_refs:
             if not _is_ref_installed(fp_sys, related_ref):
