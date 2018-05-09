@@ -136,13 +136,13 @@ class Installer:
         """
         self.settings = Gio.Settings(schema_id="com.linuxmint.install")
 
-        self.backend_table = {}
-
-        self.cache = cache.PkgCache()
-
         if self._fp_remotes_have_changed():
             self.remotes_changed = True
             return False
+
+        self.backend_table = {}
+
+        self.cache = cache.PkgCache()
 
         if self.cache.status == self.cache.STATUS_OK:
             self.inited = True
@@ -169,14 +169,19 @@ class Installer:
 
             GObject.idle_add(self._idle_cache_load_done)
         else:
+            if self.remotes_changed:
+                print("MintInstall: Flatpak remotes have changed, forcing a new cache.")
+
             self.cache.force_new_cache_async(self._idle_cache_load_done)
 
         return self
 
     def _idle_cache_load_done(self):
         self.inited = True
-        self.remotes_changed = False
-        self._store_remotes()
+
+        if self.remotes_changed:
+            self._store_remotes()
+            self.remotes_changed = False
 
         GObject.idle_add(self.initialize_appstream)
 
@@ -187,19 +192,33 @@ class Installer:
 
     @print_timing
     def _fp_remotes_have_changed(self):
+        """
+        We check here for changed remotes.  We care if names, urls, and disabled status changed.
+        The 'noenumerate' property won't change, and is usually marked on standalone (-source) ref
+        installs.  We don't want to generate a new cache for those - their app can be accessed via
+        installed apps, plus if you uninstall the app, the remote gets auto-removed.
+        """
         changed = False
+        real_remote_count = 0;
 
         saved_remotes = self.settings.get_strv("flatpak-remotes")
         fp_remotes = self.list_flatpak_remotes()
 
-        if len(saved_remotes) != len(fp_remotes):
-            return True
+        for remote_info in fp_remotes:
+            if remote_info.noenumerate:
+                continue
 
-        for name, title, url, disabled in fp_remotes:
-            item = "%s::%s::%s" % (name, url, str(disabled))
+            real_remote_count += 1
+
+            item = "%s::%s::%s" % (remote_info.name, remote_info.url, str(remote_info.disabled))
+
             if item not in saved_remotes:
                 changed = True
                 break
+
+        if not changed:
+            if len(saved_remotes) != real_remote_count:
+                changed = True
 
         return changed
 
@@ -209,8 +228,11 @@ class Installer:
 
         fp_remotes = self.list_flatpak_remotes()
 
-        for name, title, url, disabled in fp_remotes:
-            item = "%s::%s::%s" % (name, url, str(disabled))
+        for remote_info in fp_remotes:
+            if remote_info.noenumerate:
+                continue
+
+            item = "%s::%s::%s" % (remote_info.name, remote_info.url, str(remote_info.disabled))
 
             new_remotes.append(item)
 

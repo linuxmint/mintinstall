@@ -238,17 +238,16 @@ class Tile(Gtk.Button):
             self.installed_mark.clear()
 
 class PackageTile(Tile):
-    def __init__(self, pkginfo, icon, summary, installer, review_info=None, show_more_info=False):
+    def __init__(self, pkginfo, icon, summary, installer, review_info=None, more_info=None):
         Tile.__init__(self, pkginfo, installer)
 
         label_name = Gtk.Label(xalign=0)
-        if show_more_info:
-            if pkginfo.pkg_hash.startswith("f"):
-                label_name.set_markup("<b>%s (%s)</b>" % (self.installer.get_display_name(pkginfo), pkginfo.remote))
-            else:
-                label_name.set_markup("<b>%s</b>" % self.installer.get_display_name(pkginfo))
+
+        if more_info:
+            label_name.set_markup("<b>%s (%s)</b>" % (self.installer.get_display_name(pkginfo), more_info))
         else:
             label_name.set_markup("<b>%s</b>" % self.installer.get_display_name(pkginfo))
+
         label_name.set_justify(Gtk.Justification.LEFT)
         label_summary = Gtk.Label()
         label_summary.set_markup("<small>%s</small>" % summary)
@@ -391,7 +390,6 @@ class Category:
         self.subcategories = []
         self.pkginfos = []
         self.matchingPackages = []
-        self.landing_widget = None
         if parent is not None:
             parent.subcategories.append(self)
         if categories is not None:
@@ -445,6 +443,8 @@ class Application(Gtk.Application):
         self.review_cache = None
         self.current_pkginfo = None
         self.current_category = None
+
+        self.flatpak_remote_categories = {}
 
         self.picks_tiles = []
         self.category_tiles = []
@@ -827,21 +827,18 @@ class Application(Gtk.Application):
             button = Gtk.Button()
             button.set_label(category.name)
             button.connect("clicked", self.category_button_clicked, category)
-            category.landing_widget = button
             flowbox.insert(button, -1)
 
         # Add picks
         button = Gtk.Button()
         button.set_label(self.picks_category.name)
         button.connect("clicked", self.category_button_clicked, self.picks_category)
-        self.picks_category.landing_widget = button
         flowbox.insert(button, -1)
 
         # Add flatpaks
         button = Gtk.Button()
         button.set_label(self.flatpak_category.name)
         button.connect("clicked", self.category_button_clicked, self.flatpak_category)
-        self.flatpak_category.landing_widget = button
 
         flowbox.insert(button, -1)
         box.pack_start(flowbox, True, True, 0)
@@ -1347,9 +1344,30 @@ class Application(Gtk.Application):
             self.add_pkginfo_to_category(pkginfo,
                                          self.installed_category)
 
+        self.flatpak_remote_categories = {}
+        self.flatpak_category.subcategories = []
+
         for key in self.installer.cache.get_subset_of_type("f"):
+            remote_name = self.installer.cache[key].remote
+            remote_info = self.installer.cache.flatpak_remote_infos[remote_name]
+
             self.add_pkginfo_to_category(self.installer.cache[key],
                                          self.flatpak_category)
+
+            # Remotes marked noenumerate don't get a category, their apps show only in
+            # the installed category and the main flatpak category.  They are auto-removed
+            # then the app is uninstalled generally (usually they're -origin remotes, only added
+            # when a .flatpakref file is installed.)  However, their addition/removal, purposely,
+            # will not trigger a rebuild of the cache, so we don't want to be caught showing an
+            # empty category as a reuslt.
+            if remote_info.noenumerate:
+                continue
+
+            if remote_name not in self.flatpak_remote_categories.keys():
+                self.flatpak_remote_categories[remote_name] = Category(remote_info.title, self.flatpak_category, None)
+
+            self.add_pkginfo_to_category(self.installer.cache[key],
+                                         self.flatpak_remote_categories[remote_name])
 
     @print_timing
     def process_unmatched_packages(self):
@@ -1480,7 +1498,18 @@ class Application(Gtk.Application):
     def show_subcategories(self, category):
         # Load subcategories
         box = self.builder.get_object("box_subcategories")
-        if len(category.subcategories) > 0:
+
+        # For flatpaks, subcategories are based on Remotes, therefore all apps are in a
+        # a category.  Unless more than one remote is configured, there's no reason to
+        # display the sidebar, as all apps will exist in both 'all' and the remote sub-
+        # category.
+
+        if category == self.flatpak_category:
+            this_many = 1
+        else:
+            this_many = 0
+
+        if len(category.subcategories) > this_many:
             row = CategoryListBoxRow(category, is_all=True)
             self.listbox_categories.add(row)
             if self.current_category == category:
@@ -1741,10 +1770,16 @@ class Application(Gtk.Application):
         else:
             review_info = None
 
+        more_info = None
+
+        if self.installer.get_display_name(pkginfo).lower() in collisions:
+            if pkginfo.pkg_hash.startswith("f"):
+                more_info = self.flatpak_remote_categories[pkginfo.remote].name
+
         tile = PackageTile(pkginfo, icon, summary,
                            installer=self.installer,
                            review_info=review_info,
-                           show_more_info=(self.installer.get_display_name(pkginfo).lower() in collisions))
+                           more_info=more_info)
         tile.connect("clicked", self.on_flowbox_item_clicked, pkginfo.pkg_hash)
 
         box = Gtk.FlowBoxChild(child=tile)
@@ -1956,7 +1991,11 @@ class Application(Gtk.Application):
         self.action_button.set_label(action_button_label)
         self.action_button.set_tooltip_text(action_button_description)
 
-        self.builder.get_object("application_remote").set_label(task.remote)
+        try:
+            self.builder.get_object("application_remote").set_label(self.flatpak_remote_categories[task.remote].name)
+        except (KeyError, AttributeError):
+            self.builder.get_object("application_remote").set_label(task.remote)
+
         self.builder.get_object("application_architecture").set_label(task.arch)
         self.builder.get_object("application_branch").set_label(task.branch)
         self.builder.get_object("application_version").set_label(task.version)

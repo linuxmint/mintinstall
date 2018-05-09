@@ -16,6 +16,17 @@ from installer import dialogs
 from installer.dialogs import ChangesConfirmDialog, FlatpakProgressWindow
 from misc import debug
 
+class FlatpakRemoteInfo():
+    def __init__(self, remote):
+        self.name = remote.get_name()
+        self.title = remote.get_title()
+        self.url = remote.get_url()
+        self.disabled = remote.get_disabled()
+        self.noenumerate = remote.get_noenumerate()
+
+        if not self.title or self.title == "":
+            self.title = name.capitalize()
+
 _fp_sys = None
 
 _as_pool_lock = threading.Lock()
@@ -131,15 +142,17 @@ def process_full_flatpak_installation(cache):
     fp_time = time.time()
 
     arch = Flatpak.get_default_arch()
-    fp_sys = Flatpak.Installation.new_system(None)
+    fp_sys = get_fp_sys()
+
+    flatpak_remote_infos = {}
 
     try:
         for remote in fp_sys.list_remotes():
             _process_remote(cache, fp_sys, remote, arch)
 
-            try:
-                remote_name = remote.get_name()
+            remote_name = remote.get_name()
 
+            try:
                 for ref in fp_sys.list_installed_refs_by_kind(Flatpak.RefKind.APP, None):
                     # All remotes will see installed refs, but the installed refs will always
                     # report their correct origin, so only add installed refs when they match the remote.
@@ -148,13 +161,15 @@ def process_full_flatpak_installation(cache):
             except GLib.Error as e:
                 print(e.message)
 
+            flatpak_remote_infos[remote_name] = FlatpakRemoteInfo(remote)
+
     except GLib.Error as e:
         print("MintInstall: flatpak - could not get remote list", e.message)
         cache = {}
 
     print('MintInstall: Processing Flatpaks for cache took %0.3f ms' % ((time.time() - fp_time) * 1000.0))
 
-    return cache
+    return cache, flatpak_remote_infos
 
 def _load_appstream_pool(pools, remote):
     pool = AppStream.Pool()
@@ -720,15 +735,8 @@ def list_remotes():
 
     try:
         for remote in fp_sys.list_remotes():
-            name = remote.get_name()
-            title = remote.get_title()
-            url = remote.get_url()
-            disabled = remote.get_disabled()
+            remotes.append(FlatpakRemoteInfo(remote))
 
-            if title == None:
-                title = name.capitalize()
-
-            remotes.append((name, title, url, disabled))
     except GLib.Error as e:
         print("MintInstall: flatpak - could not fetch remote list", e.message)
         remotes = []

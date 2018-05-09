@@ -23,11 +23,12 @@ class CacheLoadingException(Exception):
     '''Thrown when there was an issue loading the pickled package set'''
 
 class PickleObject(object):
-    def __init__(self, pkginfo_cache, section_lists):
+    def __init__(self, pkginfo_cache, section_lists, flatpak_remote_infos):
         super(PickleObject, self).__init__()
 
         self.pkginfo_cache = pkginfo_cache
         self.section_lists = section_lists
+        self.flatpak_remote_infos = flatpak_remote_infos
 
 class PkgCache(object):
     STATUS_EMPTY = 0
@@ -43,10 +44,11 @@ class PkgCache(object):
         self._item_lock = threading.Lock()
 
         try:
-            cache, sections = self._load_cache()
+            cache, sections, flatpak_remote_infos = self._load_cache()
         except CacheLoadingException:
             cache = {}
             sections = {}
+            flatpak_remote_infos = {}
 
         if len(cache) > 0:
             self.status = self.STATUS_OK
@@ -55,6 +57,7 @@ class PkgCache(object):
 
         self._items = cache
         self.sections = sections
+        self.flatpak_remote_infos = flatpak_remote_infos
 
     def keys(self):
         with self._item_lock:
@@ -89,11 +92,12 @@ class PkgCache(object):
     def _generate_cache(self):
         cache = {}
         sections = {}
+        flatpak_remote_infos = {}
 
-        cache = _flatpak.process_full_flatpak_installation(cache)
+        cache, flatpak_remote_infos = _flatpak.process_full_flatpak_installation(cache)
         cache, sections = _apt.process_full_apt_cache(cache)
 
-        return cache, sections
+        return cache, sections, flatpak_remote_infos
 
     def _get_best_load_path(self):
         try:
@@ -140,6 +144,7 @@ class PkgCache(object):
 
         cache = None
         sections = None
+        flatpak_remote_infos = None
 
         path = self._get_best_load_path()
 
@@ -151,6 +156,7 @@ class PkgCache(object):
                 pickle_obj = pickle.load(f)
                 cache = pickle_obj.pkginfo_cache
                 sections = pickle_obj.section_lists
+                flatpak_remote_infos = pickle_obj.flatpak_remote_infos
         except Exception as e:
             print("MintInstall: Error loading pkginfo cache:", e)
             cache = None
@@ -158,7 +164,7 @@ class PkgCache(object):
         if cache == None:
             raise CacheLoadingException
 
-        return cache, sections
+        return cache, sections, flatpak_remote_infos
 
     def _get_best_save_path(self):
         best_path = None
@@ -195,14 +201,15 @@ class PkgCache(object):
 
     def _new_cache_common(self):
         print("MintInstall: Generating new pkgcache")
-        cache, sections = self._generate_cache()
+        cache, sections, flatpak_remote_infos = self._generate_cache()
 
         if len(cache) > 0:
-            self._save_cache(PickleObject(cache, sections))
+            self._save_cache(PickleObject(cache, sections, flatpak_remote_infos))
 
         with self._item_lock:
             self._items = cache
             self.sections = sections
+            self.flatpak_remote_infos = flatpak_remote_infos
 
         if len(cache) == 0:
             self.status = self.STATUS_EMPTY
