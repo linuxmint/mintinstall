@@ -1,3 +1,13 @@
+mintinstall (7.9.1) tara; urgency=medium
+
+  [ Michael Webster ]
+  * Support adding remotes via .flatpakref files, along with some additional fixes for other problems uncovered regarding flatpakref files.
+  * Save flatpak remote details, and check at startup if they've changed. Refresh the cache if necessary.
+  * flatpaks: Install current system gtk and icon theme (if available) during app installation.
+  * flatpaks: Show individual remote subcategories, use proper titles for remote names when provided, be smarter about cache changes when they involve one-off remotes like .flatpakref installs.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Thu, 10 May 2018 17:22:39 +0100
+
 mintinstall (7.9.0) tara; urgency=medium
 
   [ Eduardo Orochena ]
