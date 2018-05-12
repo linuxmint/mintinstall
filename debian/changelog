@@ -1,3 +1,10 @@
+mintinstall (7.9.2) tara; urgency=medium
+
+  [ Michael Webster ]
+  * flatpaks: Check for duplicates when adding refs to a task.  Some apps will check for theme support on their own and include them as runtimes, so when we do our own check, we need to skip adding them a second time to prevent an error during the installation.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Sat, 12 May 2018 13:23:11 +0100
+
 mintinstall (7.9.1) tara; urgency=medium
 
   [ Michael Webster ]
