@@ -270,22 +270,32 @@ def _get_installed_size(fp_sys, ref):
             # This isn't fatal I guess?
             return 0
 
+def _add_to_list(ref_list, ref):
+    ref_str = ref.format_ref()
+
+    for existing_ref in ref_list:
+        if ref_str == existing_ref.format_ref():
+            debug("Skipping %s, already added to task" % ref_str)
+            return
+
+    ref_list.append(ref)
+
 def _add_ref_to_task(fp_sys, task, ref, needs_update=False):
     if task.type == "install":
         if needs_update:
-            task.to_update.append(ref)
+            _add_to_list(task.to_update, ref)
         else:
-            task.to_install.append(ref)
+            _add_to_list(task.to_install, ref)
 
         dl_s, inst_s = _get_remote_sizes(fp_sys, ref.get_remote_name(), ref)
 
         task.download_size += dl_s
         task.install_size = inst_s
     elif task.type == "remove":
-        task.to_remove.append(ref)
+        _add_to_list(task.to_remove, ref)
         task.freed_size += _get_installed_size(fp_sys, ref)
     else:
-        task.to_update.append(ref)
+        _add_to_list(task.to_update, ref)
 
         current_inst_s = _get_installed_size(fp_sys, ref)
         remote_dl_s, remote_inst_s = _get_remote_sizes(fp_sys, ref.get_remote_name(), ref)
