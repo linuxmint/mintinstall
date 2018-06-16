@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.22.0 -->
+<!-- Generated with glade 3.22.1 -->
 <interface>
   <requires lib="gtk+" version="3.12"/>
   <object class="GtkSpinner" id="active_tasks_spinner">
@@ -52,6 +52,9 @@
     <property name="default_width">800</property>
     <property name="default_height">600</property>
     <property name="gravity">center</property>
+    <child type="titlebar">
+      <placeholder/>
+    </child>
     <child>
       <object class="GtkVBox" id="vbox4">
         <property name="visible">True</property>
@@ -632,6 +635,9 @@
                                 <property name="receives_default">True</property>
                                 <property name="valign">center</property>
                                 <property name="vexpand">False</property>
+                                <style>
+                                  <class name="suggested-action"/>
+                                </style>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -1155,9 +1161,6 @@
           </packing>
         </child>
       </object>
-    </child>
-    <child type="titlebar">
-      <placeholder/>
     </child>
   </object>
 </interface>
