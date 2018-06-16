@@ -1,3 +1,9 @@
+mintinstall (7.9.3) tara; urgency=medium
+
+  * Add suggested-action class to Launch button
+
+ -- Clement Lefebvre <root@linuxmint.com>  Sat, 16 Jun 2018 11:31:23 +0200
+
 mintinstall (7.9.2) tara; urgency=medium
 
   [ Michael Webster ]
