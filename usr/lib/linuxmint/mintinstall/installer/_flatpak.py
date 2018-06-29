@@ -533,16 +533,6 @@ def _get_installed_related_refs(fp_sys, remote, ref):
         related_refs = fp_sys.list_installed_related_refs_sync(remote,
                                                                ref.format_ref(),
                                                                None)
-
-        for related_ref in related_refs:
-            real_ref = fp_sys.fetch_remote_ref_sync(remote,
-                                                    related_ref.get_kind(),
-                                                    related_ref.get_name(),
-                                                    related_ref.get_arch(),
-                                                    related_ref.get_branch(),
-                                                    None)
-
-            return_refs.append(real_ref)
     except GLib.Error as e:
         raise Exception("Could not determine installed refs for app: %s" % e.message)
 
