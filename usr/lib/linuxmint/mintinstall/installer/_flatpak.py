@@ -335,7 +335,7 @@ def _get_runtime_ref(fp_sys, remote_name, ref):
                                                        basic_ref.get_arch(),
                                                        basic_ref.get_branch(),
                                                        None)
-        except GLib.Error as e:
+        except GLib.Error:
             pass
         # if nothing is found, check other remotes
         if runtime_ref == None:
@@ -359,8 +359,13 @@ def _get_runtime_ref(fp_sys, remote_name, ref):
 
                 if runtime_ref:
                     break
-            if runtime_ref == None:
-                raise Exception("Could not locate runtime '%s' in any registered remotes" % ref_string)
+        if runtime_ref == None:
+            runtime_ref = Flatpak.RemoteRef(remote_name=remote_name,
+                                            kind=basic_ref.get_kind(),
+                                            arch=basic_ref.get_arch(),
+                                            branch=basic_ref.get_branch(),
+                                            name=basic_ref.get_name(),
+                                            commit=basic_ref.get_commit())
     except GLib.Error as e:
         runtime_ref = None
         raise Exception("Error finding runtimes for flatpak: %s" % e.message)
@@ -371,6 +376,11 @@ def _get_remote_related_refs(fp_sys, remote, ref):
     return_refs = []
 
     try:
+        # FIXME: we should just be able to use the related_refs list here
+        # exlusively, without need for fetch_remote_ref_sync (which fails),
+        # We can make the assumption related_refs must be available in the
+        # app's remote.  Ditto with runtimes? Not sure, possibly not true
+        # for certain nightly/dev remotes?
         related_refs = fp_sys.list_remote_related_refs_sync(remote,
                                                             ref.format_ref(),
                                                             None)
@@ -468,13 +478,9 @@ def _get_theme_refs(fp_sys, remote_name, ref):
             for matching_ref in matching_refs:
                 if matching_ref.get_arch() != ref.get_arch():
                     continue
-                try:
-                    if float(matching_ref.get_branch()) > float(ref.get_branch()):
-                        continue
-                except ValueError:
-                    continue
 
                 theme_ref = matching_ref
+                break
 
             # if nothing is found, check other remotes
             if theme_ref == None:
@@ -503,13 +509,9 @@ def _get_theme_refs(fp_sys, remote_name, ref):
                     for matching_ref in matching_refs:
                         if matching_ref.get_arch() != ref.get_arch():
                             continue
-                        try:
-                            if float(matching_ref.get_branch()) > float(ref.get_branch()):
-                                continue
-                        except ValueError:
-                            continue
 
                         theme_ref = matching_ref
+                        break
 
                     if theme_ref:
                         break
