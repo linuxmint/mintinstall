@@ -242,6 +242,12 @@ def _is_ref_installed(fp_sys, ref):
     return False
 
 def _get_remote_sizes(fp_sys, remote, ref):
+    # Since 0.11.4, this info is part of FlatpakRemoteRef
+    # dl_s = ref.props.download_size
+    # inst_s = ref.props.installed_size
+    # But it appears to always contain identical dl and installed sizes,
+    # so avoid it for now.
+
     try:
         success, dl_s, inst_s = fp_sys.fetch_remote_size_sync(remote,
                                                               ref,
@@ -290,7 +296,7 @@ def _add_ref_to_task(fp_sys, task, ref, needs_update=False):
         dl_s, inst_s = _get_remote_sizes(fp_sys, ref.get_remote_name(), ref)
 
         task.download_size += dl_s
-        task.install_size = inst_s
+        task.install_size += inst_s
     elif task.type == "remove":
         _add_to_list(task.to_remove, ref)
         task.freed_size += _get_installed_size(fp_sys, ref)
