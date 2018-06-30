@@ -307,12 +307,28 @@ def _add_ref_to_task(fp_sys, task, ref, needs_update=False):
         else:
             task.freed_size += current_inst_s - remote_inst_s
 
+def _find_remote_ref_from_list(fp_sys, remote_name, basic_ref):
+    all_refs = fp_sys.list_remote_refs_sync(remote_name, None)
+
+    ref_str = basic_ref.format_ref()
+
+    for ref in all_refs:
+        if ref_str == ref.format_ref():
+            return ref
+
+    return None
+
 def _get_runtime_ref(fp_sys, remote_name, ref):
     runtime_ref = None
     ref_string = None
 
     try:
-        meta = fp_sys.fetch_remote_metadata_sync(remote_name, ref, None)
+        # Since 0.11.4 a FlatpakRemoteRef contains its metadata, so this
+        # query is unnecessary.
+        try:
+            meta = ref.props.metadata
+        except AttributeError:
+            meta = fp_sys.fetch_remote_metadata_sync(remote_name, ref, None)
 
         keyfile = GLib.KeyFile.new()
 
@@ -329,12 +345,7 @@ def _get_runtime_ref(fp_sys, remote_name, ref):
 
         # prefer the same-remote's runtimes
         try:
-            runtime_ref = fp_sys.fetch_remote_ref_sync(remote_name,
-                                                       basic_ref.get_kind(),
-                                                       basic_ref.get_name(),
-                                                       basic_ref.get_arch(),
-                                                       basic_ref.get_branch(),
-                                                       None)
+            runtime_ref = _find_remote_ref_from_list(fp_sys, remote_name, basic_ref)
         except GLib.Error:
             pass
         # if nothing is found, check other remotes
@@ -348,92 +359,41 @@ def _get_runtime_ref(fp_sys, remote_name, ref):
                 print("Looking for %s in alternate remote %s" % (ref_string, other_remote_name))
 
                 try:
-                    runtime_ref = fp_sys.fetch_remote_ref_sync(other_remote_name,
-                                                               basic_ref.get_kind(),
-                                                               basic_ref.get_name(),
-                                                               basic_ref.get_arch(),
-                                                               basic_ref.get_branch(),
-                                                               None)
+                    runtime_ref = _find_remote_ref_from_list(fp_sys, other_remote_name, basic_ref)
                 except GLib.Error:
                     continue
 
                 if runtime_ref:
                     break
-        if runtime_ref == None:
-            runtime_ref = Flatpak.RemoteRef(remote_name=remote_name,
-                                            kind=basic_ref.get_kind(),
-                                            arch=basic_ref.get_arch(),
-                                            branch=basic_ref.get_branch(),
-                                            name=basic_ref.get_name(),
-                                            commit=basic_ref.get_commit())
+            if runtime_ref == None:
+                raise Exception("Could not locate runtime '%s' in any registered remotes" % ref_string)
     except GLib.Error as e:
         runtime_ref = None
         raise Exception("Error finding runtimes for flatpak: %s" % e.message)
 
+    print("Found runtime ref '%s' in remote %s" % (runtime_ref.format_ref(), remote_name))
+
     return runtime_ref
 
-def _get_remote_related_refs(fp_sys, remote, ref):
+def _get_remote_related_refs(fp_sys, remote_name, ref):
     return_refs = []
 
     try:
-        # FIXME: we should just be able to use the related_refs list here
-        # exlusively, without need for fetch_remote_ref_sync (which fails),
-        # We can make the assumption related_refs must be available in the
-        # app's remote.  Ditto with runtimes? Not sure, possibly not true
-        # for certain nightly/dev remotes?
-        related_refs = fp_sys.list_remote_related_refs_sync(remote,
+        related_refs = fp_sys.list_remote_related_refs_sync(remote_name,
                                                             ref.format_ref(),
                                                             None)
 
         for related_ref in related_refs:
-            real_ref = None
-
             if not related_ref.should_download():
                 continue
 
-            print("Looking for related ref %s in remote %s" % (related_ref.get_name(), remote))
+            print("Found related ref '%s' in remote %s" % (related_ref.format_ref(), remote_name))
 
-            try:
-                real_ref = fp_sys.fetch_remote_ref_sync(remote,
-                                                        related_ref.get_kind(),
-                                                        related_ref.get_name(),
-                                                        related_ref.get_arch(),
-                                                        related_ref.get_branch(),
-                                                        None)
-            except GLib.Error:
-                pass
+            # Convert to a RemoteRef so that later functions know what remote
+            # this is from.
+            remote_ref = _find_remote_ref_from_list(fp_sys, remote_name, related_ref)
 
-            if real_ref == None:
-                for other_remote in fp_sys.list_remotes():
-                    other_remote_name = other_remote.get_name()
-
-                    if other_remote_name == remote:
-                        continue
-
-                    print("Looking for related ref %s in alternate remote %s" % (related_ref.get_name(), other_remote_name))
-
-                    try:
-                        real_ref = fp_sys.fetch_remote_ref_sync(other_remote_name,
-                                                                related_ref.get_kind(),
-                                                                related_ref.get_name(),
-                                                                related_ref.get_arch(),
-                                                                related_ref.get_branch(),
-                                                                None)
-                    except GLib.Error:
-                        continue
-
-                    if real_ref:
-                        break
-            if real_ref == None:
-                real_ref = Flatpak.RemoteRef(remote_name=remote,
-                                             kind=related_ref.get_kind(),
-                                             arch=related_ref.get_arch(),
-                                             branch=related_ref.get_branch(),
-                                             name=related_ref.get_name(),
-                                             commit=related_ref.get_commit(),
-                                             collection_id=related_ref.get_collection_id())
-
-            return_refs.append(real_ref)
+            return_refs.append(remote_ref)
     except GLib.Error as e:
         raise Exception("Could not determine remote related refs for app: %s" % e.message)
 
@@ -480,6 +440,7 @@ def _get_theme_refs(fp_sys, remote_name, ref):
                     continue
 
                 theme_ref = matching_ref
+                print("Found theme ref '%s' in remote %s" % (theme_ref.format_ref(), remote_name))
                 break
 
             # if nothing is found, check other remotes
@@ -511,6 +472,7 @@ def _get_theme_refs(fp_sys, remote_name, ref):
                             continue
 
                         theme_ref = matching_ref
+                        print("Found theme ref '%s' in remote %s" % (theme_ref.format_ref(), other_remote_name))
                         break
 
                     if theme_ref:
@@ -594,13 +556,7 @@ def _pick_refs_for_installation(task):
     remote_name = pkginfo.remote
 
     try:
-        remote_ref = Flatpak.RemoteRef(remote_name=remote_name,
-                                       kind=ref.get_kind(),
-                                       arch=ref.get_arch(),
-                                       branch=ref.get_branch(),
-                                       name=ref.get_name(),
-                                       commit=ref.get_commit(),
-                                       collection_id=ref.get_collection_id())
+        remote_ref = _find_remote_ref_from_list(fp_sys, remote_name, ref)
 
         _add_ref_to_task(fp_sys, task, remote_ref)
 
