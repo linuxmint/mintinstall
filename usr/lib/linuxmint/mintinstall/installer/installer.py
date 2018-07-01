@@ -319,8 +319,8 @@ class Installer:
 
     def list_flatpak_remotes(self):
         """
-        Returns a list of tuples of (remote name, remote title).  The remote_name
-        can be used to match with PkgInfo.remote and the title is for display.
+        Returns a list of FlatpakRemoteInfos.  The remote_name can be used to match
+        with PkgInfo.remote and the title is for display.
         """
         return _flatpak.list_remotes()
 
