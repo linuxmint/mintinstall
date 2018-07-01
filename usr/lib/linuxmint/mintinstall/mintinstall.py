@@ -879,19 +879,20 @@ class Application(Gtk.Application):
 
         installed_packages = self.settings.get_strv(INSTALLED_APPS)
         if self.installer.pkginfo_is_installed(pkginfo):
-            if pkginfo.name not in installed_packages:
-                installed_packages.append(pkginfo.name)
-                self.installed_category.pkginfos.append(pkginfo)
+            if pkginfo.pkg_hash not in installed_packages:
+                installed_packages.append(pkginfo.pkg_hash)
+                if pkginfo not in self.installed_category.pkginfos:
+                    self.installed_category.pkginfos.append(pkginfo)
         else:
-            if pkginfo.name in installed_packages:
-                installed_packages.remove(pkginfo.name)
+            if pkginfo.pkg_hash in installed_packages:
+                installed_packages.remove(pkginfo.pkg_hash)
                 for iter_package in self.installed_category.pkginfos:
-                    if iter_package.name == pkginfo.name:
+                    if iter_package.pkg_hash == pkginfo.pkg_hash:
                         self.installed_category.pkginfos.remove(iter_package)
 
         self.settings.set_strv(INSTALLED_APPS, installed_packages)
 
-        if self.current_pkginfo is not None and self.current_pkginfo.name == pkginfo.name:
+        if self.current_pkginfo is not None and self.current_pkginfo.pkg_hash == pkginfo.pkg_hash:
             self.show_package(self.current_pkginfo, self.previous_page)
 
         for tile in (self.picks_tiles + self.category_tiles):
@@ -904,22 +905,49 @@ class Application(Gtk.Application):
             except Exception as e:
                 print(e)
 
+    def modernize_installed_list(self, packages):
+        """
+        We can not rely on just the name of a package to guarantee uniqueness.
+        This works for apt but not flatpaks.  So we need to upgrade existing keys
+        to store pkg_hashes rather than simple names.
+        """
+        return_list = []
+
+        for item in packages:
+            if ":" in item:
+                # pkg_hash fields are separated by ':', if our string has any, it's up-to-date 
+                return_list.append(item)
+                continue
+
+            # Must be an old one, look it up by name (possibly incorrectly if there have been multiple remotes added)
+            pkginfo = self.installer.find_pkginfo(item)
+
+            if pkginfo:
+                return_list.append(pkginfo.pkg_hash)
+                continue
+
+        return return_list
+
     def sync_installed_apps(self):
         # garbage collect any stale packages in this list (uninstalled somewhere else)
-
         installed_packages = self.settings.get_strv(INSTALLED_APPS)
 
-        for name in installed_packages:
-            pkginfo = self.installer.find_pkginfo(name)
+        installed_packages = self.modernize_installed_list(installed_packages)
+
+        for pkg_hash in installed_packages:
+            pkginfo = self.installer.cache[pkg_hash]
             if pkginfo:
-                if not self.installer.pkginfo_is_installed(pkginfo):
-                    installed_packages.remove(name)
+                if self.installer.pkginfo_is_installed(pkginfo):
+                    if pkginfo not in self.installed_category.pkginfos:
+                        self.installed_category.pkginfos.append(pkginfo)
+                else:
+                    installed_packages.remove(pkg_hash)
                     try:
                         self.installed_category.pkginfos.remove(pkginfo)
                     except ValueError:
                         pass
             else:
-                installed_packages.remove(name)
+                installed_packages.remove(pkg_hash)
                 try:
                     self.installed_category.pkginfos.remove(pkginfo)
                 except ValueError:

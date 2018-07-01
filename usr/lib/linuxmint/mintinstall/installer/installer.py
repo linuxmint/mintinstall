@@ -148,6 +148,7 @@ class Installer:
             self.inited = True
 
             GObject.idle_add(self.initialize_appstream)
+            self.generate_uncached_pkginfos(self.cache)
 
             return True
 
@@ -184,6 +185,8 @@ class Installer:
             self.remotes_changed = False
 
         GObject.idle_add(self.initialize_appstream)
+
+        self.generate_uncached_pkginfos(self.cache)
 
         print('Full installer startup took %0.3f ms' % ((time.time() - self.startup_timer) * 1000.0))
 
@@ -333,6 +336,15 @@ class Installer:
                 return _flatpak.pkginfo_is_installed(pkginfo)
 
         return False
+
+    @print_timing
+    def generate_uncached_pkginfos(self, cache):
+        """
+        Flatpaks installed from .flatpakref files may not actually be in the saved
+        pkginfo cache, specifically, if they're added from no-enumerate-marked remotes.
+        This gets run at startup to collect and generate their info.
+        """
+        _flatpak.generate_uncached_pkginfos(cache)
 
     @print_timing
     def initialize_appstream(self):
