@@ -53,6 +53,20 @@ def make_pkg_hash(ref):
     except Exception:
         return "fp:%s:%s" % (ref.get_remote_name(), ref.format_ref())
 
+def _get_remote_name_by_url(fp_sys, url):
+    name = None
+
+    try:
+        remotes = fp_sys.list_remotes()
+    except GLib.Error:
+        remotes = []
+
+    for remote in remotes:
+        if remote.get_url() == url:
+            name = remote.get_name()
+
+    return name
+
 def _get_file_timestamp(gfile):
     try:
         info = gfile.query_info("time::modified", Gio.FileQueryInfoFlags.NONE, None)
@@ -421,8 +435,10 @@ def _get_remote_related_refs(fp_sys, remote_name, ref):
             print("Found related ref '%s' in remote %s" % (related_ref.format_ref(), remote_name))
 
             # Convert to a RemoteRef so that later functions know what remote
-            # this is from.
-            remote_ref = _find_remote_ref_from_list(fp_sys, remote_name, related_ref)
+            # this is from.  Related refs should never fail from the given remote,
+            # but if they're no-enumerate (as .flatpakref installs can be) then a listing
+            # will be empty, so we have ..._from_list construct a synthetic one (nofail).
+            remote_ref = _find_remote_ref_from_list(fp_sys, remote_name, related_ref, nofail=True)
 
             return_refs.append(remote_ref)
     except GLib.Error as e:
@@ -503,7 +519,7 @@ def _get_theme_refs(fp_sys, remote_name, ref):
                             continue
 
                         theme_ref = matching_ref
-                        print("Found theme ref '%s' in remote %s" % (theme_ref.format_ref(), other_remote_name))
+                        print("Found theme ref '%s' in alternate remote %s" % (theme_ref.format_ref(), other_remote_name))
                         break
 
                     if theme_ref:
@@ -756,11 +772,33 @@ def _pkginfo_from_file_thread(cache, file, callback):
 
         try:
             ref = fp_sys.install_ref_file(gb, None)
+        except GLib.Error as e:
+            if e.code == Flatpak.Error.ALREADY_INSTALLED:
+                try:
+                    kf = GLib.KeyFile()
+                    if kf.load_from_file(path, GLib.KeyFileFlags.NONE):
+                        name = kf.get_string("Flatpak Ref", "Name")
+                        branch = kf.get_string("Flatpak Ref", "Branch")
+                        url = kf.get_string("Flatpak Ref", "Url")
+                        if name and branch and url:
+                            basic_ref = Flatpak.Ref.parse("app/%s/%s/%s" % (name, Flatpak.get_default_arch(), branch))
+                            remote_name = _get_remote_name_by_url(fp_sys, url)
 
-            if ref:
+                            ref = Flatpak.RemoteRef(remote_name=remote_name,
+                                                    kind=basic_ref.get_kind(),
+                                                    arch=basic_ref.get_arch(),
+                                                    branch=basic_ref.get_branch(),
+                                                    name=basic_ref.get_name())
+                except GLib.Error:
+                    print("MintInstall: flatpak package already installed, but an error occurred finding it")
+            elif e.code != Gio.DBusError.ACCESS_DENIED: # user cancelling auth prompt for adding a remote
+                print("MintInstall: could not read .flatpakref file: %s" % e.message)
+                dialogs.show_flatpak_error(e.message)
+
+        if ref:
+            try:
                 remote_name = ref.get_remote_name()
                 remote = fp_sys.get_remote_by_name(remote_name, None)
-                print("remote", remote.get_name())
 
                 # Add the ref's remote if it doesn't already exist
                 _process_remote(cache, fp_sys, remote, Flatpak.get_default_arch())
@@ -827,20 +865,8 @@ def _pkginfo_from_file_thread(cache, file, callback):
 
                                 fp_sys.drop_caches(None)
                         os.unlink(file.name)
-        except GLib.Error as e:
-            pkginfo = None
-
-            if e.code == Flatpak.Error.ALREADY_INSTALLED:
-                try:
-                    kf = GLib.KeyFile()
-                    if kf.load_from_file(path, GLib.KeyFileFlags.NONE):
-                        name = kf.get_string("Flatpak Ref", "Name")
-                        if name:
-                            pkginfo = find_pkginfo(cache, name)
-                except GLib.Error:
-                    print("MintInstall: flatpak package already installed, but an error occurred finding it")
-            elif e.code != Gio.DBusError.ACCESS_DENIED: # user cancelling auth prompt for adding a remote
-                print("MintInstall: could not read .flatpakref file: %s" % e.message)
+            except GLib.Error as e:
+                print("MintInstall: could not process .flatpakref file: %s" % e.message)
                 dialogs.show_flatpak_error(e.message)
 
     GLib.idle_add(callback, pkginfo, priority=GLib.PRIORITY_DEFAULT)
