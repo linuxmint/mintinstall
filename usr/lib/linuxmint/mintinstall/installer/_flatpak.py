@@ -313,16 +313,36 @@ def _add_ref_to_task(fp_sys, task, ref, needs_update=False):
         else:
             task.freed_size += current_inst_s - remote_inst_s
 
-def _find_remote_ref_from_list(fp_sys, remote_name, basic_ref):
+def _find_remote_ref_from_list(fp_sys, remote_name, basic_ref, nofail=False):
+    remote_ref = None
+
     all_refs = fp_sys.list_remote_refs_sync(remote_name, None)
 
     ref_str = basic_ref.format_ref()
 
     for ref in all_refs:
         if ref_str == ref.format_ref():
-            return ref
+            remote_ref = ref
+            break
 
-    return None
+    if remote_ref == None:
+        try:
+            remote_ref = fp_sys.fetch_remote_ref_sync(remote_name,
+                                                      basic_ref.get_kind(),
+                                                      basic_ref.get_name(),
+                                                      basic_ref.get_arch(),
+                                                      basic_ref.get_branch(),
+                                                      None)
+        except GLib.Error as e:
+            if nofail:
+                remote_ref = Flatpak.RemoteRef(remote_name=remote_name,
+                                               kind=basic_ref.get_kind(),
+                                               arch=basic_ref.get_arch(),
+                                               branch=basic_ref.get_branch(),
+                                               name=basic_ref.get_name(),
+                                               commit=basic_ref.get_commit(),
+                                               collection_id=basic_ref.get_collection_id())
+    return remote_ref
 
 def _get_runtime_ref(fp_sys, remote_name, ref):
     runtime_ref = None
@@ -333,6 +353,9 @@ def _get_runtime_ref(fp_sys, remote_name, ref):
         # query is unnecessary.
         try:
             meta = ref.props.metadata
+
+            if meta == None:
+                raise AttributeError
         except AttributeError:
             meta = fp_sys.fetch_remote_metadata_sync(remote_name, ref, None)
 
@@ -352,6 +375,9 @@ def _get_runtime_ref(fp_sys, remote_name, ref):
         # prefer the same-remote's runtimes
         try:
             runtime_ref = _find_remote_ref_from_list(fp_sys, remote_name, basic_ref)
+
+            if runtime_ref:
+                print("Found runtime ref '%s' in remote %s" % (runtime_ref.format_ref(), remote_name))
         except GLib.Error:
             pass
         # if nothing is found, check other remotes
@@ -370,14 +396,13 @@ def _get_runtime_ref(fp_sys, remote_name, ref):
                     continue
 
                 if runtime_ref:
+                    print("Found runtime ref '%s' in remote %s" % (runtime_ref.format_ref(), other_remote_name))
                     break
             if runtime_ref == None:
                 raise Exception("Could not locate runtime '%s' in any registered remotes" % ref_string)
     except GLib.Error as e:
         runtime_ref = None
         raise Exception("Error finding runtimes for flatpak: %s" % e.message)
-
-    print("Found runtime ref '%s' in remote %s" % (runtime_ref.format_ref(), remote_name))
 
     return runtime_ref
 
@@ -562,10 +587,10 @@ def _pick_refs_for_installation(task):
     remote_name = pkginfo.remote
 
     try:
-        remote_ref = _find_remote_ref_from_list(fp_sys, remote_name, ref)
+        remote_ref = _find_remote_ref_from_list(fp_sys, remote_name, ref, nofail=True)
+        print("Selected ref to install: '%s' in remote %s" % (remote_ref.format_ref(), remote_name))
 
         _add_ref_to_task(fp_sys, task, remote_ref)
-
         update_list = fp_sys.list_installed_refs_for_update(None)
 
         runtime_ref = _get_runtime_ref(fp_sys, remote_name, remote_ref)
