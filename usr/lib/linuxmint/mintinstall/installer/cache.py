@@ -75,6 +75,10 @@ class PkgCache(object):
         with self._item_lock:
             self._items[key] = value
 
+    def __delitem__(self, key):
+        with self._item_lock:
+            del self._items[key]
+
     def __contains__(self, pkg_hash):
         with self._item_lock:
             return pkg_hash in self._items

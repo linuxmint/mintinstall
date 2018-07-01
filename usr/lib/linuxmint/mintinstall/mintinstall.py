@@ -893,7 +893,26 @@ class Application(Gtk.Application):
         self.settings.set_strv(INSTALLED_APPS, installed_packages)
 
         if self.current_pkginfo is not None and self.current_pkginfo.pkg_hash == pkginfo.pkg_hash:
-            self.show_package(self.current_pkginfo, self.previous_page)
+            # flatpaks added by flatpakref files auto-remove their remotes when uninstalled
+            # (this doesn't apply to flatpakref files that were refs off of an already-existing
+            # remote - like those installed from flathub, for instance.)  So, we can't assume
+            # the remote still exists, and will get errors if we try to display the app.  We will
+            # just remove it from the cache at this point.
+            can_show = False
+            if pkginfo.pkg_hash.startswith("f"):
+                remotes = self.installer.list_flatpak_remotes()
+                for remote in remotes:
+                    if remote.name == pkginfo.remote:
+                        can_show = True
+                        break
+            else:
+                can_show = True
+
+            if can_show:
+                self.show_package(self.current_pkginfo, self.previous_page)
+            else:
+                del self.installer.cache[pkginfo.pkg_hash]
+                self.go_back_action()
 
         for tile in (self.picks_tiles + self.category_tiles):
             if tile.pkginfo == pkginfo:

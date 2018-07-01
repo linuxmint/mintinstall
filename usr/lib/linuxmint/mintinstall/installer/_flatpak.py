@@ -25,7 +25,7 @@ class FlatpakRemoteInfo():
         self.noenumerate = remote.get_noenumerate()
 
         if not self.title or self.title == "":
-            self.title = name.capitalize()
+            self.title = self.name.capitalize()
 
 _fp_sys = None
 
@@ -1079,6 +1079,8 @@ class MetaTransaction():
         GLib.idle_add(self.task.error_cleanup_cb, self.task)
 
     def on_flatpak_finished(self):
+        self.fp_sys.drop_caches(None)
+
         GLib.idle_add(self.task.finished_cleanup_cb, self.task)
 
 
