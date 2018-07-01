@@ -716,6 +716,22 @@ def find_pkginfo(cache, string):
 
     return None
 
+def generate_uncached_pkginfos(cache):
+    fp_sys = get_fp_sys()
+
+    try:
+        for remote in fp_sys.list_remotes():
+            remote_name = remote.get_name()
+
+            for ref in fp_sys.list_installed_refs_by_kind(Flatpak.RefKind.APP, None):
+                # All remotes will see installed refs, but the installed refs will always
+                # report their correct origin, so only add installed refs when they match the remote.
+                if ref.get_origin() == remote_name:
+                    _add_package_to_cache(cache, ref, remote.get_url(), True)
+
+    except GLib.Error as e:
+        print("MintInstall: flatpak - could not check for uncached pkginfos", e.message)
+
 def pkginfo_is_installed(pkginfo):
     fp_sys = get_fp_sys()
 
