@@ -933,8 +933,8 @@ class Application(Gtk.Application):
         return_list = []
 
         for item in packages:
-            if ":" in item:
-                # pkg_hash fields are separated by ':', if our string has any, it's up-to-date 
+            if item.startswith(("apt:", "fp:")):
+                # pkg_hashes start with apt: or fp:, if items have this, they're up-to-date.
                 return_list.append(item)
                 continue
 
@@ -954,7 +954,11 @@ class Application(Gtk.Application):
         installed_packages = self.modernize_installed_list(installed_packages)
 
         for pkg_hash in installed_packages:
-            pkginfo = self.installer.cache[pkg_hash]
+            try:
+                pkginfo = self.installer.cache[pkg_hash]
+            except KeyError:
+                continue
+
             if pkginfo:
                 if self.installer.pkginfo_is_installed(pkginfo):
                     if pkginfo not in self.installed_category.pkginfos:
