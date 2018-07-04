@@ -1,3 +1,18 @@
+mintinstall (7.9.4) tara; urgency=medium
+
+  [ Michael Webster ]
+  * _flatpak.py: When fetch_remote_ref_sync() fails, fallback to building a synthetic RemoteRef for the runtime.  Remove version comparison from the theme filter.
+  * _flatpak.py: Return installed ref list without first trying to convert them to RemoteRefs.  (Related to previous commit, fetch_remote_sync seems to no longer work.)
+  * _flatpak.py: Find the real RemoteRef for runtimes and related refs by picking them from a list of true remote refs.
+  * _flatpak.py: Fix a bug that was giving an installed size of 0 if related refs were to be installed.
+  * _flatpak.py: Use the list-iter method for getting the initial remote ref to the app we're installing. This allows utilizing the metadata property rather than having to fetch it.  Also improve some logging to assist debugging.
+  * Fix display of installed one-off flatpaks (backed by .flatpakref files)
+  * mintinstall: Track installed apps by hash rather than name.
+  * mintinstall: After removing a standalone flatpak, don't attempt to display it again - its remote gets auto-removed, and we no longer "know" about it.  (this applies only to flatpaks installed via flatpakref files, that add their own remotes)
+  * mintinstall.py: Fix detection of old package names in the installed apps list.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 04 Jul 2018 16:40:29 +0200
+
 mintinstall (7.9.3) tara; urgency=medium
 
   * Add suggested-action class to Launch button
