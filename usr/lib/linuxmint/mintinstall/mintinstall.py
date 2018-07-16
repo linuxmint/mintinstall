@@ -14,6 +14,7 @@ import subprocess
 import functools
 import requests
 import configobj
+import re
 
 import gi
 gi.require_version('Gtk', '3.0')
@@ -1645,6 +1646,7 @@ class Application(Gtk.Application):
         self.page_stack.set_visible_child_name(self.PAGE_LIST)
 
         termsUpper = terms.upper()
+        termsSplit = re.split(r'\W+', termsUpper)
 
         searched_packages = []
 
@@ -1663,7 +1665,7 @@ class Application(Gtk.Application):
                 return False
 
             while True:
-                if termsUpper in pkginfo.name.upper():
+                if all(piece in pkginfo.name.upper() for piece in termsSplit):
                     searched_packages.append(pkginfo)
                     break
                 if (search_in_summary and termsUpper in self.installer.get_summary(pkginfo, for_search=True).upper()):
