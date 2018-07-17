@@ -1878,6 +1878,15 @@ class Application(Gtk.Application):
 
         # Set source-agnostic things
 
+        details_i18n = _("Details")
+
+        if pkginfo.pkg_hash.startswith("f"):
+            details_markup = "<big><b>%s (Flatpak)</b></big>" % details_i18n
+        else:
+            details_markup = "<big><b>%s</b></big>" % details_i18n
+
+        self.builder.get_object("label_details").set_markup(details_markup)
+
         self.builder.get_object("application_icon").set_from_pixbuf(self.get_application_icon(pkginfo, 64))
         self.builder.get_object("application_name").set_label(self.installer.get_display_name(pkginfo))
         self.builder.get_object("application_summary").set_label(self.installer.get_summary(pkginfo))
