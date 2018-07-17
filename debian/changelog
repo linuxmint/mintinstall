@@ -1,3 +1,13 @@
+mintinstall (7.9.5) tara; urgency=medium
+
+  [ Michael Webster ]
+  * _apt.py: don't filter out package 'librecad'.
+  * mintinstall.py: search for a list of terms anywhere in a package name, rather than trying to exactly match the search string.
+  * package details: append 'Flatpak' to the details heading to be more obvious about the package source/type.
+  * makepot: Update to include dialogs.py, update potfile.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue, 17 Jul 2018 10:11:25 +0200
+
 mintinstall (7.9.4) tara; urgency=medium
 
   [ Michael Webster ]
