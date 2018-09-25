@@ -1129,14 +1129,16 @@ class Application(Gtk.Application):
 
         self.installer = installer.Installer()
 
-        from installer.pkgCache import cache
+        from installer import cache
 
         self.installer.cache = cache.PkgCache()
         self.installer.cache.force_new_cache()
+        self.installer.backend_table = {}
+
         self.installer.initialize_appstream()
+        self.installer.generate_uncached_pkginfos(self.installer.cache)
 
         self.add_categories()
-        self.build_matched_packages()
         self.process_matching_packages()
         self.process_unmatched_packages()
 
