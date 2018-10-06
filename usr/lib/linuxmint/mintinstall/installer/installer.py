@@ -177,6 +177,12 @@ class Installer:
 
         return self
 
+    def force_new_cache(self, ready_callback=None):
+        """
+        Forces the cache to regenerate, calling read_callback when complete
+        """
+        self.cache.force_new_cache_async(ready_callback)
+
     def _idle_cache_load_done(self):
         self.inited = True
 

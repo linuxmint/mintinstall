@@ -589,6 +589,9 @@ class Application(Gtk.Application):
         self.active_tasks_button = self.builder.get_object("active_tasks_button")
         self.active_tasks_spinner = self.builder.get_object("active_tasks_spinner")
         self.no_packages_found_label = self.builder.get_object("no_packages_found_label")
+        
+        self.no_packages_found_refresh_button = self.builder.get_object("no_packages_found_refresh_button")
+        self.no_packages_found_refresh_button.connect("clicked", self.on_refresh_cache_clicked)
 
         self.progress_label = DottedProgressLabel()
         self.progress_box.pack_start(self.progress_label, False, False, 0)
@@ -625,6 +628,16 @@ class Application(Gtk.Application):
         search_description_menuitem.connect("toggled", self.set_search_filter, SEARCH_IN_DESCRIPTION)
         search_description_menuitem.show()
         submenu.append(search_description_menuitem)
+
+        separator = Gtk.SeparatorMenuItem()
+        separator.show()
+        submenu.append(separator)
+
+        self.refresh_cache_menuitem = Gtk.MenuItem(_("Refresh the list of packages"))
+        self.refresh_cache_menuitem.connect("activate", self.on_refresh_cache_clicked)
+        self.refresh_cache_menuitem.show()
+        self.refresh_cache_menuitem.set_sensitive(False)
+        submenu.append(self.refresh_cache_menuitem)
 
         separator = Gtk.SeparatorMenuItem()
         separator.show()
@@ -696,15 +709,30 @@ class Application(Gtk.Application):
         self.listbox_categories_selected_id = self.listbox_categories.connect('row-activated',
                                                                               self.on_row_activated)
 
+    def refresh_cache(self):
+        self.builder.get_object("loading_spinner").start()
+        self.refresh_cache_menuitem.set_sensitive(False)
+
+        self.page_stack.set_visible_child_name(self.PAGE_LOADING)
+
+        self.installer.force_new_cache(self._on_refresh_cache_complete)
+
+    def _on_refresh_cache_complete(self):
+        self.add_categories()
+        self.installer.init(self.on_installer_ready)
+
+    def on_refresh_cache_clicked(self, widget, data=None):
+        self.refresh_cache()
+
     def on_installer_ready(self):
         self.process_matching_packages()
+        self.refresh_cache_menuitem.set_sensitive(True)
 
         self.apply_aliases()
 
         self.load_featured_on_landing()
         self.load_picks_on_landing()
         self.load_categories_on_landing()
-
 
         self.sync_installed_apps()
         self.update_conditional_widgets()
@@ -1132,7 +1160,7 @@ class Application(Gtk.Application):
         from installer import cache
 
         self.installer.cache = cache.PkgCache()
-        self.installer.cache.force_new_cache()
+        self.installer.force_new_cache()
         self.installer.backend_table = {}
 
         self.installer.initialize_appstream()
@@ -1541,7 +1569,7 @@ class Application(Gtk.Application):
         else:
             self.show_subcategories(category)
 
-        self.show_packages(category.pkginfos)
+        self.show_packages(category.pkginfos, from_search=False)
 
         self.update_conditional_widgets()
 
@@ -1691,7 +1719,7 @@ class Application(Gtk.Application):
 
     def on_search_results_complete(self, results):
         self.clear_category_list()
-        self.show_packages(results)
+        self.show_packages(results, from_search=True)
 
     def on_flowbox_item_clicked(self, tile, data=None):
         # This ties the GtkButton.clicked signal for the Tile class
@@ -1732,7 +1760,7 @@ class Application(Gtk.Application):
         else:
             return (string)
 
-    def show_packages(self, pkginfos):
+    def show_packages(self, pkginfos, from_search=False):
         if self.one_package_idle_timer > 0:
             GObject.source_remove(self.one_package_idle_timer)
             self.one_package_idle_timer = 0
@@ -1743,11 +1771,18 @@ class Application(Gtk.Application):
         self.category_tiles = []
         if len(pkginfos) == 0:
             self.app_list_stack.set_visible_child_name("no-results")
+
             if self.current_category == self.active_tasks_category:
                 text = _("All operations complete")
+                self.no_packages_found_refresh_button.hide()
             else:
-                text = _("No matching packages found")
-
+                if from_search:
+                    text = _("No matching packages found")
+                    self.no_packages_found_refresh_button.hide()
+                else:
+                    text = _("No packages to show.\nThis may indicate a problem - try refreshing the cache.")
+                    self.no_packages_found_refresh_button.show()
+                    
             self.no_packages_found_label.set_markup("<big><b>%s</b></big>" % text)
         else:
             self.app_list_stack.set_visible_child_name("results")
