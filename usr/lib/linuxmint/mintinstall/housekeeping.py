@@ -14,6 +14,8 @@ SCREENSHOT_DIR = os.path.join(GLib.get_user_cache_dir(), "mintinstall", "screens
 
 MAX_AGE = 14 * (60 * 60 * 24) # days
 
+proc = None
+
 def run():
     print("MintInstall: Deleting old screenshots")
 
@@ -21,10 +23,14 @@ def run():
     thread.start()
 
 def _clean_screenshots_thread():
-    proc = multiprocessing.Process(target=_clean_screenshots_process)
+    global proc
 
+    proc = multiprocessing.Process(target=_clean_screenshots_process)
     proc.start()
+
     proc.join()
+
+    proc = None
 
 def _clean_screenshots_process():
     ss_location = Path(SCREENSHOT_DIR)
@@ -40,3 +46,12 @@ def _clean_screenshots_process():
         except OSError:
             pass
 
+def kill():
+    global proc
+
+    try:
+        proc.terminate()
+        proc = None
+    except AttributeError as e:
+        print(e)
+        pass

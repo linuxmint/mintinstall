@@ -60,7 +60,16 @@ class ReviewCache(object):
 
         self._reviews, self._size = self._load_cache()
 
+        self.proc = None
+
         self._update_cache()
+
+    def kill(self):
+        try:
+            self.proc.terminate()
+            self.proc = None
+        except AttributeError as e:
+            pass
 
     def keys(self):
         with self._cache_lock:
@@ -140,10 +149,12 @@ class ReviewCache(object):
         success = multiprocessing.Value('b', False)
 
         current_size = multiprocessing.Value('d', self._size)
-        proc = multiprocessing.Process(target=self._update_cache_process, args=(success, current_size))
+        self.proc = multiprocessing.Process(target=self._update_cache_process, args=(success, current_size))
+        self.proc.start()
 
-        proc.start()
-        proc.join()
+        self.proc.join()
+
+        self.proc = None
 
         if success.value == True:
             with self._cache_lock:

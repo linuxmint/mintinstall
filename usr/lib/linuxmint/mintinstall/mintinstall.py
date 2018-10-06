@@ -1211,6 +1211,10 @@ class Application(Gtk.Application):
             if res == Gtk.ResponseType.NO:
                 return True
 
+        # kill -9 won't kill mp subprocesses, we have to do them ourselves.
+        housekeeping.kill()
+        self.review_cache.kill()
+
         # Not happy with Python when it comes to closing threads, so here's a radical method to get what we want.
         os.system("kill -9 %s &" % os.getpid())
 
