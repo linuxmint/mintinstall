@@ -33,7 +33,7 @@ def _clean_screenshots_process():
 
     for p in screenshots:
         try:
-            mtime = os.path.getmtime(p)
+            mtime = os.path.getmtime(str(p))
 
             if (time.time() - MAX_AGE) > mtime:
                 p.unlink()
