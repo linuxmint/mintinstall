@@ -61,7 +61,7 @@ def process_full_apt_cache(cache):
     for key in keys:
         name = apt_cache[key].name
 
-        if name.startswith("lib") and not name.startswith(("libreoffice", "librecad")):
+        if name.startswith("lib") and not name.startswith(("libreoffice", "librecad", "libk3b7")):
             continue
         if name.endswith(":i386") and name != "steam:i386":
             continue
