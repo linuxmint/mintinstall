@@ -589,7 +589,7 @@ class Application(Gtk.Application):
         self.active_tasks_button = self.builder.get_object("active_tasks_button")
         self.active_tasks_spinner = self.builder.get_object("active_tasks_spinner")
         self.no_packages_found_label = self.builder.get_object("no_packages_found_label")
-        
+
         self.no_packages_found_refresh_button = self.builder.get_object("no_packages_found_refresh_button")
         self.no_packages_found_refresh_button.connect("clicked", self.on_refresh_cache_clicked)
 
@@ -736,7 +736,7 @@ class Application(Gtk.Application):
 
         self.sync_installed_apps()
         self.update_conditional_widgets()
-        
+
         GObject.idle_add(self.finished_loading_packages)
 
         # Can take some time, don't block for it (these are categorizing packages based on apt info, not our listings)
@@ -976,11 +976,40 @@ class Application(Gtk.Application):
 
         return return_list
 
+    def get_manually_installed_debs(self):
+        """
+        Generate list of manually installed Debian package.
+        Requires a package list provided by the installer.
+            Currently knows only Ubiquity's /var/log/installer/initial-status.gz
+        """
+        installer_log = "/var/log/installer/initial-status.gz"
+        if not os.path.isfile(installer_log):
+            return None
+
+        import gzip
+        installer_log = gzip.open(installer_log, "r").read().decode('utf-8').splitlines()
+        initial_status = [x[9:] for x in installer_log if x.startswith("Package: ")]
+        if not initial_status:
+            return None
+
+        from installer import _apt
+        pkgcache = [x[4:] for x in self.installer.cache.get_subset_of_type("a")]
+        current_status = []
+        for pkg in _apt.get_apt_cache():
+            if pkg.installed and not pkg.is_auto_installed and pkg.shortname not in initial_status and pkg.shortname in pkgcache:
+                current_status.append("apt:" + pkg.shortname)
+        return current_status
+
     def sync_installed_apps(self):
         # garbage collect any stale packages in this list (uninstalled somewhere else)
         installed_packages = self.settings.get_strv(INSTALLED_APPS)
 
         installed_packages = self.modernize_installed_list(installed_packages)
+
+        installed_packages_apt = self.get_manually_installed_debs()
+        if installed_packages_apt:
+            installed_packages = [x for x in installed_packages if not x.startswith("apt:")]
+            installed_packages += installed_packages_apt
 
         for pkg_hash in installed_packages:
             try:
@@ -1035,7 +1064,7 @@ class Application(Gtk.Application):
                             event_box = Gtk.EventBox()
                             image = Gtk.Image.new_from_pixbuf(pixbuf)
                             event_box.add(image)
-                            event_box.connect("button-release-event", 
+                            event_box.connect("button-release-event",
                                               self.on_screenshot_clicked,
                                               image,
                                               thumb,
@@ -1786,7 +1815,7 @@ class Application(Gtk.Application):
                 else:
                     text = _("No packages to show.\nThis may indicate a problem - try refreshing the cache.")
                     self.no_packages_found_refresh_button.show()
-                    
+
             self.no_packages_found_label.set_markup("<big><b>%s</b></big>" % text)
         else:
             self.app_list_stack.set_visible_child_name("results")
