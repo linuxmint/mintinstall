@@ -6,7 +6,6 @@ import threading
 
 import gi
 gi.require_version('AppStream', '1.0')
-gi.require_version('Flatpak', '1.0')
 from gi.repository import GLib, GObject
 
 from installer import _apt
@@ -35,10 +34,11 @@ class PkgCache(object):
     STATUS_OK = 1
 
     @print_timing
-    def __init__(self):
+    def __init__(self, have_flatpak=False):
         super(PkgCache, self).__init__()
 
         self.status = self.STATUS_EMPTY
+        self.have_flatpak = have_flatpak
 
         self._items = {}
         self._item_lock = threading.Lock()
@@ -98,7 +98,9 @@ class PkgCache(object):
         sections = {}
         flatpak_remote_infos = {}
 
-        cache, flatpak_remote_infos = _flatpak.process_full_flatpak_installation(cache)
+        if self.have_flatpak:
+            cache, flatpak_remote_infos = _flatpak.process_full_flatpak_installation(cache)
+
         cache, sections = _apt.process_full_apt_cache(cache)
 
         return cache, sections, flatpak_remote_infos
@@ -245,10 +247,11 @@ class PkgCache(object):
             if pkginfo != None:
                 return pkginfo
 
-        if pkg_type in (None, "f"):
-            pkginfo = _flatpak.find_pkginfo(self, string)
+        if self.have_flatpak:
+            if pkg_type in (None, "f"):
+                pkginfo = _flatpak.find_pkginfo(self, string)
 
-            if pkginfo != None:
-                return pkginfo
+                if pkginfo != None:
+                    return pkginfo
 
         return None
