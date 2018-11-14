@@ -107,8 +107,8 @@ class PkgCache(object):
         try:
             sys_mtime = os.path.getmtime(SYS_CACHE_PATH)
 
-            if (time.time() - MAX_AGE) > sys_mtime:
-                print("MintInstall: System pkgcache too old, skipping")
+            if ((time.time() - MAX_AGE) > sys_mtime) or not os.access(SYS_CACHE_PATH, os.R_OK):
+                print("MintInstall: System pkgcache too old or not accessible, skipping")
                 sys_mtime = 0
         except OSError:
             sys_mtime = 0
