@@ -554,7 +554,7 @@ class Application(Gtk.Application):
                                            Gtk.DialogFlags.MODAL,
                                            Gtk.MessageType.ERROR,
                                            Gtk.ButtonsType.OK,
-                                           _("Flatpak support is not currently available.  Try installing flatpak."))
+                                           _("Flatpak support is not currently available. Try installing flatpak."))
                 res = dialog.run()
                 dialog.destroy()
             elif error == "cancel":
@@ -573,7 +573,7 @@ class Application(Gtk.Application):
                                            Gtk.DialogFlags.MODAL,
                                            Gtk.MessageType.ERROR,
                                            Gtk.ButtonsType.OK,
-                                           _("Flatpak support is not currently available.  Try installing flatpak and gir1.2-flatpak-1.0."))
+                                           _("Flatpak support is not currently available. Try installing flatpak and gir1.2-flatpak-1.0."))
                 res = dialog.run()
                 dialog.destroy()
                 self.finish_loading_visual()
