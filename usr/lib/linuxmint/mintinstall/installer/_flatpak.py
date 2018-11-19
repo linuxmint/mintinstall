@@ -9,7 +9,13 @@ import os
 
 import gi
 gi.require_version('AppStream', '1.0')
-from gi.repository import AppStream, Flatpak, GLib, GObject, Gtk, Gio
+from gi.repository import AppStream, GLib, GObject, Gtk, Gio
+
+try:
+    gi.require_version('Flatpak', '1.0')
+    from gi.repository import Flatpak
+except:
+    pass
 
 from installer.pkgInfo import FlatpakPkgInfo
 from installer import dialogs

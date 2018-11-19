@@ -15,7 +15,6 @@ Depends: python3 (>= 3.4),
          python3-configobj,
          python3-setproctitle,
          gir1.2-appstream-1.0,
-         gir1.2-flatpak-1.0,
          gir1.2-gdkpixbuf-2.0,
          gir1.2-glib-2.0,
          gir1.2-gtk-3.0,
@@ -23,7 +22,7 @@ Depends: python3 (>= 3.4),
          libgtk2-perl,
          mint-common,
          app-install-data,
-         flatpak,
          xdg-desktop-portal-gtk
+Recommends: gir1.2-flatpak-1.0, flatpak
 Description: Software Manager
  A software manager to easily install new applications.

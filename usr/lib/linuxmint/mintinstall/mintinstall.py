@@ -11,6 +11,7 @@ import urllib.request, urllib.parse, urllib.error
 import random
 from datetime import datetime
 import subprocess
+import platform
 import functools
 import requests
 import configobj
@@ -20,8 +21,7 @@ import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppStream', '1.0')
 gi.require_version('XApp', '1.0')
-gi.require_version('Flatpak', '1.0')
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, Flatpak, XApp
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, XApp
 
 from installer import installer
 from misc import print_timing
@@ -427,7 +427,7 @@ class Application(Gtk.Application):
         self.gui_ready = False
 
         self.settings = Gio.Settings("com.linuxmint.install")
-        self.arch = Flatpak.get_default_arch()
+        self.arch = platform.machine()
 
         print("MintInstall: Detected system architecture: '%s'" % self.arch)
 
@@ -549,6 +549,14 @@ class Application(Gtk.Application):
                                            _("An error occurred attempting to add the Flatpak repo."))
                 res = dialog.run()
                 dialog.destroy()
+            elif error == "no-flatpak-support":
+                dialog = Gtk.MessageDialog(self.main_window,
+                                           Gtk.DialogFlags.MODAL,
+                                           Gtk.MessageType.ERROR,
+                                           Gtk.ButtonsType.OK,
+                                           _("Flatpak support is not currently available.  Try installing flatpak."))
+                res = dialog.run()
+                dialog.destroy()
             elif error == "cancel":
                 pass
 
@@ -558,7 +566,18 @@ class Application(Gtk.Application):
         self.add_categories()
         self.installer.init(self.on_installer_ready)
 
-    def on_pkginfo_from_uri_complete(self, pkginfo):
+    def on_pkginfo_from_uri_complete(self, pkginfo, error=None):
+        if error:
+            if error == "no-flatpak-support":
+                dialog = Gtk.MessageDialog(self.main_window,
+                                           Gtk.DialogFlags.MODAL,
+                                           Gtk.MessageType.ERROR,
+                                           Gtk.ButtonsType.OK,
+                                           _("Flatpak support is not currently available.  Try installing flatpak and gir1.2-flatpak-1.0."))
+                res = dialog.run()
+                dialog.destroy()
+                self.finish_loading_visual()
+                return
         if pkginfo:
             self.show_package(pkginfo, self.PAGE_LANDING)
 
@@ -864,12 +883,14 @@ class Application(Gtk.Application):
         button.connect("clicked", self.category_button_clicked, self.picks_category)
         flowbox.insert(button, -1)
 
-        # Add flatpaks
-        button = Gtk.Button()
-        button.set_label(self.flatpak_category.name)
-        button.connect("clicked", self.category_button_clicked, self.flatpak_category)
+        if self.installer.list_flatpak_remotes():
+            # Add flatpaks
+            button = Gtk.Button()
+            button.set_label(self.flatpak_category.name)
+            button.connect("clicked", self.category_button_clicked, self.flatpak_category)
 
-        flowbox.insert(button, -1)
+            flowbox.insert(button, -1)
+
         box.pack_start(flowbox, True, True, 0)
         box.show_all()
 

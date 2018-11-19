@@ -2,10 +2,10 @@
 import threading
 import signal
 import time
+import subprocess
 
 import gi
 gi.require_version('AppStream', '1.0')
-gi.require_version('Flatpak', '1.0')
 from gi.repository import GLib, GObject, Gio
 
 from installer import cache, _flatpak, _apt
@@ -123,10 +123,26 @@ class Installer:
         self.remotes_changed = False
         self.inited = False
 
+        self.have_flatpak = False
+        self._determine_flatpak_status()
+
         self.cache = {}
         self._init_cb = None
 
         self.startup_timer = time.time()
+
+    def _determine_flatpak_status(self):
+        try:
+            gi.require_version('Flatpak', '1.0')
+            from gi.repository import Flatpak
+
+            self.have_flatpak = True
+
+            return
+        except:
+            print("No flatpak support, install flatpak and gir1.2-flatpak-1.0 and restart mintinstall to enable it.")
+
+        self.have_flatpak = False
 
     def init_sync(self):
         """
@@ -142,7 +158,7 @@ class Installer:
 
         self.backend_table = {}
 
-        self.cache = cache.PkgCache()
+        self.cache = cache.PkgCache(self.have_flatpak)
 
         if self.cache.status == self.cache.STATUS_OK:
             self.inited = True
@@ -161,7 +177,7 @@ class Installer:
         """
         self.backend_table = {}
 
-        self.cache = cache.PkgCache()
+        self.cache = cache.PkgCache(self.have_flatpak)
 
         self._init_cb = ready_callback
 
@@ -313,7 +329,8 @@ class Installer:
         it and downloads Appstream info as well, before calling ready_callback with
         the created (or existing) PkgInfo as an argument.
         """
-        _flatpak.get_pkginfo_from_file(self.cache, file, ready_callback)
+        if self.have_flatpak:
+            _flatpak.get_pkginfo_from_file(self.cache, file, ready_callback)
 
     def add_remote_from_repo_file(self, file, ready_callback):
         """
@@ -321,14 +338,21 @@ class Installer:
         doesn't exist already, fetches any appstream data, and then calls
         ready_callback
         """
-        _flatpak.add_remote_from_repo_file(self.cache, file, ready_callback)
+
+        if self.have_flatpak:
+            _flatpak.add_remote_from_repo_file(self.cache, file, ready_callback)
+        else:
+            ready_callback(None, "no-flatpak-support")
 
     def list_flatpak_remotes(self):
         """
         Returns a list of FlatpakRemoteInfos.  The remote_name can be used to match
         with PkgInfo.remote and the title is for display.
         """
-        return _flatpak.list_remotes()
+        if self.have_flatpak:
+            return _flatpak.list_remotes()
+        else:
+            return []
 
     def pkginfo_is_installed(self, pkginfo):
         """
@@ -338,7 +362,7 @@ class Installer:
         if self.inited:
             if pkginfo.pkg_hash.startswith("a"):
                 return _apt.pkginfo_is_installed(pkginfo)
-            elif pkginfo.pkg_hash.startswith("f"):
+            elif self.have_flatpak and pkginfo.pkg_hash.startswith("f"):
                 return _flatpak.pkginfo_is_installed(pkginfo)
 
         return False
@@ -350,7 +374,8 @@ class Installer:
         pkginfo cache, specifically, if they're added from no-enumerate-marked remotes.
         This gets run at startup to collect and generate their info.
         """
-        _flatpak.generate_uncached_pkginfos(cache)
+        if self.have_flatpak:
+            _flatpak.generate_uncached_pkginfos(cache)
 
     @print_timing
     def initialize_appstream(self):
@@ -358,7 +383,8 @@ class Installer:
         Loads and caches the AppStream pools so they can be used to provide
         display info for packages.
         """
-        _flatpak.initialize_appstream()
+        if self.have_flatpak:
+            _flatpak.initialize_appstream()
         # Is there any reason to use apt's appstream?
 
     def _get_backend_component(self, pkginfo):
@@ -370,7 +396,8 @@ class Installer:
             if pkginfo.pkg_hash.startswith("a"):
                 backend_component = _apt.search_for_pkginfo_apt_pkg(pkginfo)
             else:
-                backend_component = _flatpak.search_for_pkginfo_as_component(pkginfo)
+                if self.have_flatpak:
+                    backend_component = _flatpak.search_for_pkginfo_as_component(pkginfo)
 
             self.backend_table[pkginfo] = backend_component
 
