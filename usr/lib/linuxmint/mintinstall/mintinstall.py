@@ -744,25 +744,28 @@ class Application(Gtk.Application):
         self.refresh_cache()
 
     def on_installer_ready(self):
-        self.process_matching_packages()
-        self.refresh_cache_menuitem.set_sensitive(True)
+        try:
+            self.process_matching_packages()
+            self.refresh_cache_menuitem.set_sensitive(True)
 
-        self.apply_aliases()
+            self.apply_aliases()
 
-        self.load_featured_on_landing()
-        self.load_picks_on_landing()
-        self.load_categories_on_landing()
+            self.load_featured_on_landing()
+            self.load_picks_on_landing()
+            self.load_categories_on_landing()
 
-        self.sync_installed_apps()
-        self.update_conditional_widgets()
-        
-        GObject.idle_add(self.finished_loading_packages)
+            self.sync_installed_apps()
+            self.update_conditional_widgets()
+            
+            GObject.idle_add(self.finished_loading_packages)
 
-        # Can take some time, don't block for it (these are categorizing packages based on apt info, not our listings)
-        GObject.idle_add(self.process_unmatched_packages)
+            # Can take some time, don't block for it (these are categorizing packages based on apt info, not our listings)
+            GObject.idle_add(self.process_unmatched_packages)
 
-        self.review_cache = reviews.ReviewCache()
-        housekeeping.run()
+            self.review_cache = reviews.ReviewCache()
+            housekeeping.run()
+        except:
+            GObject.idle_add(self.refresh_cache)
 
     def load_featured_on_landing(self):
         box = self.builder.get_object("box_featured")
@@ -1180,7 +1183,7 @@ class Application(Gtk.Application):
 
         from installer import cache
 
-        self.installer.cache = cache.PkgCache()
+        self.installer.cache = cache.PkgCache(self.installer.have_flatpak)
         self.installer.force_new_cache()
         self.installer.backend_table = {}
 

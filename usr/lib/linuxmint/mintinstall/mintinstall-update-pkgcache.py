@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 
 
-from installer import cache
+from installer import installer, cache
 
-pkgcache = cache.PkgCache()
+installer = installer.Installer()
+pkgcache = cache.PkgCache(installer.have_flatpak)
 
 try:
     pkgcache.force_new_cache()

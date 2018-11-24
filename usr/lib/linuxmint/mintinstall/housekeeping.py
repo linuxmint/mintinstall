@@ -53,5 +53,4 @@ def kill():
         proc.terminate()
         proc = None
     except AttributeError as e:
-        print(e)
         pass
