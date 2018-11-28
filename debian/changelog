@@ -1,3 +1,32 @@
+mintinstall (7.9.6) tessa; urgency=medium
+
+  [ Clement Lefebvre ]
+  * Fix export_flatpak
+
+  [ Michael Webster ]
+  * mintinstall: Add a refresh menu item, and distinguish an (incorrectly) empty category from an empty search result so we can provide a more helpful message and allow the user to refresh if necessary.
+  * housekeeping: cast PosixPath to string for python3 < 3.6
+  * mintinstall: terminate() the review and housekeeping processes when closing the program, they won't terminate properly when the parent process is killed.
+  * _apt.py: Add "libk3b7" to filter exceptions.
+  * cache.py: Check that the system cache can be read before using.
+  * all: Don't require flatpak to be installed. (#218)
+
+  [ gm10 ]
+  * _apt.py: whitelist libimage-exiftool-perl (#217)
+
+  [ Clement Lefebvre ]
+  * l10n: Fix msgids
+  * l10n: Update POT file
+  * l10n: Update files
+
+  [ Michael Webster ]
+  * all: Fix some issues caused by making flatpak optional..
+
+  [ Clement Lefebvre ]
+  * l10n: Update files
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 28 Nov 2018 11:58:34 +0000
+
 mintinstall (7.9.5) tara; urgency=medium
 
   [ Michael Webster ]
