@@ -426,7 +426,7 @@ class Application(Gtk.Application):
 
         self.gui_ready = False
 
-        self.low_res = True#self.get_low_res_screen()
+        self.low_res = self.get_low_res_screen()
 
         self.settings = Gio.Settings("com.linuxmint.install")
         self.arch = platform.machine()
