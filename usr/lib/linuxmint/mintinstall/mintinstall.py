@@ -426,6 +426,8 @@ class Application(Gtk.Application):
 
         self.gui_ready = False
 
+        self.low_res = True#self.get_low_res_screen()
+
         self.settings = Gio.Settings("com.linuxmint.install")
         self.arch = platform.machine()
 
@@ -580,6 +582,36 @@ class Application(Gtk.Application):
                 return
         if pkginfo:
             self.show_package(pkginfo, self.PAGE_LANDING)
+
+    def get_low_res_screen(self):
+        display = Gdk.Display.get_default()
+        n_monitors = display.get_n_monitors()
+
+        # Find the shortest monitor height.
+
+        min_height = 99999
+
+        for i in range(n_monitors):
+            monitor = display.get_monitor(i)
+
+            # Look only at geometry, not workarea - this we're looking at the monitor itself,
+            # not affected by someone's panel configuration.
+            rect = monitor.get_geometry()
+
+            min_height = rect.height if rect.height < min_height else min_height
+
+        # If it's less than our threshold than consider us 'low res'.  It's possible we
+        # have false positives here, especially with multi-monitor setups.  We'll always
+        # go off the lowest res monitor, but at the point this is called, we don't know
+        # which monitor we'll spawn on.  Knowing this would require waiting for window
+        # realize, and this really isn't that big a deal.  The workarea being used is in
+        # app pixels, so hidpi will also be affected here regardless of device resolution.
+
+        if min_height < 1000:
+            print("MintInstall: low resolution monitor detected, limiting window height.")
+            return True
+
+        return False
 
     def create_window(self, starting_page):
         if self.main_window != None:
@@ -769,6 +801,15 @@ class Application(Gtk.Application):
 
     def load_featured_on_landing(self):
         box = self.builder.get_object("box_featured")
+
+        if self.low_res:
+            box.hide()
+
+            # This overrides the glade 800x600 defaults. 300 is excessively small so the window works
+            # out its own minimum height.
+            self.main_window.set_default_geometry(800, 300)
+            return
+
         for child in box.get_children():
             child.destroy()
 
@@ -819,6 +860,9 @@ class Application(Gtk.Application):
         box.show_all()
 
     def load_picks_on_landing(self):
+        if self.low_res:
+            self.builder.get_object("editor_picks_label").hide()
+
         box = self.builder.get_object("box_picks")
         for child in box.get_children():
             child.destroy()
