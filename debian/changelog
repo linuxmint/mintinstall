@@ -1,3 +1,10 @@
+mintinstall (7.9.7) tessa; urgency=medium
+
+  [ Michael Webster ]
+  * mintinstall.py: Detect lower resolution monitors, hide the featured app and the editor's picks label in this case.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon, 17 Dec 2018 11:20:45 +0000
+
 mintinstall (7.9.6) tessa; urgency=medium
 
   [ Clement Lefebvre ]
