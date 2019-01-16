@@ -3,7 +3,6 @@
 intltool-extract --type=gettext/glade usr/share/linuxmint/mintinstall/mintinstall.glade
 xgettext --language=Python --keyword=_ --keyword=N_ --output=mintinstall.pot  \
     usr/lib/linuxmint/mintinstall/mintinstall.py                              \
-    usr/lib/linuxmint/mintinstall/installer/dialogs.py                        \
     generate_desktop_files                                                    \
     usr/share/linuxmint/mintinstall/mintinstall.glade.h
 

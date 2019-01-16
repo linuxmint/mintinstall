@@ -20,7 +20,7 @@ Depends: python3 (>= 3.4),
          gir1.2-gtk-3.0,
          gir1.2-xapp-1.0,
          libgtk2-perl,
-         mint-common,
+         mint-common (>= 2),
          app-install-data
 Recommends: gir1.2-flatpak-1.0, flatpak, xdg-desktop-portal-gtk
 Description: Software Manager

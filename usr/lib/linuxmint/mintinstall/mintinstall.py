@@ -23,8 +23,8 @@ gi.require_version('AppStream', '1.0')
 gi.require_version('XApp', '1.0')
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, XApp
 
-from installer import installer
-from misc import print_timing
+from mintcommon.installer import installer
+from mintcommon.installer.misc import print_timing
 import reviews
 import housekeeping
 
@@ -1046,10 +1046,12 @@ class Application(Gtk.Application):
         return return_list
 
     def sync_installed_apps(self):
-        # garbage collect any stale packages in this list (uninstalled somewhere else)
-        installed_packages = self.settings.get_strv(INSTALLED_APPS)
+        """ garbage collect any stale packages in this list (uninstalled somewhere else) """
 
-        installed_packages = self.modernize_installed_list(installed_packages)
+        installed_packages = self.installer.cache.get_manually_installed_packages()
+        if not installed_packages:
+            installed_packages = self.settings.get_strv(INSTALLED_APPS)
+            installed_packages = self.modernize_installed_list(installed_packages)
 
         for pkg_hash in installed_packages:
             try:
@@ -1282,7 +1284,8 @@ class Application(Gtk.Application):
 
         # kill -9 won't kill mp subprocesses, we have to do them ourselves.
         housekeeping.kill()
-        self.review_cache.kill()
+        if self.review_cache:
+            self.review_cache.kill()
 
         # Not happy with Python when it comes to closing threads, so here's a radical method to get what we want.
         os.system("kill -9 %s &" % os.getpid())

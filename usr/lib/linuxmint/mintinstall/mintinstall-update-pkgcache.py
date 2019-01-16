@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
-
-from installer import installer, cache
+from mintcommon.installer import installer, cache
 
 installer = installer.Installer()
 pkgcache = cache.PkgCache(installer.have_flatpak)
