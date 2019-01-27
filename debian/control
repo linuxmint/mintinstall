@@ -21,8 +21,7 @@ Depends: python3 (>= 3.4),
          gir1.2-xapp-1.0,
          libgtk2-perl,
          mint-common,
-         app-install-data,
-         xdg-desktop-portal-gtk
-Recommends: gir1.2-flatpak-1.0, flatpak
+         app-install-data
+Recommends: gir1.2-flatpak-1.0, flatpak, xdg-desktop-portal-gtk
 Description: Software Manager
  A software manager to easily install new applications.
