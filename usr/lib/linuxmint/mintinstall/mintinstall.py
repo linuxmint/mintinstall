@@ -419,6 +419,7 @@ class Application(Gtk.Application):
     PAGE_LIST = "list"
     PAGE_PACKAGE = "details"
     PAGE_LOADING = "loading"
+    PAGE_SEARCHING = "searching"
 
     def __init__(self):
         super(Application, self).__init__(application_id='com.linuxmint.mintinstall',
@@ -640,7 +641,7 @@ class Application(Gtk.Application):
         self.active_tasks_button = self.builder.get_object("active_tasks_button")
         self.active_tasks_spinner = self.builder.get_object("active_tasks_spinner")
         self.no_packages_found_label = self.builder.get_object("no_packages_found_label")
-        
+
         self.no_packages_found_refresh_button = self.builder.get_object("no_packages_found_refresh_button")
         self.no_packages_found_refresh_button.connect("clicked", self.on_refresh_cache_clicked)
 
@@ -788,7 +789,7 @@ class Application(Gtk.Application):
 
             self.sync_installed_apps()
             self.update_conditional_widgets()
-            
+
             GObject.idle_add(self.finished_loading_packages)
 
             # Can take some time, don't block for it (these are categorizing packages based on apt info, not our listings)
@@ -1103,7 +1104,7 @@ class Application(Gtk.Application):
                             event_box = Gtk.EventBox()
                             image = Gtk.Image.new_from_pixbuf(pixbuf)
                             event_box.add(image)
-                            event_box.connect("button-release-event", 
+                            event_box.connect("button-release-event",
                                               self.on_screenshot_clicked,
                                               image,
                                               thumb,
@@ -1152,7 +1153,7 @@ class Application(Gtk.Application):
         terms = searchentry.get_text()
 
         if terms != "":
-            self.show_search_results(terms);
+            self.show_search_results(terms)
 
     def on_entry_text_changed(self, entry):
         if self.search_changed_timer > 0:
@@ -1745,7 +1746,9 @@ class Application(Gtk.Application):
         self.listbox_categories.hide()
         self.back_button.set_sensitive(True)
         self.previous_page = self.PAGE_LANDING
-        self.page_stack.set_visible_child_name(self.PAGE_LIST)
+        if self.page_stack.get_visible_child_name() != self.PAGE_SEARCHING:
+            self.builder.get_object("loading_spinner").start()
+            self.page_stack.set_visible_child_name(self.PAGE_SEARCHING)
 
         termsUpper = terms.upper()
         termsSplit = re.split(r'\W+', termsUpper)
@@ -1791,6 +1794,8 @@ class Application(Gtk.Application):
 
     def on_search_results_complete(self, results):
         self.clear_category_list()
+        self.page_stack.set_visible_child_name(self.PAGE_LIST)
+        self.builder.get_object("loading_spinner").stop()
         self.show_packages(results, from_search=True)
 
     def on_flowbox_item_clicked(self, tile, data=None):
@@ -1854,7 +1859,7 @@ class Application(Gtk.Application):
                 else:
                     text = _("No packages to show.\nThis may indicate a problem - try refreshing the cache.")
                     self.no_packages_found_refresh_button.show()
-                    
+
             self.no_packages_found_label.set_markup("<big><b>%s</b></big>" % text)
         else:
             self.app_list_stack.set_visible_child_name("results")
