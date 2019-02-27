@@ -1200,11 +1200,8 @@ class Application(Gtk.Application):
             dlg.set_license(gpl)
         except Exception as e:
             print(e)
-        try:
-            dlg.set_version(mintcommon.version.get_version("mintinstall"))
-        except Exception as e:
-            print(e)
 
+        dlg.set_version("__DEB_VERSION__")
         dlg.set_icon_name("mintinstall")
         dlg.set_logo_icon_name("mintinstall")
 
