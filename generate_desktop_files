@@ -5,9 +5,7 @@ PATH = "/usr/share/linuxmint/locale"
 
 import os
 import gettext
-import sys
-sys.path.append('/usr/lib/linuxmint/common')
-import additionalfiles
+import mintcommon.additionalfiles as additionalfiles
 
 os.environ['LANGUAGE'] = "en_US.UTF-8"
 gettext.install(DOMAIN, PATH)
