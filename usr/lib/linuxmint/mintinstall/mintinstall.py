@@ -25,6 +25,7 @@ from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, XApp
 
 from mintcommon.installer import installer
 from mintcommon.installer.misc import print_timing
+import mintcommon.version
 import reviews
 import housekeeping
 
@@ -1200,8 +1201,7 @@ class Application(Gtk.Application):
         except Exception as e:
             print(e)
         try:
-            version = subprocess.check_output(["/usr/lib/linuxmint/common/version.py", "mintinstall"]).decode()
-            dlg.set_version(version)
+            dlg.set_version(mintcommon.version.get_version("mintinstall"))
         except Exception as e:
             print(e)
 
