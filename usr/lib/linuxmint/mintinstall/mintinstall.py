@@ -25,7 +25,6 @@ from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, XApp
 
 from mintcommon.installer import installer
 from mintcommon.installer.misc import print_timing
-import mintcommon.version
 import reviews
 import housekeeping
 
