@@ -586,30 +586,15 @@ class Application(Gtk.Application):
 
     def get_low_res_screen(self):
         display = Gdk.Display.get_default()
-        n_monitors = display.get_n_monitors()
+        screen = display.get_default_screen()
+        monitor_number = screen.get_monitor_at_window(screen.get_active_window())
+        monitor = display.get_monitor(monitor_number)
+        height = monitor.get_geometry().height
 
-        # Find the shortest monitor height.
-
-        min_height = 99999
-
-        for i in range(n_monitors):
-            monitor = display.get_monitor(i)
-
-            # Look only at geometry, not workarea - this we're looking at the monitor itself,
-            # not affected by someone's panel configuration.
-            rect = monitor.get_geometry()
-
-            min_height = rect.height if rect.height < min_height else min_height
-
-        # If it's less than our threshold than consider us 'low res'.  It's possible we
-        # have false positives here, especially with multi-monitor setups.  We'll always
-        # go off the lowest res monitor, but at the point this is called, we don't know
-        # which monitor we'll spawn on.  Knowing this would require waiting for window
-        # realize, and this really isn't that big a deal.  The workarea being used is in
+        # If it's less than our threshold than consider us 'low res'. The workarea being used is in
         # app pixels, so hidpi will also be affected here regardless of device resolution.
-
-        if min_height < 1000:
-            print("MintInstall: low resolution monitor detected, limiting window height.")
+        if height < 768:
+            print("MintInstall: low resolution detected on monitor %d (%dpx heigh), limiting window height." % (monitor_number, height))
             return True
 
         return False
