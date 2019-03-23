@@ -587,14 +587,19 @@ class Application(Gtk.Application):
     def get_low_res_screen(self):
         display = Gdk.Display.get_default()
         screen = display.get_default_screen()
-        monitor_number = screen.get_monitor_at_window(screen.get_active_window())
+        pointer = display.get_default_seat().get_pointer()
+        if pointer:
+            position = pointer.get_position()
+            monitor_number = screen.get_monitor_at_point(position.x, position.y)
+        else:
+            monitor_number = 0
         monitor = display.get_monitor(monitor_number)
         height = monitor.get_geometry().height
 
         # If it's less than our threshold than consider us 'low res'. The workarea being used is in
         # app pixels, so hidpi will also be affected here regardless of device resolution.
         if height < 768:
-            print("MintInstall: low resolution detected on monitor %d (%dpx heigh), limiting window height." % (monitor_number, height))
+            print("MintInstall: low resolution detected on monitor %d (%dpx height), limiting window height." % (monitor_number, height))
             return True
 
         return False
