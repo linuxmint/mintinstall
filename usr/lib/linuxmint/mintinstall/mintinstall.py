@@ -79,6 +79,7 @@ ALIASES['pia-manager'] = "PIA Manager"
 ALIASES['skypeforlinux'] = "Skype"
 ALIASES['google-earth-pro-stable'] = "Google Earth"
 ALIASES['whatsapp-desktop'] = "WhatsApp"
+ALIASES['wine-installer'] = "Wine"
 
 class ScreenshotDownloader(threading.Thread):
     def __init__(self, application, pkginfo):
