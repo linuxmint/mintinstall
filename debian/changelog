@@ -1,3 +1,34 @@
+mintinstall (7.9.8) tina; urgency=medium
+
+  [ Vincent Vermeulen ]
+  * removed 'opera' from internet-web.list
+
+  [ Clement Lefebvre ]
+  * Don't depend on xdg-desktop-portal-gtk
+
+  [ gm10 ]
+  * Wrap package title and summary (#237)
+  * Change deprecated Gtk.Vbox to Gtk.Box (#238)
+  * Display search label & animation while searching (#239)
+  * Automatically generate list of manually installed packages if possible, (#233)
+
+  [ Clement Lefebvre ]
+  * About dialog: Fetch version from mintcommon.version
+  * l10n: Update POT
+  * Inject the app version during the build
+  * Remove leftover import
+  * Only hide banner when resolution is less than 768px on the current monitor
+  * Reviewed featured tiles
+  * UI: Make featured tile 10px smaller
+
+  [ gm10 ]
+  * Fix get_low_res_screen() causing an exception if no active window exists (#245)
+
+  [ Clement Lefebvre ]
+  * Add support for wine-installer
+
+ -- Clement Lefebvre <root@linuxmint.com>  Sun, 30 Jun 2019 15:24:13 +0200
+
 mintinstall (7.9.7) tessa; urgency=medium
 
   [ Michael Webster ]
