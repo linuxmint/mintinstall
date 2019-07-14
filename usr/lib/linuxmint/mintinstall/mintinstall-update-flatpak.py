@@ -20,7 +20,9 @@ except Exception as e:
 from mintcommon.installer import _flatpak
 
 print("Updating flatpaks")
-subprocess.call(["flatpak", "update", "-y"])
+out = subprocess.run(["flatpak", "update", "-y"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+print(out.stdout.decode())
 
 print("Checking for theme changes")
 theme_refs = _flatpak.get_updated_theme_refs()
