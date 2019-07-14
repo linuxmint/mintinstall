@@ -10,7 +10,7 @@ import gettext
 import subprocess
 
 from pathlib import Path
-from installer import installer
+from mintcommon.installer import installer
 
 # i18n
 gettext.install("mintinstall", "/usr/share/linuxmint/locale")
