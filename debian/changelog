@@ -1,3 +1,15 @@
+mintinstall (7.9.9) tina; urgency=medium
+
+  [ Michael Webster ]
+  * mintinstall-remove-app.py: Fix installer import.
+  * mintinstall-update-flatpak: Check against the current system theme, and install any new theme package(s) if necessary.
+  * mintinstall-update-flatpak.py: Use subprocess.run for both the update and install phase.
+
+  [ Corbin Auriti ]
+  * Replace minecraft with minetest (#255)
+
+ -- Clement Lefebvre <root@linuxmint.com>  Sat, 20 Jul 2019 17:19:27 +0200
+
 mintinstall (7.9.8) tina; urgency=medium
 
   [ Vincent Vermeulen ]
