@@ -494,19 +494,25 @@
                         <property name="orientation">vertical</property>
                         <property name="spacing">6</property>
                         <child>
-                          <object class="GtkImage" id="application_icon">
+                          <object class="GtkBox" id="application_icon_holder">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="stock">gtk-missing-image</property>
+                            <property name="orientation">vertical</property>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
                           </object>
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">True</property>
                             <property name="position">0</property>
                           </packing>
-                        </child>
-                        <child>
-                          <placeholder/>
                         </child>
                         <child>
                           <object class="GtkBox" id="box7">
@@ -525,7 +531,7 @@
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">True</property>
-                            <property name="position">2</property>
+                            <property name="position">1</property>
                           </packing>
                         </child>
                       </object>
@@ -889,16 +895,22 @@
                                 <property name="can_focus">False</property>
                                 <property name="spacing">12</property>
                                 <child>
-                                  <object class="GtkImage" id="main_screenshot">
+                                  <object class="GtkBox" id="box_main_screenshot">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="stock">gtk-missing-image</property>
+                                    <property name="orientation">vertical</property>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">True</property>
-                                    <property name="position">1</property>
+                                    <property name="position">0</property>
                                   </packing>
+                                </child>
+                                <child>
+                                  <placeholder/>
                                 </child>
                                 <child>
                                   <object class="GtkBox" id="box_more_screenshots">

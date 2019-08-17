@@ -16,6 +16,7 @@ import functools
 import requests
 import configobj
 import re
+import math
 
 import gi
 gi.require_version('Gtk', '3.0')
@@ -28,7 +29,13 @@ from mintcommon.installer.misc import print_timing
 import reviews
 import housekeeping
 
-ICON_SIZE = 48
+LIST_ICON_SIZE = 48
+FEATURED_ICON_SIZE = LIST_ICON_SIZE
+DETAILS_ICON_SIZE = 64
+SCREEN_THUMB_WIDTH = 100
+SCREENSHOT_WIDTH = 625
+
+FALLBACK_PACKAGE_ICON_PATH = "/usr/share/linuxmint/mintinstall/data/available.png"
 
 #Hardcoded mouse back button key for button-press-event
 #May not work on all mice
@@ -80,6 +87,105 @@ ALIASES['skypeforlinux'] = "Skype"
 ALIASES['google-earth-pro-stable'] = "Google Earth"
 ALIASES['whatsapp-desktop'] = "WhatsApp"
 ALIASES['wine-installer'] = "Wine"
+
+class AsyncImage(Gtk.Image):
+    def __init__(self, icon_string=None, width=DETAILS_ICON_SIZE, height=DETAILS_ICON_SIZE):
+        super(AsyncImage, self).__init__()
+
+        self.path = None
+        self.cancellable = None
+        self.loader = None
+
+        self.connect("destroy", self.on_destroyed)
+
+        if icon_string:
+            self.set_icon_string(icon_string, width, height)
+
+    def on_destroyed(self, widget, data=None):
+        if self.cancellable:
+            self.cancellable.cancel()
+
+    def set_icon_string(self, icon_string, width=DETAILS_ICON_SIZE, height=DETAILS_ICON_SIZE):
+        theme = Gtk.IconTheme.get_default()
+
+        self.original_width = width
+        self.original_height = height
+
+        # This keeps the icon's space occupied until loaded.
+        self.set_size_request(width, height)
+
+        if width != -1:
+            self.width = width * self.get_scale_factor()
+        else:
+            self.width = width
+
+        if height != -1:
+            self.height = height * self.get_scale_factor()
+        else:
+            self.height = height
+
+        self.cancellable = None
+        file = None
+
+        if os.path.isabs(icon_string):
+            self.path = icon_string
+            file = Gio.File.new_for_path(self.path)
+        elif icon_string.startswith("http"):
+            self.path = icon_string
+            file = Gio.File.new_for_uri(self.path)
+        elif theme.has_icon(icon_string):
+                info = theme.lookup_icon_for_scale(icon_string,
+                                                   self.height,
+                                                   self.get_scale_factor(),
+                                                   Gtk.IconLookupFlags.FORCE_SIZE)
+                if info:
+                    self.path = info.get_filename()
+                    file = Gio.File.new_for_path(self.path)
+
+        if file:
+            self.cancellable = Gio.Cancellable()
+            file.read_async(GLib.PRIORITY_DEFAULT, self.cancellable, self.on_read_finished)
+        else:
+            self.set_icon_string(FALLBACK_PACKAGE_ICON_PATH, self.original_width, self.original_height)
+
+    def on_read_finished(self, file, result, data=None):
+        if self.cancellable.is_cancelled():
+            return
+
+        stream = None
+
+        try:
+            stream = file.read_finish(result)
+        except GLib.Error as e:
+            print("AsyncIcon could not read icon file contents for loading (%s): %s" % (self.path, e.message))
+            self.set_icon_string(FALLBACK_PACKAGE_ICON_PATH, self.original_width, self.original_height)
+
+        if stream:
+            GdkPixbuf.Pixbuf.new_from_stream_at_scale_async(stream,
+                                                            self.width,
+                                                            self.height,
+                                                            True,
+                                                            self.cancellable,
+                                                            self.on_pixbuf_created)
+
+    def on_pixbuf_created(self, stream, result, data=None):
+        if self.cancellable.is_cancelled():
+            stream.close()
+            return
+
+        try:
+            pixbuf = GdkPixbuf.Pixbuf.new_from_stream_finish(result)
+
+            if pixbuf:
+                surface = Gdk.cairo_surface_create_from_pixbuf(pixbuf,
+                                                               self.get_scale_factor(),
+                                                               self.get_window())
+                self.set_from_surface(surface)
+        except GLib.Error as e:
+            print("AsyncIcon could not generate icon from file contents (%s): %s" % (self.path, e.message))
+            self.set_icon_string(FALLBACK_PACKAGE_ICON_PATH, self.original_width, self.original_height)
+
+        stream.close()
 
 class ScreenshotDownloader(threading.Thread):
     def __init__(self, application, pkginfo):
@@ -624,6 +730,25 @@ class Application(Gtk.Application):
         self.main_window.connect("key-press-event", self.on_keypress)
         self.main_window.connect("button-press-event", self.on_buttonpress)
 
+        theme = Gtk.IconTheme.get_default()
+        for icon_name in ["application-x-deb", "file-roller"]:
+            if theme.has_icon(icon_name):
+                iconInfo = theme.lookup_icon_for_scale(icon_name,
+                                                       LIST_ICON_SIZE,
+                                                       self.main_window.get_scale_factor(),
+                                                       0)
+                if iconInfo and os.path.exists(iconInfo.get_filename()):
+                    global FALLBACK_PACKAGE_ICON_PATH
+                    FALLBACK_PACKAGE_ICON_PATH = iconInfo.get_filename()
+                    break
+
+        self.detail_view_icon = AsyncImage()
+        self.detail_view_icon.show()
+        self.builder.get_object("application_icon_holder").add(self.detail_view_icon)
+
+        self.main_screenshot = AsyncImage()
+        self.builder.get_object("box_main_screenshot").add(self.main_screenshot)
+
         self.status_label = self.builder.get_object("label_ongoing")
         self.progressbar = self.builder.get_object("progressbar1")
         self.progress_box = self.builder.get_object("progress_box")
@@ -732,18 +857,6 @@ class Application(Gtk.Application):
 
         self.app_list_stack = self.builder.get_object("app_list_stack")
 
-        self.generic_available_icon_path = "/usr/share/linuxmint/mintinstall/data/available.png"
-        theme = Gtk.IconTheme.get_default()
-        for icon_name in ["application-x-deb", "file-roller"]:
-            if theme.has_icon(icon_name):
-                iconInfo = theme.lookup_icon(icon_name, ICON_SIZE, 0)
-                if iconInfo and os.path.exists(iconInfo.get_filename()):
-                    self.generic_available_icon_path = iconInfo.get_filename()
-                    break
-
-        self.generic_available_icon_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(self.generic_available_icon_path,
-                                                                                    ICON_SIZE, ICON_SIZE)
-
         self.searchentry.grab_focus()
 
         self.listbox_categories = Gtk.ListBox()
@@ -788,7 +901,8 @@ class Application(Gtk.Application):
 
             self.review_cache = reviews.ReviewCache()
             housekeeping.run()
-        except:
+        except GLib.Error as e:
+            print("Loading error: %s", e.message)
             GObject.idle_add(self.refresh_cache)
 
     def load_featured_on_landing(self):
@@ -885,8 +999,7 @@ class Application(Gtk.Application):
         random.shuffle(available)
         featured = 0
         for pkginfo in (available + installed):
-            icon = self.get_application_icon(pkginfo, ICON_SIZE)
-            icon = Gtk.Image.new_from_pixbuf(icon)
+            icon = self.get_application_icon(pkginfo, FEATURED_ICON_SIZE)
             tile = VerticalPackageTile(pkginfo, icon, self.installer)
             tile.connect("clicked", self.on_flowbox_item_clicked, pkginfo.pkg_hash)
             flowbox.insert(tile, -1)
@@ -1079,11 +1192,10 @@ class Application(Gtk.Application):
             if (number == 1):
                 if os.path.exists(local_name):
                     try:
-                        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, 625, -1)
-                        self.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
-                        self.builder.get_object("main_screenshot").show()
+                        self.main_screenshot.set_icon_string(local_name, SCREENSHOT_WIDTH, -1)
+                        self.main_screenshot.show()
                     except Exception:
-                        self.builder.get_object("main_screenshot").hide()
+                        self.main_screenshot.hide()
                         print("Invalid picture %s, deleting." % local_name)
                         os.unlink(local_name)
                         os.unlink(local_thumb)
@@ -1093,9 +1205,8 @@ class Application(Gtk.Application):
                         try:
                             name = os.path.join(SCREENSHOT_DIR, "%s_1.png" % pkg_name)
                             thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % pkg_name)
-                            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(thumb, 100, -1)
                             event_box = Gtk.EventBox()
-                            image = Gtk.Image.new_from_pixbuf(pixbuf)
+                            image = AsyncImage(thumb, SCREEN_THUMB_WIDTH, -1)
                             event_box.add(image)
                             event_box.connect("button-release-event",
                                               self.on_screenshot_clicked,
@@ -1107,9 +1218,8 @@ class Application(Gtk.Application):
                         except Exception:
                             pass
                     try:
-                        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_thumb, 100, -1)
                         event_box = Gtk.EventBox()
-                        image = Gtk.Image.new_from_pixbuf(pixbuf)
+                        image = AsyncImage(local_thumb, SCREEN_THUMB_WIDTH, -1)
                         event_box.add(image)
                         event_box.connect("button-release-event",
                                           self.on_screenshot_clicked,
@@ -1125,8 +1235,7 @@ class Application(Gtk.Application):
 
     def on_screenshot_clicked(self, eventbox, event, image, local_thumb, local_name):
         # Set main screenshot
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(local_name, 625, -1)
-        self.builder.get_object("main_screenshot").set_from_pixbuf(pixbuf)
+        self.main_screenshot.set_icon_string(local_name, SCREENSHOT_WIDTH, -1)
 
     def category_button_clicked(self, button, category):
         self.show_category(category)
@@ -1678,40 +1787,18 @@ class Application(Gtk.Application):
     def on_row_activated(self, listbox, row):
         self.show_category(row.category)
 
+    def get_application_icon_string(self, pkginfo, size):
+        string = self.installer.get_icon(pkginfo, size)
+
+        if not string:
+            string = FALLBACK_PACKAGE_ICON_PATH
+
+        return string
+
     def get_application_icon(self, pkginfo, size):
-        # Look in the icon theme first
-        theme = Gtk.IconTheme.get_default()
+        icon_string = self.get_application_icon_string(pkginfo, size)
 
-        try:
-            for name in [pkginfo.name, pkginfo.name.split(":")[0], pkginfo.name.split("-")[0], pkginfo.name.split(".")[-1].lower()]:
-                if theme.has_icon(name):
-                    iconInfo = theme.lookup_icon(name, size, 0)
-                    if iconInfo and os.path.exists(iconInfo.get_filename()):
-                        return GdkPixbuf.Pixbuf.new_from_file_at_size(iconInfo.get_filename(), size, size)
-
-            # For Flatpak, look in Appstream and mintinstall provided flatpak icons
-            if pkginfo.pkg_hash.startswith("f"):
-                icon_path = "/var/lib/flatpak/appstream/%s/%s/active/icons/64x64/%s.png" % (pkginfo.remote, pkginfo.arch, pkginfo.name)
-                if os.path.exists(icon_path):
-                    return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, size, size)
-
-                icon_path = "/usr/share/linuxmint/mintinstall/flatpak/icons/64x64/%s.png" % pkginfo.name
-                if os.path.exists(icon_path):
-                    return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, size, size)
-
-            # Look in app-install-data and pixmaps
-            for extension in ['svg', 'png', 'xpm']:
-                icon_path = "/usr/share/app-install/icons/%s.%s" % (pkginfo.name, extension)
-                if os.path.exists(icon_path):
-                    return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, size, size)
-
-                icon_path = "/usr/share/pixmaps/%s.%s" % (pkginfo.name, extension)
-                if os.path.exists(icon_path):
-                    return GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, size, size)
-        except GLib.Error:
-            pass
-
-        return self.generic_available_icon_pixbuf
+        return AsyncImage(icon_string, size, size)
 
     @print_timing
     def show_search_results(self, terms):
@@ -1915,8 +2002,7 @@ class Application(Gtk.Application):
             self.one_package_idle_timer = 0
             return False
 
-        icon = self.get_application_icon(pkginfo, ICON_SIZE)
-        icon = Gtk.Image.new_from_pixbuf(icon)
+        icon = self.get_application_icon(pkginfo, LIST_ICON_SIZE)
 
         summary = self.installer.get_summary(pkginfo)
         summary = summary.replace("<", "&lt;")
@@ -1991,7 +2077,8 @@ class Application(Gtk.Application):
 
         self.builder.get_object("label_details").set_markup(details_markup)
 
-        self.builder.get_object("application_icon").set_from_pixbuf(self.get_application_icon(pkginfo, 64))
+        icon_string = self.get_application_icon_string(pkginfo, DETAILS_ICON_SIZE)
+        self.detail_view_icon.set_icon_string(icon_string)
         self.builder.get_object("application_name").set_label(self.installer.get_display_name(pkginfo))
         self.builder.get_object("application_summary").set_label(self.installer.get_summary(pkginfo))
         self.builder.get_object("application_package").set_label(pkginfo.name)
@@ -2075,16 +2162,15 @@ class Application(Gtk.Application):
         main_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % pkginfo.name)
         if os.path.exists(main_screenshot) and os.path.exists(main_thumb):
             try:
-                main_screenshot = GdkPixbuf.Pixbuf.new_from_file_at_size(main_screenshot, 625, -1)
-                self.builder.get_object("main_screenshot").set_from_pixbuf(main_screenshot)
-                self.builder.get_object("main_screenshot").show()
+                self.main_screenshot.set_icon_string(main_screenshot, SCREENSHOT_WIDTH, -1)
+                self.main_screenshot.show()
             except:
-                self.builder.get_object("main_screenshot").hide()
+                self.main_screenshot.hide()
                 os.unlink(main_screenshot)
             for i in range(2, 5):
                 self.add_screenshot(pkginfo.name, i)
         else:
-            self.builder.get_object("main_screenshot").hide()
+            self.main_screenshot.hide()
             downloadScreenshots = ScreenshotDownloader(self, pkginfo)
             downloadScreenshots.start()
 
@@ -2117,6 +2203,8 @@ class Application(Gtk.Application):
 
         # Load package info
         style_context = self.action_button.get_style_context()
+
+        action_button_description = ""
 
         if task.info_ready_status == task.STATUS_OK:
             if task.type == "remove":
