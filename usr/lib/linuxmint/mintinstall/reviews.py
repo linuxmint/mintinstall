@@ -9,8 +9,24 @@ from pathlib import Path
 from gi.repository import GLib
 
 from misc import print_timing
+import reviews
 
 REVIEWS_CACHE = os.path.join(GLib.get_user_cache_dir(), "mintinstall", "reviews.cache")
+
+safe_classes = {
+    'PickleObject',
+    'ReviewInfo',
+    'Review',
+}
+
+class RestrictedUnpickler(pickle.Unpickler):
+
+    def find_class(self, module, name):
+        # Only allow our own classes
+        if module == "reviews" and name in safe_classes:
+            return getattr(reviews, name)
+        # Forbid everything else.
+        raise pickle.UnpicklingError("Pickle: '%s.%s' is forbidden" % (module, name))
 
 class ReviewInfo:
     def __init__(self, name):
@@ -109,7 +125,7 @@ class ReviewCache(object):
             if path != None:
                 try:
                     with path.open(mode='rb') as f:
-                        pobj = pickle.load(f)
+                        pobj = RestrictedUnpickler(f).load()
 
                         cache = pobj.cache
                         size = pobj.size
