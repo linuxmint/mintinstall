@@ -1,6 +1,6 @@
 import os
 import threading
-import pickle
+import json
 import requests
 import multiprocessing
 
@@ -10,16 +10,29 @@ from gi.repository import GLib
 
 from misc import print_timing
 
-REVIEWS_CACHE = os.path.join(GLib.get_user_cache_dir(), "mintinstall", "reviews.cache")
+REVIEWS_CACHE = os.path.join(GLib.get_user_cache_dir(), "mintinstall", "reviews.json")
+
+class Review(object):
+    def __init__(self, packagename, date, username, rating, comment):
+        self.date = date
+        self.packagename = packagename
+        self.username = username
+        self.rating = int(rating)
+        self.comment = comment
+
+    @classmethod
+    def from_json(cls, json_data:dict):
+        return cls(**json_data)
+
 
 class ReviewInfo:
-    def __init__(self, name):
+    def __init__(self, name, score=0, avg_rating=0, num_reviews=0):
         self.name = name
         self.reviews = []
         self.categories = []
-        self.score = 0
-        self.avg_rating = 0
-        self.num_reviews = 0
+        self.score = score
+        self.avg_rating = avg_rating
+        self.num_reviews = num_reviews
 
     def update_stats(self):
         points = 0
@@ -33,23 +46,32 @@ class ReviewInfo:
             self.avg_rating = round(float(sum_rating) / float(self.num_reviews), 1)
         self.score = points
 
-class Review(object):
-    __slots__ = 'date', 'packagename', 'username', 'rating', 'comment', 'package' #To remove __dict__ memory overhead
+    @classmethod
+    def from_json(cls, json_data:dict):
+        reviews = list(map(Review.from_json, json_data["reviews"]))
+        inst = cls(json_data["name"],
+                   json_data["score"],
+                   json_data["avg_rating"],
+                   json_data["num_reviews"])
+        inst.reviews = reviews
 
-    def __init__(self, packagename, date, username, rating, comment):
-        self.date = date
-        self.packagename = packagename
-        self.username = username
-        self.rating = int(rating)
-        self.comment = comment
-        self.package = None
+        return inst
 
-class PickleObject(object):
+class JsonObject(object):
     def __init__(self, cache, size):
-        super(PickleObject, self).__init__()
+        super(JsonObject, self).__init__()
 
         self.cache = cache
         self.size = int(size)
+
+    @classmethod
+    def from_json(cls, json_data: dict):
+        new_dict = {}
+        for key in json_data["cache"].keys():
+            info_data = json_data["cache"][key]
+            new_dict[key] = ReviewInfo.from_json(info_data)
+
+        return cls(new_dict, json_data["size"])
 
 class ReviewCache(object):
     @print_timing
@@ -99,11 +121,10 @@ class ReviewCache(object):
         finally:
             if path != None:
                 try:
-                    with path.open(mode='rb') as f:
-                        pobj = pickle.load(f)
-
-                        cache = pobj.cache
-                        size = pobj.size
+                    with path.open(mode='r', encoding="utf8") as f:
+                        json_object = JsonObject.from_json(json.load(f))
+                        cache = json_object.cache
+                        size = json_object.size
                 except Exception as e:
                     print("MintInstall: Cannot open reviews cache: %s" % str(e))
                     cache = {}
@@ -121,11 +142,11 @@ class ReviewCache(object):
             path = None
         finally:
             try:
-                with path.open(mode='wb') as f:
-                    pobj = PickleObject(cache, size)
-                    pickle.dump(pobj, f)
+                with path.open(mode='w', encoding="utf8") as f:
+                    pobj = JsonObject(cache, size)
+                    json.dump(pobj, f, default=lambda o: o.__dict__, indent=4)
             except Exception as e:
-                print("MintInstall: Could not save review cache:" % str(e))
+                print("MintInstall: Could not save review cache: %s" % str(e))
 
     def _update_cache(self):
         thread = threading.Thread(target=self._update_reviews_thread)
@@ -171,7 +192,6 @@ class ReviewCache(object):
                             if last_package != None and last_package.name == elements[0]:
                                 #Comment is on the same package as previous comment.. no need to search for the package
                                 last_package.reviews.append(review)
-                                review.package = last_package
                             else:
                                 if last_package is not None:
                                     last_package.update_stats()
@@ -184,7 +204,6 @@ class ReviewCache(object):
 
                                 last_package = package
                                 package.reviews.append(review)
-                                review.package = package
 
                     if last_package is not None:
                         last_package.update_stats()
