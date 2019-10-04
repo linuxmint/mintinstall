@@ -1,3 +1,10 @@
+mintinstall (7.9.7.1) tessa; urgency=medium
+
+  [ Michael Webster ]
+  * reviews.py: Use json instead of pickle for serialization. (#262)
+
+ -- Clement Lefebvre <root@linuxmint.com>  Fri, 04 Oct 2019 09:48:36 +0100
+
 mintinstall (7.9.7) tessa; urgency=medium
 
   [ Michael Webster ]
