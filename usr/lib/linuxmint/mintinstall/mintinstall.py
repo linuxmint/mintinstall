@@ -1114,6 +1114,7 @@ class Application(Gtk.Application):
                 self.show_package(self.current_pkginfo, self.previous_page)
             else:
                 del self.installer.cache[pkginfo.pkg_hash]
+                self.previous_page = self.PAGE_LANDING
                 self.go_back_action()
 
         for tile in (self.picks_tiles + self.category_tiles):
