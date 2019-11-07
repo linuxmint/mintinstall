@@ -1,0 +1,11 @@
+#package----background----border-color----text-color----text-shadow
+blender----url('@prefix@blender.png') 10% 40% / 50% auto no-repeat, -gtk-gradient (radial, center bottom, 0, center center, 1, from(#fcbf83), to(#c06105))----#783d03----#ffffff----0 1px 1px rgba(0,0,0,0.5)
+gnome-chess----url('@prefix@chess.png') 10% center / 40% auto no-repeat, linear-gradient(to bottom, #555753, #888a85)----#2e3436----#ffffff----0 1px 1px rgba(0,0,0,0.5)
+firefox----url('@prefix@firefox.png') 10% center / 40% auto no-repeat, linear-gradient(to bottom, #d3d7cf, #eeeeec)----#babdb6----#888a85----0 1px 1px rgba(255,255,255,0.7)
+gimp----url('@prefix@gimp.png') left 50% / 50% auto no-repeat, linear-gradient(to bottom, #8ac674, #cbddc3)----#2a6c10----#333----0 1px 1px rgba(255,255,255,0.7)
+inkscape----url('@prefix@inkscape.png') 20% / 60% auto no-repeat, linear-gradient(to bottom, #ccd6c3, #a7b797)----#819a6b----#ffffff----0 1px 3px rgba(0,0,0,0.9),0 1px 2px rgba(0,0,0,0.7)
+gnome-weather----url('@prefix@weather.png') left 80% / 50% auto no-repeat, url('@prefix@weather-bg.png'), linear-gradient(to bottom, #25486d, #6693ce)----#d8e0ef----#ffffff----0 1px 1px rgba(0,0,0,0.5)
+transmission-gtk----url('@prefix@transmission.png') 10% 20% / 427px auto no-repeat, -gtk-gradient (radial, center bottom, 0, center center, 0.8, from(#ffc124), to(#b75200))----#a40000----#ffffff----0 1px 1px rgba(0,0,0,0.5)
+gnome-maps----url('@prefix@maps-bg.png') center / cover no-repeat----#000000----#ffffff----0 1px 3px #000000,0 1px 2px #000000
+steam:i386----url('@prefix@joystick.svg') left center / 30% auto no-repeat, url('@prefix@steam-bg.png') center / cover no-repeat----#000000----#ffffff----0 1px 1px rgba(0,0,0,0.5)
+pia-manager----url('@prefix@pia-bg.png') 10px 10px / 452px auto no-repeat, linear-gradient(to bottom, #119c46, #086b2d)----#d8e0ef----#ffffff----0 1px 1px rgba(0,0,0,0.5)
