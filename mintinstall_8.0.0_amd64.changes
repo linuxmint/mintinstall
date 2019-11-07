@@ -1,0 +1,34 @@
+Format: 1.8
+Date: Fri, 04 Oct 2019 08:54:14 +0100
+Source: mintinstall
+Binary: mintinstall
+Architecture: source all
+Version: 8.0.0
+Distribution: tina
+Urgency: medium
+Maintainer: Linux Mint <root@linuxmint.com>
+Changed-By: Clement Lefebvre <root@linuxmint.com>
+Description:
+ mintinstall - Software Manager
+Changes:
+ mintinstall (8.0.0) tina; urgency=medium
+ .
+   [ Michael Webster ]
+   * mintinstall.py: Finish implementation to fetch flatpak icons from appstream, as well as support for remote images.  Implement hidpi support also.
+   * Remove fallback flatpak icons - they're no longer necessary.
+   * reviews.py: Use json instead of pickle for serialization. (#262)
+Checksums-Sha1:
+ a48e5b185ab080eeec0c6c79000759a5f88fed7a 532 mintinstall_8.0.0.dsc
+ c3e4aef46837c19fa0ed20cd683355eb3a9de531 3758464 mintinstall_8.0.0.tar.xz
+ 0e50c57ad7252ea63465a71d1af740d2a51e1355 3761320 mintinstall_8.0.0_all.deb
+ c1d710b217e11f5e1c84ac9874f4842ea70e9c9d 13181 mintinstall_8.0.0_amd64.buildinfo
+Checksums-Sha256:
+ be561391ebbfb9df724eaf0a7f6a23c59cb1f0a5adf147e1b226be56b774dd5d 532 mintinstall_8.0.0.dsc
+ 32ea00833b7f6d775099e037a7acf6504d7ced9b402e9d99f124a16327840333 3758464 mintinstall_8.0.0.tar.xz
+ 6931f134ee3332ad9df18f014b135031ce0ce79dfe73d86d43140a5a8a3e1d0c 3761320 mintinstall_8.0.0_all.deb
+ bf780c490b063ef0ef5482a23bb96d9f66f3cd6746173ac9374721e6dc3f35e3 13181 mintinstall_8.0.0_amd64.buildinfo
+Files:
+ ca5f9d2ee3c3e683729c8f647d6741fe 532 admin optional mintinstall_8.0.0.dsc
+ 17a75e62ec7b6758bcc035b28c961a06 3758464 admin optional mintinstall_8.0.0.tar.xz
+ 188d2c995089c3acfea36cc4de53f9bd 3761320 admin optional mintinstall_8.0.0_all.deb
+ 2032d724be6f5dfc3ca047e55d31701e 13181 admin optional mintinstall_8.0.0_amd64.buildinfo
