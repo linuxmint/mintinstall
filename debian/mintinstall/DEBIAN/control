@@ -1,0 +1,11 @@
+Package: mintinstall
+Version: 8.0.0
+Architecture: all
+Maintainer: Linux Mint <root@linuxmint.com>
+Installed-Size: 4062
+Depends: python3 (>= 3.4), python3-apt, python3-aptdaemon, python3-aptdaemon.gtk3widgets, python3-bs4, python3-configobj, python3-setproctitle, gir1.2-appstream-1.0, gir1.2-gdkpixbuf-2.0, gir1.2-glib-2.0, gir1.2-gtk-3.0, gir1.2-xapp-1.0, libgtk2-perl, mint-common (>= 2), app-install-data
+Recommends: gir1.2-flatpak-1.0, flatpak, xdg-desktop-portal-gtk
+Section: admin
+Priority: optional
+Description: Software Manager
+ A software manager to easily install new applications.

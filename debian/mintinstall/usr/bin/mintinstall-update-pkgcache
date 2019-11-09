@@ -1,0 +1,5 @@
+#!/usr/bin/python3
+
+import subprocess
+
+subprocess.call("/usr/lib/linuxmint/mintinstall/mintinstall-update-pkgcache.py")

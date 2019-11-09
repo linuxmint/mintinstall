@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="com.linuxmint.install" path="/com/linuxmint/install/">
+    <key type="b" name="search-in-summary">
+      <default>true</default>
+      <summary></summary>
+      <description></description>
+    </key>
+    <key type="b" name="search-in-description">
+      <default>false</default>
+      <summary></summary>
+      <description></description>
+    </key>
+    <key type="as" name="installed-apps">
+      <default>[]</default>
+      <summary></summary>
+      <description></description>
+    </key>
+    <key type="b" name="search-in-category">
+      <default>true</default>
+      <summary>Remembers the state of the 'search in category' button</summary>
+    </key>
+    <key type="as" name="flatpak-remotes">
+      <default>[]</default>
+      <summary>Check this against the FlatpakInstallation to determine if we need to refresh the cache at startup.</summary>
+      <description>name::uri::disabled tuples</description>
+    </key>
+  </schema>
+</schemalist>
