@@ -1,3 +1,10 @@
+mintinstall (8.0.1) tricia; urgency=medium
+
+  [ Michael Webster ]
+  * mintinstall.py: Go back to the landing page when a flatpak is removed, and its remote no longer exists (having been removed during the package uninstall).
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 13 Nov 2019 13:24:02 +0100
+
 mintinstall (8.0.0) tina; urgency=medium
 
   [ Michael Webster ]
