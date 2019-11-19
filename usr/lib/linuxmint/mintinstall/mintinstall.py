@@ -1325,7 +1325,7 @@ class Application(Gtk.Application):
 
         self.installer = installer.Installer()
 
-        from installer import cache
+        from mintcommon.installer import cache
 
         self.installer.cache = cache.PkgCache(self.installer.have_flatpak)
         self.installer.force_new_cache()
