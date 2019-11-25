@@ -1351,7 +1351,11 @@ class Application(Gtk.Application):
             description = description.replace("\n", "<br>")
 
             summary = self.installer.get_summary(pkginfo)
-            url = self.installer.get_url(pkginfo)
+            url = ""
+            try:
+                url = self.installer.get_url(pkginfo)
+            except:
+                pass
 
             categories = []
             for category in pkginfo.categories:
@@ -2089,7 +2093,10 @@ class Application(Gtk.Application):
         app_description.set_label(description)
         app_description.set_line_wrap(True)
 
-        homepage = self.installer.get_url(pkginfo)
+        try:
+            homepage = self.installer.get_url(pkginfo)
+        except:
+            homepage = None
         if homepage is not None and homepage != "":
             self.builder.get_object("website_link").show()
             self.builder.get_object("website_link").set_markup("<a href='%s'>%s</a>" % (homepage, homepage))
