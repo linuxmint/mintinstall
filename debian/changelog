@@ -1,3 +1,14 @@
+mintinstall (8.0.3) tricia; urgency=medium
+
+  [ Michael Webster ]
+  * mintinstall.py: Fix list exporting.
+
+  [ Clement Lefebvre ]
+  * Drop minecraft-installer, add official minecraft-launcher.
+  * Don't crash when getting URL
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon, 25 Nov 2019 14:31:40 +0000
+
 mintinstall (8.0.2) tricia; urgency=medium
 
   * Update app icon
