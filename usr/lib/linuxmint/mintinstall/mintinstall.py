@@ -1029,14 +1029,6 @@ class Application(Gtk.Application):
             button.connect("clicked", self.category_button_clicked, category)
             flowbox.insert(button, -1)
 
-        ''' For code review
-        # Add picks
-        button = Gtk.Button()
-        button.set_label(self.picks_category.name)
-        button.connect("clicked", self.category_button_clicked, self.picks_category)
-        flowbox.insert(button, -1)
-        '''
-
         if self.installer.list_flatpak_remotes():
             # Add flatpaks
             button = Gtk.Button()
