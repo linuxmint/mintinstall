@@ -1029,11 +1029,13 @@ class Application(Gtk.Application):
             button.connect("clicked", self.category_button_clicked, category)
             flowbox.insert(button, -1)
 
+        ''' For code review
         # Add picks
         button = Gtk.Button()
         button.set_label(self.picks_category.name)
         button.connect("clicked", self.category_button_clicked, self.picks_category)
         flowbox.insert(button, -1)
+        '''
 
         if self.installer.list_flatpak_remotes():
             # Add flatpaks
@@ -1042,6 +1044,11 @@ class Application(Gtk.Application):
             button.connect("clicked", self.category_button_clicked, self.flatpak_category)
 
             flowbox.insert(button, -1)
+
+        button = Gtk.Button()
+        button.set_label(self.all_category.name)
+        button.connect("clicked", self.category_button_clicked, self.all_category)
+        flowbox.insert(button, -1)
 
         box.pack_start(flowbox, True, True, 0)
         box.show_all()
@@ -1436,6 +1443,7 @@ class Application(Gtk.Application):
         self.active_tasks_category = Category(_("Currently working on the following packages"), None, None)
 
         self.picks_category = Category(_("Editors' Picks"), None, self.categories)
+
         edition = ""
         try:
             with open("/etc/linuxmint/info") as f:
@@ -1449,6 +1457,14 @@ class Application(Gtk.Application):
             self.picks_category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/picks.list")
 
         self.flatpak_category = Category("Flatpak", None, self.categories)
+
+        # ALL
+        self.all_category = Category(_("All Applications"), None, self.categories)
+        with os.scandir("/usr/share/linuxmint/mintinstall/categories/") as it:
+            for entry in it:
+                if entry.path.endswith(".list"):
+                    self.all_category.matchingPackages.extend(self.file_to_array(entry.path))
+                    sorted(self.all_category.matchingPackages)
 
         # INTERNET
         category = Category(_("Internet"), None, self.categories)
