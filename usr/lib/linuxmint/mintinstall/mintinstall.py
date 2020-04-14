@@ -357,9 +357,8 @@ class PackageTile(Tile):
             label_name.set_markup("<b>%s</b>" % self.installer.get_display_name(pkginfo))
 
         label_name.set_justify(Gtk.Justification.LEFT)
-        label_summary = Gtk.Label()
+        label_summary = Gtk.Label(xalign=0.0)
         label_summary.set_markup("<small>%s</small>" % summary)
-        label_summary.set_alignment(0.0, 0.0)
         label_summary.set_line_wrap(True)
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -513,10 +512,10 @@ class CategoryListBoxRow(Gtk.ListBoxRow):
         self.category = category
 
         if is_all:
-            label = Gtk.Label(_("All"), xalign=0, margin=10)
+            label = Gtk.Label(label=_("All"), xalign=0, margin=10)
             self.add(label)
         else:
-            label = Gtk.Label(category.name, xalign=0, margin=10)
+            label = Gtk.Label(label=category.name, xalign=0, margin=10)
             self.add(label)
 
 class Application(Gtk.Application):
@@ -536,7 +535,7 @@ class Application(Gtk.Application):
 
         self.low_res = self.get_low_res_screen()
 
-        self.settings = Gio.Settings("com.linuxmint.install")
+        self.settings = Gio.Settings(schema_id="com.linuxmint.install")
         self.arch = platform.machine()
 
         print("MintInstall: Detected system architecture: '%s'" % self.arch)
@@ -693,15 +692,14 @@ class Application(Gtk.Application):
 
     def get_low_res_screen(self):
         display = Gdk.Display.get_default()
-        screen = display.get_default_screen()
         pointer = display.get_default_seat().get_pointer()
+
+        height = 9999
+
         if pointer:
             position = pointer.get_position()
-            monitor_number = screen.get_monitor_at_point(position.x, position.y)
-        else:
-            monitor_number = 0
-        monitor = display.get_monitor(monitor_number)
-        height = monitor.get_geometry().height
+            monitor = display.get_monitor_at_point(position.x, position.y)
+            height = monitor.get_geometry().height
 
         # If it's less than our threshold than consider us 'low res'. The workarea being used is in
         # app pixels, so hidpi will also be affected here regardless of device resolution.
@@ -776,7 +774,7 @@ class Application(Gtk.Application):
         # Build the menu
         submenu = Gtk.Menu()
 
-        self.installed_menuitem = Gtk.MenuItem(_("Show installed applications"))
+        self.installed_menuitem = Gtk.MenuItem(label=_("Show installed applications"))
         self.installed_menuitem.connect("activate", self.show_installed_apps)
         self.installed_menuitem.show()
         submenu.append(self.installed_menuitem)
@@ -785,13 +783,13 @@ class Application(Gtk.Application):
         separator.show()
         submenu.append(separator)
 
-        search_summary_menuitem = Gtk.CheckMenuItem(_("Search in packages summary (slower search)"))
+        search_summary_menuitem = Gtk.CheckMenuItem(label=_("Search in packages summary (slower search)"))
         search_summary_menuitem.set_active(self.settings.get_boolean(SEARCH_IN_SUMMARY))
         search_summary_menuitem.connect("toggled", self.set_search_filter, SEARCH_IN_SUMMARY)
         search_summary_menuitem.show()
         submenu.append(search_summary_menuitem)
 
-        search_description_menuitem = Gtk.CheckMenuItem(_("Search in packages description (even slower search)"))
+        search_description_menuitem = Gtk.CheckMenuItem(label=_("Search in packages description (even slower search)"))
         search_description_menuitem.set_active(self.settings.get_boolean(SEARCH_IN_DESCRIPTION))
         search_description_menuitem.connect("toggled", self.set_search_filter, SEARCH_IN_DESCRIPTION)
         search_description_menuitem.show()
@@ -801,7 +799,7 @@ class Application(Gtk.Application):
         separator.show()
         submenu.append(separator)
 
-        self.refresh_cache_menuitem = Gtk.MenuItem(_("Refresh the list of packages"))
+        self.refresh_cache_menuitem = Gtk.MenuItem(label=_("Refresh the list of packages"))
         self.refresh_cache_menuitem.connect("activate", self.on_refresh_cache_clicked)
         self.refresh_cache_menuitem.show()
         self.refresh_cache_menuitem.set_sensitive(False)
@@ -811,7 +809,7 @@ class Application(Gtk.Application):
         separator.show()
         submenu.append(separator)
 
-        about_menuitem = Gtk.MenuItem(_("About"))
+        about_menuitem = Gtk.MenuItem(label=_("About"))
         about_menuitem.connect("activate", self.open_about)
         about_menuitem.show()
         submenu.append(about_menuitem)
@@ -894,16 +892,16 @@ class Application(Gtk.Application):
             self.sync_installed_apps()
             self.update_conditional_widgets()
 
-            GObject.idle_add(self.finished_loading_packages)
+            GLib.idle_add(self.finished_loading_packages)
 
             # Can take some time, don't block for it (these are categorizing packages based on apt info, not our listings)
-            GObject.idle_add(self.process_unmatched_packages)
+            GLib.idle_add(self.process_unmatched_packages)
 
             self.review_cache = reviews.ReviewCache()
             housekeeping.run()
         except GLib.Error as e:
             print("Loading error: %s", e.message)
-            GObject.idle_add(self.refresh_cache)
+            GLib.idle_add(self.refresh_cache)
 
     def load_featured_on_landing(self):
         box = self.builder.get_object("box_featured")
@@ -1260,10 +1258,10 @@ class Application(Gtk.Application):
 
     def on_entry_text_changed(self, entry):
         if self.search_changed_timer > 0:
-            GObject.source_remove(self.search_changed_timer)
+            GLib.source_remove(self.search_changed_timer)
             self.search_changed_timer = 0
 
-        self.search_changed_timer = GObject.timeout_add(175, self.on_search_changed, entry)
+        self.search_changed_timer = GLib.timeout_add(175, self.on_search_changed, entry)
 
     def on_search_changed(self, searchentry):
         terms = searchentry.get_text()
@@ -1706,7 +1704,7 @@ class Application(Gtk.Application):
             self.searchentry.set_text("")
             self.current_category = None
             if self.one_package_idle_timer > 0:
-                GObject.source_remove(self.one_package_idle_timer)
+                GLib.source_remove(self.one_package_idle_timer)
                 self.one_package_idle_timer = 0
 
         if self.previous_page == self.PAGE_LIST:
@@ -1838,7 +1836,7 @@ class Application(Gtk.Application):
         searched_packages = []
 
         if self.search_idle_timer > 0:
-            GObject.source_remove(self.search_idle_timer)
+            GLib.source_remove(self.search_idle_timer)
             self.search_idle_timer = 0
 
         search_in_summary = self.settings.get_boolean(SEARCH_IN_SUMMARY)
@@ -1869,10 +1867,10 @@ class Application(Gtk.Application):
 
             self.search_idle_timer = 0
 
-            GObject.idle_add(self.on_search_results_complete, searched_packages)
+            GLib.idle_add(self.on_search_results_complete, searched_packages)
             return False
 
-        self.search_idle_timer = GObject.idle_add(idle_search_one_package, list(listing))
+        self.search_idle_timer = GLib.idle_add(idle_search_one_package, list(listing))
 
     def on_search_results_complete(self, results):
         self.clear_category_list()
@@ -1921,7 +1919,7 @@ class Application(Gtk.Application):
 
     def show_packages(self, pkginfos, from_search=False):
         if self.one_package_idle_timer > 0:
-            GObject.source_remove(self.one_package_idle_timer)
+            GLib.source_remove(self.one_package_idle_timer)
             self.one_package_idle_timer = 0
 
         for child in self.flowbox_applications.get_children():
@@ -1994,7 +1992,7 @@ class Application(Gtk.Application):
         for bad in bad_ones:
             pkginfos.remove(bad)
 
-        self.one_package_idle_timer = GObject.idle_add(self.idle_show_one_package,
+        self.one_package_idle_timer = GLib.idle_add(self.idle_show_one_package,
                                                        pkginfos,
                                                        collisions)
 
@@ -2351,7 +2349,7 @@ class Application(Gtk.Application):
             return
 
         self.builder.get_object("application_progress").pulse()
-        self.installer_pulse_timer = GObject.timeout_add(1050, self.installer_pulse_tick)
+        self.installer_pulse_timer = GLib.timeout_add(1050, self.installer_pulse_tick)
 
     def installer_pulse_tick(self):
         p = self.builder.get_object("application_progress")
@@ -2362,7 +2360,7 @@ class Application(Gtk.Application):
 
     def stop_progress_pulse(self):
         if self.installer_pulse_timer > 0:
-            GObject.source_remove(self.installer_pulse_timer)
+            GLib.source_remove(self.installer_pulse_timer)
             self.installer_pulse_timer = 0
 
 class DottedProgressLabel(Gtk.Fixed):
