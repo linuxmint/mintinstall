@@ -1,3 +1,17 @@
+mintinstall (8.0.4) ulyana; urgency=medium
+
+  [ Michael Webster ]
+  * mintinstall.py: Clean up some deprecation warnings.
+
+  [ Hyun-Su, Mun ]
+  * Change Editors' Picks to All Applications (FR Issue#226) (#276)
+
+  [ Clement Lefebvre ]
+  * l10n: Update POT
+  * l10n: Generate files
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 13 May 2020 15:42:17 +0100
+
 mintinstall (8.0.3) tricia; urgency=medium
 
   [ Michael Webster ]
