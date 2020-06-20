@@ -704,7 +704,7 @@ class Application(Gtk.Application):
         # If it's less than our threshold than consider us 'low res'. The workarea being used is in
         # app pixels, so hidpi will also be affected here regardless of device resolution.
         if height < 768:
-            print("MintInstall: low resolution detected on monitor %d (%dpx height), limiting window height." % (monitor_number, height))
+            print("MintInstall: low resolution detected (%dpx height), limiting window height." % (height))
             return True
 
         return False
