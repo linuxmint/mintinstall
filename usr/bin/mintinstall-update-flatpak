@@ -1,3 +1,0 @@
-#!/bin/bash
-mkdir -p ~/.cache/mintinstall
-python3 /usr/lib/linuxmint/mintinstall/mintinstall-update-flatpak.py > ~/.cache/mintinstall/flatpak-update.log
