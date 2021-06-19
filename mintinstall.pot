@@ -288,7 +288,7 @@ msgstr ""
 
 #: usr/lib/linuxmint/mintinstall/mintinstall.py:2168
 #, python-format
-msgid "Click <a href='%s'>here</a> to add your own review."
+msgid "Click <a href='%s'>here</a> to add your own review(Requires account, create one <a href="https://community.linuxmint.com/auth/register">here</a>)."
 msgstr ""
 
 #: usr/lib/linuxmint/mintinstall/mintinstall.py:2225
