@@ -1176,7 +1176,7 @@ class Application(Gtk.Application):
                 except ValueError:
                     pass
 
-        self.settings.set_strv(INSTALLED_APPS, installed_packages)
+        self.settings.set_strv(INSTALLED_APPS, new_installed_packages)
 
     def show_installed_apps(self, menuitem):
         self.show_category(self.installed_category)
