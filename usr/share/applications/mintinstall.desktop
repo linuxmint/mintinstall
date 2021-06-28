@@ -195,3 +195,4 @@ Type=Application
 Encoding=UTF-8
 Categories=Application;System;Settings;XFCE;X-XFCE-SettingsDialog;X-XFCE-SystemSettings;
 NotShowIn=KDE;
+StartupNotify=true

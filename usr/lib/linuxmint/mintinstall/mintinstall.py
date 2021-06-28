@@ -1155,24 +1155,22 @@ class Application(Gtk.Application):
             installed_packages = self.settings.get_strv(INSTALLED_APPS)
             installed_packages = self.modernize_installed_list(installed_packages)
 
+        new_installed_packages = []
         for pkg_hash in installed_packages:
             try:
                 pkginfo = self.installer.cache[pkg_hash]
             except KeyError:
+                try:
+                    self.installed_category.pkginfos.remove(pkginfo)
+                except ValueError:
+                    pass
                 continue
 
-            if pkginfo:
-                if self.installer.pkginfo_is_installed(pkginfo):
-                    if pkginfo not in self.installed_category.pkginfos:
-                        self.installed_category.pkginfos.append(pkginfo)
-                else:
-                    installed_packages.remove(pkg_hash)
-                    try:
-                        self.installed_category.pkginfos.remove(pkginfo)
-                    except ValueError:
-                        pass
+            if self.installer.pkginfo_is_installed(pkginfo):
+                if pkginfo not in self.installed_category.pkginfos:
+                    self.installed_category.pkginfos.append(pkginfo)
+                new_installed_packages.append(pkg_hash)
             else:
-                installed_packages.remove(pkg_hash)
                 try:
                     self.installed_category.pkginfos.remove(pkginfo)
                 except ValueError:
