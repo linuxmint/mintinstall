@@ -1,3 +1,11 @@
+mintinstall (8.0.7) uma; urgency=medium
+
+  [ Michael Webster ]
+  * Don't modify the list we're traversing when updating the installed apps category.
+  * Store the newly populated list in gsettings, not the original.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Fri, 02 Jul 2021 10:38:47 +0100
+
 mintinstall (8.0.6) uma; urgency=medium
 
   * Remove flatpak auto-update script (#303)
