@@ -2305,7 +2305,16 @@ class Application(Gtk.Application):
 
         if self.installer.pkginfo_is_installed(pkginfo):
             if pkginfo.pkg_hash.startswith("a"):
-                for desktop_file in ["/usr/share/applications/%s.desktop" % bin_name, "/usr/share/app-install/desktop/%s:%s.desktop" % (bin_name, bin_name)]:
+                for desktop_file in [
+                    # foo.desktop
+                    "/usr/share/applications/%s.desktop" % bin_name,
+                    # foo in foo-bar.desktop
+                    "/usr/share/applications/%s.desktop" % bin_name.split("-")[0],
+                    # foo in org.bar.Foo.desktop
+                    "/usr/share/applications/%s.desktop" % bin_name.split(".")[-1],
+                    "/usr/share/app-install/desktop/%s:%s.desktop" % (bin_name, bin_name)
+                    ]:
+
                     if os.path.exists(desktop_file):
                         config = configobj.ConfigObj(desktop_file)
                         try:
