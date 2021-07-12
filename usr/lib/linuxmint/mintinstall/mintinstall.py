@@ -1160,10 +1160,6 @@ class Application(Gtk.Application):
             try:
                 pkginfo = self.installer.cache[pkg_hash]
             except KeyError:
-                try:
-                    self.installed_category.pkginfos.remove(pkginfo)
-                except ValueError:
-                    pass
                 continue
 
             if self.installer.pkginfo_is_installed(pkginfo):
