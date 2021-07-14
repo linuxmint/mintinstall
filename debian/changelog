@@ -1,3 +1,11 @@
+mintinstall (8.0.8) uma; urgency=medium
+
+  [ Michael Webster ]
+  * mintinstall.py: Add more possible match patterns when looking for an apt package's desktop file.
+  * mintinstall.py: Don't try to access pkginfo before it's been set.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 14 Jul 2021 09:48:03 +0100
+
 mintinstall (8.0.7) uma; urgency=medium
 
   [ Michael Webster ]
