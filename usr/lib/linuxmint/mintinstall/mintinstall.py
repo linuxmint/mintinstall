@@ -345,9 +345,25 @@ class Tile(Gtk.Button):
         else:
             self.installed_mark.clear()
 
-class PackageTile(Tile):
+class TileRow(Gtk.ListBoxRow):
+
+    def __init__(self, pkginfo, installer):
+        super(Gtk.ListBoxRow, self).__init__()
+        self.pkginfo = pkginfo
+        self.installed_mark = Gtk.Image()
+        self.installer = installer
+
+    def refresh_state(self):
+        self.installed = self.installer.pkginfo_is_installed(self.pkginfo)
+
+        if self.installed:
+            self.installed_mark.set_from_icon_name("emblem-installed", Gtk.IconSize.MENU)
+        else:
+            self.installed_mark.clear()
+
+class PackageRow(TileRow):
     def __init__(self, pkginfo, icon, summary, installer, review_info=None, more_info=None):
-        Tile.__init__(self, pkginfo, installer)
+        TileRow.__init__(self, pkginfo, installer)
 
         label_name = Gtk.Label(xalign=0)
 
@@ -381,6 +397,10 @@ class PackageTile(Tile):
         vbox.set_valign(Gtk.Align.CENTER)
 
         hbox = Gtk.Box()
+        hbox.set_margin_start(12)
+        hbox.set_margin_end(12)
+        hbox.set_margin_top(6)
+        hbox.set_margin_bottom(6)
         hbox.pack_start(icon, False, False, 0)
         hbox.pack_start(vbox, False, False, 0)
 
@@ -823,22 +843,13 @@ class Application(Gtk.Application):
         menu_button = self.builder.get_object("menu_button")
         menu_button.connect("clicked", self.on_menu_button_clicked, submenu)
 
-        self.flowbox_applications = Gtk.FlowBox()
-        self.flowbox_applications.set_margin_start(6)
-        self.flowbox_applications.set_margin_end(6)
-        self.flowbox_applications.set_margin_top(6)
-        self.flowbox_applications.set_margin_bottom(6)
-        self.flowbox_applications.set_min_children_per_line(1)
-        self.flowbox_applications.set_max_children_per_line(1)
-        self.flowbox_applications.set_row_spacing(6)
-        self.flowbox_applications.set_column_spacing(6)
-        self.flowbox_applications.set_homogeneous(True)
-        self.flowbox_applications.set_valign(Gtk.Align.START)
-        self.flowbox_applications.connect("child-activated", self.on_flowbox_child_activated, self.PAGE_LIST)
-        self.flowbox_applications.connect("selected-children-changed", self.on_navigate_flowbox)
+        self.listbox_applications = Gtk.ListBox()
+        self.listbox_applications.connect("row-activated", self.on_app_row_activated, self.PAGE_LIST)
+        self.listbox_applications.connect("selected-rows-changed", self.on_navigate_listbox)
+        self.listbox_applications.set_header_func(list_header_func, None)
 
         box = self.builder.get_object("box_cat_page")
-        box.add(self.flowbox_applications)
+        box.add(self.listbox_applications)
 
         self.back_button = self.builder.get_object("back_button")
         self.back_button.connect("clicked", self.on_back_button_clicked)
@@ -1124,9 +1135,9 @@ class Application(Gtk.Application):
             if tile.pkginfo == pkginfo:
                 tile.refresh_state()
 
-        for fbchild in self.flowbox_applications.get_children():
+        for lschild in self.listbox_applications.get_children():
             try:
-                fbchild.get_child().refresh_state()
+                lschild.refresh_state()
             except Exception as e:
                 print(e)
 
@@ -1674,16 +1685,17 @@ class Application(Gtk.Application):
             return True
         return False
 
-    def reset_scroll_view(self, scrolledwindow, flowbox=None):
+    def reset_scroll_view(self, scrolledwindow, listbox=None):
         adjustment = scrolledwindow.get_vadjustment()
         adjustment.set_value(adjustment.get_lower())
 
-        if not flowbox:
+        if not listbox:
             return
 
         try:
-            first = flowbox.get_children()[0]
-            flowbox.select_child(first)
+            first = listbox.get_children()[0]
+            listbox.select_row(first)
+            first.grab_focus()
         except IndexError:
             pass
 
@@ -1724,8 +1736,8 @@ class Application(Gtk.Application):
                 self.show_active_tasks()
             else:
                 try:
-                    fc = self.flowbox_applications.get_selected_children()[0]
-                    fc.grab_focus()
+                    lr = self.listbox_applications.get_selected_rows()[0]
+                    lr.grab_focus()
                 except IndexError:
                     pass
 
@@ -1820,8 +1832,8 @@ class Application(Gtk.Application):
         self.stop_progress_pulse()
         self.current_pkginfo = None
 
-        for child in self.flowbox_applications.get_children():
-            self.flowbox_applications.remove(child)
+        for child in self.listbox_applications.get_children():
+            self.listbox_applications.remove(child)
 
         if self.subsearch_toggle.get_active()  \
             and self.current_category != None  \
@@ -1886,6 +1898,9 @@ class Application(Gtk.Application):
         self.builder.get_object("loading_spinner").stop()
         self.show_packages(results, from_search=True)
 
+    def on_app_row_activated(self, listbox, row, previous_page):
+        self.show_package(row.pkginfo, previous_page)
+
     def on_flowbox_item_clicked(self, tile, data=None):
         # This ties the GtkButton.clicked signal for the Tile class
         # to the flowbox mechanics.  Clicks would be handled by
@@ -1899,11 +1914,11 @@ class Application(Gtk.Application):
 
         self.show_package(child.get_child().pkginfo, previous_page)
 
-    def on_navigate_flowbox(self, box, data=None):
+    def on_navigate_listbox(self, box, data=None):
         sw = self.builder.get_object("scrolledwindow_applications")
 
         try:
-            selected = box.get_selected_children()[0]
+            selected = box.get_selected_rows()[0]
         except IndexError:
             return
 
@@ -1912,10 +1927,10 @@ class Application(Gtk.Application):
         sel_box = selected.get_allocation()
         sw_box = sw.get_allocation()
 
-        unit = sel_box.height + box.get_row_spacing()
+        unit = sel_box.height
 
         if (sel_box.y + unit) > (current + sw_box.height):
-            adj.set_value((sel_box.y + unit) - sw_box.height + box.get_row_spacing())
+            adj.set_value((sel_box.y + unit) - sw_box.height)
         elif sel_box.y < current:
             adj.set_value(sel_box.y)
 
@@ -1930,8 +1945,8 @@ class Application(Gtk.Application):
             GLib.source_remove(self.one_package_idle_timer)
             self.one_package_idle_timer = 0
 
-        for child in self.flowbox_applications.get_children():
-            self.flowbox_applications.remove(child)
+        for child in self.listbox_applications.get_children():
+            self.listbox_applications.remove(child)
 
         self.category_tiles = []
         if len(pkginfos) == 0:
@@ -2004,7 +2019,7 @@ class Application(Gtk.Application):
                                                        pkginfos,
                                                        collisions)
 
-        self.flowbox_applications.show_all()
+        self.listbox_applications.show_all()
 
     def idle_show_one_package(self, pkginfos, collisions):
         try:
@@ -2030,23 +2045,21 @@ class Application(Gtk.Application):
             if pkginfo.pkg_hash.startswith("f"):
                 more_info = self.flatpak_remote_categories[pkginfo.remote].name
 
-        tile = PackageTile(pkginfo, icon, summary,
-                           installer=self.installer,
-                           review_info=review_info,
-                           more_info=more_info)
-        tile.connect("clicked", self.on_flowbox_item_clicked, pkginfo.pkg_hash)
+        tile = PackageRow(pkginfo, icon, summary,
+                          installer=self.installer,
+                          review_info=review_info,
+                          more_info=more_info)
 
-        box = Gtk.FlowBoxChild(child=tile)
-        box.show_all()
+        tile.show_all()
 
-        self.flowbox_applications.insert(box, -1)
+        self.listbox_applications.insert(tile, -1)
         self.category_tiles.append(tile)
 
         # Repeat until empty
         if len(pkginfos) > 0:
             return True
 
-        self.reset_scroll_view(self.builder.get_object("scrolledwindow_applications"), self.flowbox_applications)
+        self.reset_scroll_view(self.builder.get_object("scrolledwindow_applications"), self.listbox_applications)
         self.one_package_idle_timer = 0
         return False
 
