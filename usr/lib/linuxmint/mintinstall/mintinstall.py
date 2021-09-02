@@ -351,14 +351,18 @@ class PackageTile(Tile):
 
         label_name = Gtk.Label(xalign=0)
 
+        display_name = self.installer.get_display_name(pkginfo)
+        display_name = GLib.markup_escape_text(display_name)
+
         if more_info:
-            label_name.set_markup("<b>%s (%s)</b>" % (self.installer.get_display_name(pkginfo), more_info))
+            more_info = GLib.markup_escape_text(more_info)
+            label_name.set_markup("<b>%s (%s)</b>" % (display_name, more_info))
         else:
-            label_name.set_markup("<b>%s</b>" % self.installer.get_display_name(pkginfo))
+            label_name.set_markup("<b>%s</b>" % display_name)
 
         label_name.set_justify(Gtk.Justification.LEFT)
         label_summary = Gtk.Label(xalign=0.0)
-        label_summary.set_markup("<small>%s</small>" % summary)
+        label_summary.set_markup("<small>%s</small>" % GLib.markup_escape_text(summary))
         label_summary.set_line_wrap(True)
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -428,7 +432,9 @@ class VerticalPackageTile(Tile):
         Tile.__init__(self, pkginfo, installer)
 
         label_name = Gtk.Label(xalign=0.5)
-        label_name.set_markup("<b>%s</b>" % self.installer.get_display_name(pkginfo))
+
+        display_name = self.installer.get_display_name(pkginfo)
+        label_name.set_markup("<b>%s</b>" % GLib.markup_escape_text(display_name))
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         vbox.set_border_width(6)
 
@@ -470,11 +476,11 @@ class ReviewTile(Gtk.ListBoxRow):
         ratings_box.pack_start(stars_box, False, False, 0)
 
         label_name = Gtk.Label(xalign=0.0)
-        label_name.set_markup("<small>%s</small>" % username)
+        label_name.set_markup("<small>%s</small>" % GLib.markup_escape_text(username))
         ratings_box.pack_start(label_name, False, False, 0)
 
         label_date = Gtk.Label(xalign=0.0)
-        label_date.set_markup("<small>%s</small>" % date)
+        label_date.set_markup("<small>%s</small>" % GLib.markup_escape_text(date))
         ratings_box.pack_start(label_date, False, False, 0)
 
         label_comment = Gtk.Label(xalign=0.0)
@@ -2080,7 +2086,7 @@ class Application(Gtk.Application):
         else:
             details_markup = "<big><b>%s</b></big>" % details_i18n
 
-        self.builder.get_object("label_details").set_markup(details_markup)
+        self.builder.get_object("label_details").set_markup(GLib.markup_escape_text(details_markup))
 
         icon_string = self.get_application_icon_string(pkginfo, DETAILS_ICON_SIZE)
         self.detail_view_icon.set_icon_string(icon_string)
@@ -2099,6 +2105,7 @@ class Application(Gtk.Application):
             homepage = None
         if homepage is not None and homepage != "":
             self.builder.get_object("website_link").show()
+            homepage = GLib.markup_escape_text(homepage)
             self.builder.get_object("website_link").set_markup("<a href='%s'>%s</a>" % (homepage, homepage))
         else:
             self.builder.get_object("website_link").hide()
