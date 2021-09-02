@@ -2086,7 +2086,7 @@ class Application(Gtk.Application):
         else:
             details_markup = "<big><b>%s</b></big>" % details_i18n
 
-        self.builder.get_object("label_details").set_markup(GLib.markup_escape_text(details_markup))
+        self.builder.get_object("label_details").set_markup(details_markup)
 
         icon_string = self.get_application_icon_string(pkginfo, DETAILS_ICON_SIZE)
         self.detail_view_icon.set_icon_string(icon_string)
