@@ -2131,11 +2131,11 @@ class Application(Gtk.Application):
         self.builder.get_object("application_name").set_label(self.installer.get_display_name(pkginfo))
         self.builder.get_object("application_summary").set_label(self.installer.get_summary(pkginfo))
         self.builder.get_object("application_package").set_label(pkginfo.name)
-
+        
         description = self.installer.get_description(pkginfo)
         try:
             from bs4 import BeautifulSoup
-            hamonikrpkgname = pkginfo.name.replace("-","_") # 하모니카 페이지에 '-' 쓸수가 없어서 '_' 로 페이지 만들고 replace해주는 작업
+            hamonikrpkgname = pkginfo.name.replace("-","_")
             page = BeautifulSoup(urllib.request.urlopen("https://hamonikr.org/%s" % hamonikrpkgname), "lxml")
             texts = page.find("div","xe_content")
             text = texts.get_text()
