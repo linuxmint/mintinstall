@@ -1,3 +1,9 @@
+mintinstall (8.0.3.1) tricia; urgency=medium
+
+  * packaging: Don't fail postinst when not able to add flathub
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue, 16 Nov 2021 13:35:58 +0000
+
 mintinstall (8.0.3) tricia; urgency=medium
 
   [ Michael Webster ]
