@@ -46,6 +46,7 @@ SEARCH_IN_SUMMARY = "search-in-summary"
 SEARCH_IN_DESCRIPTION = "search-in-description"
 INSTALLED_APPS = "installed-apps"
 SEARCH_IN_CATEGORY = "search-in-category"
+HAMONIKR_SCREENSHOTS = "hamonikr-screenshots"
 
 # Don't let mintinstall run as root
 if os.getuid() == 0:
@@ -236,31 +237,32 @@ class ScreenshotDownloader(threading.Thread):
                     self.application.add_screenshot(self.pkginfo.name, num_screenshots)
         except Exception as e:
             pass
+        
+        if self.settings.get_boolean(HAMONIKR_SCREENSHOTS):
+            try:
+                # Add additional screenshots from Hamonikr
+                from bs4 import BeautifulSoup
+                hamonikrpkgname = self.pkginfo.name.replace("-","_")
+                page = BeautifulSoup(urllib.request.urlopen("https://hamonikr.org/%s" % hamonikrpkgname), "lxml")
+                images = page.findAll('img')
+                for image in images:
+                    if num_screenshots >= 4:
+                        break
+                    if image['src'].startswith('https://hamonikr.org'):
+                        num_screenshots += 1
 
-        try:
-            # Add additional screenshots from Hamonikr
-            from bs4 import BeautifulSoup
-            hamonikrpkgname = self.pkginfo.name.replace("-","_")
-            page = BeautifulSoup(urllib.request.urlopen("https://hamonikr.org/%s" % hamonikrpkgname), "lxml")
-            images = page.findAll('img')
-            for image in images:
-                if num_screenshots >= 4:
-                    break
-                if image['src'].startswith('https://hamonikr.org'):
-                    num_screenshots += 1
+                        thumb = "%s" % image['src']
+                        link = thumb
 
-                    thumb = "%s" % image['src']
-                    link = thumb
+                        local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
+                        local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.pkginfo.name, num_screenshots))
 
-                    local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
-                    local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.pkginfo.name, num_screenshots))
+                        self.save_to_file(link, local_name)
+                        self.save_to_file(thumb, local_thumb)
 
-                    self.save_to_file(link, local_name)
-                    self.save_to_file(thumb, local_thumb)
-
-                    self.application.add_screenshot(self.pkginfo.name, num_screenshots)
-        except Exception as e:
-            pass
+                        self.application.add_screenshot(self.pkginfo.name, num_screenshots)
+            except Exception as e:
+                pass
 
         try:
             # Add additional screenshots from AppStream
@@ -2133,16 +2135,18 @@ class Application(Gtk.Application):
         self.builder.get_object("application_package").set_label(pkginfo.name)
         
         description = self.installer.get_description(pkginfo)
-        try:
-            from bs4 import BeautifulSoup
-            hamonikrpkgname = pkginfo.name.replace("-","_")
-            page = BeautifulSoup(urllib.request.urlopen("https://hamonikr.org/%s" % hamonikrpkgname), "lxml")
-            texts = page.find("div","xe_content")
-            text = texts.get_text()
-            if text is not None:
-                description = text
-        except Exception as e:
-            pass
+        
+        if self.settings.get_boolean(HAMONIKR_SCREENSHOTS):
+            try:
+                from bs4 import BeautifulSoup
+                hamonikrpkgname = pkginfo.name.replace("-","_")
+                page = BeautifulSoup(urllib.request.urlopen("https://hamonikr.org/%s" % hamonikrpkgname), "lxml")
+                texts = page.find("div","xe_content")
+                text = texts.get_text()
+                if text is not None:
+                    description = text
+            except Exception as e:
+                pass
         
         app_description = self.builder.get_object("application_description")
         app_description.set_label(description)
