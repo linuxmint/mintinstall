@@ -193,6 +193,7 @@ class ScreenshotDownloader(threading.Thread):
         threading.Thread.__init__(self)
         self.application = application
         self.pkginfo = pkginfo
+        self.settings = Gio.Settings(schema_id="com.linuxmint.install")
 
     def run(self):
         num_screenshots = 0
