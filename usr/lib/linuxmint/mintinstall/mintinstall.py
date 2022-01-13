@@ -1879,6 +1879,14 @@ class Application(Gtk.Application):
                 if(search_in_description and termsUpper in self.installer.get_description(pkginfo, for_search=True).upper()):
                     searched_packages.append(pkginfo)
                     break
+                # pkginfo.name for flatpaks is their id (org.foo.BarMaker), which
+                # may not actually contain the app's name. In this case their display
+                # names are better. The 'name' is still checked first above, because
+                # it's static - get_display_name() may involve a lookup with appstream.
+                fp = pkginfo.pkg_hash.startswith("f")
+                if fp and all(piece in self.installer.get_display_name(pkginfo).upper() for piece in termsSplit):
+                    searched_packages.append(pkginfo)
+                    break
                 break
 
             # Repeat until empty
@@ -1982,9 +1990,20 @@ class Application(Gtk.Application):
                 pass
 
             if score_a == score_b:
-                if pkga.name < pkgb.name:
+                # A flatpak's 'name' may not even have the app's name in it.
+                # It's better to compare by their display names
+                if pkga.pkg_hash.startswith("f"):
+                    name_a = self.installer.get_display_name(pkga)
+                else:
+                    name_a = pkga.name
+                if pkgb.pkg_hash.startswith("f"):
+                    name_b = self.installer.get_display_name(pkgb)
+                else:
+                    name_b = pkgb.name
+
+                if name_a < name_b:
                     return -1
-                elif pkga.name > pkgb.name:
+                elif name_a > name_b:
                     return 1
                 else:
                     return 0
