@@ -1685,19 +1685,9 @@ class Application(Gtk.Application):
             return True
         return False
 
-    def reset_scroll_view(self, scrolledwindow, listbox=None):
+    def reset_scroll_view(self, scrolledwindow):
         adjustment = scrolledwindow.get_vadjustment()
         adjustment.set_value(adjustment.get_lower())
-
-        if not listbox:
-            return
-
-        try:
-            first = listbox.get_children()[0]
-            listbox.select_row(first)
-            first.grab_focus()
-        except IndexError:
-            pass
 
     def on_active_tasks_button_clicked(self, button):
         self.show_active_tasks()
@@ -2070,7 +2060,7 @@ class Application(Gtk.Application):
                           more_info=more_info)
 
         tile.show_all()
-
+        tile.connect("key-press-event", self.on_tile_keypress)
         self.listbox_applications.insert(tile, -1)
         self.category_tiles.append(tile)
 
@@ -2078,9 +2068,16 @@ class Application(Gtk.Application):
         if len(pkginfos) > 0:
             return True
 
-        self.reset_scroll_view(self.builder.get_object("scrolledwindow_applications"), self.listbox_applications)
+        self.reset_scroll_view(self.builder.get_object("scrolledwindow_applications"))
         self.one_package_idle_timer = 0
         return False
+
+    def on_tile_keypress(self, row, event, data=None):
+        if event.keyval in (Gdk.KEY_Tab, Gdk.KEY_ISO_Left_Tab):
+            self.searchentry.grab_focus()
+            return Gdk.EVENT_STOP
+
+        return Gdk.EVENT_PROPAGATE
 
     @print_timing
     def show_package(self, pkginfo, previous_page):
@@ -2102,7 +2099,7 @@ class Application(Gtk.Application):
             self.launch_button_signal_id = 0
 
         # Reset the position of our scrolled window back to the top
-        self.reset_scroll_view(self.builder.get_object("scrolled_details"), None)
+        self.reset_scroll_view(self.builder.get_object("scrolled_details"))
 
         self.current_pkginfo = pkginfo
 
