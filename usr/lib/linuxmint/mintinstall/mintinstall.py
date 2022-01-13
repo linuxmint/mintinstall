@@ -1039,20 +1039,20 @@ class Application(Gtk.Application):
         flowbox.set_homogeneous(True)
         for name in sorted(self.root_categories.keys()):
             category = self.root_categories[name]
-            button = Gtk.Button()
+            button = Gtk.Button(can_focus=False)
             button.set_label(category.name)
             button.connect("clicked", self.category_button_clicked, category)
             flowbox.insert(button, -1)
 
         if self.installer.list_flatpak_remotes():
             # Add flatpaks
-            button = Gtk.Button()
+            button = Gtk.Button(can_focus=False)
             button.set_label(self.flatpak_category.name)
             button.connect("clicked", self.category_button_clicked, self.flatpak_category)
 
             flowbox.insert(button, -1)
 
-        button = Gtk.Button()
+        button = Gtk.Button(can_focus=False)
         button.set_label(self.all_category.name)
         button.connect("clicked", self.category_button_clicked, self.all_category)
         flowbox.insert(button, -1)
