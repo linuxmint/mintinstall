@@ -466,7 +466,11 @@ class PackageRow(TileRow):
         star_and_average_box.pack_start(average_rating_label, False, False, 2)
 
         label_num_reviews = Gtk.Label()
-        label_num_reviews.set_markup("<small><i>%s %s</i></small>" % (str(review_info.num_reviews), _("Reviews")))
+
+        # TRANSLATORS: showing specific number of reviews in the list view and the header of the package details.
+        review_text = gettext.ngettext("Review", "Reviews", review_info.num_reviews)
+
+        label_num_reviews.set_markup("<small><i>%s %s</i></small>" % (str(review_info.num_reviews), review_text))
 
         vbox.pack_start(star_and_average_box, False, False, 2)
         vbox.pack_start(label_num_reviews, False, False, 2)
@@ -2183,7 +2187,11 @@ class Application(Gtk.Application):
         review_info = self.review_cache[pkginfo.name]
 
         label_num_reviews = self.builder.get_object("application_num_reviews")
-        label_num_reviews.set_markup("<small><i>%s %s</i></small>" % (str(review_info.num_reviews), _("Reviews")))
+
+        # TRANSLATORS: showing specific number of reviews in the list view and the header of the package details.
+        review_text = gettext.ngettext("Review", "Reviews", review_info.num_reviews)
+
+        label_num_reviews.set_markup("<small><i>%s %s</i></small>" % (str(review_info.num_reviews), review_text))
         self.builder.get_object("application_avg_rating").set_label(str(review_info.avg_rating))
 
         box_stars = self.builder.get_object("box_stars")
@@ -2214,6 +2222,7 @@ class Application(Gtk.Application):
         reviews.sort(key=lambda x: x.date, reverse=True)
 
         if len(reviews) > 0:
+            # TRANSLATORS: reviews heading in package details view
             label_reviews.set_text(_("Reviews"))
             i = 0
             for review in reviews:
