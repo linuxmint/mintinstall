@@ -5,9 +5,6 @@ DEB_VERSION := $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' '
 %:
 	dh ${@}
 
-override_dh_builddeb:
-	dh_builddeb -- -Zxz -z9
-
 # Inject version number in the code
 override_dh_installdeb:
 	dh_installdeb
