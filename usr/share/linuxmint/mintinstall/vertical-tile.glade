@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.38.2 -->
+<interface domain="mintinstall">
+  <requires lib="gtk+" version="3.24"/>
+  <object class="GtkOverlay" id="vertical_package_tile">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <child>
+      <object class="GtkBox" id="package_info">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">6</property>
+        <child>
+          <object class="GtkBox">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="spacing">6</property>
+            <child type="center">
+              <object class="GtkLabel" id="package_label">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">Package name</property>
+                <property name="ellipsize">end</property>
+                <attributes>
+                  <attribute name="weight" value="bold"/>
+                </attributes>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkBox" id="icon_holder">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="orientation">vertical</property>
+                <child>
+                  <placeholder/>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="package_summary">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="margin-bottom">6</property>
+            <property name="label" translatable="yes">This is what it's all about</property>
+            <property name="wrap">True</property>
+            <property name="max-width-chars">60</property>
+            <attributes>
+              <attribute name="scale" value="0.90000000000000002"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">False</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox" id="bottom_row">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <child>
+              <object class="GtkBox" id="flatpak_box">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="halign">start</property>
+                <property name="valign">end</property>
+                <property name="spacing">2</property>
+                <child>
+                  <object class="GtkImage" id="flatpak_emblem">
+                    <property name="can-focus">False</property>
+                    <property name="no-show-all">True</property>
+                    <property name="icon-name">flatpak-symbolic</property>
+                    <property name="icon_size">1</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="remote_name">
+                    <property name="can-focus">False</property>
+                    <property name="no-show-all">True</property>
+                    <property name="label" translatable="yes">Flathub</property>
+                    <attributes>
+                      <attribute name="style" value="normal"/>
+                      <attribute name="scale" value="0.80000000000000004"/>
+                    </attributes>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkBox" id="review_box">
+                <property name="width-request">50</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="halign">end</property>
+                <property name="valign">end</property>
+                <child>
+                  <object class="GtkBox" id="review_info_box">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="valign">center</property>
+                    <property name="spacing">3</property>
+                    <child>
+                      <object class="GtkBox" id="stars_box">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="num_reviews_label">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="margin-right">3</property>
+                        <property name="margin-end">3</property>
+                        <property name="xalign">1</property>
+                        <attributes>
+                          <attribute name="scale" value="0.80000000000000004"/>
+                        </attributes>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="pack-type">end</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack-type">end</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="index">-1</property>
+      </packing>
+    </child>
+    <child type="overlay">
+      <object class="GtkBox" id="installed_box">
+        <property name="name">installed_box</property>
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="halign">end</property>
+        <property name="valign">start</property>
+        <child>
+          <object class="GtkImage" id="installed_mark">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="tooltip-text" translatable="yes">Installed</property>
+            <property name="icon-name">emblem-installed</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="index">2</property>
+      </packing>
+    </child>
+  </object>
+</interface>
