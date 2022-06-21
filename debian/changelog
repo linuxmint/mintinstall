@@ -1,3 +1,22 @@
+mintinstall (8.1.1) vanessa; urgency=medium
+
+  [ Michael Webster ]
+  * search: Add a match against flatpak packages' display names.
+  * focus: Don't move focus to the search result list automatically after a search completes.
+  * categories: Don't take the keyboard focus from the search entry when a category is selected.
+
+  [ Eden ]
+  * Add hamonikr packages (#322)
+
+  [ Michael Webster ]
+  * Fix a couple of translations and add some context for translators.
+  * Bump debhelper version, remove obsolete override in rules.
+
+  [ Clement Lefebvre ]
+  * l10n: Update POT
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue, 21 Jun 2022 15:00:28 +0200
+
 mintinstall (8.1.0) elsie; urgency=medium
 
   * Depend on libgtk3-perl
