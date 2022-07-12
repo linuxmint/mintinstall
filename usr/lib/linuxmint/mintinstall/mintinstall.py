@@ -1479,13 +1479,13 @@ class Application(Gtk.Application):
 
         edition = ""
         try:
-            with open("/etc/linuxmint/info") as f:
+            with open("/etc/os-release") as f:
                 config = dict([line.strip().split("=") for line in f])
-                edition = config['EDITION']
+                edition = config['NAME']
         except:
             pass
-        if "KDE" in edition:
-            self.picks_category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/picks-kde.list")
+        if "LMDE" in edition:
+            self.picks_category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/picks-lmde.list")
         else:
             self.picks_category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/picks.list")
 
