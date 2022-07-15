@@ -1,3 +1,10 @@
+mintinstall (8.1.2) vanessa; urgency=medium
+
+  [ Michael Webster ]
+  * Don't allow the 'wine' package to appear in the main edition.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Fri, 15 Jul 2022 16:38:01 +0200
+
 mintinstall (8.1.1) vanessa; urgency=medium
 
   [ Michael Webster ]
