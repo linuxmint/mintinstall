@@ -26,10 +26,10 @@ class AppUninstaller:
 
         pkg_name = self.get_apt_name()
 
-        if pkg_name == None:
+        if pkg_name is None:
             pkg_name = self.get_fp_name()
 
-        if pkg_name == None:
+        if pkg_name is None:
             print("Package for '%s' not found" % self.desktopFile)
             self.on_finished(None, 1)
 

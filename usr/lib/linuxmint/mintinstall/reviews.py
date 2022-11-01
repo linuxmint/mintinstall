@@ -128,7 +128,7 @@ class ReviewCache(object):
         except Exception:
             path = None
         finally:
-            if path != None:
+            if path is not None:
                 try:
                     with path.open(mode='r', encoding="utf8") as f:
                         json_object = JsonObject.from_json(json.load(f))
@@ -200,7 +200,7 @@ class ReviewCache(object):
                         elements = decoded.split("~~~")
                         if len(elements) == 5:
                             review = Review(elements[0], float(elements[1]), elements[2], elements[3], elements[4])
-                            if last_package != None and last_package.name == elements[0]:
+                            if last_package is not None and last_package.name == elements[0]:
                                 #Comment is on the same package as previous comment.. no need to search for the package
                                 last_package.reviews.append(review)
                             else:
