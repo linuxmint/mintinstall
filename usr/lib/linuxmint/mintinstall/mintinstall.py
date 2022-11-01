@@ -238,7 +238,7 @@ class ScreenshotDownloader(threading.Thread):
                     self.application.add_screenshot(self.pkginfo.name, num_screenshots)
         except Exception as e:
             pass
-        
+
         if self.settings.get_boolean(HAMONIKR_SCREENSHOTS):
             try:
                 # Add additional screenshots from Hamonikr
@@ -631,7 +631,7 @@ class Application(Gtk.Application):
         self.main_window = None
 
     def do_activate(self):
-        if self.main_window == None:
+        if self.main_window is None:
             if self.installer.init_sync():
                 self.create_window(self.PAGE_LANDING)
                 self.on_installer_ready()
@@ -768,7 +768,7 @@ class Application(Gtk.Application):
         return False
 
     def create_window(self, starting_page):
-        if self.main_window != None:
+        if self.main_window is not None:
             print("MintInstall: create_window called, but we already had one!")
             return
 
@@ -994,7 +994,7 @@ class Application(Gtk.Application):
 
             pkginfo = self.installer.cache.find_pkginfo(name, 'a')
 
-            if pkginfo != None:
+            if pkginfo is not None:
                 break
             else:
                 tries += 1
@@ -1005,7 +1005,7 @@ class Application(Gtk.Application):
 
         tile = FeatureTile(pkginfo, self.installer, background, text, text_shadow, stroke)
 
-        if pkginfo != None:
+        if pkginfo is not None:
             tile.connect("clicked", self.on_flowbox_item_clicked, pkginfo.pkg_hash)
 
         flowbox.insert(tile, -1)
@@ -1034,7 +1034,7 @@ class Application(Gtk.Application):
         for name in self.picks_category.matchingPackages:
             pkginfo = self.installer.cache.find_pkginfo(name, 'a') # If we add flatpak favorites, remove the a to find both types
 
-            if pkginfo == None:
+            if pkginfo is None:
                 continue
 
             if self.installer.pkginfo_is_installed(pkginfo):
@@ -1099,7 +1099,7 @@ class Application(Gtk.Application):
 
         self.installed_menuitem.set_sensitive(sensitive)
 
-        sensitive = self.current_category != None \
+        sensitive = self.current_category is not None \
                     and self.page_stack.get_visible_child_name() == self.PAGE_LIST
 
         self.subsearch_toggle.set_sensitive(sensitive)
@@ -1308,7 +1308,7 @@ class Application(Gtk.Application):
     def on_search_changed(self, searchentry):
         terms = searchentry.get_text()
 
-        if self.subsearch_toggle.get_active() and self.current_category != None and terms == "":
+        if self.subsearch_toggle.get_active() and self.current_category is not None and terms == "":
             self.show_category(self.current_category)
         elif terms != "" and len(terms) >= 3:
             self.show_search_results(terms)
@@ -1633,7 +1633,7 @@ class Application(Gtk.Application):
 
         self.gui_ready = True
 
-        if self.install_on_startup_file != None:
+        if self.install_on_startup_file is not None:
             self.handle_command_line_install(self.install_on_startup_file)
 
         return False
@@ -1858,8 +1858,8 @@ class Application(Gtk.Application):
             self.listbox_applications.remove(child)
 
         if self.subsearch_toggle.get_active()  \
-            and self.current_category != None  \
-            and self.page_stack.get_visible_child_name() == self.PAGE_LIST:
+            and self.current_category is not None \
+                and self.page_stack.get_visible_child_name() == self.PAGE_LIST:
             listing = self.current_category.pkginfos
         else:
             listing = self.installer.cache.values()
@@ -2154,9 +2154,9 @@ class Application(Gtk.Application):
         self.builder.get_object("application_name").set_label(self.installer.get_display_name(pkginfo))
         self.builder.get_object("application_summary").set_label(self.installer.get_summary(pkginfo))
         self.builder.get_object("application_package").set_label(pkginfo.name)
-        
+
         description = self.installer.get_description(pkginfo)
-        
+
         if self.settings.get_boolean(HAMONIKR_SCREENSHOTS):
             try:
                 from bs4 import BeautifulSoup
@@ -2168,7 +2168,7 @@ class Application(Gtk.Application):
                     description = text
             except Exception as e:
                 pass
-        
+
         app_description = self.builder.get_object("application_description")
         app_description.set_label(description)
         app_description.set_line_wrap(True)
@@ -2409,7 +2409,7 @@ class Application(Gtk.Application):
             else:
                 exec_string = "flatpak run %s" % pkginfo.name
 
-        if exec_string != None:
+        if exec_string is not None:
             task.exec_string = exec_string
             self.launch_button.show()
             self.launch_button_signal_id = self.launch_button.connect("clicked",
