@@ -762,7 +762,7 @@ class Application(Gtk.Application):
         # If it's less than our threshold than consider us 'low res'. The workarea being used is in
         # app pixels, so hidpi will also be affected here regardless of device resolution.
         if height < 768:
-            print("MintInstall: low resolution detected (%dpx height), limiting window height." % (height))
+            print("MintInstall: low resolution detected (%dpx height), limiting window height." % height)
             return True
 
         return False
@@ -1230,7 +1230,7 @@ class Application(Gtk.Application):
         local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (pkg_name, number))
         local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (pkg_name, number))
         if self.current_pkginfo is not None and self.current_pkginfo.name == pkg_name:
-            if (number == 1):
+            if number == 1:
                 if os.path.exists(local_name):
                     try:
                         self.main_screenshot.set_icon_string(local_name, SCREENSHOT_WIDTH, -1)
@@ -1242,7 +1242,7 @@ class Application(Gtk.Application):
                         os.unlink(local_thumb)
             else:
                 if os.path.exists(local_name) and os.path.exists(local_thumb):
-                    if (number == 2):
+                    if number == 2:
                         try:
                             name = os.path.join(SCREENSHOT_DIR, "%s_1.png" % pkg_name)
                             thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % pkg_name)
@@ -1321,7 +1321,7 @@ class Application(Gtk.Application):
 
         terms = self.searchentry.get_text()
 
-        if (self.searchentry.get_text() != ""):
+        if self.searchentry.get_text() != "":
             self.show_search_results(terms)
 
     def open_about(self, widget):
@@ -1358,7 +1358,7 @@ class Application(Gtk.Application):
                     print("Your APT cache is localized. Please remove all translations first.")
                     print("sudo rm -rf /var/lib/apt/lists/*Translation%s" % filename[-3:])
                     return 1
-        if (os.getenv('LANGUAGE') != "C"):
+        if os.getenv('LANGUAGE') != "C":
             print("Please prefix this command with LANGUAGE=C, to prevent content from being translated in the host's locale.")
             return 1
         self.locale = "C"
@@ -1895,10 +1895,10 @@ class Application(Gtk.Application):
                 if all(piece in pkginfo.name.upper() for piece in termsSplit):
                     searched_packages.append(pkginfo)
                     break
-                if (search_in_summary and termsUpper in self.installer.get_summary(pkginfo, for_search=True).upper()):
+                if search_in_summary and termsUpper in self.installer.get_summary(pkginfo, for_search=True).upper():
                     searched_packages.append(pkginfo)
                     break
-                if(search_in_description and termsUpper in self.installer.get_description(pkginfo, for_search=True).upper()):
+                if search_in_description and termsUpper in self.installer.get_description(pkginfo, for_search=True).upper():
                     searched_packages.append(pkginfo)
                     break
                 # pkginfo.name for flatpaks is their id (org.foo.BarMaker), which
@@ -1966,9 +1966,9 @@ class Application(Gtk.Application):
 
     def capitalize(self, string):
         if len(string) > 1:
-            return (string[0].upper() + string[1:])
+            return string[0].upper() + string[1:]
         else:
-            return (string)
+            return string
 
     def show_packages(self, pkginfos, from_search=False):
         if self.one_package_idle_timer > 0:

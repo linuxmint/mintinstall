@@ -110,7 +110,7 @@ class ReviewCache(object):
 
     def __contains__(self, name):
         with self._cache_lock:
-            return (name in self._reviews)
+            return name in self._reviews
 
     def __len__(self):
         with self._cache_lock:
