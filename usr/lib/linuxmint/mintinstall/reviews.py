@@ -177,7 +177,7 @@ class ReviewCache(object):
 
         self.proc = None
 
-        if success.value == True:
+        if success.value:
             with self._cache_lock:
                 self._reviews, self._size = self._load_cache()
 
