@@ -9,9 +9,6 @@ Package: mintinstall
 Architecture: all
 Pre-Depends: ca-certificates (>= 20210101)
 Depends: python3 (>= 3.4),
-         python3-apt,
-         python3-aptdaemon,
-         python3-aptdaemon.gtk3widgets,
          python3-bs4,
          python3-configobj,
          python3-setproctitle,
