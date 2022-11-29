@@ -14,26 +14,36 @@ import subprocess
 import platform
 import functools
 import requests
-import configobj
+import json
 import re
 import math
+from pathlib import Path
+import tempfile
+import base64
 
 import gi
 gi.require_version('Gtk', '3.0')
-gi.require_version('AppStream', '1.0')
 gi.require_version('XApp', '1.0')
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, XApp
+gi.require_version('AppStreamGlib', '1.0')
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, XApp, AppStreamGlib, Pango
+import cairo
 
 from mintcommon.installer import installer
-from mintcommon.installer.misc import print_timing
+from mintcommon.installer import dialogs
 import reviews
 import housekeeping
+from misc import print_timing, networking_available
+from screenshot_window import ScreenshotWindow
 
+ADDON_ICON_SIZE = 24
 LIST_ICON_SIZE = 48
-FEATURED_ICON_SIZE = LIST_ICON_SIZE
+FEATURED_ICON_SIZE = 48
 DETAILS_ICON_SIZE = 64
-SCREEN_THUMB_WIDTH = 100
-SCREENSHOT_WIDTH = 625
+SCREENSHOT_HEIGHT = 351
+SCREENSHOT_WIDTH = 624
+
+from math import pi
+DEGREES = pi / 180
 
 FALLBACK_PACKAGE_ICON_PATH = "/usr/share/linuxmint/mintinstall/data/available.png"
 
@@ -47,6 +57,15 @@ SEARCH_IN_DESCRIPTION = "search-in-description"
 INSTALLED_APPS = "installed-apps"
 SEARCH_IN_CATEGORY = "search-in-category"
 HAMONIKR_SCREENSHOTS = "hamonikr-screenshots"
+
+# package type combobox columns
+# index, label, icon-name, tooltip, pkginfo
+PACKAGE_TYPE_COMBO_INDEX = 0
+PACKAGE_TYPE_COMBO_LABEL = 1
+PACKAGE_TYPE_COMBO_SUMMARY = 2
+PACKAGE_TYPE_COMBO_ICON_NAME = 3
+PACKAGE_TYPE_COMBO_TOOLTIP = 4
+PACKAGE_TYPE_COMBO_PKGINFO = 5
 
 # Don't let mintinstall run as root
 if os.getuid() == 0:
@@ -65,6 +84,8 @@ import setproctitle
 setproctitle.setproctitle("mintinstall")
 
 SCREENSHOT_DIR = os.path.join(GLib.get_user_cache_dir(), "mintinstall", "screenshots")
+
+Gtk.IconTheme.get_default().append_search_path("/usr/share/linuxmint/mintinstall")
 
 # List of aliases
 ALIASES = {}
@@ -89,13 +110,40 @@ ALIASES['google-earth-pro-stable'] = "Google Earth"
 ALIASES['whatsapp-desktop'] = "WhatsApp"
 ALIASES['wine-installer'] = "Wine"
 
+libdir = os.path.join("/usr/lib/linuxmint/mintinstall")
+
+with open(os.path.join(libdir, "apt_flatpak_match_data.info")) as f:
+    match_data = json.load(f)
+
+FLATPAK_EQUIVS = match_data["apt_flatpak_matches"]
+DEB_EQUIVS = dict((v, k) for k,v in FLATPAK_EQUIVS.items())
+
+class NonScrollingComboBox(Gtk.ComboBox):
+    def __init__(self, area):
+        Gtk.ComboBox.__init__(self, cell_area=area, height_request=36)
+
+    def do_scroll_event(self, event, data=None):
+        # Skip Gtk.ComboBox's default handler.
+        #
+        # Connecting to a Gtk.ComboBox and stopping a scroll-event
+        # prevents unintentional combobox changes, but also breaks
+        # any scrollable parents when passing over the combobox.
+        Gtk.Widget.do_scroll_event(self, event)
+
 class AsyncImage(Gtk.Image):
+    __gsignals__ = {
+        'image-loaded': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'image-failed': (GObject.SignalFlags.RUN_LAST, None, ())
+    }
+
     def __init__(self, icon_string=None, width=DETAILS_ICON_SIZE, height=DETAILS_ICON_SIZE):
         super(AsyncImage, self).__init__()
 
         self.path = None
         self.cancellable = None
         self.loader = None
+        self.width = 1
+        self.height = 1
 
         self.connect("destroy", self.on_destroyed)
 
@@ -151,6 +199,7 @@ class AsyncImage(Gtk.Image):
 
     def on_read_finished(self, file, result, data=None):
         if self.cancellable.is_cancelled():
+            self.emit("image-failed")
             return
 
         stream = None
@@ -160,6 +209,8 @@ class AsyncImage(Gtk.Image):
         except GLib.Error as e:
             print("AsyncIcon could not read icon file contents for loading (%s): %s" % (self.path, e.message))
             self.set_icon_string(FALLBACK_PACKAGE_ICON_PATH, self.original_width, self.original_height)
+            self.emit("image-failed")
+            return
 
         if stream:
             GdkPixbuf.Pixbuf.new_from_stream_at_scale_async(stream,
@@ -172,21 +223,33 @@ class AsyncImage(Gtk.Image):
     def on_pixbuf_created(self, stream, result, data=None):
         if self.cancellable.is_cancelled():
             stream.close()
+            self.emit("image-failed")
             return
 
         try:
             pixbuf = GdkPixbuf.Pixbuf.new_from_stream_finish(result)
 
             if pixbuf:
+                scale = self.get_scale_factor()
+                self.width = pixbuf.get_width() / scale
+                self.height = pixbuf.get_height() / scale
                 surface = Gdk.cairo_surface_create_from_pixbuf(pixbuf,
-                                                               self.get_scale_factor(),
+                                                               scale,
                                                                self.get_window())
                 self.set_from_surface(surface)
         except GLib.Error as e:
             print("AsyncIcon could not generate icon from file contents (%s): %s" % (self.path, e.message))
             self.set_icon_string(FALLBACK_PACKAGE_ICON_PATH, self.original_width, self.original_height)
+            self.emit("image-failed")
+            return
 
         stream.close()
+
+        # size request is whatever sizes we inputted, but those sizes are 'max' in either direction - the
+        # final image may be different because of aspect ratios. We re-assigned self.width/height when we
+        # made the pixbuf, so update our own size request to match.
+        self.set_size_request(self.width, self.height)
+        self.emit("image-loaded")
 
 class ScreenshotDownloader(threading.Thread):
     def __init__(self, application, pkginfo):
@@ -199,19 +262,41 @@ class ScreenshotDownloader(threading.Thread):
         num_screenshots = 0
         self.application.screenshots = []
         # Add main screenshot
+
+        if self.pkginfo.pkg_hash.startswith("f"):
+            try:
+                # Add additional screenshots from AppStream
+                if len(self.application.installer.get_screenshots(self.pkginfo)) > 0:
+                    for screenshot in self.pkginfo.screenshots:
+
+                        image = screenshot.get_image(624, 351)
+
+                        if requests.head(image.get_url()).status_code < 400:
+                            num_screenshots += 1
+
+                            local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
+
+                            source = screenshot.get_source()
+
+                            source_url = source.get_url()
+                            self.save_to_file(image.get_url(), source_url, local_name)
+
+                            self.application.add_screenshot(self.pkginfo, local_name, num_screenshots)
+            except Exception as e:
+                print(e)
+
+            if num_screenshots == 0:
+                self.application.add_screenshot(self.pkginfo, None, 0)
+
         try:
-            thumb = "https://community.linuxmint.com/thumbnail.php?w=250&pic=/var/www/community.linuxmint.com/img/screenshots/%s.png" % self.pkginfo.name
             link = "https://community.linuxmint.com/img/screenshots/%s.png" % self.pkginfo.name
             if requests.head(link).status_code < 400:
                 num_screenshots += 1
 
                 local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
-                local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.pkginfo.name, num_screenshots))
+                self.save_to_file(link, None, local_name)
 
-                self.save_to_file(link, local_name)
-                self.save_to_file(thumb, local_thumb)
-
-                self.application.add_screenshot(self.pkginfo.name, num_screenshots)
+                self.application.add_screenshot(self.pkginfo, local_name, num_screenshots)
         except Exception as e:
             print(e)
 
@@ -230,15 +315,12 @@ class ScreenshotDownloader(threading.Thread):
                     link = thumb.replace("_small", "_large")
 
                     local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
-                    local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.pkginfo.name, num_screenshots))
+                    self.save_to_file(link, None, local_name)
 
-                    self.save_to_file(link, local_name)
-                    self.save_to_file(thumb, local_thumb)
-
-                    self.application.add_screenshot(self.pkginfo.name, num_screenshots)
+                    self.application.add_screenshot(self.pkginfo, local_name, num_screenshots)
         except Exception as e:
             pass
-
+        
         if self.settings.get_boolean(HAMONIKR_SCREENSHOTS):
             try:
                 # Add additional screenshots from Hamonikr
@@ -256,41 +338,202 @@ class ScreenshotDownloader(threading.Thread):
                         link = thumb
 
                         local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
-                        local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.pkginfo.name, num_screenshots))
+                        self.save_to_file(link, None, local_name)
 
-                        self.save_to_file(link, local_name)
-                        self.save_to_file(thumb, local_thumb)
-
-                        self.application.add_screenshot(self.pkginfo.name, num_screenshots)
+                        self.application.add_screenshot(self.pkginfo, local_name, num_screenshots)
             except Exception as e:
                 pass
 
-        try:
-            # Add additional screenshots from AppStream
-            if len(self.application.installer.get_screenshots(self.pkginfo)) > 0:
-                for screenshot_url in self.pkginfo.screenshots:
-                    if num_screenshots >= 4:
-                        return
+        if num_screenshots == 0:
+            self.application.add_screenshot(self.pkginfo, None, 0)
 
-                    if requests.head(screenshot_url).status_code < 400:
-                        num_screenshots += 1
-
-                        local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
-                        local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (self.pkginfo.name, num_screenshots))
-
-                        self.save_to_file(screenshot_url, local_name)
-                        self.save_to_file(screenshot_url, local_thumb)
-
-                        self.application.add_screenshot(self.pkginfo.name, num_screenshots)
-        except Exception as e:
-            print(e)
-
-    def save_to_file(self, url, path):
+    def save_to_file(self, url, source_url, path):
         r = requests.get(url, stream=True)
 
         with open(path, 'wb') as fd:
             for chunk in r.iter_content(chunk_size=128):
                 fd.write(chunk)
+
+        if source_url is None:
+            source_url = path
+
+        file = Gio.File.new_for_path(path)
+        info = Gio.FileInfo.new()
+        info.set_attribute_string("metadata::mintinstall-screenshot-source-url", source_url)
+        try:
+            file.set_attributes_from_info(info, Gio.FileQueryInfoFlags.NONE, None)
+        except GLib.Error as e:
+            logging.warning("Unable to store screenshot source url to metadata '%s': %s" % (source_url, e.message))
+
+class FlatpakAddonRow(Gtk.ListBoxRow):
+    def __init__(self, app, parent_pkginfo, addon, name_size_group, button_size_group):
+        Gtk.ListBoxRow.__init__(self)
+        self.box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4, margin_start=10, margin_end=10, margin_top=4, margin_bottom=4)
+        self.add(self.box)
+
+        self.app = app
+        self.pkginfo = parent_pkginfo
+        self.addon = addon
+
+        self.spinner = Gtk.Spinner(active=True, no_show_all=True, visible=True)
+        self.box.pack_start(self.spinner, False, False, 0)
+
+        self.action = Gtk.Button(label=_("Checking..."),
+                                 sensitive=False,
+                                 image=self.spinner,
+                                 always_show_image=True,
+                                 valign=Gtk.Align.CENTER,
+                                 no_show_all=True)
+        self.action.set_size_request(100, -1)
+        button_size_group.add_widget(self.action)
+        self.action.connect("clicked", self.action_clicked)
+        self.box.pack_end(self.action, False, False, 0)
+
+        info_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, valign=Gtk.Align.CENTER)
+        self.box.pack_end(info_box, False, False, 4)
+
+        self.size_label = Gtk.Label(use_markup=True, no_show_all=True)
+        self.size_label.get_style_context().add_class("dim-label")
+        info_box.pack_start(self.size_label, False, False, 0)
+
+        label_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        self.box.pack_start(label_box, False, False, 0)
+
+        name = Gtk.Label(label="<b>%s</b>" % addon.get_name(), use_markup=True, xalign=0.0, selectable=True)
+        name_size_group.add_widget(name)
+        label_box.pack_start(name, False, False, 0)
+
+        summary = Gtk.Label(label=addon.get_comment(), xalign=0.0, wrap=True, max_width_chars=60, selectable=True)
+        label_box.pack_start(summary, False, False, 0)
+
+        if not self.app.installer.pkginfo_is_installed(self.pkginfo):
+            self.action.hide()
+            self.set_sensitive(False)
+            return
+
+        self.action.show()
+        self.prepare_task()
+
+    def prepare_task(self):
+        self.app.installer.create_addon_task(self.addon, self.pkginfo.remote, self.pkginfo.remote_url,
+                                             self.info_ready, self.info_error,
+                                             self.installer_finished, self.installer_progress, use_mainloop=True)
+
+    def info_ready(self, task):
+        self.task = task
+
+        if task.type == task.INSTALL_TASK:
+            self.action.set_label(_("Add"))
+            self.action.set_sensitive(True)
+            self.action.get_style_context().add_class("suggested-action")
+            self.action.get_style_context().remove_class("destructive-action")
+            self.spinner.hide()
+        elif task.type == task.UNINSTALL_TASK:
+            self.action.set_label(_("Remove"))
+            self.action.set_sensitive(True)
+            self.action.get_style_context().add_class("destructive-action")
+            self.action.get_style_context().remove_class("suggested-action")
+            self.spinner.hide()
+
+        # TODO - just size or say 'Size:' ?
+        if task.freed_size > 0:
+            self.size_label.set_label(_("%s" % GLib.format_size(task.freed_size)))
+        elif task.install_size > 0:
+            self.size_label.set_label(_("%s" % GLib.format_size(task.install_size)))
+
+        self.size_label.show()
+
+    def info_error(self, task):
+        self.task = task
+
+        self.spinner.hide()
+        self.action.set_sensitive(False)
+        self.action.set_label(_("Unavailable"))
+        self.action.get_style_context().remove_class("suggested-action")
+        self.action.get_style_context().remove_class("destructive-action")
+
+    def action_clicked(self, widget):
+        self.app.installer.execute_task(self.task)
+
+        self.action.set_label("")
+        self.app.update_activity_widgets()
+
+    def installer_finished(self, task):
+        self.app.update_activity_widgets()
+        self.prepare_task()
+
+    def installer_progress(self, pkginfo, progress, estimating, status_text=None):
+        self.spinner.show()
+        print(status_text)
+
+class SaneProgressBar(Gtk.DrawingArea):
+    def __init__(self):
+        super(Gtk.DrawingArea, self).__init__(width_request=-1,
+                                              height_request=8,
+                                              margin_top=1, #???  to align better with the stars and count
+                                              hexpand=True,
+                                              valign=Gtk.Align.CENTER,
+                                              visible=True)
+        self.connect("draw", self.draw_bar)
+        self.fraction = 0
+
+    def update_colors(self):
+        context = self.get_style_context()
+
+        ret, self.fill_color = context.lookup_color("fg_color")
+        if not ret:
+            self.fill_color = Gdk.RGBA()
+            self.fill_color.parse("grey")
+        ret, self.trough_color = context.lookup_color("bg_color")
+        if not ret:
+            self.trough_color = Gdk.RGBA()
+            self.trough_color.parse("white")
+
+        ret, self.border_color = context.lookup_color("borders_color")
+        if not ret:
+            self.border_color = Gdk.RGBA()
+            self.border_color.parse("grey")
+
+    def draw_bar(self, widget, cr):
+        self.update_colors()
+
+        allocation = self.get_allocation()
+
+        cr.set_antialias(cairo.ANTIALIAS_SUBPIXEL)
+        cr.save()
+        cr.set_line_width(1)
+
+        self.rounded_rect(cr, 1, 1, allocation.width - 2, allocation.height - 2)
+        cr.clip()
+
+        Gdk.cairo_set_source_rgba(cr, self.trough_color)
+        self.rounded_rect(cr, 1, 1, allocation.width - 2, allocation.height - 2)
+        cr.fill()
+
+        Gdk.cairo_set_source_rgba(cr, self.fill_color)
+        self.rounded_rect(cr, -20, 1, allocation.width * self.fraction + 20, allocation.height - 2)
+        cr.fill()
+
+        Gdk.cairo_set_source_rgba(cr, self.border_color)
+        self.rounded_rect(cr, 1, 1, allocation.width - 2, allocation.height - 2)
+        cr.stroke()
+
+        cr.restore()
+
+        return True
+
+    def rounded_rect(self, cr, x, y, width, height):
+        radius = 3
+        cr.new_sub_path()
+        cr.arc(x + radius, y + radius, radius, 180 * DEGREES, 270 * DEGREES)
+        cr.arc(x + width - radius, y + radius, radius, -90 * DEGREES, 0 * DEGREES)
+        cr.arc(x + width - radius, y + height - radius, radius, 0 * DEGREES, 90 * DEGREES)
+        cr.arc(x + radius, y + height - radius, radius, 90 * DEGREES, 180 * DEGREES)
+        cr.close_path()
+
+    def set_fraction(self, fraction):
+        self.fraction = fraction
+        self.queue_draw()
 
 
 class FeatureTile(Gtk.Button):
@@ -335,51 +578,172 @@ class FeatureTile(Gtk.Button):
                                                  style_provider,
                                                  Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
-        label_name = Gtk.Label(xalign=0.0)
+        label_name = Gtk.Label(xalign=1.0)
         label_name.set_label(self.installer.get_display_name(pkginfo))
         label_name.set_name("FeatureTitle")
 
-        label_summary = Gtk.Label(xalign=0.0)
+        label_summary = Gtk.Label(xalign=1.0)
         label_summary.set_label(self.installer.get_summary(pkginfo))
         label_summary.set_name("FeatureSummary")
 
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, halign=Gtk.Align.END)
         vbox.set_border_width(6)
 
-        vbox.pack_start(Gtk.Label(), False, False, 30)
-        vbox.pack_start(label_name, False, False, 0)
-        vbox.pack_start(label_summary, True, True, 0)
+        vbox.pack_end(label_summary, False, False, 0)
+        vbox.pack_end(label_name, False, False, 0)
 
         hbox = Gtk.Box()
-        label_left = Gtk.Label()
-        hbox.pack_start(label_left, True, True, 200)
-        hbox.pack_start(vbox, True, True, 0)
+        hbox.pack_end(vbox, True, True, 0)
 
         self.add(hbox)
 
-class Tile(Gtk.Button):
-
-    def __init__(self, pkginfo, installer):
-        super(Gtk.Button, self).__init__()
-        self.pkginfo = pkginfo
-        self.installed_mark = Gtk.Image()
-        self.installer = installer
-
-    def refresh_state(self):
-        self.installed = self.installer.pkginfo_is_installed(self.pkginfo)
-
-        if self.installed:
-            self.installed_mark.set_from_icon_name("emblem-installed", Gtk.IconSize.MENU)
-        else:
-            self.installed_mark.clear()
-
-class TileRow(Gtk.ListBoxRow):
-
-    def __init__(self, pkginfo, installer):
+class PackageRow(Gtk.ListBoxRow):
+    def __init__(self, pkginfo, icon, summary, installer, from_search=False, review_info=None):
         super(Gtk.ListBoxRow, self).__init__()
         self.pkginfo = pkginfo
         self.installed_mark = Gtk.Image()
         self.installer = installer
+        self.asapp = self.installer.get_appstream_app_for_pkginfo(pkginfo)
+
+        glade_file = "/usr/share/linuxmint/mintinstall/package-row.glade"
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file(glade_file)
+
+        self.main_box = self.builder.get_object("package_row")
+        self.add(self.main_box)
+        self.main_box.connect("button-press-event", lambda w, e: Gdk.EVENT_PROPAGATE)
+        self.main_box.connect("button-release-event", lambda w, e: Gdk.EVENT_PROPAGATE)
+
+        self.app_icon_holder = self.builder.get_object("app_icon_holder")
+        self.app_display_name = self.builder.get_object("app_display_name")
+        self.app_summary = self.builder.get_object("app_summary")
+        self.flatpak_badge = self.builder.get_object("flatpak_badge")
+        self.category_label = self.builder.get_object("category_label")
+        self.installed_mark = self.builder.get_object("installed_mark")
+
+        self.app_icon_holder.add(icon)
+
+        display_name = self.installer.get_display_name(pkginfo)
+        display_name = GLib.markup_escape_text(display_name)
+
+        if pkginfo.pkg_hash.startswith("f"):
+            self.flatpak_badge.show()
+        else:
+            self.flatpak_badge.hide()
+
+        self.app_display_name.set_label(display_name)
+        self.app_summary.set_label(summary)
+        self.show_all()
+
+        if review_info:
+            self.fill_rating_widget(review_info)
+
+        self.refresh_state()
+
+    def refresh_state(self):
+        self.installed = self.installer.pkginfo_is_installed(self.pkginfo)
+
+        if self.installed:
+            self.installed_mark.set_from_icon_name("emblem-ok-symbolic", Gtk.IconSize.LARGE_TOOLBAR)
+        else:
+            self.installed_mark.clear()
+
+    def fill_rating_widget(self, review_info):
+        review_info_box = self.builder.get_object("review_info_box")
+
+        stars_box = self.builder.get_object("stars_box")
+
+        rating = review_info.avg_rating
+        remaining_stars = 5
+        while rating >= 1.0:
+            stars_box.pack_start(Gtk.Image.new_from_icon_name("starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
+            rating -= 1
+            remaining_stars -= 1
+        if rating > 0.0:
+            stars_box.pack_start(Gtk.Image.new_from_icon_name("semi-starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
+            remaining_stars -= 1
+        for i in range (remaining_stars):
+            stars_box.pack_start(Gtk.Image.new_from_icon_name("non-starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
+        stars_box.show_all()
+
+        num_reviews_label = self.builder.get_object("num_reviews_label")
+
+        # TRANSLATORS: showing specific number of reviews in the list view and the header of the package details.
+        review_text = gettext.ngettext("%d Review", "%d Reviews", review_info.num_reviews) % review_info.num_reviews
+        num_reviews_label.set_label(review_text)
+
+class VerticalPackageTile(Gtk.FlowBoxChild):
+    def __init__(self, pkginfo, icon, installer, review_info=None):
+        super(VerticalPackageTile, self).__init__()
+
+        self.button = Gtk.Button();
+        self.button.connect("clicked", self._activate_fb_child)
+        self.button.set_can_focus(False)
+        self.add(self.button)
+
+        self.pkginfo = pkginfo
+        self.installer = installer
+
+        glade_file = "/usr/share/linuxmint/mintinstall/vertical-tile.glade"
+        self.builder = Gtk.Builder()
+        self.builder.add_from_file(glade_file)
+
+        self.overlay = self.builder.get_object("vertical_package_tile")
+        self.button.add(self.overlay)
+
+        self.icon_holder = self.builder.get_object("icon_holder")
+        self.package_label = self.builder.get_object("package_label")
+        self.package_summary = self.builder.get_object("package_summary")
+        self.flatpak_box = self.builder.get_object("flatpak_box")
+        self.flatpak_emblem = self.builder.get_object("flatpak_emblem")
+        self.installed_mark = self.builder.get_object("installed_mark")
+        self.remote_name = self.builder.get_object("remote_name")
+
+        self.icon_holder.add(icon)
+
+        display_name = self.installer.get_display_name(pkginfo)
+        self.package_label.set_label(display_name)
+
+        summary = self.installer.get_summary(pkginfo)
+        self.package_summary.set_label(summary)
+
+        if pkginfo.pkg_hash.startswith("f"):
+            self.flatpak_box.set_tooltip_text(_("This package is a Flatpak"))
+            self.flatpak_emblem.show()
+
+            remote_info = None
+
+            try:
+                remote_info = self.installer.get_remote_info_for_name(pkginfo.remote)
+                if remote_info:
+                    self.remote_name.set_label(remote_info.title)
+            except:
+                pass
+
+            if remote_info is None:
+                self.remote_name.set_label(pkginfo.remote.capitalize())
+
+            self.remote_name.show()
+        else:
+            self.remote_name.hide()
+
+            try: 
+                equiv_flatpak = FLATPAK_EQUIVS[self.pkginfo.name]
+                self.flatpak_emblem.show()
+                self.flatpak_emblem.set_opacity(0.2)
+                self.flatpak_box.set_tooltip_text(_("A Flatpak version of this package is available"))
+            except:
+                self.flatpak_emblem.hide()
+                self.flatpak_box.set_tooltip_text(None)
+
+        if review_info:
+            self.fill_rating_widget(review_info)
+
+        self.show_all()
+        self.refresh_state()
+
+    def _activate_fb_child(self, widget):
+        self.activate()
 
     def refresh_state(self):
         self.installed = self.installer.pkginfo_is_installed(self.pkginfo)
@@ -389,125 +753,29 @@ class TileRow(Gtk.ListBoxRow):
         else:
             self.installed_mark.clear()
 
-class PackageRow(TileRow):
-    def __init__(self, pkginfo, icon, summary, installer, review_info=None, more_info=None):
-        TileRow.__init__(self, pkginfo, installer)
+    def fill_rating_widget(self, review_info):
+        review_info_box = self.builder.get_object("review_info_box")
 
-        label_name = Gtk.Label(xalign=0)
-
-        display_name = self.installer.get_display_name(pkginfo)
-        display_name = GLib.markup_escape_text(display_name)
-
-        if more_info:
-            more_info = GLib.markup_escape_text(more_info)
-            label_name.set_markup("<b>%s (%s)</b>" % (display_name, more_info))
-        else:
-            label_name.set_markup("<b>%s</b>" % display_name)
-
-        label_name.set_justify(Gtk.Justification.LEFT)
-        label_summary = Gtk.Label(xalign=0.0)
-        label_summary.set_markup("<small>%s</small>" % GLib.markup_escape_text(summary))
-        label_summary.set_line_wrap(True)
-
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        vbox.set_margin_start(6)
-        vbox.set_margin_top(1)
-        vbox.set_spacing(2)
-
-        name_box = Gtk.Box()
-        name_box.set_spacing(6)
-        name_box.pack_start(label_name, False, False, 0)
-
-        name_box.pack_start(self.installed_mark, False, False, 0)
-
-        vbox.pack_start(name_box, False, False, 0)
-        vbox.pack_start(label_summary, False, False, 0)
-        vbox.set_valign(Gtk.Align.CENTER)
-
-        hbox = Gtk.Box()
-        hbox.set_margin_start(12)
-        hbox.set_margin_end(12)
-        hbox.set_margin_top(6)
-        hbox.set_margin_bottom(6)
-        hbox.pack_start(icon, False, False, 0)
-        hbox.pack_start(vbox, False, False, 0)
-
-        if review_info:
-            hbox.pack_end(self.get_rating_widget(review_info), False, False, 0)
-
-        self.add(hbox)
-
-        self.refresh_state()
-
-    def get_rating_widget(self, review_info):
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-
-        star_and_average_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-
-        box_stars = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        stars_box = self.builder.get_object("stars_box")
 
         rating = review_info.avg_rating
         remaining_stars = 5
         while rating >= 1.0:
-            box_stars.pack_start(Gtk.Image.new_from_icon_name("starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
+            star = Gtk.Image(icon_name="starred-symbolic", pixel_size=12)
+            stars_box.pack_start(star, False, False, 0)
             rating -= 1
             remaining_stars -= 1
         if rating > 0.0:
-            box_stars.pack_start(Gtk.Image.new_from_icon_name("semi-starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
+            star = Gtk.Image(icon_name="semi-starred-symbolic", pixel_size=12)
+            stars_box.pack_start(star, False, False, 0)
             remaining_stars -= 1
         for i in range (remaining_stars):
-            box_stars.pack_start(Gtk.Image.new_from_icon_name("non-starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
-        box_stars.show_all()
+            star = Gtk.Image(icon_name="non-starred-symbolic", pixel_size=12)
+            stars_box.pack_start(star, False, False, 0)
+        stars_box.show_all()
 
-        star_and_average_box.pack_start(box_stars, False, False, 2)
-
-        average_rating_label = Gtk.Label()
-        average_rating_label.set_markup("<b>%s</b>" % str(review_info.avg_rating))
-        star_and_average_box.pack_start(average_rating_label, False, False, 2)
-
-        label_num_reviews = Gtk.Label()
-
-        # TRANSLATORS: showing specific number of reviews in the list view and the header of the package details.
-        review_text = gettext.ngettext("Review", "Reviews", review_info.num_reviews)
-
-        label_num_reviews.set_markup("<small><i>%s %s</i></small>" % (str(review_info.num_reviews), review_text))
-
-        vbox.pack_start(star_and_average_box, False, False, 2)
-        vbox.pack_start(label_num_reviews, False, False, 2)
-        vbox.set_valign(Gtk.Align.CENTER)
-
-        vbox.show_all()
-        return vbox
-
-class VerticalPackageTile(Tile):
-    def __init__(self, pkginfo, icon, installer):
-        Tile.__init__(self, pkginfo, installer)
-
-        label_name = Gtk.Label(xalign=0.5)
-
-        display_name = self.installer.get_display_name(pkginfo)
-        label_name.set_markup("<b>%s</b>" % GLib.markup_escape_text(display_name))
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        vbox.set_border_width(6)
-
-        vbox.pack_start(icon, False, False, 0)
-
-        overlay = Gtk.Overlay()
-        overlay.add(vbox)
-
-        name_box = Gtk.Box()
-        name_box.pack_start(label_name, True, True, 0)
-
-        vbox.pack_start(name_box, True, True, 0)
-
-        self.installed_mark.set_valign(Gtk.Align.START)
-        self.installed_mark.set_halign(Gtk.Align.END)
-        self.installed_mark.set_margin_start(6)
-        overlay.add_overlay(self.installed_mark)
-
-        self.add(overlay)
-
-        self.refresh_state()
+        num_reviews_label = self.builder.get_object("num_reviews_label")
+        num_reviews_label.set_label(str(review_info.num_reviews))
 
 class ReviewTile(Gtk.ListBoxRow):
     def __init__(self, username, date, comment, rating):
@@ -535,7 +803,7 @@ class ReviewTile(Gtk.ListBoxRow):
         label_date.set_markup("<small>%s</small>" % GLib.markup_escape_text(date))
         ratings_box.pack_start(label_date, False, False, 0)
 
-        label_comment = Gtk.Label(xalign=0.0)
+        label_comment = Gtk.Label(xalign=0.0, selectable=True)
         label_comment.set_label(comment)
         label_comment.set_line_wrap(True)
 
@@ -563,25 +831,31 @@ class Category:
         while cat.parent is not None:
             cat = cat.parent
 
-class CategoryListBoxRow(Gtk.ListBoxRow):
-    def __init__(self, category, is_all=False):
-        super(Gtk.ListBoxRow, self).__init__()
+class SubcategoryFlowboxChild(Gtk.FlowBoxChild):
+    def __init__(self, category, is_all=False, active=False):
+        super(Gtk.FlowBoxChild, self).__init__()
 
         self.category = category
 
         if is_all:
-            label = Gtk.Label(label=_("All"), xalign=0, margin=10)
-            self.add(label)
+            cat_name = _("All")
         else:
-            label = Gtk.Label(label=category.name, xalign=0, margin=10)
-            self.add(label)
+            cat_name = category.name
+
+        self.button = Gtk.ToggleButton(label=cat_name, active=active)
+        self.add(self.button)
+
+        self.button.connect("clicked", self._activate_fb_child)
+
+    def _activate_fb_child(self, widget):
+        self.activate()
 
 class Application(Gtk.Application):
     (ACTION_TAB, PROGRESS_TAB, SPINNER_TAB) = list(range(3))
 
     PAGE_LANDING = "landing"
     PAGE_LIST = "list"
-    PAGE_PACKAGE = "details"
+    PAGE_DETAILS = "details"
     PAGE_LOADING = "loading"
     PAGE_SEARCHING = "searching"
 
@@ -605,6 +879,9 @@ class Application(Gtk.Application):
             self.locale = self.locale.split("_")[0]
 
         self.installer = installer.Installer()
+        self.task_cancellable = None
+        self.current_task = None
+        self.recursion_buster = False
 
         self.install_on_startup_file = None
 
@@ -624,14 +901,13 @@ class Application(Gtk.Application):
 
         self.action_button_signal_id = 0
         self.launch_button_signal_id = 0
-        self.listbox_categories_selected_id = 0
 
         self.add_categories()
 
         self.main_window = None
 
     def do_activate(self):
-        if self.main_window is None:
+        if self.main_window == None:
             if self.installer.init_sync():
                 self.create_window(self.PAGE_LANDING)
                 self.on_installer_ready()
@@ -762,13 +1038,13 @@ class Application(Gtk.Application):
         # If it's less than our threshold than consider us 'low res'. The workarea being used is in
         # app pixels, so hidpi will also be affected here regardless of device resolution.
         if height < 768:
-            print("MintInstall: low resolution detected (%dpx height), limiting window height." % height)
+            print("MintInstall: low resolution detected (%dpx height), limiting window height." % (height))
             return True
 
         return False
 
     def create_window(self, starting_page):
-        if self.main_window is not None:
+        if self.main_window != None:
             print("MintInstall: create_window called, but we already had one!")
             return
 
@@ -801,9 +1077,6 @@ class Application(Gtk.Application):
         self.detail_view_icon = AsyncImage()
         self.detail_view_icon.show()
         self.builder.get_object("application_icon_holder").add(self.detail_view_icon)
-
-        self.main_screenshot = AsyncImage()
-        self.builder.get_object("box_main_screenshot").add(self.main_screenshot)
 
         self.status_label = self.builder.get_object("label_ongoing")
         self.progressbar = self.builder.get_object("progressbar1")
@@ -875,13 +1148,18 @@ class Application(Gtk.Application):
         menu_button = self.builder.get_object("menu_button")
         menu_button.connect("clicked", self.on_menu_button_clicked, submenu)
 
-        self.listbox_applications = Gtk.ListBox()
-        self.listbox_applications.connect("row-activated", self.on_app_row_activated, self.PAGE_LIST)
-        self.listbox_applications.connect("selected-rows-changed", self.on_navigate_listbox)
-        self.listbox_applications.set_header_func(list_header_func, None)
+        flowbox = Gtk.FlowBox()
+        flowbox.set_min_children_per_line(3)
+        flowbox.set_max_children_per_line(10)
+        flowbox.set_row_spacing(2)
+        flowbox.set_column_spacing(2)
+        flowbox.set_homogeneous(True)
+        flowbox.connect("child-activated", self.on_app_row_activated, self.PAGE_LIST)
+        flowbox.connect("selected-children-changed", self.navigate_flowbox, self.builder.get_object("scrolledwindow_applications"))
+        self.flowbox_applications = flowbox
 
         box = self.builder.get_object("box_cat_page")
-        box.add(self.listbox_applications)
+        box.add(self.flowbox_applications)
 
         self.back_button = self.builder.get_object("back_button")
         self.back_button.connect("clicked", self.on_back_button_clicked)
@@ -902,15 +1180,79 @@ class Application(Gtk.Application):
         self.page_stack = self.builder.get_object("page_stack")
         self.page_stack.set_visible_child_name(starting_page)
 
+        self.addons_listbox = self.builder.get_object("box_addons")
+        self.addons_listbox.set_header_func(list_header_func, None)
+        self.package_details_listbox = self.builder.get_object("package_details_listbox")
+
         self.app_list_stack = self.builder.get_object("app_list_stack")
+
+        self.flatpak_details_vgroup = XApp.VisibilityGroup.new(True, True,
+            (
+                self.builder.get_object("branch_row"),
+                self.builder.get_object("remote_row")
+            )
+        )
+
+        self.screenshot_controls_vgroup = XApp.VisibilityGroup.new(False, True,
+            [
+                self.builder.get_object("previous_ss_button"),
+                self.builder.get_object("next_ss_button"),
+            ]
+        )
+
+        self.package_type_store = Gtk.ListStore(int, str, str, str, str, object) # index, label, comment, icon-name, tooltip, remotename, pkginfo
+
+        box = Gtk.CellAreaBox(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
+        cell = Gtk.CellRendererPixbuf(stock_size=Gtk.IconSize.BUTTON)
+        box.pack_start(cell, False, False, True)
+        box.add_attribute(cell, "icon-name", PACKAGE_TYPE_COMBO_ICON_NAME)
+        cell = Gtk.CellRendererText(xalign=0.0)
+        box.pack_start(cell, False, False,  True)
+        box.add_attribute(cell, "text", PACKAGE_TYPE_COMBO_LABEL)
+
+        self.package_type_combo = NonScrollingComboBox(box)
+        self.package_type_combo.set_model(self.package_type_store)
+        self.package_type_combo.show_all()
+        self.package_type_combo_container = self.builder.get_object("package_type_combo_container")
+        self.package_type_combo_container.pack_start(self.package_type_combo, False, False, 0)
+        self.single_version_package_type_box = self.builder.get_object("single_version_package_type_box")
+        self.single_version_package_type_icon = self.builder.get_object("single_version_package_type_icon")
+        self.single_version_package_type_label = self.builder.get_object("single_version_package_type_label")
+
+        review_breakdown_grid = self.builder.get_object("review_breakdown_grid")
+        self.star_bars = []
+
+        for i in range(5, 0, -1):
+            bar = SaneProgressBar()
+            review_breakdown_grid.attach(bar, 1, i - 1, 1, 1)
+            self.star_bars.append(bar)
+
+        self.screenshot_stack = self.builder.get_object("screenshot_stack")
+        self.screenshot_stack.connect("notify::visible-child", self.on_screenshot_shown)
+        self.screenshot_window = None
+
+        self.builder.get_object("previous_ss_button").connect("clicked", self.navigate_screenshot, Gtk.DirectionType.TAB_BACKWARD)
+        self.builder.get_object("next_ss_button").connect("clicked", self.navigate_screenshot, Gtk.DirectionType.TAB_FORWARD)
+        self.ss_swipe_handler = Gtk.GestureSwipe.new(self.screenshot_stack)
+        self.ss_swipe_handler.connect("swipe", self.screenshot_stack_swiped, self.screenshot_stack)
+        self.ss_swipe_handler.set_propagation_phase(Gtk.PropagationPhase.NONE)
+
+        # This is only for the screenshot stack at the moment, as I can't get key events from the stack, even
+        # with an event controller.
+        self.main_window.connect("key-press-event", self.on_window_key_press)
 
         self.searchentry.grab_focus()
 
-        self.listbox_categories = Gtk.ListBox()
-        self.listbox_categories.set_size_request(125, -1)
-        self.builder.get_object("box_subcategories").pack_start(self.listbox_categories, False, False, 0)
-        self.listbox_categories_selected_id = self.listbox_categories.connect('row-activated',
-                                                                              self.on_row_activated)
+        box = self.builder.get_object("box_subcategories")
+
+        self.subcat_flowbox = Gtk.FlowBox(homogeneous=True)
+        self.subcat_flowbox.set_min_children_per_line(1)
+        self.subcat_flowbox.set_max_children_per_line(4)
+        self.subcat_flowbox.set_row_spacing(2)
+        self.subcat_flowbox.set_column_spacing(2)
+
+        box.pack_start(self.subcat_flowbox, True, True, 0)
+        self.subcat_flowbox.connect("child-activated", self.on_subcategory_selected)
 
     def refresh_cache(self):
         self.builder.get_object("loading_spinner").start()
@@ -935,6 +1277,9 @@ class Application(Gtk.Application):
             self.apply_aliases()
 
             self.load_featured_on_landing()
+
+            self.review_cache = reviews.ReviewCache()
+
             self.load_picks_on_landing()
             self.load_categories_on_landing()
 
@@ -946,10 +1291,9 @@ class Application(Gtk.Application):
             # Can take some time, don't block for it (these are categorizing packages based on apt info, not our listings)
             GLib.idle_add(self.process_unmatched_packages)
 
-            self.review_cache = reviews.ReviewCache()
             housekeeping.run()
-        except GLib.Error as e:
-            print("Loading error: %s", e.message)
+        except Exception as e:
+            print("Loading error: %s" % e)
             GLib.idle_add(self.refresh_cache)
 
     def load_featured_on_landing(self):
@@ -994,18 +1338,17 @@ class Application(Gtk.Application):
 
             pkginfo = self.installer.cache.find_pkginfo(name, 'a')
 
-            if pkginfo is not None:
+            if pkginfo != None:
                 break
             else:
                 tries += 1
 
             if tries >= 10:
-                print("Something wrong on featured loading")
-                break
+                raise Exception("Something wrong on featured loading")
 
         tile = FeatureTile(pkginfo, self.installer, background, text, text_shadow, stroke)
 
-        if pkginfo is not None:
+        if pkginfo != None:
             tile.connect("clicked", self.on_flowbox_item_clicked, pkginfo.pkg_hash)
 
         flowbox.insert(tile, -1)
@@ -1021,40 +1364,35 @@ class Application(Gtk.Application):
             child.destroy()
 
         flowbox = Gtk.FlowBox()
-        flowbox.set_min_children_per_line(6)
-        flowbox.set_max_children_per_line(6)
-        flowbox.set_row_spacing(12)
-        flowbox.set_column_spacing(12)
-        flowbox.set_homogeneous(True)
-
+        flowbox.set_min_children_per_line(3)
+        flowbox.set_max_children_per_line(10)
+        flowbox.set_row_spacing(2)
+        flowbox.set_column_spacing(2)
+        flowbox.set_homogeneous(False)
         flowbox.connect("child-activated", self.on_flowbox_child_activated, self.PAGE_LANDING)
+        flowbox.connect("selected-children-changed", self.navigate_flowbox, self.builder.get_object("scrolledwindow_landing"))
+        self.flowbox_popular = flowbox
 
-        installed = []
-        available = []
-        for name in self.picks_category.matchingPackages:
-            pkginfo = self.installer.cache.find_pkginfo(name, 'a') # If we add flatpak favorites, remove the a to find both types
+        apps = [info for info in self.all_category.pkginfos if info.refid == "" or info.refid.startswith("app")]
+        apps.sort(key=functools.cmp_to_key(self.package_compare))
 
-            if pkginfo is None:
-                continue
+        apps = list(filter(lambda app: self.installer.get_icon(app, FEATURED_ICON_SIZE) is not None, apps))
+        apps = apps[0:60]
+        random.shuffle(apps)
+        apps.sort(key=lambda app: self.installer.pkginfo_is_installed(app))
 
-            if self.installer.pkginfo_is_installed(pkginfo):
-                installed.append(pkginfo)
+        size_group = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
+        for pkginfo in apps:
+            if self.review_cache:
+                review_info = self.review_cache[pkginfo.name]
             else:
-                available.append(pkginfo)
-
-        random.shuffle(installed)
-        random.shuffle(available)
-        featured = 0
-        for pkginfo in (available + installed):
+                review_info = None
             icon = self.get_application_icon(pkginfo, FEATURED_ICON_SIZE)
-            tile = VerticalPackageTile(pkginfo, icon, self.installer)
-            tile.connect("clicked", self.on_flowbox_item_clicked, pkginfo.pkg_hash)
+            tile = VerticalPackageTile(pkginfo, icon, self.installer, review_info)
+            size_group.add_widget(tile)
             flowbox.insert(tile, -1)
             self.picks_tiles.append(tile)
-            featured += 1
-            if featured >= 12:
-                break
-        box.pack_start(flowbox, True, True, 0)
+        box.add(flowbox)
         box.show_all()
 
     @print_timing
@@ -1066,9 +1404,11 @@ class Application(Gtk.Application):
         flowbox = Gtk.FlowBox()
         flowbox.set_min_children_per_line(4)
         flowbox.set_max_children_per_line(4)
-        flowbox.set_row_spacing(6)
-        flowbox.set_column_spacing(6)
+        flowbox.set_row_spacing(0)
+        flowbox.set_column_spacing(0)
         flowbox.set_homogeneous(True)
+        flowbox.connect("selected-children-changed", self.navigate_flowbox, self.builder.get_object("scrolledwindow_landing"))
+
         for name in sorted(self.root_categories.keys()):
             category = self.root_categories[name]
             button = Gtk.Button(can_focus=False)
@@ -1099,7 +1439,7 @@ class Application(Gtk.Application):
 
         self.installed_menuitem.set_sensitive(sensitive)
 
-        sensitive = self.current_category is not None \
+        sensitive = self.current_category != None \
                     and self.page_stack.get_visible_child_name() == self.PAGE_LIST
 
         self.subsearch_toggle.set_sensitive(sensitive)
@@ -1157,6 +1497,9 @@ class Application(Gtk.Application):
                 can_show = True
 
             if can_show:
+                if self.recursion_buster:
+                    self.recursion_buster = False
+                    return
                 self.show_package(self.current_pkginfo, self.previous_page)
             else:
                 del self.installer.cache[pkginfo.pkg_hash]
@@ -1167,9 +1510,9 @@ class Application(Gtk.Application):
             if tile.pkginfo == pkginfo:
                 tile.refresh_state()
 
-        for lschild in self.listbox_applications.get_children():
+        for tile in self.flowbox_applications.get_children():
             try:
-                lschild.refresh_state()
+                tile.refresh_state()
             except Exception as e:
                 print(e)
 
@@ -1226,57 +1569,160 @@ class Application(Gtk.Application):
     def show_installed_apps(self, menuitem):
         self.show_category(self.installed_category)
 
-    def add_screenshot(self, pkg_name, number):
-        local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (pkg_name, number))
-        local_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_%s.png" % (pkg_name, number))
-        if self.current_pkginfo is not None and self.current_pkginfo.name == pkg_name:
-            if number == 1:
-                if os.path.exists(local_name):
-                    try:
-                        self.main_screenshot.set_icon_string(local_name, SCREENSHOT_WIDTH, -1)
-                        self.main_screenshot.show()
-                    except Exception:
-                        self.main_screenshot.hide()
-                        print("Invalid picture %s, deleting." % local_name)
-                        os.unlink(local_name)
-                        os.unlink(local_thumb)
-            else:
-                if os.path.exists(local_name) and os.path.exists(local_thumb):
-                    if number == 2:
-                        try:
-                            name = os.path.join(SCREENSHOT_DIR, "%s_1.png" % pkg_name)
-                            thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % pkg_name)
-                            event_box = Gtk.EventBox()
-                            image = AsyncImage(thumb, SCREEN_THUMB_WIDTH, -1)
-                            event_box.add(image)
-                            event_box.connect("button-release-event",
-                                              self.on_screenshot_clicked,
-                                              image,
-                                              thumb,
-                                              name)
-                            self.builder.get_object("box_more_screenshots").pack_start(event_box, False, False, 0)
-                            event_box.show_all()
-                        except Exception:
-                            pass
-                    try:
-                        event_box = Gtk.EventBox()
-                        image = AsyncImage(local_thumb, SCREEN_THUMB_WIDTH, -1)
-                        event_box.add(image)
-                        event_box.connect("button-release-event",
-                                          self.on_screenshot_clicked,
-                                          image,
-                                          local_thumb,
-                                          local_name)
-                        self.builder.get_object("box_more_screenshots").pack_start(event_box, False, False, 0)
-                        event_box.show_all()
-                    except Exception:
-                        print("Invalid picture %s, deleting." % local_name)
-                        os.unlink(local_name)
-                        os.unlink(local_thumb)
+    def add_screenshots(self, pkginfo):
+        ss_dir = Path(SCREENSHOT_DIR)
 
-    def on_screenshot_clicked(self, eventbox, event, image, local_thumb, local_name):
-        # Set main screenshot
-        self.main_screenshot.set_icon_string(local_name, SCREENSHOT_WIDTH, -1)
+        n = 0
+        for ss_path in ss_dir.glob("%s_*.png" % pkginfo.name):
+            n += 1
+            self.add_screenshot(pkginfo, ss_path, n)
+
+        if n == 0:
+            downloadScreenshots = ScreenshotDownloader(self, pkginfo)
+            downloadScreenshots.start()
+
+    def add_screenshot(self, pkginfo, ss_path, n):
+        if pkginfo != self.current_pkginfo:
+            return
+
+        try:
+            self.screenshot_stack.get_child_by_name("spinner").destroy()
+        except AttributeError:
+            pass
+
+        if ss_path is None:
+            box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, valign=Gtk.Align.CENTER)
+            image = Gtk.Image(icon_name="face-uncertain-symbolic", icon_size=Gtk.IconSize.DIALOG)
+            label = Gtk.Label(label=_("No screenshots available"))
+            box.pack_start(image, False, False, 0)
+            box.pack_start(label, False, False, 0)
+            box.show_all()
+            self.screenshot_stack.add_named(box, "no-screenshots")
+            return
+
+        screenshot = AsyncImage(str(ss_path), SCREENSHOT_WIDTH, SCREENSHOT_HEIGHT)
+
+        self.screenshot_stack.add_named(screenshot, str(n))
+        self.screenshot_stack.last = n
+        self.screenshot_stack.show_all()
+        self.ss_swipe_handler.set_propagation_phase(Gtk.PropagationPhase.BUBBLE)
+        self.screenshot_controls_vgroup.set_visible(n > 1)
+
+    def on_screenshot_shown(self, stack, pspec):
+        screenshot = stack.get_visible_child()
+
+    def navigate_screenshot(self, button, direction):
+        new = current = int(self.screenshot_stack.get_visible_child_name())
+
+        if direction == Gtk.DirectionType.TAB_BACKWARD:
+            new = current - 1 if current > 1 else self.screenshot_stack.last
+            trans = Gtk.StackTransitionType.SLIDE_RIGHT
+        elif direction == Gtk.DirectionType.TAB_FORWARD:
+            new = current + 1 if current < self.screenshot_stack.last else 1
+            trans = Gtk.StackTransitionType.SLIDE_LEFT
+
+        self.screenshot_stack.set_visible_child_full(str(new), trans)
+
+    def screenshot_stack_swiped(self, handler, vx, vy, stack):
+        if vx == 0 and vy == 0:
+            if self.screenshot_window is None or not self.screenshot_window.get_visible():
+                self.enlarge_screenshot(stack.get_visible_child())
+            return
+
+        if vx < 0:
+            self.navigate_screenshot(None, Gtk.DirectionType.TAB_FORWARD)
+        elif vx > 0:
+            self.navigate_screenshot(None, Gtk.DirectionType.TAB_BACKWARD)
+
+    def on_window_key_press(self, stack, event, data=None):
+        if self.page_stack.get_visible_child_name() != self.PAGE_DETAILS:
+            return Gdk.EVENT_PROPAGATE
+        if not self.screenshot_controls_vgroup.get_visible():
+            return Gdk.EVENT_PROPAGATE
+
+        got_keyval, keyval = event.get_keyval()
+        direction = None
+
+        if got_keyval:
+            if keyval in (Gdk.KEY_Left, Gdk.KEY_KP_Left):
+                direction = Gtk.DirectionType.TAB_BACKWARD
+            elif keyval in (Gdk.KEY_Right, Gdk.KEY_KP_Right):
+                direction = Gtk.DirectionType.TAB_FORWARD
+
+        if direction is not None:
+            self.navigate_screenshot(None, direction)
+            return Gdk.EVENT_STOP
+
+        return Gdk.EVENT_PROPAGATE
+
+    def get_screenshot_source_from_metadata(self, screenshot):
+        file = Gio.File.new_for_path(screenshot.path)
+
+        try:
+            info = file.query_info("metadata::mintinstall-screenshot-source-url", Gio.FileQueryInfoFlags.NONE, None)
+            url = info.get_attribute_string("metadata::mintinstall-screenshot-source-url")
+            if url is not None:
+                return url
+        except GLib.Error as e:
+            print("Could not retrieve source metadata for screenshot (%s): %s" % (ss_path, e.message))
+
+        return None
+
+    def enlarge_screenshot(self, screenshot):
+        source_url = self.get_screenshot_source_from_metadata(screenshot)
+        if source_url is not None:
+            image_location = source_url
+        else:
+            image_location = screenshot.path
+
+        if self.screenshot_window is not None:
+            if self.screenshot_window.has_image(source_url):
+                self.screenshot_window.show_all()
+                self.screenshot_window.present()
+                return
+        else:
+            self.screenshot_window = ScreenshotWindow(self.main_window)
+            self.screenshot_window.connect("next-image", self.next_enlarged_screenshot_requested)
+            self.screenshot_window.connect("destroy", self.enlarged_screenshot_window_destroyed)
+
+        monitor = Gdk.Display.get_default().get_monitor_at_window(self.main_window.get_window())
+
+        work_area = monitor.get_workarea()
+        enlarged = AsyncImage(image_location, work_area.width * .8, work_area.height * .8)
+        enlarged.connect("image-loaded", self.enlarged_image_ready)
+        return Gdk.EVENT_STOP
+
+    def enlarged_image_ready(self, image):
+        self.screenshot_window.add_image(image, image.path)
+
+    def enlarged_screenshot_window_destroyed(self, window):
+        self.screenshot_window = None
+
+    def next_enlarged_screenshot_requested(self, window, direction):
+        if len(self.screenshot_stack.get_children()) < 2:
+            self.screenshot_window.destroy()
+            return False
+
+        self.navigate_screenshot(None, direction)
+        screenshot = self.screenshot_stack.get_visible_child()
+        source_url = self.get_screenshot_source_from_metadata(screenshot)
+
+        if source_url is not None:
+            image_location = source_url
+        else:
+            image_location = screenshot.path
+
+        if self.screenshot_window.has_image(image_location):
+            self.screenshot_window.show_image(image_location)
+            return False
+
+        self.enlarge_screenshot(screenshot)
+        return True
+
+    def destroy_screenshot_window(self):
+        if self.screenshot_window is not None:
+            self.screenshot_window.destroy()
+            self.screenshot_window = None
 
     def category_button_clicked(self, button, category):
         self.show_category(category)
@@ -1308,7 +1754,7 @@ class Application(Gtk.Application):
     def on_search_changed(self, searchentry):
         terms = searchentry.get_text()
 
-        if self.subsearch_toggle.get_active() and self.current_category is not None and terms == "":
+        if self.subsearch_toggle.get_active() and self.current_category != None and terms == "":
             self.show_category(self.current_category)
         elif terms != "" and len(terms) >= 3:
             self.show_search_results(terms)
@@ -1321,7 +1767,7 @@ class Application(Gtk.Application):
 
         terms = self.searchentry.get_text()
 
-        if self.searchentry.get_text() != "":
+        if (self.searchentry.get_text() != ""):
             self.show_search_results(terms)
 
     def open_about(self, widget):
@@ -1358,7 +1804,7 @@ class Application(Gtk.Application):
                     print("Your APT cache is localized. Please remove all translations first.")
                     print("sudo rm -rf /var/lib/apt/lists/*Translation%s" % filename[-3:])
                     return 1
-        if os.getenv('LANGUAGE') != "C":
+        if (os.getenv('LANGUAGE') != "C"):
             print("Please prefix this command with LANGUAGE=C, to prevent content from being translated in the host's locale.")
             return 1
         self.locale = "C"
@@ -1393,7 +1839,7 @@ class Application(Gtk.Application):
             summary = self.installer.get_summary(pkginfo)
             url = ""
             try:
-                url = self.installer.get_url(pkginfo)
+                url = self.installer.get_homepage_url(pkginfo)
             except:
                 pass
 
@@ -1432,11 +1878,16 @@ class Application(Gtk.Application):
         os.system("kill -9 %s &" % os.getpid())
 
     def on_action_button_clicked(self, button, task):
+        if task.info_ready_status == task.STATUS_UNKNOWN:
+            self.show_package(self.current_pkginfo, self.previous_page)
+            return
+
+        if not self.installer.confirm_task(task):
+            return
+
         self.on_installer_progress(task.pkginfo, 0, True)
 
-        self.installer.execute_task(task,
-                                    self.on_installer_finished,
-                                    self.on_installer_progress)
+        self.installer.execute_task(task)
 
         self.update_activity_widgets()
 
@@ -1633,7 +2084,7 @@ class Application(Gtk.Application):
 
         self.gui_ready = True
 
-        if self.install_on_startup_file is not None:
+        if self.install_on_startup_file != None:
             self.handle_command_line_install(self.install_on_startup_file)
 
         return False
@@ -1738,6 +2189,19 @@ class Application(Gtk.Application):
         XApp.set_window_progress(self.main_window, 0)
         self.stop_progress_pulse()
 
+        # If we're still loading details (and simulating), there's no task yet,
+        # but we can cancel it via cancellable the installer gave us initially.
+        if self.task_cancellable is not None:
+            self.task_cancellable.cancel()
+            self.task_cancellable = None
+
+        # If we have a task, we're viewing a package and it's been 'loaded' fully.
+        # Cancel it directly.
+        elif self.current_task:
+            if not self.installer.task_running(self.current_task):
+                self.installer.cancel_task(self.current_task)
+            self.current_task = None
+
         self.current_pkginfo = None
         self.page_stack.set_visible_child_name(self.previous_page)
         if self.previous_page == self.PAGE_LANDING:
@@ -1748,6 +2212,11 @@ class Application(Gtk.Application):
             if self.one_package_idle_timer > 0:
                 GLib.source_remove(self.one_package_idle_timer)
                 self.one_package_idle_timer = 0
+            try:
+                tile = self.flowbox_popular.get_selected_children()[0]
+                tile.grab_focus()
+            except IndexError:
+                pass
 
         if self.previous_page == self.PAGE_LIST:
             self.previous_page = self.PAGE_LANDING
@@ -1758,8 +2227,8 @@ class Application(Gtk.Application):
                 self.show_active_tasks()
             else:
                 try:
-                    lr = self.listbox_applications.get_selected_rows()[0]
-                    lr.grab_focus()
+                    tile = self.flowbox_applications.get_selected_children()[0]
+                    tile.grab_focus()
                 except IndexError:
                     pass
 
@@ -1779,8 +2248,6 @@ class Application(Gtk.Application):
         label.set_text(self.current_category.name)
         label.show()
 
-        self.clear_category_list()
-
         if category.parent:
             self.show_subcategories(category.parent)
         else:
@@ -1790,47 +2257,27 @@ class Application(Gtk.Application):
 
         self.update_conditional_widgets()
 
-    def clear_category_list(self):
-        for child in self.listbox_categories.get_children():
-            self.listbox_categories.remove(child)
-
     def show_subcategories(self, category):
         # Load subcategories
-        box = self.builder.get_object("box_subcategories")
+        for child in self.subcat_flowbox.get_children():
+            child.destroy()
 
-        # For flatpaks, subcategories are based on Remotes, therefore all apps are in a
-        # a category.  Unless more than one remote is configured, there's no reason to
-        # display the sidebar, as all apps will exist in both 'all' and the remote sub-
-        # category.
+        if category == self.flatpak_category or len(category.subcategories) == 0:
+            self.subcat_flowbox.hide()
+            return
 
-        if category == self.flatpak_category:
-            this_many = 1
-        else:
-            this_many = 0
+        child = SubcategoryFlowboxChild(category, is_all=True, active=self.current_category == category)
+        self.subcat_flowbox.add(child)
 
-        if len(category.subcategories) > this_many:
-            row = CategoryListBoxRow(category, is_all=True)
-            self.listbox_categories.add(row)
-            if self.current_category == category:
-                self.listbox_categories.handler_block(self.listbox_categories_selected_id)
-                self.listbox_categories.select_row(row)
-                self.listbox_categories.handler_unblock(self.listbox_categories_selected_id)
+        for cat in category.subcategories:
+            if len(cat.pkginfos) > 0:
+                child = SubcategoryFlowboxChild(cat, is_all=False, active=self.current_category == cat)
+                self.subcat_flowbox.add(child)
 
-            for cat in category.subcategories:
-                if len(cat.pkginfos) > 0:
-                    row = CategoryListBoxRow(cat)
-                    self.listbox_categories.add(row)
-                    if self.current_category == cat:
-                        self.listbox_categories.handler_block(self.listbox_categories_selected_id)
-                        self.listbox_categories.select_row(row)
-                        self.listbox_categories.handler_unblock(self.listbox_categories_selected_id)
+        self.subcat_flowbox.show_all()
 
-            box.show_all()
-        else:
-            box.hide()
-
-    def on_row_activated(self, listbox, row):
-        self.show_category(row.category)
+    def on_subcategory_selected(self, flowbox, child, data=None):
+        self.show_category(child.category)
 
     def get_application_icon_string(self, pkginfo, size):
         string = self.installer.get_icon(pkginfo, size)
@@ -1854,18 +2301,18 @@ class Application(Gtk.Application):
         self.stop_progress_pulse()
         self.current_pkginfo = None
 
-        for child in self.listbox_applications.get_children():
-            self.listbox_applications.remove(child)
+        for child in self.flowbox_applications.get_children():
+            self.flowbox_applications.remove(child)
 
         if self.subsearch_toggle.get_active()  \
-            and self.current_category is not None \
-                and self.page_stack.get_visible_child_name() == self.PAGE_LIST:
+            and self.current_category != None  \
+            and self.page_stack.get_visible_child_name() == self.PAGE_LIST:
             listing = self.current_category.pkginfos
         else:
             listing = self.installer.cache.values()
             self.current_category = None
 
-        self.listbox_categories.hide()
+        self.subcat_flowbox.hide()
         self.back_button.set_sensitive(True)
         self.previous_page = self.PAGE_LANDING
         if self.page_stack.get_visible_child_name() != self.PAGE_SEARCHING:
@@ -1895,10 +2342,10 @@ class Application(Gtk.Application):
                 if all(piece in pkginfo.name.upper() for piece in termsSplit):
                     searched_packages.append(pkginfo)
                     break
-                if search_in_summary and termsUpper in self.installer.get_summary(pkginfo, for_search=True).upper():
+                if (search_in_summary and termsUpper in self.installer.get_summary(pkginfo, for_search=True).upper()):
                     searched_packages.append(pkginfo)
                     break
-                if search_in_description and termsUpper in self.installer.get_description(pkginfo, for_search=True).upper():
+                if(search_in_description and termsUpper in self.installer.get_description(pkginfo, for_search=True).upper()):
                     searched_packages.append(pkginfo)
                     break
                 # pkginfo.name for flatpaks is their id (org.foo.BarMaker), which
@@ -1923,7 +2370,6 @@ class Application(Gtk.Application):
         self.search_idle_timer = GLib.idle_add(idle_search_one_package, list(listing))
 
     def on_search_results_complete(self, results):
-        self.clear_category_list()
         self.page_stack.set_visible_child_name(self.PAGE_LIST)
         self.builder.get_object("loading_spinner").stop()
         self.show_packages(results, from_search=True)
@@ -1942,41 +2388,77 @@ class Application(Gtk.Application):
     def on_flowbox_child_activated(self, flowbox, child, previous_page):
         flowbox.select_child(child)
 
-        self.show_package(child.get_child().pkginfo, previous_page)
+        self.show_package(child.pkginfo, previous_page)
 
-    def on_navigate_listbox(self, box, data=None):
-        sw = self.builder.get_object("scrolledwindow_applications")
-
+    def navigate_flowbox(self, flowbox, scrolled_window):
         try:
-            selected = box.get_selected_rows()[0]
+            selected = flowbox.get_selected_children()[0]
         except IndexError:
             return
 
-        adj = sw.get_vadjustment()
+        adj = scrolled_window.get_vadjustment()
         current = adj.get_value()
         sel_box = selected.get_allocation()
-        sw_box = sw.get_allocation()
+        fb_box = flowbox.get_allocation()
+        sw_box = scrolled_window.get_allocation()
 
         unit = sel_box.height
-
-        if (sel_box.y + unit) > (current + sw_box.height):
-            adj.set_value((sel_box.y + unit) - sw_box.height)
-        elif sel_box.y < current:
-            adj.set_value(sel_box.y)
+        if (sel_box.y + sw_box.y + fb_box.y + unit) > (current + sw_box.height):
+            adj.set_value((sel_box.y + fb_box.y + unit) - sw_box.height)
+        elif sel_box.y + fb_box.y < current:
+            adj.set_value(sel_box.y + fb_box.y)
 
     def capitalize(self, string):
         if len(string) > 1:
-            return string[0].upper() + string[1:]
+            return (string[0].upper() + string[1:])
         else:
-            return string
+            return (string)
+
+    def package_compare(self, pkga, pkgb):
+        score_a = 0
+        score_b = 0
+
+        try:
+            score_a = self.review_cache[pkga.name].score
+        except:
+            pass
+
+        try:
+            score_b = self.review_cache[pkgb.name].score
+        except:
+            pass
+
+        if score_a == score_b:
+            # A flatpak's 'name' may not even have the app's name in it.
+            # It's better to compare by their display names
+            if pkga.pkg_hash.startswith("f"):
+                name_a = self.installer.get_display_name(pkga)
+            else:
+                name_a = pkga.name
+            if pkgb.pkg_hash.startswith("f"):
+                name_b = self.installer.get_display_name(pkgb)
+            else:
+                name_b = pkgb.name
+
+            if name_a < name_b:
+                return -1
+            elif name_a > name_b:
+                return 1
+            else:
+                return 0
+
+        if score_a > score_b:
+            return -1
+        else:  # score_a < score_b
+            return 1
 
     def show_packages(self, pkginfos, from_search=False):
         if self.one_package_idle_timer > 0:
             GLib.source_remove(self.one_package_idle_timer)
             self.one_package_idle_timer = 0
 
-        for child in self.listbox_applications.get_children():
-            self.listbox_applications.remove(child)
+        for child in self.flowbox_applications.get_children():
+            self.flowbox_applications.remove(child)
 
         self.category_tiles = []
         if len(pkginfos) == 0:
@@ -1997,54 +2479,17 @@ class Application(Gtk.Application):
         else:
             self.app_list_stack.set_visible_child_name("results")
 
-        def package_compare(pkga, pkgb):
-            score_a = 0
-            score_b = 0
+        apps = [info for info in pkginfos if info.refid == "" or info.refid.startswith("app")]
+        apps.sort(key=functools.cmp_to_key(self.package_compare))
 
-            try:
-                score_a = self.review_cache[pkga.name].score
-            except:
-                pass
-
-            try:
-                score_b = self.review_cache[pkgb.name].score
-            except:
-                pass
-
-            if score_a == score_b:
-                # A flatpak's 'name' may not even have the app's name in it.
-                # It's better to compare by their display names
-                if pkga.pkg_hash.startswith("f"):
-                    name_a = self.installer.get_display_name(pkga)
-                else:
-                    name_a = pkga.name
-                if pkgb.pkg_hash.startswith("f"):
-                    name_b = self.installer.get_display_name(pkgb)
-                else:
-                    name_b = pkgb.name
-
-                if name_a < name_b:
-                    return -1
-                elif name_a > name_b:
-                    return 1
-                else:
-                    return 0
-
-            if score_a > score_b:
-                return -1
-            else:  # score_a < score_b
-                return 1
-
-        pkginfos.sort(key=functools.cmp_to_key(package_compare))
-
-        pkginfos = pkginfos[0:200]
+        apps = apps[0:200]
 
         # Identify name collisions (to show more info when multiple apps have the same name)
         package_titles = []
         collisions = []
 
         bad_ones = []
-        for pkginfo in pkginfos:
+        for pkginfo in apps:
             try:
                 title = self.installer.get_display_name(pkginfo).lower()
                 if title in package_titles and title not in collisions:
@@ -2054,13 +2499,13 @@ class Application(Gtk.Application):
                 bad_ones.append(pkginfo)
 
         for bad in bad_ones:
-            pkginfos.remove(bad)
+            apps.remove(bad)
 
         self.one_package_idle_timer = GLib.idle_add(self.idle_show_one_package,
-                                                       pkginfos,
-                                                       collisions)
+                                                    apps,
+                                                    collisions)
 
-        self.listbox_applications.show_all()
+        self.flowbox_applications.show_all()
 
     def idle_show_one_package(self, pkginfos, collisions):
         try:
@@ -2080,20 +2525,8 @@ class Application(Gtk.Application):
         else:
             review_info = None
 
-        more_info = None
-
-        if self.installer.get_display_name(pkginfo).lower() in collisions:
-            if pkginfo.pkg_hash.startswith("f"):
-                more_info = self.flatpak_remote_categories[pkginfo.remote].name
-
-        tile = PackageRow(pkginfo, icon, summary,
-                          installer=self.installer,
-                          review_info=review_info,
-                          more_info=more_info)
-
-        tile.show_all()
-        tile.connect("key-press-event", self.on_tile_keypress)
-        self.listbox_applications.insert(tile, -1)
+        tile = VerticalPackageTile(pkginfo, icon, self.installer, review_info)
+        self.flowbox_applications.insert(tile, -1)
         self.category_tiles.append(tile)
 
         # Repeat until empty
@@ -2111,16 +2544,20 @@ class Application(Gtk.Application):
 
         return Gdk.EVENT_PROPAGATE
 
+    def package_type_combo_changed(self, combo):
+        iter = combo.get_active_iter()
+        if iter:
+            pkginfo = combo.get_model().get_value(iter, PACKAGE_TYPE_COMBO_PKGINFO)
+            self.show_package(pkginfo, self.previous_page)
+
     @print_timing
     def show_package(self, pkginfo, previous_page):
-        self.page_stack.set_visible_child_name(self.PAGE_PACKAGE)
+        self.page_stack.set_visible_child_name(self.PAGE_DETAILS)
+        self.builder.get_object("details_notebook").set_current_page(0)
         self.previous_page = previous_page
         self.back_button.set_sensitive(True)
 
         self.update_conditional_widgets()
-
-        # self.reset_apt_cache_now()
-        # self.searchentry.set_text("")
 
         if self.action_button_signal_id > 0:
             self.action_button.disconnect(self.action_button_signal_id)
@@ -2140,20 +2577,103 @@ class Application(Gtk.Application):
 
         # Set source-agnostic things
 
-        details_i18n = _("Details")
-
-        if pkginfo.pkg_hash.startswith("f"):
-            details_markup = "<big><b>%s (Flatpak)</b></big>" % details_i18n
-        else:
-            details_markup = "<big><b>%s</b></big>" % details_i18n
-
-        self.builder.get_object("label_details").set_markup(details_markup)
-
         icon_string = self.get_application_icon_string(pkginfo, DETAILS_ICON_SIZE)
         self.detail_view_icon.set_icon_string(icon_string)
-        self.builder.get_object("application_name").set_label(self.installer.get_display_name(pkginfo))
+
+        self.package_type_store.clear()
+        self.package_type_combo.set_button_sensitivity(Gtk.SensitivityType.AUTO)
+
+        try:
+            self.package_type_combo.disconnect_by_func(self.package_type_combo_changed)
+        except TypeError:
+            pass
+
+        self.package_type_store.clear()
+
+        i = 0
+        to_use_iter = None
+        row_pkginfo = None
+        row = None
+        tooltip = None
+
+        # add system if this is a system package, or one exists in our match table.
+        if pkginfo.pkg_hash.startswith("a"):
+            row_pkginfo = pkginfo
+        else:
+            match = self.get_deb_for_flatpak(pkginfo)
+            if match is not None:
+                row_pkginfo = match
+
+        if row_pkginfo:
+            row = [i, _("System Package"), "", "linuxmint-logo-badge-symbolic",
+                   _("Your system's package manager"), row_pkginfo]
+            iter = self.package_type_store.append(row)
+            if pkginfo == row_pkginfo:
+                to_use_iter = iter
+                tooltip = row[PACKAGE_TYPE_COMBO_TOOLTIP]
+            i += 1
+
+        if pkginfo.pkg_hash.startswith("f") or self.get_flatpak_for_deb(pkginfo) is not None:
+            a_flatpak = self.get_flatpak_for_deb(pkginfo) or pkginfo
+            for remote in self.installer.list_flatpak_remotes():
+                row_pkginfo = self.installer.find_pkginfo(a_flatpak.name)
+                if row_pkginfo:
+                    # row = [i, _("Flatpak (%s)") % remote.title, remote.summary, "flatpak-symbolic", remote.summary, row_pkginfo]
+                    row = [i, _("Flatpak"), "", "flatpak-symbolic", "", row_pkginfo]
+                    iter = self.package_type_store.append(row)
+                    if pkginfo == row_pkginfo:
+                        to_use_iter = iter
+                        tooltip = row[PACKAGE_TYPE_COMBO_TOOLTIP]
+                    i += 1
+
+        if i == 1:
+            self.package_type_combo_container.hide()
+            self.single_version_package_type_box.show()
+            self.single_version_package_type_label.set_label(row[PACKAGE_TYPE_COMBO_LABEL])
+            self.single_version_package_type_icon.set_from_icon_name(row[PACKAGE_TYPE_COMBO_ICON_NAME], Gtk.IconSize.BUTTON)
+            self.single_version_package_type_box.set_tooltip_text(row[PACKAGE_TYPE_COMBO_TOOLTIP])
+        else:
+            self.single_version_package_type_box.hide()
+            self.package_type_combo_container.show()
+            self.package_type_combo.set_active_iter(to_use_iter)
+            self.package_type_combo.set_tooltip_text(tooltip)
+
+        if pkginfo.pkg_hash.startswith("f"):
+            self.flatpak_details_vgroup.show()
+            # We don't know flatpak versions until the task reports back, apt we know immediately.
+            self.builder.get_object("application_version").set_label("")
+        else:
+            self.flatpak_details_vgroup.hide()
+            self.builder.get_object("application_version").set_label(self.installer.get_version(pkginfo))
+
+        self.package_type_combo.connect("changed", self.package_type_combo_changed)
+
+        app_name = self.installer.get_display_name(pkginfo)
+
+        self.builder.get_object("application_name").set_label(app_name)
         self.builder.get_object("application_summary").set_label(self.installer.get_summary(pkginfo))
         self.builder.get_object("application_package").set_label(pkginfo.name)
+        self.builder.get_object("application_size").set_markup(_("<i>Calculating...</i>"))
+        self.builder.get_object("application_remote").set_markup(_("<i>Checking...</i>"))
+        self.builder.get_object("application_branch").set_markup(_("<i>Checking...</i>"))
+
+        homepage_url = self.installer.get_homepage_url(pkginfo)
+        if homepage_url not in ('', None):
+            self.builder.get_object("application_homepage").show()
+            homepage_label = _("Homepage")
+            self.builder.get_object("application_homepage").set_markup("<a href='%s'>%s</a>" % (homepage_url, homepage_label))
+            self.builder.get_object("application_homepage").set_tooltip_text(homepage_url)
+        else:
+            self.builder.get_object("application_homepage").hide()
+
+        helppage_url = self.installer.get_help_url(pkginfo)
+        if helppage_url not in ('', None):
+            self.builder.get_object("application_help_page").show()
+            helppage_label = _("Documentation")
+            self.builder.get_object("application_help_page").set_markup("<a href='%s'>%s</a>" % (helppage_url, helppage_label))
+            self.builder.get_object("application_help_page").set_tooltip_text(helppage_url)
+        else:
+            self.builder.get_object("application_help_page").hide()
 
         description = self.installer.get_description(pkginfo)
 
@@ -2170,28 +2690,22 @@ class Application(Gtk.Application):
                 pass
 
         app_description = self.builder.get_object("application_description")
-        app_description.set_label(description)
-        app_description.set_line_wrap(True)
 
-        try:
-            homepage = self.installer.get_url(pkginfo)
-        except:
-            homepage = None
-        if homepage is not None and homepage != "":
-            self.builder.get_object("website_link").show()
-            homepage = GLib.markup_escape_text(homepage)
-            self.builder.get_object("website_link").set_markup("<a href='%s'>%s</a>" % (homepage, homepage))
+        if description not in (None, ''):
+            subbed = re.sub(r'\n+', '\n\n', description).rstrip()
+            app_description.set_label(subbed)
+            app_description.show()
         else:
-            self.builder.get_object("website_link").hide()
+            app_description.hide()
 
         review_info = self.review_cache[pkginfo.name]
 
         label_num_reviews = self.builder.get_object("application_num_reviews")
 
         # TRANSLATORS: showing specific number of reviews in the list view and the header of the package details.
-        review_text = gettext.ngettext("Review", "Reviews", review_info.num_reviews)
+        review_text = gettext.ngettext("%d Review", "%d Reviews", review_info.num_reviews) % review_info.num_reviews
+        label_num_reviews.set_label(review_text)
 
-        label_num_reviews.set_markup("<small><i>%s %s</i></small>" % (str(review_info.num_reviews), review_text))
         self.builder.get_object("application_avg_rating").set_label(str(review_info.avg_rating))
 
         box_stars = self.builder.get_object("box_stars")
@@ -2200,14 +2714,15 @@ class Application(Gtk.Application):
         rating = review_info.avg_rating
         remaining_stars = 5
         while rating >= 1.0:
-            box_stars.pack_start(Gtk.Image.new_from_icon_name("starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
+            box_stars.pack_start(Gtk.Image(icon_name="starred-symbolic", pixel_size=16), False, False, 0)
             rating -= 1
             remaining_stars -= 1
         if rating > 0.0:
-            box_stars.pack_start(Gtk.Image.new_from_icon_name("semi-starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
+            box_stars.pack_start(Gtk.Image(icon_name="semi-starred-symbolic", pixel_size=16), False, False, 0)
             remaining_stars -= 1
         for i in range(remaining_stars):
-            box_stars.pack_start(Gtk.Image.new_from_icon_name("non-starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
+            box_stars.pack_start(Gtk.Image(icon_name="non-starred-symbolic", pixel_size=16), False, False, 0)
+
         box_stars.show_all()
 
         box_reviews = self.builder.get_object("box_reviews")
@@ -2215,75 +2730,104 @@ class Application(Gtk.Application):
         for child in box_reviews.get_children():
             box_reviews.remove(child)
 
-        frame_reviews = self.builder.get_object("frame_reviews")
-        label_reviews = self.builder.get_object("label_reviews")
+        for i in range(0, 5):
+            self.star_bars[i].set_fraction(0.0)
 
         reviews = review_info.reviews
         reviews.sort(key=lambda x: x.date, reverse=True)
 
-        if len(reviews) > 0:
+        stars = [0, 0, 0, 0, 0]
+        n_reviews = len(reviews)
+
+        if n_reviews > 0:
             # TRANSLATORS: reviews heading in package details view
-            label_reviews.set_text(_("Reviews"))
+            # label_reviews.set_text(_("Reviews"))
             i = 0
             for review in reviews:
-                comment = review.comment.strip()
-                comment = comment.replace("'", "\'")
-                comment = comment.replace('"', '\"')
-                comment = self.capitalize(comment)
-                review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
-                tile = ReviewTile(review.username, review_date, comment, review.rating)
-                box_reviews.add(tile)
-                i = i +1
-                if i >= 10:
-                    break
-            frame_reviews.show()
-            box_reviews.show_all()
-        else:
-            label_reviews.set_text(_("No reviews available"))
-            frame_reviews.hide()
+                if i < 10:
+                    comment = review.comment.strip()
+                    comment = comment.replace("'", "\'")
+                    comment = comment.replace('"', '\"')
+                    comment = self.capitalize(comment)
+                    review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
+                    tile = ReviewTile(review.username, review_date, comment, review.rating)
+                    box_reviews.add(tile)
+                    i = i +1
+
+                stars[review.rating - 1] += 1
+
+            for i in range(0, 5):
+                widget_idx = i + 1
+                label = self.builder.get_object("stars_count_%s" % widget_idx)
+                bar = self.builder.get_object("stars_bar_%s" % widget_idx)
+
+                label.set_label(str(stars[i]))
+                self.star_bars[i].set_fraction(stars[i] / n_reviews)
+
+        add_your_own = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        add_your_own.set_margin_start(12)
+        add_your_own.set_margin_end(12)
+        add_your_own.set_margin_top(12)
+        add_your_own.set_margin_bottom(12)
 
         community_link = "https://community.linuxmint.com/software/view/%s" % pkginfo.name
-
-        self.builder.get_object("label_community") \
-            .set_markup(_("Click <a href='%s'>here</a> to add your own review.") % community_link)
+        label = Gtk.Label(xalign=0.0, use_markup=True, label=_("Click <a href='%s'>here</a> to add your own review.") % community_link)
+        add_your_own.pack_start(label, True, True, 0)
+        box_reviews.add(add_your_own)
+        box_reviews.show_all()
 
         # Screenshots
-        box_more_screenshots = self.builder.get_object("box_more_screenshots")
-        for child in box_more_screenshots.get_children():
-            box_more_screenshots.remove(child)
+        self.destroy_screenshot_window()
+        for child in self.screenshot_stack.get_children():
+            child.destroy()
 
-        main_screenshot = os.path.join(SCREENSHOT_DIR, "%s_1.png" % pkginfo.name)
-        main_thumb = os.path.join(SCREENSHOT_DIR, "thumb_%s_1.png" % pkginfo.name)
-        if os.path.exists(main_screenshot) and os.path.exists(main_thumb):
-            try:
-                self.main_screenshot.set_icon_string(main_screenshot, SCREENSHOT_WIDTH, -1)
-                self.main_screenshot.show()
-            except:
-                self.main_screenshot.hide()
-                os.unlink(main_screenshot)
-            for i in range(2, 5):
-                self.add_screenshot(pkginfo.name, i)
-        else:
-            self.main_screenshot.hide()
-            downloadScreenshots = ScreenshotDownloader(self, pkginfo)
-            downloadScreenshots.start()
-
-        # Hide some widgets that may or may not be used when the task is ready
-        self.builder.get_object("application_remote").hide()
-        self.builder.get_object("label_remote").hide()
-        self.builder.get_object("application_architecture").hide()
-        self.builder.get_object("label_architecture").hide()
-        self.builder.get_object("application_branch").hide()
-        self.builder.get_object("label_branch").hide()
-        self.builder.get_object("application_version").hide()
-        self.builder.get_object("label_version").hide()
-        self.builder.get_object("application_size").hide()
-        self.builder.get_object("label_size").hide()
+        self.ss_swipe_handler.set_propagation_phase(Gtk.PropagationPhase.NONE)
+        self.screenshot_stack.last = 0
+        self.screenshot_stack.add_named(Gtk.Spinner(active=True), "spinner")
+        self.add_screenshots(pkginfo)
+        self.screenshot_stack.show_all()
+        self.screenshot_stack.grab_focus()
 
         # Call the installer to get the rest of the information
-        self.installer.select_pkginfo(pkginfo, self.on_installer_task_ready)
+        self.task_cancellable = self.installer.select_pkginfo(pkginfo,
+                                                              self.on_installer_info_ready, self.on_installer_info_error,
+                                                              self.on_installer_finished, self.on_installer_progress,
+                                                              use_mainloop=True)
 
-    def on_installer_task_ready(self, task):
+        self.populate_addons(pkginfo)
+
+    def on_package_type_button_clicked(self, button, pkginfo):
+        self.show_package(pkginfo, self.previous_page)
+
+    def get_flatpak_for_deb(self, pkginfo):
+        try:
+            fp_name = FLATPAK_EQUIVS[pkginfo.name]
+            return self.installer.find_pkginfo(fp_name, installer.PKG_TYPE_FLATPAK)
+        except:
+            return None
+
+    def get_deb_for_flatpak(self, pkginfo):
+        try:
+            deb_name = DEB_EQUIVS[pkginfo.name]
+            return self.installer.find_pkginfo(deb_name, installer.PKG_TYPE_APT)
+        except:
+            return None
+
+    def on_installer_info_error(self, task):
+        if networking_available():
+            if task.info_ready_status != task.STATUS_FORBIDDEN:
+                dialogs.show_error(task.error_message)
+        else:
+            dialogs.show_error(_("Unable to communicate with servers. Check your internet connection and try again."))
+
+        self.recursion_buster = True
+        # The error ui changes can be handled in the normal callback
+        self.on_installer_info_ready(task)
+
+    def on_installer_info_ready(self, task):
+        self.current_task = task
+        self.task_cancellable = None
+
         pkginfo = task.pkginfo
 
         if pkginfo != self.current_pkginfo and (not self.installer.task_running(task)):
@@ -2299,10 +2843,12 @@ class Application(Gtk.Application):
         style_context = self.action_button.get_style_context()
 
         action_button_description = ""
+        action_button_icon = None
 
         if task.info_ready_status == task.STATUS_OK:
             if task.type == "remove":
                 action_button_label = _("Remove")
+                action_button_icon = None
                 style_context.remove_class("suggested-action")
                 style_context.add_class("destructive-action")
                 action_button_description = _("Installed")
@@ -2310,6 +2856,11 @@ class Application(Gtk.Application):
                 self.progress_label.set_text(_("Removing"))
             else:
                 action_button_label = _("Install")
+                if pkginfo.pkg_hash.startswith("f"):
+                    action_button_icon = "flatpak-symbolic"
+                else:
+                    action_button_icon = "linuxmint-logo-badge-symbolic"
+
                 style_context.remove_class("destructive-action")
                 style_context.add_class("suggested-action")
                 action_button_description = _("Not installed")
@@ -2335,6 +2886,14 @@ class Application(Gtk.Application):
                 style_context.remove_class("suggested-action")
                 action_button_description = _("Please use apt-get to install this package.")
                 self.action_button.set_sensitive(False)
+            elif task.info_ready_status == task.STATUS_UNKNOWN:
+                action_button_label = _("Try again")
+                style_context.remove_class("destructive-action")
+                style_context.add_class("suggested-action")
+                action_button_description = _("Something went wrong. Click to try again.")
+                self.action_button.set_sensitive(True)
+                self.progress_label.set_text("")
+            action_button_icon = None
 
         self.action_button.set_label(action_button_label)
         self.action_button.set_tooltip_text(action_button_description)
@@ -2344,9 +2903,12 @@ class Application(Gtk.Application):
         except (KeyError, AttributeError):
             self.builder.get_object("application_remote").set_label(task.remote)
 
-        self.builder.get_object("application_architecture").set_label(task.arch)
         self.builder.get_object("application_branch").set_label(task.branch)
-        self.builder.get_object("application_version").set_label(task.version)
+
+        try:
+            self.builder.get_object("application_version").set_label(task.version)
+        except TypeError:
+            self.builder.get_object("application_version").set_label("")
 
         sizeinfo = ""
 
@@ -2357,26 +2919,25 @@ class Application(Gtk.Application):
             elif task.install_size > 0:
                 sizeinfo = _("%(localSize)s of disk space required") \
                                  % {'localSize': GLib.format_size(task.install_size)}
+            if pkginfo.pkg_hash.startswith("f"):
+                # TRANSLATORS: This will be added on to the end of '.... of disk space required/freed' when
+                # the package is a Flatpak.
+                sizeinfo = "%s %s" % (sizeinfo, _("(actual amount may be smaller)"))
         else:
             if task.freed_size > 0:
                 sizeinfo = _("%(downloadSize)s to download, %(localSize)s of disk space freed") \
                                % {'downloadSize': GLib.format_size(task.download_size), 'localSize': GLib.format_size(task.freed_size)}
             else:
-                sizeinfo = _("%(downloadSize)s to download, %(localSize)s of disk space required") \
+                sizeinfo = _("%(downloadSize)s to download, %(localSize)s of additional disk space required") \
                                % {'downloadSize': GLib.format_size(task.download_size), 'localSize': GLib.format_size(task.install_size)}
+            if pkginfo.pkg_hash.startswith("f"):
+                # TRANSLATORS: This will be added on to the end of '.... of disk space required/freed' when
+                # the package is a Flatpak.
+                sizeinfo = "%s %s" % (sizeinfo, _("(actual amounts may be smaller)"))
 
-        self.builder.get_object("label_size").show()
-        self.builder.get_object("application_size").show()
-        self.builder.get_object("application_size").set_label(sizeinfo)
-
-        self.builder.get_object("application_remote").set_visible(task.remote != "")
-        self.builder.get_object("label_remote").set_visible(task.remote != "")
-        self.builder.get_object("application_architecture").set_visible(task.arch != "")
-        self.builder.get_object("label_architecture").set_visible(task.arch != "")
-        self.builder.get_object("application_branch").set_visible(task.branch != "")
-        self.builder.get_object("label_branch").set_visible(task.branch != "")
-        self.builder.get_object("application_version").set_visible(task.version != "")
-        self.builder.get_object("label_version").set_visible(task.version != "")
+        if task.info_ready_status != task.STATUS_UNKNOWN:
+            self.builder.get_object("application_size").set_label(sizeinfo)
+            self.flatpak_details_vgroup.set_visible(task.branch != "")
 
         self.action_button_signal_id = self.action_button.connect("clicked",
                                                                   self.on_action_button_clicked,
@@ -2398,18 +2959,31 @@ class Application(Gtk.Application):
                     ]:
 
                     if os.path.exists(desktop_file):
-                        config = configobj.ConfigObj(desktop_file)
                         try:
-                            exec_string = config['Desktop Entry']['Exec']
-                            break
-                        except:
-                            pass
+                            info = Gio.DesktopAppInfo.new_from_filename(desktop_file)
+                            exec_string = info.get_commandline()
+                            if exec_string is not None:
+                                break
+                        except Exception as e:
+                            print(e)
                 if exec_string is None and os.path.exists("/usr/bin/%s" % bin_name):
                     exec_string = "/usr/bin/%s" % bin_name
             else:
-                exec_string = "flatpak run %s" % pkginfo.name
+                launchables = self.installer.get_flatpak_launchables(pkginfo)
+                if launchables:
+                    for launchable in launchables:
+                        if launchable.get_kind() == AppStreamGlib.LaunchableKind.DESKTOP_ID:
+                            desktop_id = launchable.get_value()
+                            desktop_file = os.path.join(self.installer.get_flatpak_root_path(), "exports/share/applications", desktop_id)
+                            print(desktop_file)
+                            try:
+                                info = Gio.DesktopAppInfo.new_from_filename(desktop_file)
+                            except TypeError:
+                                info = Gio.DesktopAppInfo.new_from_filename(desktop_file + ".desktop")
+                            exec_string = info.get_commandline()
+                            break
 
-        if exec_string is not None:
+        if exec_string != None:
             task.exec_string = exec_string
             self.launch_button.show()
             self.launch_button_signal_id = self.launch_button.connect("clicked",
@@ -2418,7 +2992,28 @@ class Application(Gtk.Application):
         else:
             self.launch_button.hide()
 
-    def on_installer_progress(self, pkginfo, progress, estimating):
+    def populate_addons(self, pkginfo):
+        for row in self.addons_listbox.get_children():
+            row.destroy()
+
+        addons = self.installer.get_addons(pkginfo)
+        if addons is None:
+            self.builder.get_object("addons_page").hide()
+            return
+
+        name_size_group = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
+        button_size_group = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
+
+        first = True
+        for addon in addons:
+            print("Discovered addon: %s" % addon.get_name())
+            first = False
+
+            row = FlatpakAddonRow(self, pkginfo, addon, name_size_group, button_size_group)
+            self.addons_listbox.insert(row, -1)
+            self.builder.get_object("addons_page").show_all()
+
+    def on_installer_progress(self, pkginfo, progress, estimating, status_text=None):
         if self.current_pkginfo is not None and self.current_pkginfo.name == pkginfo.name:
             self.builder.get_object("notebook_progress").set_current_page(self.PROGRESS_TAB)
 
@@ -2431,15 +3026,15 @@ class Application(Gtk.Application):
                 XApp.set_window_progress(self.main_window, progress)
                 self.progress_label.tick()
 
-    def on_installer_finished(self, pkginfo, error):
-        if self.current_pkginfo is not None and self.current_pkginfo.name == pkginfo.name:
+    def on_installer_finished(self, task):
+        if self.current_pkginfo is not None and self.current_pkginfo.name == task.pkginfo.name:
             self.stop_progress_pulse()
 
             self.builder.get_object("notebook_progress").set_current_page(self.ACTION_TAB)
             self.builder.get_object("application_progress").set_fraction(0 / 100.0)
             XApp.set_window_progress(self.main_window, 0)
 
-        self.update_state(pkginfo)
+        self.update_state(task.pkginfo)
 
     def start_progress_pulse(self):
         if self.installer_pulse_timer > 0:

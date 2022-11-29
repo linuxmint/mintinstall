@@ -1,0 +1,6 @@
+debian/mintinstall
+debian/.debhelper
+debian/*.substvars
+debian/*.log
+debian/debhelper-build-stamp
+debian/files

@@ -2,6 +2,7 @@
 
 import os
 import time
+import requests
 
 DEBUG_MODE = os.getenv("MINTINSTALL_DEBUG", False)
 
@@ -22,3 +23,11 @@ def debug(str):
     if not DEBUG_MODE:
         return
     print("Mintinstall (DEBUG): %s" % str)
+
+def networking_available():
+    try:
+        requests.get("https://8.8.8.8", timeout=1)
+        return True
+    except Exception as e:
+        print(e)
+        return False
