@@ -542,6 +542,8 @@ class FeatureTile(Gtk.Button):
         self.pkginfo = pkginfo
         self.installer = installer
 
+        self.connect("realize", self.set_cursor)
+
         css = """
 #FeatureTile
 {
@@ -595,6 +597,10 @@ class FeatureTile(Gtk.Button):
         hbox.pack_end(vbox, True, True, 0)
 
         self.add(hbox)
+
+    def set_cursor(self, widget, data=None):
+        hand = Gdk.Cursor.new_from_name(Gdk.Display.get_default(), "pointer")
+        self.get_window().set_cursor(hand)
 
 class PackageRow(Gtk.ListBoxRow):
     def __init__(self, pkginfo, icon, summary, installer, from_search=False, review_info=None):
@@ -1342,6 +1348,9 @@ class Application(Gtk.Application):
             pkginfo = self.installer.cache.find_pkginfo(name, 'a')
 
             if pkginfo != None:
+                if self.installer.pkginfo_is_installed(pkginfo) and tries < 10:
+                    tries += 1
+                    continue
                 break
             else:
                 tries += 1
@@ -1692,7 +1701,7 @@ class Application(Gtk.Application):
                 self.screenshot_window.present()
                 return
         else:
-            multiple_images = len(self.installer.get_screenshots(self.current_pkginfo)) > 0
+            multiple_images = len(self.installer.get_screenshots(self.current_pkginfo)) > 1
             self.screenshot_window = ScreenshotWindow(self.main_window, multiple_images)
             self.screenshot_window.connect("next-image", self.next_enlarged_screenshot_requested)
             self.screenshot_window.connect("destroy", self.enlarged_screenshot_window_destroyed)
