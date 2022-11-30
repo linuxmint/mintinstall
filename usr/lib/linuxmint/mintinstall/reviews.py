@@ -1,6 +1,6 @@
 import os
 import threading
-import json as json
+import json
 import requests
 import multiprocessing
 
