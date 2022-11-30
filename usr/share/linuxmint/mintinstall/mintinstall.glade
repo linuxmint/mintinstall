@@ -415,7 +415,6 @@
                       </object>
                       <packing>
                         <property name="name">results</property>
-                        <property name="title" translatable="yes">page0</property>
                       </packing>
                     </child>
                     <child>
@@ -460,7 +459,6 @@
                       </object>
                       <packing>
                         <property name="name">no-results</property>
-                        <property name="title" translatable="yes">page0</property>
                         <property name="position">1</property>
                       </packing>
                     </child>
