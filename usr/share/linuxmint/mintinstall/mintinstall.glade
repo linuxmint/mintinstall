@@ -217,8 +217,11 @@
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">&lt;big&gt;&lt;b&gt;Generating cache, one moment&lt;/b&gt;&lt;/big&gt;</property>
-                    <property name="use-markup">True</property>
+                    <property name="label" translatable="yes">Generating cache, one moment</property>
+                    <attributes>
+                      <attribute name="weight" value="bold"/>
+                      <attribute name="scale" value="1.2"/>
+                    </attributes>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -426,9 +429,12 @@
                             <property name="name">no_packages_found_label</property>
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="label" translatable="yes">&lt;big&gt;&lt;b&gt;No matching packages found&lt;/b&gt;&lt;/big&gt;</property>
-                            <property name="use-markup">True</property>
+                            <property name="label" translatable="yes">No matching packages found</property>
                             <property name="justify">center</property>
+                            <attributes>
+                              <attribute name="weight" value="bold"/>
+                              <attribute name="scale" value="1.2"/>
+                            </attributes>
                           </object>
                           <packing>
                             <property name="expand">True</property>
@@ -1426,7 +1432,7 @@
                                                             <property name="visible">True</property>
                                                             <property name="can-focus">False</property>
                                                             <property name="valign">center</property>
-                                                            <property name="label" translatable="yes">⋆⋆⋆⋆⋆</property>
+                                                            <property name="label">⋆⋆⋆⋆⋆</property>
                                                             <property name="xalign">0</property>
                                                             </object>
                                                             <packing>
@@ -1439,7 +1445,7 @@
                                                             <property name="visible">True</property>
                                                             <property name="can-focus">False</property>
                                                             <property name="valign">center</property>
-                                                            <property name="label" translatable="yes">⋆⋆⋆⋆</property>
+                                                            <property name="label">⋆⋆⋆⋆</property>
                                                             <property name="xalign">0</property>
                                                             </object>
                                                             <packing>
@@ -1452,7 +1458,7 @@
                                                             <property name="visible">True</property>
                                                             <property name="can-focus">False</property>
                                                             <property name="valign">center</property>
-                                                            <property name="label" translatable="yes">⋆⋆⋆</property>
+                                                            <property name="label">⋆⋆⋆</property>
                                                             <property name="xalign">0</property>
                                                             </object>
                                                             <packing>
@@ -1465,7 +1471,7 @@
                                                             <property name="visible">True</property>
                                                             <property name="can-focus">False</property>
                                                             <property name="valign">center</property>
-                                                            <property name="label" translatable="yes">⋆⋆</property>
+                                                            <property name="label">⋆⋆</property>
                                                             <property name="xalign">0</property>
                                                             </object>
                                                             <packing>
@@ -1478,7 +1484,7 @@
                                                             <property name="visible">True</property>
                                                             <property name="can-focus">False</property>
                                                             <property name="valign">center</property>
-                                                            <property name="label" translatable="yes">⋆</property>
+                                                            <property name="label">⋆</property>
                                                             <property name="xalign">0</property>
                                                             </object>
                                                             <packing>
