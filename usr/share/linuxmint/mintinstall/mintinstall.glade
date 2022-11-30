@@ -1362,7 +1362,7 @@ ipsum lorem blah</property>
                                                             <property name="valign">center</property>
                                                             <property name="xalign">0</property>
                                                             <attributes>
-                                                            <attribute name="variant" value="all-petite-caps"/>
+                                                            <attribute name="scale" value="0.75"/>
                                                             </attributes>
                                                             </object>
                                                             <packing>
@@ -1377,7 +1377,7 @@ ipsum lorem blah</property>
                                                             <property name="valign">center</property>
                                                             <property name="xalign">0</property>
                                                             <attributes>
-                                                            <attribute name="variant" value="all-petite-caps"/>
+                                                            <attribute name="scale" value="0.75"/>
                                                             </attributes>
                                                             </object>
                                                             <packing>
@@ -1392,7 +1392,7 @@ ipsum lorem blah</property>
                                                             <property name="valign">center</property>
                                                             <property name="xalign">0</property>
                                                             <attributes>
-                                                            <attribute name="variant" value="all-petite-caps"/>
+                                                            <attribute name="scale" value="0.75"/>
                                                             </attributes>
                                                             </object>
                                                             <packing>
@@ -1407,7 +1407,7 @@ ipsum lorem blah</property>
                                                             <property name="valign">center</property>
                                                             <property name="xalign">0</property>
                                                             <attributes>
-                                                            <attribute name="variant" value="all-petite-caps"/>
+                                                            <attribute name="scale" value="0.75"/>
                                                             </attributes>
                                                             </object>
                                                             <packing>
@@ -1422,7 +1422,7 @@ ipsum lorem blah</property>
                                                             <property name="valign">center</property>
                                                             <property name="xalign">0</property>
                                                             <attributes>
-                                                            <attribute name="variant" value="all-petite-caps"/>
+                                                            <attribute name="scale" value="0.75"/>
                                                             </attributes>
                                                             </object>
                                                             <packing>
