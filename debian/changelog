@@ -1,3 +1,53 @@
+mintinstall (8.2.0) vera; urgency=medium
+
+  [ hdulme ]
+  * replace equality None check with identity None check
+  * simplify boolean check in reviews.py
+  * remove redundant parentheses
+
+  [ monsta ]
+  * remove apt and aptdaemon dependencies (#348)
+
+  [ Michael Webster ]
+  * Changes for mintcommon refactoring, rework UI (#336)
+
+  [ Clement Lefebvre ]
+  * Add missing dependency
+
+  [ Michael Webster ]
+  * Distinguish between multiple remotes.
+
+  [ Clement Lefebvre ]
+  * Depend on mint-common >= 2.2.1
+
+  [ Michael Webster ]
+  * Use scaling instead of a pango size for star counts.
+  * Use ujson, not json
+  * Don't use ujson (api missing in mint 20's version), update popular widgets when reviews are updated.
+  * Fix selecting the featured app.
+  * Don't show the flatpak emblem at all on system package tiles, show the system package icon instead, but only on search/category results, use cursor to hint at screenshot enlargement, use a busy cursor instead of a spinner in the screenshot window.
+
+  [ Clement Lefebvre ]
+  * Fix import
+
+  [ Michael Webster ]
+  * Don't feature an installed package, change the cursor for the featured app to hint that it's clickable, remove an unused glade object, fix screenshot window cursor determination.
+  * mintinstall.glade: Use attributes instead of pango markup.
+
+  [ Clement Lefebvre ]
+  * Fix typo
+  * Size: Don't add info which doesn't help
+  * Fix msgids
+
+  [ Michael Webster ]
+  * Remove unused strings from glade.
+  * Express disk space/download sizes more simply.
+
+  [ Clement Lefebvre ]
+  * l10n: Update POT
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 30 Nov 2022 19:19:39 +0000
+
 mintinstall (8.1.2) vanessa; urgency=medium
 
   [ Michael Webster ]
