@@ -2937,22 +2937,13 @@ class Application(Gtk.Application):
                                  % {'localSize': GLib.format_size(task.freed_size)}
             elif task.install_size > 0:
                 sizeinfo = _("%(localSize)s of disk space required") \
-                                 % {'localSize': GLib.format_size(task.install_size)}
-            if pkginfo.pkg_hash.startswith("f"):
-                # TRANSLATORS: This will be added on to the end of '.... of disk space required/freed' when
-                # the package is a Flatpak.
-                sizeinfo = "%s %s" % (sizeinfo, _("(actual amount may be smaller)"))
-        else:
+                                 % {'localSize': GLib.format_size(task.install_size)}        else:
             if task.freed_size > 0:
                 sizeinfo = _("%(downloadSize)s to download, %(localSize)s of disk space freed") \
                                % {'downloadSize': GLib.format_size(task.download_size), 'localSize': GLib.format_size(task.freed_size)}
             else:
                 sizeinfo = _("%(downloadSize)s to download, %(localSize)s of additional disk space required") \
                                % {'downloadSize': GLib.format_size(task.download_size), 'localSize': GLib.format_size(task.install_size)}
-            if pkginfo.pkg_hash.startswith("f"):
-                # TRANSLATORS: This will be added on to the end of '.... of disk space required/freed' when
-                # the package is a Flatpak.
-                sizeinfo = "%s %s" % (sizeinfo, _("(actual amounts may be smaller)"))
 
         if task.info_ready_status != task.STATUS_UNKNOWN:
             self.builder.get_object("application_size").set_label(sizeinfo)
