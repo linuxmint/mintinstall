@@ -11,6 +11,7 @@ Pre-Depends: ca-certificates (>= 20210101)
 Depends: python3 (>= 3.4),
          python3-bs4,
          python3-setproctitle,
+         python3-ujson,
          gir1.2-appstream-1.0,
          gir1.2-gdkpixbuf-2.0,
          gir1.2-glib-2.0,
