@@ -64,7 +64,9 @@
             <property name="margin-bottom">6</property>
             <property name="label" translatable="yes">This is what it's all about</property>
             <property name="wrap">True</property>
+            <property name="ellipsize">end</property>
             <property name="max-width-chars">60</property>
+            <property name="lines">3</property>
             <attributes>
               <attribute name="scale" value="0.90000000000000002"/>
             </attributes>
@@ -85,7 +87,7 @@
                 <property name="can-focus">False</property>
                 <property name="halign">start</property>
                 <property name="valign">end</property>
-                <property name="spacing">2</property>
+                <property name="spacing">4</property>
                 <child>
                   <object class="GtkImage" id="flatpak_emblem">
                     <property name="can-focus">False</property>

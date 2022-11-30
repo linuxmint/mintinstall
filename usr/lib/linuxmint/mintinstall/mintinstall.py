@@ -64,8 +64,7 @@ PACKAGE_TYPE_COMBO_INDEX = 0
 PACKAGE_TYPE_COMBO_LABEL = 1
 PACKAGE_TYPE_COMBO_SUMMARY = 2
 PACKAGE_TYPE_COMBO_ICON_NAME = 3
-PACKAGE_TYPE_COMBO_TOOLTIP = 4
-PACKAGE_TYPE_COMBO_PKGINFO = 5
+PACKAGE_TYPE_COMBO_PKGINFO = 4
 
 # Don't let mintinstall run as root
 if os.getuid() == 0:
@@ -1200,7 +1199,7 @@ class Application(Gtk.Application):
             ]
         )
 
-        self.package_type_store = Gtk.ListStore(int, str, str, str, str, object) # index, label, comment, icon-name, tooltip, remotename, pkginfo
+        self.package_type_store = Gtk.ListStore(int, str, str, str, object) # index, label, summary, icon-name, remotename, pkginfo
 
         box = Gtk.CellAreaBox(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
         cell = Gtk.CellRendererPixbuf(stock_size=Gtk.IconSize.BUTTON)
@@ -2605,25 +2604,23 @@ class Application(Gtk.Application):
                 row_pkginfo = match
 
         if row_pkginfo:
-            row = [i, _("System Package"), "", "linuxmint-logo-badge-symbolic",
-                   _("Your system's package manager"), row_pkginfo]
+            row = [i, _("System Package"), _("Your system's package manager"), "linuxmint-logo-badge-symbolic", row_pkginfo]
             iter = self.package_type_store.append(row)
             if pkginfo == row_pkginfo:
                 to_use_iter = iter
-                tooltip = row[PACKAGE_TYPE_COMBO_TOOLTIP]
+                tooltip = row[PACKAGE_TYPE_COMBO_SUMMARY]
             i += 1
 
         if pkginfo.pkg_hash.startswith("f") or self.get_flatpak_for_deb(pkginfo) is not None:
             a_flatpak = self.get_flatpak_for_deb(pkginfo) or pkginfo
             for remote in self.installer.list_flatpak_remotes():
-                row_pkginfo = self.installer.find_pkginfo(a_flatpak.name)
+                row_pkginfo = self.installer.find_pkginfo(a_flatpak.name, remote=remote.name)
                 if row_pkginfo:
-                    # row = [i, _("Flatpak (%s)") % remote.title, remote.summary, "flatpak-symbolic", remote.summary, row_pkginfo]
-                    row = [i, _("Flatpak"), "", "flatpak-symbolic", "", row_pkginfo]
+                    row = [i, _("Flatpak (%s)") % remote.title, remote.summary, "flatpak-symbolic", row_pkginfo]
                     iter = self.package_type_store.append(row)
                     if pkginfo == row_pkginfo:
                         to_use_iter = iter
-                        tooltip = row[PACKAGE_TYPE_COMBO_TOOLTIP]
+                        tooltip = row[PACKAGE_TYPE_COMBO_SUMMARY]
                     i += 1
 
         if i == 1:
@@ -2631,7 +2628,7 @@ class Application(Gtk.Application):
             self.single_version_package_type_box.show()
             self.single_version_package_type_label.set_label(row[PACKAGE_TYPE_COMBO_LABEL])
             self.single_version_package_type_icon.set_from_icon_name(row[PACKAGE_TYPE_COMBO_ICON_NAME], Gtk.IconSize.BUTTON)
-            self.single_version_package_type_box.set_tooltip_text(row[PACKAGE_TYPE_COMBO_TOOLTIP])
+            self.single_version_package_type_box.set_tooltip_text(row[PACKAGE_TYPE_COMBO_SUMMARY])
         else:
             self.single_version_package_type_box.hide()
             self.package_type_combo_container.show()
