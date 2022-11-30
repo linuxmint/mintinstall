@@ -117,6 +117,21 @@ with open(os.path.join(libdir, "apt_flatpak_match_data.info")) as f:
 FLATPAK_EQUIVS = match_data["apt_flatpak_matches"]
 DEB_EQUIVS = dict((v, k) for k,v in FLATPAK_EQUIVS.items())
 
+KB = 1000
+MB = KB * 1000
+
+def get_size_for_display(size):
+    if size == 0:
+        return ""
+
+    if size > (5 * MB):
+        size = (size // MB) * MB
+    elif size > KB:
+        size = (size // KB) * KB
+
+    formatted = GLib.format_size(size).replace(".0", "")
+    return formatted
+
 class NonScrollingComboBox(Gtk.ComboBox):
     def __init__(self, area):
         Gtk.ComboBox.__init__(self, cell_area=area, height_request=36)
@@ -436,9 +451,9 @@ class FlatpakAddonRow(Gtk.ListBoxRow):
 
         # TODO - just size or say 'Size:' ?
         if task.freed_size > 0:
-            self.size_label.set_label(GLib.format_size(task.freed_size))
+            self.size_label.set_label(get_size_for_display(task.freed_size))
         elif task.install_size > 0:
-            self.size_label.set_label(GLib.format_size(task.install_size))
+            self.size_label.set_label(get_size_for_display(task.install_size))
 
         self.size_label.show()
 
@@ -2934,17 +2949,17 @@ class Application(Gtk.Application):
         if self.installer.pkginfo_is_installed(pkginfo):
             if task.freed_size > 0:
                 sizeinfo = _("%(localSize)s of disk space freed") \
-                                 % {'localSize': GLib.format_size(task.freed_size)}
+                                 % {'localSize': get_size_for_display(task.freed_size)}
             elif task.install_size > 0:
                 sizeinfo = _("%(localSize)s of disk space required") \
-                                 % {'localSize': GLib.format_size(task.install_size)}
+                                 % {'localSize': get_size_for_display(task.install_size)}
         else:
             if task.freed_size > 0:
                 sizeinfo = _("%(downloadSize)s to download, %(localSize)s of disk space freed") \
-                               % {'downloadSize': GLib.format_size(task.download_size), 'localSize': GLib.format_size(task.freed_size)}
+                               % {'downloadSize': get_size_for_display(task.download_size), 'localSize': get_size_for_display(task.freed_size)}
             else:
                 sizeinfo = _("%(downloadSize)s to download, %(localSize)s of disk space required") \
-                               % {'downloadSize': GLib.format_size(task.download_size), 'localSize': GLib.format_size(task.install_size)}
+                               % {'downloadSize': get_size_for_display(task.download_size), 'localSize': get_size_for_display(task.install_size)}
 
         if task.info_ready_status != task.STATUS_UNKNOWN:
             self.builder.get_object("application_size").set_label(sizeinfo)
