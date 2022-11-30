@@ -21,7 +21,9 @@
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes">Package name</property>
+                <property name="wrap">True</property>
                 <property name="ellipsize">end</property>
+                <property name="lines">2</property>
                 <attributes>
                   <attribute name="weight" value="bold"/>
                 </attributes>
@@ -82,16 +84,16 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <child>
-              <object class="GtkBox" id="flatpak_box">
-                <property name="visible">True</property>
+              <object class="GtkBox" id="package_type_box">
                 <property name="can-focus">False</property>
+                <property name="no-show-all">True</property>
                 <property name="halign">start</property>
                 <property name="valign">end</property>
                 <property name="spacing">4</property>
                 <child>
-                  <object class="GtkImage" id="flatpak_emblem">
+                  <object class="GtkImage" id="package_type_emblem">
+                    <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="no-show-all">True</property>
                     <property name="icon-name">flatpak-symbolic</property>
                     <property name="icon_size">1</property>
                   </object>
@@ -102,9 +104,9 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="remote_name">
+                  <object class="GtkLabel" id="package_type_name">
+                    <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="no-show-all">True</property>
                     <property name="label" translatable="yes">Flathub</property>
                     <attributes>
                       <attribute name="style" value="normal"/>

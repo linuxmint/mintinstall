@@ -672,7 +672,7 @@ class PackageRow(Gtk.ListBoxRow):
         num_reviews_label.set_label(review_text)
 
 class VerticalPackageTile(Gtk.FlowBoxChild):
-    def __init__(self, pkginfo, icon, installer, review_info=None):
+    def __init__(self, pkginfo, icon, installer, show_package_type=False, review_info=None):
         super(VerticalPackageTile, self).__init__()
 
         self.button = Gtk.Button();
@@ -693,10 +693,10 @@ class VerticalPackageTile(Gtk.FlowBoxChild):
         self.icon_holder = self.builder.get_object("icon_holder")
         self.package_label = self.builder.get_object("package_label")
         self.package_summary = self.builder.get_object("package_summary")
-        self.flatpak_box = self.builder.get_object("flatpak_box")
-        self.flatpak_emblem = self.builder.get_object("flatpak_emblem")
+        self.package_type_box = self.builder.get_object("package_type_box")
+        self.package_type_emblem = self.builder.get_object("package_type_emblem")
+        self.package_type_name = self.builder.get_object("package_type_name")
         self.installed_mark = self.builder.get_object("installed_mark")
-        self.remote_name = self.builder.get_object("remote_name")
 
         self.icon_holder.add(icon)
 
@@ -706,34 +706,28 @@ class VerticalPackageTile(Gtk.FlowBoxChild):
         summary = self.installer.get_summary(pkginfo)
         self.package_summary.set_label(summary)
 
-        if pkginfo.pkg_hash.startswith("f"):
-            self.flatpak_box.set_tooltip_text(_("This package is a Flatpak"))
-            self.flatpak_emblem.show()
+        if show_package_type:
+            if pkginfo.pkg_hash.startswith("f"):
 
-            remote_info = None
+                remote_info = None
 
-            try:
-                remote_info = self.installer.get_remote_info_for_name(pkginfo.remote)
-                if remote_info:
-                    self.remote_name.set_label(remote_info.title)
-            except:
-                pass
+                try:
+                    remote_info = self.installer.get_remote_info_for_name(pkginfo.remote)
+                    if remote_info:
+                        self.package_type_name.set_label(remote_info.title)
+                except:
+                    pass
 
-            if remote_info is None:
-                self.remote_name.set_label(pkginfo.remote.capitalize())
+                if remote_info is None:
+                    self.package_type_name.set_label(pkginfo.remote.capitalize())
 
-            self.remote_name.show()
-        else:
-            self.remote_name.hide()
-
-            try: 
-                equiv_flatpak = FLATPAK_EQUIVS[self.pkginfo.name]
-                self.flatpak_emblem.show()
-                self.flatpak_emblem.set_opacity(0.2)
-                self.flatpak_box.set_tooltip_text(_("A Flatpak version of this package is available"))
-            except:
-                self.flatpak_emblem.hide()
-                self.flatpak_box.set_tooltip_text(None)
+                self.package_type_box.set_tooltip_text(_("This package is a Flatpak"))
+                self.package_type_emblem.set_from_icon_name("flatpak-symbolic", Gtk.IconSize.MENU)
+            else:
+                self.package_type_name.set_label(_("Package"))
+                self.package_type_box.set_tooltip_text(_("This is a system package"))
+                self.package_type_emblem.set_from_icon_name("linuxmint-logo-badge-symbolic", Gtk.IconSize.MENU)
+            self.package_type_box.show()
 
         if review_info:
             self.fill_rating_widget(review_info)
@@ -1230,6 +1224,9 @@ class Application(Gtk.Application):
 
         self.screenshot_stack = self.builder.get_object("screenshot_stack")
         self.screenshot_stack.connect("notify::visible-child", self.on_screenshot_shown)
+
+        cursor_box = self.builder.get_object("screenshot_cursor_box")
+        cursor_box.connect("realize", self.set_screenshot_cursor)
         self.screenshot_window = None
 
         self.builder.get_object("previous_ss_button").connect("clicked", self.navigate_screenshot, Gtk.DirectionType.TAB_BACKWARD)
@@ -1254,6 +1251,10 @@ class Application(Gtk.Application):
 
         box.pack_start(self.subcat_flowbox, True, True, 0)
         self.subcat_flowbox.connect("child-activated", self.on_subcategory_selected)
+
+    def set_screenshot_cursor(self, stack, data=None):
+        the_hand = Gdk.Cursor.new_from_name(Gdk.Display.get_default(), "pointer")
+        stack.get_window().set_cursor(the_hand)
 
     def refresh_cache(self):
         self.builder.get_object("loading_spinner").start()
@@ -1396,7 +1397,7 @@ class Application(Gtk.Application):
             else:
                 review_info = None
             icon = self.get_application_icon(pkginfo, FEATURED_ICON_SIZE)
-            tile = VerticalPackageTile(pkginfo, icon, self.installer, review_info)
+            tile = VerticalPackageTile(pkginfo, icon, self.installer, show_package_type=False, review_info=review_info)
             size_group.add_widget(tile)
             self.flowbox_popular.insert(tile, -1)
             self.picks_tiles.append(tile)
@@ -1691,7 +1692,8 @@ class Application(Gtk.Application):
                 self.screenshot_window.present()
                 return
         else:
-            self.screenshot_window = ScreenshotWindow(self.main_window)
+            multiple_images = len(self.installer.get_screenshots(self.current_pkginfo)) > 0
+            self.screenshot_window = ScreenshotWindow(self.main_window, multiple_images)
             self.screenshot_window.connect("next-image", self.next_enlarged_screenshot_requested)
             self.screenshot_window.connect("destroy", self.enlarged_screenshot_window_destroyed)
 

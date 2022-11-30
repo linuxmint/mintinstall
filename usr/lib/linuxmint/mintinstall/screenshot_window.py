@@ -10,7 +10,7 @@ class ScreenshotWindow(Gtk.Window):
         'next-image': (GObject.SignalFlags.RUN_LAST, bool, (Gtk.DirectionType,)),
     }
 
-    def __init__(self, parent):
+    def __init__(self, parent, multiple_screenshots):
         Gtk.Window.__init__(self,
                             type=Gtk.WindowType.TOPLEVEL,
                             decorated=False,
@@ -22,7 +22,6 @@ class ScreenshotWindow(Gtk.Window):
                             name="ScreenshotWindow")
 
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
-
         self.screen = Gdk.Screen.get_default()
 
         self.visual = self.screen.get_rgba_visual()
@@ -34,30 +33,27 @@ class ScreenshotWindow(Gtk.Window):
         self.overlay = Gtk.Overlay()
         self.add(self.overlay)
 
+        self.connect("realize", self.set_initial_cursor)
+
+        self.loading_pointer = Gdk.Cursor.new_from_name(Gdk.Display.get_default(), "wait")
+
+        if multiple_screenshots:
+            self.normal_pointer = Gdk.Cursor.new_from_name(Gdk.Display.get_default(), "grab")
+            self.grabbing_pointer = Gdk.Cursor.new_from_name(Gdk.Display.get_default(), "grabbing")
+        else:
+            self.normal_pointer = None
+            self.grabbing_pointer = None
+
+        self.connect("button-press-event", self.on_button_press_event)
+        self.connect("button-release-event", self.on_button_release_event)
+        self.busy = False
+
         self.stack = Gtk.Stack(homogeneous=False,
                                hhomogeneous=False,
                                transition_duration=500,
                                no_show_all=True)
 
-        self.spin_box = Gtk.Button(halign=Gtk.Align.CENTER,
-                                   valign=Gtk.Align.CENTER,
-                                   no_show_all=True)
-        self.spin_box.get_style_context().add_class("circular")
-
-        # Don't let the spin_box act like a button. Using a button was the easiest way
-        # to have a background for the spinner.
-        self.spinner = Gtk.Spinner(active=True,
-                                   height_request=36,
-                                   width_request=36,
-                                   visible=True)
-        self.spin_box.connect("enter-notify-event", lambda w, e: Gdk.EVENT_STOP)
-        self.spin_box.connect("leave-notify-event", lambda w, e: Gdk.EVENT_STOP)
-        self.spin_box.connect("button-press-event", lambda w, e: Gdk.EVENT_STOP)
-
-        self.spin_box.set_image(self.spinner)
-
         self.overlay.add(self.stack)
-        self.overlay.add_overlay(self.spin_box)
 
         self.swipe_handler = Gtk.GestureSwipe.new(self)
         # Clicking on the spinner will send the event to the window first
@@ -67,7 +63,6 @@ class ScreenshotWindow(Gtk.Window):
         self.connect("focus-out-event", self.on_focus_out_event)
 
         self.scroll_handler = Gtk.EventControllerScroll.new(self, Gtk.EventControllerScrollFlags.VERTICAL)
-        # self.scroll_handler = Gtk.EventControllerScroll.new(self, Gtk.EventControllerScrollFlags.BOTH_AXES | Gtk.EventControllerScrollFlags.DISCRETE)
         self.scroll_handler.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
         self.scroll_handler.connect("scroll", self.on_scroll_event)
         self.previous_scroll_event_time = 0
@@ -76,9 +71,33 @@ class ScreenshotWindow(Gtk.Window):
         self.last_image_name = None
 
         if self.visual is not None:
-            self.spin_box.show()
             self.show_all()
             self.present()
+
+    def set_initial_cursor(self, widget, data=None):
+        self.set_busy(True)
+
+    def set_busy(self, busy):
+        if busy:
+            self.busy = True
+            self.get_window().set_cursor(self.loading_pointer)
+        else:
+            self.busy = False
+            self.get_window().set_cursor(self.normal_pointer)
+
+    def on_button_press_event(self, window, event, data=None):
+        if self.busy:
+            return Gdk.EVENT_STOP
+
+        self.get_window().set_cursor(self.grabbing_pointer)
+        return Gdk.EVENT_PROPAGATE
+
+    def on_button_release_event(self, window, event, data=None):
+        if self.busy:
+            return Gdk.EVENT_STOP
+
+        self.get_window().set_cursor(self.normal_pointer)
+        return Gdk.EVENT_PROPAGATE
 
     def has_image(self, location):
         for image in self.stack.get_children():
@@ -100,7 +119,7 @@ class ScreenshotWindow(Gtk.Window):
 
     def show_image(self, image_location):
         self.stack.show()
-        self.spin_box.hide()
+        self.set_busy(False)
         self.stack.set_visible_child_name(image_location)
 
         image = self.stack.get_visible_child()
@@ -112,9 +131,9 @@ class ScreenshotWindow(Gtk.Window):
 
     def emit_next_image(self, direction):
         if self.emit("next-image", direction):
-            self.spin_box.show()
+            self.set_busy(True)
         else:
-            self.spin_box.hide()
+            self.set_busy(False)
 
     def on_key_press_event(self, window, event, data=None):
         keyval = event.get_keyval()[1]
@@ -161,8 +180,10 @@ class ScreenshotWindow(Gtk.Window):
             return
 
         if vx < 0:
+            self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT)
             self.emit_next_image(Gtk.DirectionType.TAB_FORWARD)
         elif vx > 0:
+            self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT)
             self.emit_next_image(Gtk.DirectionType.TAB_BACKWARD)
 
     def on_draw(self, window, cr):
