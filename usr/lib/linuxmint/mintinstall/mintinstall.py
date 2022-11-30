@@ -1351,11 +1351,14 @@ class Application(Gtk.Application):
         tile = FeatureTile(pkginfo, self.installer, background, text, text_shadow, stroke)
 
         if pkginfo != None:
-            tile.connect("clicked", self.on_flowbox_item_clicked, pkginfo.pkg_hash)
+            tile.connect("clicked", self.on_featured_clicked, pkginfo)
 
         flowbox.insert(tile, -1)
         box.pack_start(flowbox, True, True, 0)
         box.show_all()
+
+    def on_featured_clicked(self, button, pkginfo):
+        self.show_package(pkginfo, self.PAGE_LANDING)
 
     def load_picks_on_landing(self):
         if self.low_res:
