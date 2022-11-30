@@ -2837,7 +2837,7 @@ class Application(Gtk.Application):
             if task.info_ready_status != task.STATUS_FORBIDDEN:
                 dialogs.show_error(task.error_message)
         else:
-            dialogs.show_error(_("Unable to communicate with servers. Check your internet connection and try again."))
+            dialogs.show_error(_("Unable to communicate with servers. Check your Internet connection and try again."))
 
         self.recursion_buster = True
         # The error ui changes can be handled in the normal callback
