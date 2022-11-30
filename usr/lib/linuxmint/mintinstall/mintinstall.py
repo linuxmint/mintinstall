@@ -377,7 +377,7 @@ class FlatpakAddonRow(Gtk.ListBoxRow):
         self.spinner = Gtk.Spinner(active=True, no_show_all=True, visible=True)
         self.box.pack_start(self.spinner, False, False, 0)
 
-        self.action = Gtk.Button(label=_("Checking..."),
+        self.action = Gtk.Button(label="",
                                  sensitive=False,
                                  image=self.spinner,
                                  always_show_image=True,
@@ -436,9 +436,9 @@ class FlatpakAddonRow(Gtk.ListBoxRow):
 
         # TODO - just size or say 'Size:' ?
         if task.freed_size > 0:
-            self.size_label.set_label(_("%s" % GLib.format_size(task.freed_size)))
+            self.size_label.set_label(GLib.format_size(task.freed_size))
         elif task.install_size > 0:
-            self.size_label.set_label(_("%s" % GLib.format_size(task.install_size)))
+            self.size_label.set_label(GLib.format_size(task.install_size))
 
         self.size_label.show()
 
@@ -2672,9 +2672,9 @@ class Application(Gtk.Application):
         self.builder.get_object("application_name").set_label(app_name)
         self.builder.get_object("application_summary").set_label(self.installer.get_summary(pkginfo))
         self.builder.get_object("application_package").set_label(pkginfo.name)
-        self.builder.get_object("application_size").set_markup(_("<i>Calculating...</i>"))
-        self.builder.get_object("application_remote").set_markup(_("<i>Checking...</i>"))
-        self.builder.get_object("application_branch").set_markup(_("<i>Checking...</i>"))
+        self.builder.get_object("application_size").set_markup("")
+        self.builder.get_object("application_remote").set_markup("")
+        self.builder.get_object("application_branch").set_markup("")
 
         homepage_url = self.installer.get_homepage_url(pkginfo)
         if homepage_url not in ('', None):
@@ -2937,12 +2937,13 @@ class Application(Gtk.Application):
                                  % {'localSize': GLib.format_size(task.freed_size)}
             elif task.install_size > 0:
                 sizeinfo = _("%(localSize)s of disk space required") \
-                                 % {'localSize': GLib.format_size(task.install_size)}        else:
+                                 % {'localSize': GLib.format_size(task.install_size)}
+        else:
             if task.freed_size > 0:
                 sizeinfo = _("%(downloadSize)s to download, %(localSize)s of disk space freed") \
                                % {'downloadSize': GLib.format_size(task.download_size), 'localSize': GLib.format_size(task.freed_size)}
             else:
-                sizeinfo = _("%(downloadSize)s to download, %(localSize)s of additional disk space required") \
+                sizeinfo = _("%(downloadSize)s to download, %(localSize)s of disk space required") \
                                % {'downloadSize': GLib.format_size(task.download_size), 'localSize': GLib.format_size(task.install_size)}
 
         if task.info_ready_status != task.STATUS_UNKNOWN:
