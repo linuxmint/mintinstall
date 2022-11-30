@@ -6,7 +6,7 @@ import multiprocessing
 
 from pathlib import Path
 
-from gi.repository import GLib
+from gi.repository import GLib, GObject
 
 from misc import print_timing
 
@@ -73,10 +73,13 @@ class JsonObject(object):
 
         return cls(new_dict, json_data["size"])
 
-class ReviewCache(object):
+class ReviewCache(GObject.Object):
+    __gsignals__ = {
+        'reviews-updated': (GObject.SignalFlags.RUN_LAST, None, ()),
+    }
     @print_timing
     def __init__(self):
-        super(ReviewCache, self).__init__()
+        GObject.Object.__init__(self)
 
         self._cache_lock = threading.Lock()
 
@@ -180,6 +183,10 @@ class ReviewCache(object):
         if success.value:
             with self._cache_lock:
                 self._reviews, self._size = self._load_cache()
+                GLib.idle_add(self.emit_reviews_updated)
+
+    def emit_reviews_updated(self, data=None):
+        self.emit("reviews-updated")
 
     def _update_cache_process(self, success, current_size):
         new_reviews = {}

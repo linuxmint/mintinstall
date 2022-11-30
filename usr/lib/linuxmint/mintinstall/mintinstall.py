@@ -1199,6 +1199,8 @@ class Application(Gtk.Application):
             ]
         )
 
+        self.flowbox_popular = None
+
         self.package_type_store = Gtk.ListStore(int, str, str, str, object) # index, label, summary, icon-name, remotename, pkginfo
 
         box = Gtk.CellAreaBox(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
@@ -1278,6 +1280,7 @@ class Application(Gtk.Application):
             self.load_featured_on_landing()
 
             self.review_cache = reviews.ReviewCache()
+            self.review_cache.connect("reviews-updated", self.update_review_widgets)
 
             self.load_picks_on_landing()
             self.load_categories_on_landing()
@@ -1359,18 +1362,21 @@ class Application(Gtk.Application):
             self.builder.get_object("editor_picks_label").hide()
 
         box = self.builder.get_object("box_picks")
-        for child in box.get_children():
-            child.destroy()
 
-        flowbox = Gtk.FlowBox()
-        flowbox.set_min_children_per_line(3)
-        flowbox.set_max_children_per_line(10)
-        flowbox.set_row_spacing(2)
-        flowbox.set_column_spacing(2)
-        flowbox.set_homogeneous(False)
-        flowbox.connect("child-activated", self.on_flowbox_child_activated, self.PAGE_LANDING)
-        flowbox.connect("selected-children-changed", self.navigate_flowbox, self.builder.get_object("scrolledwindow_landing"))
-        self.flowbox_popular = flowbox
+        if self.flowbox_popular is None:
+            flowbox = Gtk.FlowBox()
+            flowbox.set_min_children_per_line(3)
+            flowbox.set_max_children_per_line(10)
+            flowbox.set_row_spacing(2)
+            flowbox.set_column_spacing(2)
+            flowbox.set_homogeneous(False)
+            flowbox.connect("child-activated", self.on_flowbox_child_activated, self.PAGE_LANDING)
+            flowbox.connect("selected-children-changed", self.navigate_flowbox, self.builder.get_object("scrolledwindow_landing"))
+            self.flowbox_popular = flowbox
+            box.add(flowbox)
+
+        for child in self.flowbox_popular:
+            child.destroy()
 
         apps = [info for info in self.all_category.pkginfos if info.refid == "" or info.refid.startswith("app")]
         apps.sort(key=functools.cmp_to_key(self.package_compare))
@@ -1389,9 +1395,8 @@ class Application(Gtk.Application):
             icon = self.get_application_icon(pkginfo, FEATURED_ICON_SIZE)
             tile = VerticalPackageTile(pkginfo, icon, self.installer, review_info)
             size_group.add_widget(tile)
-            flowbox.insert(tile, -1)
+            self.flowbox_popular.insert(tile, -1)
             self.picks_tiles.append(tile)
-        box.add(flowbox)
         box.show_all()
 
     @print_timing
@@ -1430,6 +1435,9 @@ class Application(Gtk.Application):
 
         box.pack_start(flowbox, True, True, 0)
         box.show_all()
+
+    def update_review_widgets(self, rcache):
+        self.load_picks_on_landing()
 
     def update_conditional_widgets(self):
         sensitive = len(self.installed_category.pkginfos) > 0 \
