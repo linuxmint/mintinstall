@@ -100,7 +100,14 @@ class ScreenshotWindow(Gtk.Window):
                 return True
         return False
 
+    def any_images(self):
+        return len(self.stack.get_children()) > 0
+
     def add_image(self, image, location):
+        if image.cancellable.is_cancelled():
+            self.set_busy(False)
+            return
+
         image.show()
 
         self.stack.add_named(image, location)

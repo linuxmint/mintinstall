@@ -192,12 +192,12 @@ class ReviewCache(GObject.Object):
         new_reviews = {}
 
         try:
-            r = requests.head("https://community.linuxmint.com/data/new-reviews.list")
+            r = requests.head("https://community.linuxmint.com/data/new-reviews.list", timeout=10)
 
             if r.status_code == 200:
                 if int(r.headers.get("content-length")) != current_size.value:
 
-                    r = requests.get("https://community.linuxmint.com/data/new-reviews.list")
+                    r = requests.get("https://community.linuxmint.com/data/new-reviews.list", timeout=30)
 
                     last_package = None
 

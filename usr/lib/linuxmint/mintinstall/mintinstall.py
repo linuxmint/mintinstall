@@ -159,6 +159,8 @@ class AsyncImage(Gtk.Image):
         self.width = 1
         self.height = 1
 
+        self.request_stream = None
+
         self.connect("destroy", self.on_destroyed)
 
         if icon_string:
@@ -207,23 +209,42 @@ class AsyncImage(Gtk.Image):
 
         if file:
             self.cancellable = Gio.Cancellable()
-            file.read_async(GLib.PRIORITY_DEFAULT, self.cancellable, self.on_read_finished)
+            t = threading.Thread(target=self._fetch_url_thread, args=[file])
+            t.start()
         else:
             self.set_icon_string(FALLBACK_PACKAGE_ICON_PATH, self.original_width, self.original_height)
 
-    def on_read_finished(self, file, result, data=None):
+    def _fetch_url_thread(self, file):
+        data = None
+
+        if file.get_uri().startswith("http"):
+            try:
+                r = requests.get(file.get_uri(), stream=True, timeout=10)
+
+                if self.cancellable.is_cancelled():
+                    return
+
+                bdata = b''
+                for chunk in r.iter_content(chunk_size=1024):
+                    if chunk:
+                        bdata += chunk
+
+                data = bdata
+            except Exception as e:
+                GLib.idle_add(self.emit_image_failed, str(e))
+                return
+        else:
+            try:
+                success, contents, etag = file.load_contents(self.cancellable)
+                data =  bytes(contents)
+            except GLib.Error as e:
+                if e.code != Gio.IOErrorEnum.CANCELLED:
+                    GLib.idle_add(self.emit_image_failed, e.message)
+                return
+
+        stream = Gio.MemoryInputStream.new_from_data(data, None)
+
         if self.cancellable.is_cancelled():
-            self.emit("image-failed")
-            return
-
-        stream = None
-
-        try:
-            stream = file.read_finish(result)
-        except GLib.Error as e:
-            print("AsyncIcon could not read icon file contents for loading (%s): %s" % (self.path, e.message))
-            self.set_icon_string(FALLBACK_PACKAGE_ICON_PATH, self.original_width, self.original_height)
-            self.emit("image-failed")
             return
 
         if stream:
@@ -233,11 +254,19 @@ class AsyncImage(Gtk.Image):
                                                             True,
                                                             self.cancellable,
                                                             self.on_pixbuf_created)
+        else:
+            GLib.idle_add(self.emit_image_failed)
+
+    def emit_image_failed(self, message=None):
+        print("AsyncIcon could not read icon file contents for loading (%s): %s" % (self.path, message))
+
+        self.set_icon_string(FALLBACK_PACKAGE_ICON_PATH, self.original_width, self.original_height)
+        self.cancellable.cancel()
+        self.emit("image-failed")
 
     def on_pixbuf_created(self, stream, result, data=None):
         if self.cancellable.is_cancelled():
             stream.close()
-            self.emit("image-failed")
             return
 
         try:
@@ -252,9 +281,7 @@ class AsyncImage(Gtk.Image):
                                                                self.get_window())
                 self.set_from_surface(surface)
         except GLib.Error as e:
-            print("AsyncIcon could not generate icon from file contents (%s): %s" % (self.path, e.message))
-            self.set_icon_string(FALLBACK_PACKAGE_ICON_PATH, self.original_width, self.original_height)
-            self.emit("image-failed")
+            self.emit_image_failed(e.message)
             return
 
         stream.close()
@@ -285,7 +312,7 @@ class ScreenshotDownloader(threading.Thread):
 
                         image = screenshot.get_image(624, 351)
 
-                        if requests.head(image.get_url()).status_code < 400:
+                        if requests.head(image.get_url(), timeout=5).status_code < 400:
                             num_screenshots += 1
 
                             local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
@@ -302,9 +329,10 @@ class ScreenshotDownloader(threading.Thread):
             if num_screenshots == 0:
                 self.application.add_screenshot(self.pkginfo, None, 0)
 
+            return
         try:
             link = "https://community.linuxmint.com/img/screenshots/%s.png" % self.pkginfo.name
-            if requests.head(link).status_code < 400:
+            if requests.head(link, timeout=5).status_code < 400:
                 num_screenshots += 1
 
                 local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
@@ -317,7 +345,7 @@ class ScreenshotDownloader(threading.Thread):
         try:
             # Add additional screenshots from Debian
             from bs4 import BeautifulSoup
-            page = BeautifulSoup(urllib.request.urlopen("http://screenshots.debian.net/package/%s" % self.pkginfo.name), "lxml")
+            page = BeautifulSoup(urllib.request.urlopen("http://screenshots.debian.net/package/%s" % self.pkginfo.name, timeout=5), "lxml")
             images = page.findAll('img')
             for image in images:
                 if num_screenshots >= 4:
@@ -340,7 +368,7 @@ class ScreenshotDownloader(threading.Thread):
                 # Add additional screenshots from Hamonikr
                 from bs4 import BeautifulSoup
                 hamonikrpkgname = self.pkginfo.name.replace("-","_")
-                page = BeautifulSoup(urllib.request.urlopen("https://hamonikr.org/%s" % hamonikrpkgname), "lxml")
+                page = BeautifulSoup(urllib.request.urlopen("https://hamonikr.org/%s" % hamonikrpkgname, timeout=5), "lxml")
                 images = page.findAll('img')
                 for image in images:
                     if num_screenshots >= 4:
@@ -362,7 +390,7 @@ class ScreenshotDownloader(threading.Thread):
             self.application.add_screenshot(self.pkginfo, None, 0)
 
     def save_to_file(self, url, source_url, path):
-        r = requests.get(url, stream=True)
+        r = requests.get(url, stream=True, timeout=10)
 
         with open(path, 'wb') as fd:
             for chunk in r.iter_content(chunk_size=128):
@@ -478,7 +506,6 @@ class FlatpakAddonRow(Gtk.ListBoxRow):
 
     def installer_progress(self, pkginfo, progress, estimating, status_text=None):
         self.spinner.show()
-        print(status_text)
 
 class SaneProgressBar(Gtk.DrawingArea):
     def __init__(self):
@@ -1246,8 +1273,7 @@ class Application(Gtk.Application):
         self.screenshot_stack = self.builder.get_object("screenshot_stack")
         self.screenshot_stack.connect("notify::visible-child", self.on_screenshot_shown)
 
-        cursor_box = self.builder.get_object("screenshot_cursor_box")
-        cursor_box.connect("realize", self.set_screenshot_cursor)
+        self.select_cursor = Gdk.Cursor.new_from_name(Gdk.Display.get_default(), "pointer")
         self.screenshot_window = None
 
         self.builder.get_object("previous_ss_button").connect("clicked", self.navigate_screenshot, Gtk.DirectionType.TAB_BACKWARD)
@@ -1272,10 +1298,6 @@ class Application(Gtk.Application):
 
         box.pack_start(self.subcat_flowbox, True, True, 0)
         self.subcat_flowbox.connect("child-activated", self.on_subcategory_selected)
-
-    def set_screenshot_cursor(self, stack, data=None):
-        the_hand = Gdk.Cursor.new_from_name(Gdk.Display.get_default(), "pointer")
-        stack.get_window().set_cursor(the_hand)
 
     def refresh_cache(self):
         self.builder.get_object("loading_spinner").start()
@@ -1633,6 +1655,7 @@ class Application(Gtk.Application):
             box.pack_start(label, False, False, 0)
             box.show_all()
             self.screenshot_stack.add_named(box, "no-screenshots")
+            self.screenshot_stack.get_window().set_cursor(None)
             return
 
         screenshot = AsyncImage(str(ss_path), SCREENSHOT_WIDTH, SCREENSHOT_HEIGHT)
@@ -1642,6 +1665,7 @@ class Application(Gtk.Application):
         self.screenshot_stack.show_all()
         self.ss_swipe_handler.set_propagation_phase(Gtk.PropagationPhase.BUBBLE)
         self.screenshot_controls_vgroup.set_visible(n > 1)
+        self.screenshot_stack.get_window().set_cursor(self.select_cursor)
 
     def on_screenshot_shown(self, stack, pspec):
         screenshot = stack.get_visible_child()
@@ -1726,10 +1750,19 @@ class Application(Gtk.Application):
         work_area = monitor.get_workarea()
         enlarged = AsyncImage(image_location, work_area.width * .8, work_area.height * .8)
         enlarged.connect("image-loaded", self.enlarged_image_ready)
+        enlarged.connect("image-failed", self.enlarged_image_failed)
         return Gdk.EVENT_STOP
 
     def enlarged_image_ready(self, image):
         self.screenshot_window.add_image(image, image.path)
+
+    def enlarged_image_failed(self, image):
+        self.screenshot_window.set_busy(False)
+
+        # If a screenshot failed and it's the first one, there's an empty, invisible screenshot window
+        # in front of the main window, so destroy it.
+        if not self.screenshot_window.any_images():
+            self.screenshot_window.destroy()
 
     def enlarged_screenshot_window_destroyed(self, window):
         self.screenshot_window = None
@@ -2268,6 +2301,7 @@ class Application(Gtk.Application):
                 except IndexError:
                     pass
 
+        self.screenshot_stack.get_window().set_cursor(None)
         self.update_conditional_widgets()
 
     def show_category(self, category):
@@ -2715,7 +2749,7 @@ class Application(Gtk.Application):
             try:
                 from bs4 import BeautifulSoup
                 hamonikrpkgname = pkginfo.name.replace("-","_")
-                page = BeautifulSoup(urllib.request.urlopen("https://hamonikr.org/%s" % hamonikrpkgname), "lxml")
+                page = BeautifulSoup(urllib.request.urlopen("https://hamonikr.org/%s" % hamonikrpkgname, timeout=5), "lxml")
                 texts = page.find("div","xe_content")
                 text = texts.get_text()
                 if text is not None:
