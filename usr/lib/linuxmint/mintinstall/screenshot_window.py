@@ -33,10 +33,11 @@ class ScreenshotWindow(Gtk.Window):
         self.overlay = Gtk.Overlay()
         self.add(self.overlay)
 
-        self.connect("realize", self.set_initial_cursor)
+        self.connect("realize", self.window_realized)
+
+        self.multiple_screenshots = multiple_screenshots
 
         self.loading_pointer = Gdk.Cursor.new_from_name(Gdk.Display.get_default(), "wait")
-
         if multiple_screenshots:
             self.normal_pointer = Gdk.Cursor.new_from_name(Gdk.Display.get_default(), "grab")
             self.grabbing_pointer = Gdk.Cursor.new_from_name(Gdk.Display.get_default(), "grabbing")
@@ -45,7 +46,6 @@ class ScreenshotWindow(Gtk.Window):
             self.grabbing_pointer = None
 
         self.connect("button-press-event", self.on_button_press_event)
-        self.connect("button-release-event", self.on_button_release_event)
         self.busy = False
 
         self.stack = Gtk.Stack(homogeneous=False,
@@ -74,29 +74,23 @@ class ScreenshotWindow(Gtk.Window):
             self.show_all()
             self.present()
 
-    def set_initial_cursor(self, widget, data=None):
+    def window_realized(self, widget, data=None):
+        self.window = self.get_window()
         self.set_busy(True)
 
     def set_busy(self, busy):
         if busy:
             self.busy = True
-            self.get_window().set_cursor(self.loading_pointer)
+            self.window.set_cursor(self.loading_pointer)
         else:
             self.busy = False
-            self.get_window().set_cursor(self.normal_pointer)
+            self.window.set_cursor(self.normal_pointer)
 
     def on_button_press_event(self, window, event, data=None):
         if self.busy:
             return Gdk.EVENT_STOP
 
-        self.get_window().set_cursor(self.grabbing_pointer)
-        return Gdk.EVENT_PROPAGATE
-
-    def on_button_release_event(self, window, event, data=None):
-        if self.busy:
-            return Gdk.EVENT_STOP
-
-        self.get_window().set_cursor(self.normal_pointer)
+        self.window.set_cursor(self.grabbing_pointer)
         return Gdk.EVENT_PROPAGATE
 
     def has_image(self, location):
@@ -154,8 +148,8 @@ class ScreenshotWindow(Gtk.Window):
     def on_scroll_event(self, controller, xd, yd, data=None):
         # Getting double events for some reason..
         event_time = Gtk.get_current_event().get_time()
-        if event_time == self.previous_scroll_event_time:
-            return
+        if event_time == self.previous_scroll_event_time or not self.multiple_screenshots:
+            return Gdk.EVENT_STOP
 
         if xd < 0 or yd < 0:
             self.stack.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT)
@@ -167,16 +161,26 @@ class ScreenshotWindow(Gtk.Window):
         self.previous_scroll_event_time = event_time
         self.emit_next_image(direction)
 
+        return Gdk.EVENT_PROPAGATE
+
     def on_focus_out_event(self, window, event, data=None):
         GLib.timeout_add(200, lambda w: w.hide(), window)
         return Gdk.EVENT_STOP
 
     def swipe_or_button_release(self, handler, vx, vy):
+        if self.busy:
+            return
+
+        self.window.set_cursor(self.normal_pointer)
+
         if vx == 0 and vy == 0:
             # Need to let the other events for the swipe controller (like button-release) to fire
             # before destroying the window, otherwise there are warnings when their default
             # handlers run.
             GLib.idle_add(self.hide)
+            return
+
+        if not self.multiple_screenshots:
             return
 
         if vx < 0:
