@@ -1392,8 +1392,10 @@ class Application(Gtk.Application):
             else:
                 tries += 1
 
-            if tries >= 10:
-                raise Exception("Something wrong on featured loading")
+            if tries > 10:
+                print("Something wrong on featured loading")
+                box.hide()
+                return
 
         tile = FeatureTile(pkginfo, self.installer, background, text, text_shadow, stroke)
 
