@@ -1,3 +1,14 @@
+mintinstall (8.2.1) vera; urgency=medium
+
+  [ Michael Webster ]
+  * Fix some navigation and event issues.
+  * Add timeouts for all downloads (reviews, screenshots, icons), and handle such failures, fix some missing-screenshot behavior.
+  * Don't break the landing page if the featured app fails to load.
+  * Fix some visual things - spacing more consistent, stray separator.
+  * Check that the screenshot stack is realized before trying to use its window.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Fri, 02 Dec 2022 17:20:54 +0000
+
 mintinstall (8.2.0) vera; urgency=medium
 
   [ hdulme ]
