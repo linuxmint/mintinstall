@@ -2303,7 +2303,8 @@ class Application(Gtk.Application):
                 except IndexError:
                     pass
 
-        self.screenshot_stack.get_window().set_cursor(None)
+        if self.screenshot_stack.get_realized():
+            self.screenshot_stack.get_window().set_cursor(None)
         self.update_conditional_widgets()
 
     def show_category(self, category):
