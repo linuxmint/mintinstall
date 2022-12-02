@@ -251,7 +251,10 @@
               <object class="GtkBox" id="box_landing">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="border-width">12</property>
+                <property name="margin-start">8</property>
+                <property name="margin-end">8</property>
+                <property name="margin-top">8</property>
+                <property name="margin-bottom">8</property>
                 <property name="orientation">vertical</property>
                 <property name="spacing">6</property>
                 <child>
@@ -276,7 +279,6 @@
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
                                 <property name="orientation">vertical</property>
-                                <property name="spacing">6</property>
                                 <child>
                                   <object class="GtkBox" id="box_featured">
                                     <property name="height-request">160</property>
@@ -351,15 +353,15 @@
               <object class="GtkBox" id="box_list">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="border-width">12</property>
+                <property name="margin-start">8</property>
+                <property name="margin-end">8</property>
+                <property name="margin-bottom">8</property>
                 <property name="orientation">vertical</property>
                 <property name="baseline-position">top</property>
                 <child>
                   <object class="GtkLabel" id="label_cat_name">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="margin-top">6</property>
-                    <property name="margin-bottom">6</property>
                     <property name="xpad">6</property>
                     <property name="ypad">12</property>
                     <property name="xalign">0</property>
@@ -373,17 +375,6 @@
                     <property name="expand">False</property>
                     <property name="fill">True</property>
                     <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkSeparator">
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
                   </packing>
                 </child>
                 <child>
@@ -473,7 +464,6 @@
                   <object class="GtkBox" id="box_subcategories">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="margin-top">6</property>
                     <child>
                       <placeholder/>
                     </child>
