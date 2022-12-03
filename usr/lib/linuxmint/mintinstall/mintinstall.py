@@ -1410,9 +1410,6 @@ class Application(Gtk.Application):
         self.show_package(pkginfo, self.PAGE_LANDING)
 
     def load_picks_on_landing(self):
-        if self.low_res:
-            self.builder.get_object("editor_picks_label").hide()
-
         box = self.builder.get_object("box_picks")
 
         if self.flowbox_popular is None:
