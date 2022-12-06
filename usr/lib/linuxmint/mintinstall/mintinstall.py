@@ -2595,7 +2595,7 @@ class Application(Gtk.Application):
         else:
             review_info = None
 
-        tile = VerticalPackageTile(pkginfo, icon, self.installer, review_info)
+        tile = VerticalPackageTile(pkginfo, icon, self.installer, show_package_type=True, review_info=review_info)
         self.flowbox_applications.insert(tile, -1)
         self.category_tiles.append(tile)
 
