@@ -770,7 +770,7 @@ class VerticalPackageTile(Gtk.FlowBoxChild):
                     self.package_type_name.set_label(pkginfo.remote.capitalize())
 
                 self.package_type_box.set_tooltip_text(_("This package is a Flatpak"))
-                self.package_type_emblem.set_from_icon_name("flatpak-symbolic", Gtk.IconSize.MENU)
+                self.package_type_emblem.set_from_icon_name("mintinstall-package-flatpak-symbolic", Gtk.IconSize.MENU)
             else:
                 self.package_type_name.set_label(_("Package"))
                 self.package_type_box.set_tooltip_text(_("This is a system package"))
@@ -2687,7 +2687,7 @@ class Application(Gtk.Application):
             for remote in self.installer.list_flatpak_remotes():
                 row_pkginfo = self.installer.find_pkginfo(a_flatpak.name, remote=remote.name)
                 if row_pkginfo:
-                    row = [i, _("Flatpak (%s)") % remote.title, remote.summary, "flatpak-symbolic", row_pkginfo]
+                    row = [i, _("Flatpak (%s)") % remote.title, remote.summary, "mintinstall-package-flatpak-symbolic", row_pkginfo]
                     iter = self.package_type_store.append(row)
                     if pkginfo == row_pkginfo:
                         to_use_iter = iter
@@ -2925,7 +2925,7 @@ class Application(Gtk.Application):
             else:
                 action_button_label = _("Install")
                 if pkginfo.pkg_hash.startswith("f"):
-                    action_button_icon = "flatpak-symbolic"
+                    action_button_icon = "mintinstall-package-flatpak-symbolic"
                 else:
                     action_button_icon = "linuxmint-logo-badge-symbolic"
 
