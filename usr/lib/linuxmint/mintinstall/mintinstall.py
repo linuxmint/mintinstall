@@ -1098,6 +1098,8 @@ class Application(Gtk.Application):
 
         self.main_window = self.builder.get_object("main_window")
         self.main_window.set_title(_("Software Manager"))
+        GLib.set_application_name(_("Software Manager"))
+
         self.main_window.set_icon_name("mintinstall")
         self.main_window.connect("delete_event", self.close_application)
         self.main_window.connect("key-press-event", self.on_keypress)
@@ -2629,14 +2631,6 @@ class Application(Gtk.Application):
 
         self.update_conditional_widgets()
 
-        if self.action_button_signal_id > 0:
-            self.action_button.disconnect(self.action_button_signal_id)
-            self.action_button_signal_id = 0
-
-        if self.launch_button_signal_id > 0:
-            self.launch_button.disconnect(self.launch_button_signal_id)
-            self.launch_button_signal_id = 0
-
         # Reset the position of our scrolled window back to the top
         self.reset_scroll_view(self.builder.get_object("scrolled_details"))
 
@@ -2999,6 +2993,11 @@ class Application(Gtk.Application):
             self.builder.get_object("application_size").set_label(sizeinfo)
             self.flatpak_details_vgroup.set_visible(task.branch != "")
 
+
+        if self.action_button_signal_id > 0:
+            self.action_button.disconnect(self.action_button_signal_id)
+            self.action_button_signal_id = 0
+
         self.action_button_signal_id = self.action_button.connect("clicked",
                                                                   self.on_action_button_clicked,
                                                                   task)
@@ -3046,6 +3045,11 @@ class Application(Gtk.Application):
         if exec_string != None:
             task.exec_string = exec_string
             self.launch_button.show()
+
+            if self.launch_button_signal_id > 0:
+                self.launch_button.disconnect(self.launch_button_signal_id)
+                self.launch_button_signal_id = 0
+
             self.launch_button_signal_id = self.launch_button.connect("clicked",
                                                                       self.on_launch_button_clicked,
                                                                       task)
