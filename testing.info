@@ -1,0 +1,12 @@
+Mintinstall installer tests:
+
+apt errors:
+- select python3 package, should immediately change button to forbidden (can't remove) - no error popup
+- select grep, should be forbidden also - no error popup
+- select tar, should show try again, popup showing dependency error
+- any operation, no network connection, should popup network connection error (network isn't needed to 'show' a package)
+
+flatpak errors:
+- disconnect network, select package, should show network connection error (this happens while attempting to resolve the package info).
+- select package, start install, disconnect network, should show specific operation error, as well as a network error triggered by
+  reloading the package view.
