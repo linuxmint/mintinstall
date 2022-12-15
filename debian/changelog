@@ -1,3 +1,15 @@
+mintinstall (8.2.3) vera; urgency=medium
+
+  [ Michael Webster ]
+  * Update apt/flatpak matches.
+  * Fix review info not being displayed in categories and search results.
+  * Make sure to always use the proper flatpak symbolic icon.
+  * Name the GApplication, fix re-selection of the same app while still in the details page, provide error dialogs with the parent window.
+  * Fix mintinstall-remove-app.
+  * Bump mint-common version.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Thu, 15 Dec 2022 12:54:07 +0000
+
 mintinstall (8.2.2) vera; urgency=medium
 
   * Fix exception in low resolution
