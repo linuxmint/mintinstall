@@ -260,8 +260,8 @@ class AsyncImage(Gtk.Image):
     def emit_image_failed(self, message=None):
         print("AsyncIcon could not read icon file contents for loading (%s): %s" % (self.path, message))
 
-        self.set_icon_string(FALLBACK_PACKAGE_ICON_PATH, self.original_width, self.original_height)
         self.cancellable.cancel()
+        self.set_icon_string(FALLBACK_PACKAGE_ICON_PATH, self.original_width, self.original_height)
         self.emit("image-failed")
 
     def on_pixbuf_created(self, stream, result, data=None):
@@ -1758,6 +1758,10 @@ class Application(Gtk.Application):
         self.screenshot_window.add_image(image, image.path)
 
     def enlarged_image_failed(self, image):
+        # AsyncImage will be trying to load a fallback image next, make sure we don't get signaled for it.
+        image.disconnect_by_func(self.enlarged_image_ready)
+        image.destroy()
+
         self.screenshot_window.set_busy(False)
 
         # If a screenshot failed and it's the first one, there's an empty, invisible screenshot window
