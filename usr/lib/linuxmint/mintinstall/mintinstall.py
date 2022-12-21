@@ -2558,7 +2558,7 @@ class Application(Gtk.Application):
         apps = [info for info in pkginfos if info.refid == "" or info.refid.startswith("app")]
         apps.sort(key=functools.cmp_to_key(self.package_compare))
 
-        apps = apps[0:200]
+        apps = apps[0:201]
 
         # Identify name collisions (to show more info when multiple apps have the same name)
         package_titles = []
