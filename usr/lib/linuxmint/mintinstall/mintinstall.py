@@ -322,12 +322,12 @@ class ScreenshotDownloader(threading.Thread):
                             source_url = source.get_url()
                             self.save_to_file(image.get_url(), source_url, local_name)
 
-                            self.application.add_screenshot(self.pkginfo, local_name, num_screenshots)
+                            self.add_screenshot(self.pkginfo, local_name, num_screenshots)
             except Exception as e:
                 print(e)
 
             if num_screenshots == 0:
-                self.application.add_screenshot(self.pkginfo, None, 0)
+                self.add_screenshot(self.pkginfo, None, 0)
 
             return
         try:
@@ -338,7 +338,7 @@ class ScreenshotDownloader(threading.Thread):
                 local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
                 self.save_to_file(link, None, local_name)
 
-                self.application.add_screenshot(self.pkginfo, local_name, num_screenshots)
+                self.add_screenshot(self.pkginfo, local_name, num_screenshots)
         except Exception as e:
             print(e)
 
@@ -359,7 +359,7 @@ class ScreenshotDownloader(threading.Thread):
                     local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
                     self.save_to_file(link, None, local_name)
 
-                    self.application.add_screenshot(self.pkginfo, local_name, num_screenshots)
+                    self.add_screenshot(self.pkginfo, local_name, num_screenshots)
         except Exception as e:
             pass
         
@@ -382,12 +382,12 @@ class ScreenshotDownloader(threading.Thread):
                         local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
                         self.save_to_file(link, None, local_name)
 
-                        self.application.add_screenshot(self.pkginfo, local_name, num_screenshots)
+                        self.add_screenshot(self.pkginfo, local_name, num_screenshots)
             except Exception as e:
                 pass
 
         if num_screenshots == 0:
-            self.application.add_screenshot(self.pkginfo, None, 0)
+            self.add_screenshot(self.pkginfo, None, 0)
 
     def save_to_file(self, url, source_url, path):
         r = requests.get(url, stream=True, timeout=10)
@@ -406,6 +406,12 @@ class ScreenshotDownloader(threading.Thread):
             file.set_attributes_from_info(info, Gio.FileQueryInfoFlags.NONE, None)
         except GLib.Error as e:
             logging.warning("Unable to store screenshot source url to metadata '%s': %s" % (source_url, e.message))
+
+    def add_screenshot(self, pkginfo, name, num):
+        GLib.idle_add(self.add_ss_idle, pkginfo, name, num)
+
+    def add_ss_idle(self, pkginfo, name, num):
+        self.application.add_screenshot(pkginfo, name, num)
 
 class FlatpakAddonRow(Gtk.ListBoxRow):
     def __init__(self, app, parent_pkginfo, addon, name_size_group, button_size_group):
