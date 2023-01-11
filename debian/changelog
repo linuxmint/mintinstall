@@ -1,3 +1,16 @@
+mintinstall (8.2.4) vera; urgency=medium
+
+  [ Michael Webster ]
+  * Add actions workflow.
+  * build.yml: missing comma.
+  * Remove xplayer from suggested software.
+  * Update apt-flatpak match info.
+  * Don't set the cancellable on an icon when it fails - it prevents the fallback icon from loading.
+  * Make the number of apps shown in search results or category listings divisible by 3.
+  * Only add screenshots on the Gtk thread.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 11 Jan 2023 11:41:38 +0000
+
 mintinstall (8.2.3) vera; urgency=medium
 
   [ Michael Webster ]
