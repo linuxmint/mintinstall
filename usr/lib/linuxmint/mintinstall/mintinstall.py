@@ -735,8 +735,15 @@ class VerticalPackageTile(Gtk.FlowBoxChild):
         self.add(self.button)
 
         self.pkginfo = pkginfo
-        self.pkg_category = pkginfo.categories[1] or pkginfo.categories[0]
         self.installer = installer
+
+        self.pkg_category = ''
+        if len(pkginfo.categories) > 0:
+            if len(pkginfo.categories) == 1:
+                self.pkg_category = pkginfo.categories[0]
+            else:
+                self.pkg_category = pkginfo.categories[1]
+
 
         glade_file = "/usr/share/linuxmint/mintinstall/vertical-tile.glade"
         self.builder = Gtk.Builder()
