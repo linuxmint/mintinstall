@@ -4,3 +4,9 @@ debian/*.substvars
 debian/*.log
 debian/debhelper-build-stamp
 debian/files
+
+# glade temp files
+usr/share/linuxmint/mintinstall/*.glade~
+
+# cache files
+usr/lib/linuxmint/mintinstall/__pycache__
