@@ -735,6 +735,7 @@ class VerticalPackageTile(Gtk.FlowBoxChild):
         self.add(self.button)
 
         self.pkginfo = pkginfo
+        self.pkg_category = pkginfo.categories[1] or pkginfo.categories[0]
         self.installer = installer
 
         glade_file = "/usr/share/linuxmint/mintinstall/vertical-tile.glade"
@@ -756,9 +757,6 @@ class VerticalPackageTile(Gtk.FlowBoxChild):
 
         display_name = self.installer.get_display_name(pkginfo)
         self.package_label.set_label(display_name)
-
-        summary = self.installer.get_summary(pkginfo)
-        self.package_summary.set_label(summary)
 
         if show_package_type:
             if pkginfo.pkg_hash.startswith("f"):
@@ -783,8 +781,14 @@ class VerticalPackageTile(Gtk.FlowBoxChild):
                 self.package_type_emblem.set_from_icon_name("linuxmint-logo-badge-symbolic", Gtk.IconSize.MENU)
             self.package_type_box.show()
 
+            summary = self.installer.get_summary(pkginfo)
+        else:
+            summary = self.pkg_category.name if self.pkg_category else None
+
         if review_info:
             self.fill_rating_widget(review_info)
+
+        self.package_summary.set_label(summary)
 
         self.show_all()
         self.refresh_state()
@@ -801,28 +805,9 @@ class VerticalPackageTile(Gtk.FlowBoxChild):
             self.installed_mark.clear()
 
     def fill_rating_widget(self, review_info):
-        review_info_box = self.builder.get_object("review_info_box")
-
-        stars_box = self.builder.get_object("stars_box")
-
-        rating = review_info.avg_rating
-        remaining_stars = 5
-        while rating >= 1.0:
-            star = Gtk.Image(icon_name="starred-symbolic", pixel_size=12)
-            stars_box.pack_start(star, False, False, 0)
-            rating -= 1
-            remaining_stars -= 1
-        if rating > 0.0:
-            star = Gtk.Image(icon_name="semi-starred-symbolic", pixel_size=12)
-            stars_box.pack_start(star, False, False, 0)
-            remaining_stars -= 1
-        for i in range (remaining_stars):
-            star = Gtk.Image(icon_name="non-starred-symbolic", pixel_size=12)
-            stars_box.pack_start(star, False, False, 0)
-        stars_box.show_all()
-
+        rating = str(review_info.avg_rating)
         num_reviews_label = self.builder.get_object("num_reviews_label")
-        num_reviews_label.set_label(str(review_info.num_reviews))
+        num_reviews_label.set_label(rating)
 
 class ReviewTile(Gtk.ListBoxRow):
     def __init__(self, username, date, comment, rating):
