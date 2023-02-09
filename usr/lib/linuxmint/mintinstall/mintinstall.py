@@ -897,9 +897,7 @@ class CategoryButton(Gtk.Button):
         self.category = category
 
         self.set_can_focus(False)
-        # self.set_halign(Gtk.Align.START)
         self.set_hexpand(True)
-        # self.set_hexpand_set(True)
 
         box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, valign=Gtk.Align.START)
         image = Gtk.Image(icon_name=category.icon_name, icon_size=Gtk.IconSize.MENU)
@@ -909,10 +907,6 @@ class CategoryButton(Gtk.Button):
         box.show_all()
 
         self.add(box)
-
-        # icon = Gtk.Image.new_from_icon_name(category.icon_name, Gtk.IconSize.MENU)
-        # self.set_image(icon)
-        # self.set_label(category.name)
 
 class Application(Gtk.Application):
     (ACTION_TAB, PROGRESS_TAB, SPINNER_TAB) = list(range(3))
