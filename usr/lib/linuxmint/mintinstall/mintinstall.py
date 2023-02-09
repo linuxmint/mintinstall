@@ -856,9 +856,10 @@ class ReviewTile(Gtk.ListBoxRow):
         self.add(main_box)
 
 class Category:
-    def __init__(self, name, parent, categories):
+    def __init__(self, name, parent, categories, icon_name=""):
         self.name = name
         self.parent = parent
+        self.icon_name = icon_name
         self.subcategories = []
         self.pkginfos = []
         self.matchingPackages = []
@@ -888,6 +889,30 @@ class SubcategoryFlowboxChild(Gtk.FlowBoxChild):
 
     def _activate_fb_child(self, widget):
         self.activate()
+
+class CategoryButton(Gtk.Button):
+    def __init__(self, category):
+        super(Gtk.Button, self).__init__()
+
+        self.category = category
+
+        self.set_can_focus(False)
+        # self.set_halign(Gtk.Align.START)
+        self.set_hexpand(True)
+        # self.set_hexpand_set(True)
+
+        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, valign=Gtk.Align.START)
+        image = Gtk.Image(icon_name=category.icon_name, icon_size=Gtk.IconSize.MENU)
+        label = Gtk.Label(label=category.name)
+        box.pack_start(image, False, False, 0)
+        box.pack_start(label, False, False, 0)
+        box.show_all()
+
+        self.add(box)
+
+        # icon = Gtk.Image.new_from_icon_name(category.icon_name, Gtk.IconSize.MENU)
+        # self.set_image(icon)
+        # self.set_label(category.name)
 
 class Application(Gtk.Application):
     (ACTION_TAB, PROGRESS_TAB, SPINNER_TAB) = list(range(3))
@@ -1327,6 +1352,7 @@ class Application(Gtk.Application):
             self.review_cache.connect("reviews-updated", self.update_review_widgets)
 
             self.load_picks_on_landing()
+            self.load_top_rated_on_landing()
             self.load_categories_on_landing()
 
             self.sync_installed_apps()
@@ -1412,6 +1438,10 @@ class Application(Gtk.Application):
     def load_picks_on_landing(self):
         box = self.builder.get_object("box_picks")
 
+        label = self.builder.get_object("label_picks")
+        label.set_text(_("Popular"))
+        label.show()
+
         if self.flowbox_popular is None:
             flowbox = Gtk.FlowBox()
             flowbox.set_min_children_per_line(3)
@@ -1431,7 +1461,7 @@ class Application(Gtk.Application):
         apps.sort(key=functools.cmp_to_key(self.package_compare))
 
         apps = list(filter(lambda app: self.installer.get_icon(app, FEATURED_ICON_SIZE) is not None, apps))
-        apps = apps[0:60]
+        apps = apps[0:30]
         random.shuffle(apps)
         apps.sort(key=lambda app: self.installer.pkginfo_is_installed(app))
 
@@ -1448,11 +1478,57 @@ class Application(Gtk.Application):
             self.picks_tiles.append(tile)
         box.show_all()
 
+    def load_top_rated_on_landing(self):
+        box = self.builder.get_object("box_top_rated")
+
+        label = self.builder.get_object("label_top_rated")
+        label.set_text(_("Top Rated"))
+        label.show()
+
+        flowbox = Gtk.FlowBox()
+        flowbox.set_min_children_per_line(3)
+        flowbox.set_max_children_per_line(10)
+        flowbox.set_row_spacing(0)
+        flowbox.set_column_spacing(0)
+        flowbox.set_homogeneous(False)
+        flowbox.connect("child-activated", self.on_flowbox_child_activated, self.PAGE_LANDING)
+        flowbox.connect("selected-children-changed", self.navigate_flowbox, self.builder.get_object("scrolledwindow_landing"))
+        self.flowbox_top_rated = flowbox
+        box.add(flowbox)
+
+        for child in self.flowbox_top_rated:
+            child.destroy()
+
+        apps = [info for info in self.all_category.pkginfos if info.refid == "" or info.refid.startswith("app")]
+        apps.sort(key=functools.cmp_to_key(self.package_compare))
+
+        apps = list(filter(lambda app: self.installer.get_icon(app, FEATURED_ICON_SIZE) is not None, apps))
+        apps = apps[0:8]
+        random.shuffle(apps)
+        apps.sort(key=lambda app: self.installer.pkginfo_is_installed(app))
+
+        size_group = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
+        for pkginfo in apps:
+            if self.review_cache:
+                review_info = self.review_cache[pkginfo.name]
+            else:
+                review_info = None
+            icon = self.get_application_icon(pkginfo, FEATURED_ICON_SIZE)
+            tile = VerticalPackageTile(pkginfo, icon, self.installer, show_package_type=False, review_info=review_info)
+            size_group.add_widget(tile)
+            self.flowbox_top_rated.insert(tile, -1)
+            self.picks_tiles.append(tile)
+        box.show_all()
+
     @print_timing
     def load_categories_on_landing(self):
         box = self.builder.get_object("box_categories")
         for child in box.get_children():
             child.destroy()
+
+        label = self.builder.get_object("label_categories_landing")
+        label.set_text(_("Categories"))
+        label.show()
 
         flowbox = Gtk.FlowBox()
         flowbox.set_min_children_per_line(4)
@@ -1464,21 +1540,17 @@ class Application(Gtk.Application):
 
         for name in sorted(self.root_categories.keys()):
             category = self.root_categories[name]
-            button = Gtk.Button(can_focus=False)
-            button.set_label(category.name)
+            button = CategoryButton(category)
             button.connect("clicked", self.category_button_clicked, category)
             flowbox.insert(button, -1)
 
         if self.installer.list_flatpak_remotes():
             # Add flatpaks
-            button = Gtk.Button(can_focus=False)
-            button.set_label(self.flatpak_category.name)
+            button = CategoryButton(self.flatpak_category)
             button.connect("clicked", self.category_button_clicked, self.flatpak_category)
-
             flowbox.insert(button, -1)
 
-        button = Gtk.Button(can_focus=False)
-        button.set_label(self.all_category.name)
+        button = CategoryButton(self.all_category)
         button.connect("clicked", self.category_button_clicked, self.all_category)
         flowbox.insert(button, -1)
 
@@ -2012,10 +2084,10 @@ class Application(Gtk.Application):
         else:
             self.picks_category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/picks.list")
 
-        self.flatpak_category = Category("Flatpak", None, self.categories)
+        self.flatpak_category = Category("Flatpak", None, self.categories, "mintinstall-package-flatpak-symbolic")
 
         # ALL
-        self.all_category = Category(_("All Applications"), None, self.categories)
+        self.all_category = Category(_("All Applications"), None, self.categories, "view-grid-symbolic")
         with os.scandir("/usr/share/linuxmint/mintinstall/categories/") as it:
             for entry in it:
                 if entry.path.endswith(".list"):
@@ -2023,7 +2095,7 @@ class Application(Gtk.Application):
                     sorted(self.all_category.matchingPackages)
 
         # INTERNET
-        category = Category(_("Internet"), None, self.categories)
+        category = Category(_("Internet"), None, self.categories, "web-browser-symbolic")
 
         subcat = Category(_("Web"), category, self.categories)
         self.sections["web"] = subcat
@@ -2043,7 +2115,7 @@ class Application(Gtk.Application):
         self.root_categories[category.name] = category
 
         # SOUND AND VIDEO
-        category = Category(_("Sound and video"), None, self.categories)
+        category = Category(_("Sound and video"), None, self.categories, "emblem-music-symbolic")
         category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/sound-video.list")
         subcat = Category(_("Sound"), category, self.categories)
         self.sections["sound"] = subcat
@@ -2052,7 +2124,7 @@ class Application(Gtk.Application):
         self.root_categories[category.name] = category
 
         # GRAPHICS
-        category = Category(_("Graphics"), None, self.categories)
+        category = Category(_("Graphics"), None, self.categories, "applications-graphics-symbolic")
         self.sections["graphics"] = category
         category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/graphics.list")
 
@@ -2071,13 +2143,13 @@ class Application(Gtk.Application):
         self.root_categories[category.name] = category
 
         # OFFICE
-        category = Category(_("Office"), None, self.categories)
+        category = Category(_("Office"), None, self.categories, "x-office-presentation-symbolic")
         self.sections["office"] = category
         self.sections["editors"] = category
         self.root_categories[category.name] = category
 
         # GAMES
-        category = Category(_("Games"), None, self.categories)
+        category = Category(_("Games"), None, self.categories, "applications-games-symbolic")
         self.sections["games"] = category
         category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/games.list")
 
@@ -2096,26 +2168,26 @@ class Application(Gtk.Application):
         self.root_categories[category.name] = category
 
         # ACCESSORIES
-        category = Category(_("Accessories"), None, self.categories)
+        category = Category(_("Accessories"), None, self.categories, "plugins")
         self.sections["accessories"] = category
         self.sections["utils"] = category
         self.root_categories[category.name] = category
 
         # SYSTEM TOOLS
-        category = Category(_("System tools"), None, self.categories)
+        category = Category(_("System tools"), None, self.categories, "settings-configure")
         self.sections["system"] = category
         self.sections["admin"] = category
         category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/system-tools.list")
         self.root_categories[category.name] = category
 
         # FONTS
-        category = Category(_("Fonts"), None, self.categories)
+        category = Category(_("Fonts"), None, self.categories, "font-x-generic-symbolic")
         self.sections["fonts"] = category
         category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/fonts.list")
         self.root_categories[category.name] = category
 
         # EDUCATION
-        category = Category(_("Science and Education"), None, self.categories)
+        category = Category(_("Science and Education"), None, self.categories, "application-science-symbolic")
         subcat = Category(_("Science"), category, self.categories)
         self.sections["science"] = subcat
         subcat = Category(_("Maths"), category, self.categories)
@@ -2128,7 +2200,7 @@ class Application(Gtk.Application):
         self.root_categories[category.name] = category
 
         # PROGRAMMING
-        category = Category(_("Programming"), None, self.categories)
+        category = Category(_("Programming"), None, self.categories, "format-text-code")
         self.sections["devel"] = category
         subcat = Category(_("Java"), category, self.categories)
         self.sections["java"] = subcat
