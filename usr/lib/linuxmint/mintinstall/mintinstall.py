@@ -2180,7 +2180,7 @@ class Application(Gtk.Application):
         self.root_categories[category.name] = category
 
         # EDUCATION
-        category = Category(_("Science and Education"), None, self.categories, "application-science-symbolic")
+        category = Category(_("Science and Education"), None, self.categories, "applications-science-symbolic")
         subcat = Category(_("Science"), category, self.categories)
         self.sections["science"] = subcat
         subcat = Category(_("Maths"), category, self.categories)
