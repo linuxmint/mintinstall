@@ -782,11 +782,10 @@ class VerticalPackageTile(Gtk.FlowBoxChild):
 
                 self.package_type_box.set_tooltip_text(_("This package is a Flatpak"))
                 self.package_type_emblem.set_from_icon_name("mintinstall-package-flatpak-symbolic", Gtk.IconSize.MENU)
+                self.package_type_box.show()
             else:
-                self.package_type_name.set_label(_("Package"))
-                self.package_type_box.set_tooltip_text(_("This is a system package"))
-                self.package_type_emblem.set_from_icon_name("linuxmint-logo-badge-symbolic", Gtk.IconSize.MENU)
-            self.package_type_box.show()
+                self.package_type_name.hide()
+                self.package_type_emblem.hide()
 
             summary = self.installer.get_summary(pkginfo)
         else:
