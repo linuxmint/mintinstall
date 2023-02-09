@@ -10,7 +10,6 @@
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="orientation">vertical</property>
-        <property name="spacing">6</property>
         <child>
           <object class="GtkBox">
             <property name="visible">True</property>
@@ -37,6 +36,7 @@
               <object class="GtkBox">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
+                <property name="margin-top">4</property>
                 <property name="hexpand">True</property>
                 <property name="orientation">vertical</property>
                 <property name="spacing">6</property>
@@ -103,9 +103,7 @@
           <object class="GtkBox" id="bottom_row">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="margin-start">6</property>
-            <property name="margin-end">6</property>
-            <property name="margin-bottom">6</property>
+            <property name="border-width">6</property>
             <property name="spacing">6</property>
             <child>
               <object class="GtkBox" id="package_type_box">
@@ -236,6 +234,7 @@
         <property name="name">installed_box</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
+        <property name="opacity">0.75</property>
         <property name="halign">end</property>
         <property name="valign">start</property>
         <child>
