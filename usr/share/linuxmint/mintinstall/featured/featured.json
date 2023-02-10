@@ -1,0 +1,72 @@
+[
+  {
+    "name": "blender",
+    "image": "blender.svg",
+    "background": "linear-gradient(45deg, #fb8c00, #FFB74D)",
+    "border_color": "#fb8c00",
+    "text_color": "#3c2c1c"
+  },
+  {
+    "name": "firefox",
+    "image": "firefox.svg",
+    "background": "linear-gradient(to right, #5939AF, #B338E2)",
+    "border_color": "#5939AF",
+    "text_color": "#FFFFFF"
+  },
+  {
+    "name": "flameshot",
+    "image": "flameshot.svg",
+    "background": "radial-gradient(#ab15d1 0.65px, #8800AA 0.65px) 0 0 / 13px 13px repeat, #8800AA",
+    "border_color": "#8800AA",
+    "text_color": "#ffffff"
+  },
+  {
+    "name": "gimp",
+    "image": "gimp.svg",
+    "background": "radial-gradient(#dbb109 0.65px, #FECB00 0.65px) 0 0 / 13px 13px repeat, #FECB00",
+    "border_color": "#FECB00",
+    "text_color": "#333333"
+  },
+  {
+    "name": "gnome-chess",
+    "image": "gnome_chess.svg",
+    "background": "radial-gradient(#727370 0.65px, #888a85 0.65px) 0 0 / 13px 13px repeat, #888a85",
+    "border_color": "#888a85",
+    "text_color": "#ffffff"
+  },
+  {
+    "name": "gnome-maps",
+    "image": "gnome_maps.svg",
+    "background": "radial-gradient(#c6d6e9 0.65px, #e2e8f0 0.65px) 0 0 / 13px 13px repeat, #e2e8f0",
+    "border_color": "#e2e8f0",
+    "text_color": "#475569"
+  },
+  {
+    "name": "gnome-weather",
+    "image": "gnome_weather.svg",
+    "background": "radial-gradient(#4e709d 0.65px, #6693ce 0.65px) 0 0 / 13px 13px repeat, #6693ce",
+    "border_color": "#6693ce",
+    "text_color": "#eaf4ff"
+  },
+  {
+    "name": "inkscape",
+    "image": "inkscape.svg",
+    "background": "linear-gradient(to right, #f55d75, #FF875C)",
+    "border_color": "#f55d75",
+    "text_color": "#ffffff"
+  },
+  {
+    "name": "qbittorrent",
+    "image": "qbittorrent.svg",
+    "background": "linear-gradient(to right, #60A0E6, #4482CF)",
+    "border_color": "#4482CF",
+    "text_color": "#e6f3fc"
+  },
+  {
+    "name": "steam:i386",
+    "image": "steam.svg",
+    "background": "radial-gradient(#6fbce8 0.65px, transparent 0.65px) 0 0 / 13px 13px repeat, linear-gradient(to right, #11273D, #194761, #11273D), #11273D",
+    "border_color": "#11273D",
+    "text_color": "#ffffff"
+  }
+]
