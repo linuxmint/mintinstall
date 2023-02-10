@@ -20,6 +20,7 @@ import math
 from pathlib import Path
 import tempfile
 import base64
+import types
 
 import gi
 gi.require_version('Gtk', '3.0')
@@ -584,22 +585,25 @@ class SaneProgressBar(Gtk.DrawingArea):
 
 
 class FeatureTile(Gtk.Button):
-    def __init__(self, pkginfo, installer, background, color, text_shadow, border_color):
+    def __init__(self, pkginfo, installer, featured):
         super(Gtk.Button, self).__init__()
 
         self.pkginfo = pkginfo
         self.installer = installer
 
+        image_uri = (f"/usr/share/linuxmint/mintinstall/featured/{featured.image}")
+        background = featured.background
+        border_color = featured.border_color
+        color = featured.text_color
+
         self.connect("realize", self.set_cursor)
 
         css = """
-#FeatureTile
-{
+#FeatureTile {
     background: %(background)s;
     color: %(color)s;
-    text-shadow: %(text_shadow)s;
     border-color: %(border_color)s;
-    padding: 4px;
+    padding: 12px;
     outline-color: alpha(%(color)s, 0.75);
     outline-style: dashed;
     outline-offset: 2px;
@@ -607,18 +611,16 @@ class FeatureTile(Gtk.Button):
 
 #FeatureTitle {
     color: %(color)s;
-    text-shadow: %(text_shadow)s;
     font-weight: bold;
     font-size: 24px;
 }
 
 #FeatureSummary {
     color: %(color)s;
-    text-shadow: %(text_shadow)s;
-    font-weight: bold;
-    font-size: 12px;
+    font-weight: normal;
+    font-size: 16px;
 }
-""" % {'background':background, 'color':color, 'text_shadow':text_shadow, 'border_color':border_color}
+""" % {'background':background, 'border_color':border_color, 'color':color}
 
         self.set_name("FeatureTile")
         style_provider = Gtk.CssProvider()
@@ -627,21 +629,24 @@ class FeatureTile(Gtk.Button):
                                                  style_provider,
                                                  Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
-        label_name = Gtk.Label(xalign=1.0)
+        label_name = Gtk.Label(xalign=0)
         label_name.set_label(self.installer.get_display_name(pkginfo))
         label_name.set_name("FeatureTitle")
 
-        label_summary = Gtk.Label(xalign=1.0)
+        label_summary = Gtk.Label(xalign=0)
         label_summary.set_label(self.installer.get_summary(pkginfo))
         label_summary.set_name("FeatureSummary")
 
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, halign=Gtk.Align.END)
+        image = Gtk.Image.new_from_file(image_uri)
+
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, halign=Gtk.Align.START)
         vbox.set_border_width(6)
 
-        vbox.pack_end(label_summary, False, False, 0)
-        vbox.pack_end(label_name, False, False, 0)
+        vbox.pack_start(label_name, False, False, 0)
+        vbox.pack_start(label_summary, False, False, 0)
 
         hbox = Gtk.Box()
+        hbox.pack_end(image, True, True, 0)
         hbox.pack_end(vbox, True, True, 0)
 
         self.add(hbox)
@@ -1384,24 +1389,18 @@ class Application(Gtk.Application):
 
         flowbox.connect("child-activated", self.on_flowbox_child_activated, self.PAGE_LANDING)
 
-        featured = []
-        with open("/usr/share/linuxmint/mintinstall/featured/featured.list", 'r') as f:
-            for line in f:
-                if line.startswith("#") or len(line.strip()) == 0:
-                    continue
-                elements = line.split("----")
-                if len(elements) == 5:
-                    featured.append(line)
+        featureds = []
+        featured_items = json.load(open("/usr/share/linuxmint/mintinstall/featured/featured.json", "r"))
+
+        for featured_item in featured_items:
+            featureds.append(types.SimpleNamespace(**featured_item))
 
         tries = 0
         pkginfo = None
 
         while True:
-            selected = random.sample(featured, 1)[0]
-            (name, background, stroke, text, text_shadow) = selected.split('----')
-            background = background.replace("@prefix@", "/usr/share/linuxmint/mintinstall/featured/")
-
-            pkginfo = self.installer.cache.find_pkginfo(name, 'a')
+            featured = random.sample(featureds, 1)[0]
+            pkginfo = self.installer.cache.find_pkginfo(featured.name, 'a')
 
             if pkginfo is not None:
                 if self.installer.pkginfo_is_installed(pkginfo) and tries < 10:
@@ -1416,7 +1415,7 @@ class Application(Gtk.Application):
                 box.hide()
                 return
 
-        tile = FeatureTile(pkginfo, self.installer, background, text, text_shadow, stroke)
+        tile = FeatureTile(pkginfo, self.installer, featured)
 
         if pkginfo is not None:
             tile.connect("clicked", self.on_featured_clicked, pkginfo)
