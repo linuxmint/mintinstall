@@ -6,6 +6,7 @@ debian/debhelper-build-stamp
 debian/files
 
 # glade temp files
+tmp
 usr/share/linuxmint/mintinstall/*.glade~
 
 # cache files
