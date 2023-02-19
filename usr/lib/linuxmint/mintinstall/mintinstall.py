@@ -584,9 +584,9 @@ class SaneProgressBar(Gtk.DrawingArea):
         self.queue_draw()
 
 
-class FeatureTile(Gtk.Button):
-    def __init__(self, pkginfo, installer, featured):
-        super(Gtk.Button, self).__init__()
+class FeatureTile(Gtk.Box):
+    def __init__(self, pkginfo, installer, featured, on_clicked_action):
+        super(Gtk.Box, self).__init__()
 
         self.pkginfo = pkginfo
         self.installer = installer
@@ -595,8 +595,6 @@ class FeatureTile(Gtk.Button):
         background = featured.background
         border_color = featured.border_color
         color = featured.text_color
-
-        self.connect("realize", self.set_cursor)
 
         css = """
 #FeatureTile {
@@ -620,6 +618,18 @@ class FeatureTile(Gtk.Button):
     font-weight: normal;
     font-size: 16px;
 }
+
+#FeatureCtaBtn {
+    background: transparent;
+    color: %(color)s;
+    font-weight: bold;
+    font-size: 14px;
+    border: 1px solid %(color)s;
+}
+#FeatureCtaBtn:hover {
+    background: %(color)s;
+    color: %(border_color)s;
+}
 """ % {'background':background, 'border_color':border_color, 'color':color}
 
         self.set_name("FeatureTile")
@@ -637,23 +647,30 @@ class FeatureTile(Gtk.Button):
         label_summary.set_label(self.installer.get_summary(pkginfo))
         label_summary.set_name("FeatureSummary")
 
+        button_cta = Gtk.Button()
+        button_cta.set_label(_("See More"))
+        button_cta.set_name("FeatureCtaBtn")
+
+        if pkginfo != None:
+            button_cta.connect("clicked", on_clicked_action, pkginfo)
+
+        cta_box = Gtk.Box()
+        cta_box.pack_start(button_cta, False, False, 0)
+
         image = Gtk.Image.new_from_file(image_uri)
 
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, halign=Gtk.Align.START)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, halign=Gtk.Align.START)
         vbox.set_border_width(6)
 
         vbox.pack_start(label_name, False, False, 0)
         vbox.pack_start(label_summary, False, False, 0)
+        vbox.pack_start(cta_box, False, False, 0)
 
-        hbox = Gtk.Box()
-        hbox.pack_end(image, True, True, 0)
-        hbox.pack_end(vbox, True, True, 0)
+        hbox = Gtk.Box(spacing=32)
+        hbox.pack_start(image, True, True, 0)
+        hbox.pack_start(vbox, True, True, 0)
 
         self.add(hbox)
-
-    def set_cursor(self, widget, data=None):
-        hand = Gdk.Cursor.new_from_name(Gdk.Display.get_default(), "pointer")
-        self.get_window().set_cursor(hand)
 
 class PackageRow(Gtk.ListBoxRow):
     def __init__(self, pkginfo, icon, summary, installer, from_search=False, review_info=None):
@@ -1415,10 +1432,7 @@ class Application(Gtk.Application):
                 box.hide()
                 return
 
-        tile = FeatureTile(pkginfo, self.installer, featured)
-
-        if pkginfo != None:
-            tile.connect("clicked", self.on_featured_clicked, pkginfo)
+        tile = FeatureTile(pkginfo, self.installer, featured, self.on_featured_clicked)
 
         flowbox.insert(tile, -1)
         box.pack_start(flowbox, True, True, 0)
