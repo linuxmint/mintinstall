@@ -2804,6 +2804,7 @@ class Application(Gtk.Application):
 
         for i in range(0, 5):
             self.star_bars[i].set_fraction(0.0)
+            self.builder.get_object("stars_count_%d" % (i + 1)).set_label("")
 
         reviews = review_info.reviews
         reviews.sort(key=lambda x: x.date, reverse=True)
@@ -2831,7 +2832,6 @@ class Application(Gtk.Application):
             for i in range(0, 5):
                 widget_idx = i + 1
                 label = self.builder.get_object("stars_count_%s" % widget_idx)
-                bar = self.builder.get_object("stars_bar_%s" % widget_idx)
 
                 label.set_label(str(stars[i]))
                 self.star_bars[i].set_fraction(stars[i] / n_reviews)
