@@ -954,7 +954,7 @@ class Application(Gtk.Application):
         self.main_window = None
 
     def do_activate(self):
-        if self.main_window == None:
+        if self.main_window is None:
             if self.installer.init_sync():
                 self.create_window(self.PAGE_LANDING)
                 self.on_installer_ready()
@@ -1091,7 +1091,7 @@ class Application(Gtk.Application):
         return False
 
     def create_window(self, starting_page):
-        if self.main_window != None:
+        if self.main_window is not None:
             print("MintInstall: create_window called, but we already had one!")
             return
 
@@ -1392,7 +1392,7 @@ class Application(Gtk.Application):
 
             pkginfo = self.installer.cache.find_pkginfo(name, 'a')
 
-            if pkginfo != None:
+            if pkginfo is not None:
                 if self.installer.pkginfo_is_installed(pkginfo) and tries < 10:
                     tries += 1
                     continue
@@ -1407,7 +1407,7 @@ class Application(Gtk.Application):
 
         tile = FeatureTile(pkginfo, self.installer, background, text, text_shadow, stroke)
 
-        if pkginfo != None:
+        if pkginfo is not None:
             tile.connect("clicked", self.on_featured_clicked, pkginfo)
 
         flowbox.insert(tile, -1)
@@ -1503,7 +1503,7 @@ class Application(Gtk.Application):
 
         self.installed_menuitem.set_sensitive(sensitive)
 
-        sensitive = self.current_category != None \
+        sensitive = self.current_category is not None \
                     and self.page_stack.get_visible_child_name() == self.PAGE_LIST
 
         self.subsearch_toggle.set_sensitive(sensitive)
@@ -1834,7 +1834,7 @@ class Application(Gtk.Application):
     def on_search_changed(self, searchentry):
         terms = searchentry.get_text()
 
-        if self.subsearch_toggle.get_active() and self.current_category != None and terms == "":
+        if self.subsearch_toggle.get_active() and self.current_category is not None and terms == "":
             self.show_category(self.current_category)
         elif terms != "" and len(terms) >= 3:
             self.show_search_results(terms)
@@ -2164,7 +2164,7 @@ class Application(Gtk.Application):
 
         self.gui_ready = True
 
-        if self.install_on_startup_file != None:
+        if self.install_on_startup_file is not None:
             self.handle_command_line_install(self.install_on_startup_file)
 
         return False
@@ -2387,8 +2387,8 @@ class Application(Gtk.Application):
             self.flowbox_applications.remove(child)
 
         if self.subsearch_toggle.get_active()  \
-            and self.current_category != None  \
-            and self.page_stack.get_visible_child_name() == self.PAGE_LIST:
+            and self.current_category is not None \
+                and self.page_stack.get_visible_child_name() == self.PAGE_LIST:
             listing = self.current_category.pkginfos
         else:
             listing = self.installer.cache.values()
@@ -3052,7 +3052,7 @@ class Application(Gtk.Application):
                             exec_string = info.get_commandline()
                             break
 
-        if exec_string != None:
+        if exec_string is not None:
             task.exec_string = exec_string
             self.launch_button.show()
 
