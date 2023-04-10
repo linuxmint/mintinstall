@@ -2423,20 +2423,23 @@ class Application(Gtk.Application):
             while True:
                 if all(piece in pkginfo.name.upper() for piece in termsSplit):
                     searched_packages.append(pkginfo)
+                    pkginfo.search_tier = 0
                     break
                 if (search_in_summary and termsUpper in self.installer.get_summary(pkginfo, for_search=True).upper()):
                     searched_packages.append(pkginfo)
+                    pkginfo.search_tier = 100
                     break
                 if(search_in_description and termsUpper in self.installer.get_description(pkginfo, for_search=True).upper()):
                     searched_packages.append(pkginfo)
+                    pkginfo.search_tier = 200
                     break
                 # pkginfo.name for flatpaks is their id (org.foo.BarMaker), which
                 # may not actually contain the app's name. In this case their display
                 # names are better. The 'name' is still checked first above, because
                 # it's static - get_display_name() may involve a lookup with appstream.
-                fp = pkginfo.pkg_hash.startswith("f")
-                if fp and all(piece in self.installer.get_display_name(pkginfo).upper() for piece in termsSplit):
+                if pkginfo.pkg_hash.startswith("f") and all(piece in self.installer.get_display_name(pkginfo).upper() for piece in termsSplit):
                     searched_packages.append(pkginfo)
+                    pkginfo.search_tier = 0
                     break
                 break
 
@@ -2534,6 +2537,15 @@ class Application(Gtk.Application):
         else:  # score_a < score_b
             return 1
 
+    def package_compare_for_search(self, pkga, pkgb):
+        try:
+            if pkga.search_tier != pkgb.search_tier:
+                return pkga.search_tier - pkgb.search_tier
+        except:
+            pass
+
+        return self.package_compare(pkga, pkgb)
+
     def show_packages(self, pkginfos, from_search=False):
         if self.one_package_idle_timer > 0:
             GLib.source_remove(self.one_package_idle_timer)
@@ -2562,7 +2574,11 @@ class Application(Gtk.Application):
             self.app_list_stack.set_visible_child_name("results")
 
         apps = [info for info in pkginfos if info.refid == "" or info.refid.startswith("app")]
-        apps.sort(key=functools.cmp_to_key(self.package_compare))
+        
+        if from_search:
+            apps.sort(key=functools.cmp_to_key(self.package_compare_for_search))
+        else:
+            apps.sort(key=functools.cmp_to_key(self.package_compare))
 
         apps = apps[0:201]
 
