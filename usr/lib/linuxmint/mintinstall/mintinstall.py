@@ -2972,7 +2972,11 @@ class Application(Gtk.Application):
                 action_button_label = _("Not available")
                 style_context.remove_class("destructive-action")
                 style_context.remove_class("suggested-action")
-                action_button_description = _("Please use apt-get to install this package.")
+                if task.type == "install":
+                    action_button_description = _("Please use apt-get to install this package.")
+                else:
+                    action_button_description = _("You must use apt-get to remove this package.")
+
                 self.action_button.set_sensitive(False)
             elif task.info_ready_status == task.STATUS_UNKNOWN:
                 action_button_label = _("Try again")
