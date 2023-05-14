@@ -584,9 +584,9 @@ class SaneProgressBar(Gtk.DrawingArea):
         self.queue_draw()
 
 
-class FeatureTile(Gtk.Box):
+class FeatureTile(Gtk.FlowBoxChild):
     def __init__(self, pkginfo, installer, featured, on_clicked_action):
-        super(Gtk.Box, self).__init__()
+        super(Gtk.FlowBoxChild, self).__init__()
 
         self.pkginfo = pkginfo
         self.installer = installer
