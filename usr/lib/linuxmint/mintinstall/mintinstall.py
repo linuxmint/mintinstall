@@ -654,12 +654,12 @@ class FeatureTile(Gtk.FlowBoxChild):
         if pkginfo != None:
             button_cta.connect("clicked", on_clicked_action, pkginfo)
 
-        cta_box = Gtk.Box()
+        cta_box = Gtk.Box(halign=Gtk.Align.END)
         cta_box.pack_start(button_cta, False, False, 0)
 
         image = Gtk.Image.new_from_file(image_uri)
 
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, halign=Gtk.Align.START)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, halign=Gtk.Align.START)
         vbox.set_border_width(6)
 
         vbox.pack_start(label_name, False, False, 0)
