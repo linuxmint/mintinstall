@@ -787,6 +787,9 @@ class VerticalPackageTile(Gtk.FlowBoxChild):
         display_name = self.installer.get_display_name(pkginfo)
         self.package_label.set_label(display_name)
 
+        summary = self.installer.get_summary(pkginfo)
+        self.package_summary.set_label(summary)
+
         if show_package_type:
             if pkginfo.pkg_hash.startswith("f"):
 
@@ -809,14 +812,8 @@ class VerticalPackageTile(Gtk.FlowBoxChild):
                 self.package_type_name.hide()
                 self.package_type_emblem.hide()
 
-            summary = self.installer.get_summary(pkginfo)
-        else:
-            summary = self.pkg_category.name if self.pkg_category else None
-
         if review_info:
             self.fill_rating_widget(review_info)
-
-        self.package_summary.set_label(summary)
 
         self.show_all()
         self.refresh_state()
