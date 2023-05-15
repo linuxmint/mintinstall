@@ -584,20 +584,21 @@ class SaneProgressBar(Gtk.DrawingArea):
         self.queue_draw()
 
 
-class FeatureTile(Gtk.FlowBoxChild):
-    def __init__(self, pkginfo, installer, featured, on_clicked_action):
+class BannerTile(Gtk.FlowBoxChild):
+    def __init__(self, pkginfo, installer, app_json, on_clicked_action):
         super(Gtk.FlowBoxChild, self).__init__()
 
         self.pkginfo = pkginfo
         self.installer = installer
 
-        image_uri = (f"/usr/share/linuxmint/mintinstall/featured/{featured.image}")
-        background = featured.background
-        border_color = featured.border_color
-        color = featured.text_color
+        image = app_json["image"]
+        image_uri = (f"/usr/share/linuxmint/mintinstall/featured/{image}")
+        background = app_json["background"]
+        border_color = app_json["border_color"]
+        color = app_json["text_color"]
 
         css = """
-#FeatureTile {
+#BannerTile {
     background: %(background)s;
     color: %(color)s;
     border-color: %(border_color)s;
@@ -608,32 +609,32 @@ class FeatureTile(Gtk.FlowBoxChild):
     border-radius: 5px;
 }
 
-#FeatureTitle {
+#BannerTitle {
     color: %(color)s;
     font-weight: bold;
     font-size: 24px;
 }
 
-#FeatureSummary {
+#BannerSummary {
     color: %(color)s;
     font-weight: normal;
     font-size: 16px;
 }
 
-#FeatureCtaBtn {
+#BannerCtaBtn {
     background: transparent;
     color: %(color)s;
     font-weight: bold;
     font-size: 14px;
     border: 1px solid %(color)s;
 }
-#FeatureCtaBtn:hover {
+#BannerCtaBtn:hover {
     background: %(color)s;
     color: %(border_color)s;
 }
 """ % {'background':background, 'border_color':border_color, 'color':color}
 
-        self.set_name("FeatureTile")
+        self.set_name("BannerTile")
         style_provider = Gtk.CssProvider()
         style_provider.load_from_data(str.encode(css))
         Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(),
@@ -642,15 +643,15 @@ class FeatureTile(Gtk.FlowBoxChild):
 
         label_name = Gtk.Label(xalign=0)
         label_name.set_label(self.installer.get_display_name(pkginfo))
-        label_name.set_name("FeatureTitle")
+        label_name.set_name("BannerTitle")
 
         label_summary = Gtk.Label(xalign=0)
         label_summary.set_label(self.installer.get_summary(pkginfo))
-        label_summary.set_name("FeatureSummary")
+        label_summary.set_name("BannerSummary")
 
         button_cta = Gtk.Button()
         button_cta.set_label(_("See More"))
-        button_cta.set_name("FeatureCtaBtn")
+        button_cta.set_name("BannerCtaBtn")
 
         if pkginfo != None:
             button_cta.connect("clicked", on_clicked_action, pkginfo)
@@ -1359,7 +1360,7 @@ class Application(Gtk.Application):
 
             self.apply_aliases()
 
-            self.load_featured_on_landing()
+            self.load_banner()
 
             self.review_cache = reviews.ReviewCache()
             self.review_cache.connect("reviews-updated", self.update_review_widgets)
@@ -1381,8 +1382,8 @@ class Application(Gtk.Application):
             print("Loading error: %s" % e)
             GLib.idle_add(self.refresh_cache)
 
-    def load_featured_on_landing(self):
-        box = self.builder.get_object("box_featured")
+    def load_banner(self):
+        box = self.builder.get_object("box_banner")
 
         if self.low_res:
             box.hide()
@@ -1404,18 +1405,14 @@ class Application(Gtk.Application):
 
         flowbox.connect("child-activated", self.on_flowbox_child_activated, self.PAGE_LANDING)
 
-        featureds = []
-        featured_items = json.load(open("/usr/share/linuxmint/mintinstall/featured/featured.json", "r"))
-
-        for featured_item in featured_items:
-            featureds.append(types.SimpleNamespace(**featured_item))
+        json_array = json.load(open("/usr/share/linuxmint/mintinstall/featured/featured.json", "r"))
 
         tries = 0
         pkginfo = None
 
         while True:
-            featured = random.sample(featureds, 1)[0]
-            pkginfo = self.installer.cache.find_pkginfo(featured.name, 'a')
+            app_json = random.sample(json_array, 1)[0]
+            pkginfo = self.installer.cache.find_pkginfo(app_json["name"], 'a')
 
             if pkginfo is not None:
                 if self.installer.pkginfo_is_installed(pkginfo) and tries < 10:
@@ -1426,17 +1423,17 @@ class Application(Gtk.Application):
                 tries += 1
 
             if tries > 10:
-                print("Something wrong on featured loading")
+                print("Error while loading the banner.")
                 box.hide()
                 return
 
-        tile = FeatureTile(pkginfo, self.installer, featured, self.on_featured_clicked)
+        tile = BannerTile(pkginfo, self.installer, app_json, self.on_banner_clicked)
 
         flowbox.insert(tile, -1)
         box.pack_start(flowbox, True, True, 0)
         box.show_all()
 
-    def on_featured_clicked(self, button, pkginfo):
+    def on_banner_clicked(self, button, pkginfo):
         self.show_package(pkginfo, self.PAGE_LANDING)
 
     def load_popular_on_landing(self):

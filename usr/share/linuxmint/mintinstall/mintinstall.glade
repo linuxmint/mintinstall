@@ -280,7 +280,7 @@
                                 <property name="can-focus">False</property>
                                 <property name="orientation">vertical</property>
                                 <child>
-                                  <object class="GtkBox" id="box_featured">
+                                  <object class="GtkBox" id="box_banner">
                                     <property name="height-request">160</property>
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
