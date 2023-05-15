@@ -1280,7 +1280,7 @@ class Application(Gtk.Application):
             ]
         )
 
-        self.flowbox_popular = None
+        self.flowbox_top_rated = None
 
         self.package_type_store = Gtk.ListStore(int, str, str, str, object) # index, label, summary, icon-name, remotename, pkginfo
 
@@ -1365,8 +1365,8 @@ class Application(Gtk.Application):
             self.review_cache = reviews.ReviewCache()
             self.review_cache.connect("reviews-updated", self.update_review_widgets)
 
-            self.load_popular_on_landing()
-            self.load_top_rated_on_landing()
+            self.load_top_rated()
+            self.load_featured()
             self.load_categories_on_landing()
 
             self.sync_installed_apps()
@@ -1436,14 +1436,14 @@ class Application(Gtk.Application):
     def on_banner_clicked(self, button, pkginfo):
         self.show_package(pkginfo, self.PAGE_LANDING)
 
-    def load_popular_on_landing(self):
-        box = self.builder.get_object("box_picks")
+    def load_top_rated(self):
+        box = self.builder.get_object("box_top_rated")
 
-        label = self.builder.get_object("label_picks")
-        label.set_text(_("Popular"))
+        label = self.builder.get_object("label_top_rated")
+        label.set_text(_("Top Rated"))
         label.show()
 
-        if self.flowbox_popular is None:
+        if self.flowbox_top_rated is None:
             flowbox = Gtk.FlowBox()
             flowbox.set_min_children_per_line(3)
             flowbox.set_max_children_per_line(10)
@@ -1452,10 +1452,10 @@ class Application(Gtk.Application):
             flowbox.set_homogeneous(False)
             flowbox.connect("child-activated", self.on_flowbox_child_activated, self.PAGE_LANDING)
             flowbox.connect("selected-children-changed", self.navigate_flowbox, self.builder.get_object("scrolledwindow_landing"))
-            self.flowbox_popular = flowbox
+            self.flowbox_top_rated = flowbox
             box.add(flowbox)
 
-        for child in self.flowbox_popular:
+        for child in self.flowbox_top_rated:
             child.destroy()
 
         apps = [info for info in self.all_category.pkginfos if info.refid == "" or info.refid.startswith("app")]
@@ -1474,15 +1474,15 @@ class Application(Gtk.Application):
             icon = self.get_application_icon(pkginfo, FEATURED_ICON_SIZE)
             tile = VerticalPackageTile(pkginfo, icon, self.installer, show_package_type=False, review_info=review_info)
             size_group.add_widget(tile)
-            self.flowbox_popular.insert(tile, -1)
+            self.flowbox_top_rated.insert(tile, -1)
             self.picks_tiles.append(tile)
         box.show_all()
 
-    def load_top_rated_on_landing(self):
-        box = self.builder.get_object("box_top_rated")
+    def load_featured(self):
+        box = self.builder.get_object("box_featured")
 
-        label = self.builder.get_object("label_top_rated")
-        label.set_text(_("Top Rated"))
+        label = self.builder.get_object("label_featured")
+        label.set_text(_("Featured"))
         label.show()
 
         flowbox = Gtk.FlowBox()
@@ -1493,10 +1493,10 @@ class Application(Gtk.Application):
         flowbox.set_homogeneous(False)
         flowbox.connect("child-activated", self.on_flowbox_child_activated, self.PAGE_LANDING)
         flowbox.connect("selected-children-changed", self.navigate_flowbox, self.builder.get_object("scrolledwindow_landing"))
-        self.flowbox_top_rated = flowbox
+        self.flowbox_featured = flowbox
         box.add(flowbox)
 
-        for child in self.flowbox_top_rated:
+        for child in self.flowbox_featured:
             child.destroy()
 
 
@@ -1523,7 +1523,7 @@ class Application(Gtk.Application):
             icon = self.get_application_icon(pkginfo, FEATURED_ICON_SIZE)
             tile = VerticalPackageTile(pkginfo, icon, self.installer, show_package_type=False, review_info=review_info)
             size_group.add_widget(tile)
-            self.flowbox_top_rated.insert(tile, -1)
+            self.flowbox_featured.insert(tile, -1)
             self.picks_tiles.append(tile)
         box.show_all()
 
@@ -1565,7 +1565,7 @@ class Application(Gtk.Application):
         box.show_all()
 
     def update_review_widgets(self, rcache):
-        self.load_popular_on_landing()
+        self.load_top_rated()
 
     def update_conditional_widgets(self):
         sensitive = len(self.installed_category.pkginfos) > 0 \
@@ -2350,7 +2350,7 @@ class Application(Gtk.Application):
                 GLib.source_remove(self.one_package_idle_timer)
                 self.one_package_idle_timer = 0
             try:
-                tile = self.flowbox_popular.get_selected_children()[0]
+                tile = self.flowbox_top_rated.get_selected_children()[0]
                 tile.grab_focus()
             except IndexError:
                 pass
