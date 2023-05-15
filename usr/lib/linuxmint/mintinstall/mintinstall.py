@@ -1461,7 +1461,7 @@ class Application(Gtk.Application):
             child.destroy()
 
         apps = [info for info in self.all_category.pkginfos if info.refid == "" or info.refid.startswith("app")]
-        apps.sort(key=functools.cmp_to_key(self.package_compare))
+        apps.sort(key=functools.cmp_to_key(self.package_compare_non_installed))
 
         apps = list(filter(lambda app: self.installer.get_icon(app, FEATURED_ICON_SIZE) is not None, apps))
         apps = apps[0:30]
@@ -1503,7 +1503,7 @@ class Application(Gtk.Application):
             child.destroy()
 
         apps = [info for info in self.all_category.pkginfos if info.refid == "" or info.refid.startswith("app")]
-        apps.sort(key=functools.cmp_to_key(self.package_compare))
+        apps.sort(key=functools.cmp_to_key(self.package_compare_non_installed))
 
         apps = list(filter(lambda app: self.installer.get_icon(app, FEATURED_ICON_SIZE) is not None, apps))
         apps = apps[0:9]
@@ -2566,6 +2566,15 @@ class Application(Gtk.Application):
         else:
             return (string)
 
+    # prefer non-installed pkgs, sort them by installed, then by score.
+    def package_compare_non_installed(self, pkga, pkgb):
+        if self.installer.pkginfo_is_installed(pkga) == self.installer.pkginfo_is_installed(pkgb):
+            return self.package_compare(pkga, pkgb)
+        elif self.installer.pkginfo_is_installed(pkga):
+            return 1
+        else:
+            return -1
+
     def package_compare(self, pkga, pkgb):
         score_a = 0
         score_b = 0
@@ -2641,7 +2650,7 @@ class Application(Gtk.Application):
             self.app_list_stack.set_visible_child_name("results")
 
         apps = [info for info in pkginfos if info.refid == "" or info.refid.startswith("app")]
-        
+
         if from_search:
             apps.sort(key=functools.cmp_to_key(self.package_compare_for_search))
         else:
