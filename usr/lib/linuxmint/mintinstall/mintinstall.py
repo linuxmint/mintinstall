@@ -605,6 +605,7 @@ class FeatureTile(Gtk.FlowBoxChild):
     outline-color: alpha(%(color)s, 0.75);
     outline-style: dashed;
     outline-offset: 2px;
+    border-radius: 5px;
 }
 
 #FeatureTitle {
