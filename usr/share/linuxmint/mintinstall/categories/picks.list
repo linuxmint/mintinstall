@@ -10,7 +10,6 @@ skypeforlinux
 thunderbird
 vlc
 cheese
-mpv
 gimp
 inkscape
 blender
@@ -22,5 +21,13 @@ steam:i386
 spotify-client
 sublime-text
 mint-meta-codecs
-gnome-maps
 timeshift
+flatpak:com.bitwarden.desktop
+flatpak:org.telegram.desktop
+flatpak:com.discordapp.Discord
+flatpak:org.signal.Signal
+flatpak:com.visualstudio.code
+flatpak:com.todoist.Todoist
+flatpak:com.slack.Slack
+flatpak:us.zoom.Zoom
+flatpak:com.ktechpit.whatsie

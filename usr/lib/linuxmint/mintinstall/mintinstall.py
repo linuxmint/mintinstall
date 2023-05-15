@@ -1375,9 +1375,9 @@ class Application(Gtk.Application):
 
             self.apply_aliases()
 
-            self.load_landing_apps()
             self.review_cache = reviews.ReviewCache()
             self.review_cache.connect("reviews-updated", self.load_landing_apps)
+            self.load_landing_apps()
             self.load_categories_on_landing()
 
             self.sync_installed_apps()
@@ -1486,7 +1486,7 @@ class Application(Gtk.Application):
             else:
                 review_info = None
             icon = self.get_application_icon(pkginfo, FEATURED_ICON_SIZE)
-            tile = VerticalPackageTile(pkginfo, icon, self.installer, show_package_type=False, review_info=review_info)
+            tile = VerticalPackageTile(pkginfo, icon, self.installer, show_package_type=True, review_info=review_info)
             size_group.add_widget(tile)
             self.flowbox_top_rated.insert(tile, -1)
             self.picks_tiles.append(tile)
@@ -1517,18 +1517,24 @@ class Application(Gtk.Application):
         apps = []
         featured_list = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/picks.list")
         for name in featured_list:
-            pkginfo = self.installer.find_pkginfo(name)
+            if name.startswith("flatpak:"):
+                name = name.replace("flatpak:", "")
+                pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_FLATPAK)
+                print(name, pkginfo.refid)
+            else:
+                pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_APT)
             if pkginfo is None:
                 continue
             if pkginfo.name == self.banner_app_name:
                 continue
+            if self.installer.pkginfo_is_installed(pkginfo):
+                continue
             if pkginfo.refid == "" or pkginfo.refid.startswith("app"):
                 apps.append(pkginfo)
+                print("append", pkginfo.name, self.review_cache[pkginfo.name].score)
 
-        apps.sort(key=functools.cmp_to_key(self.package_compare_non_installed))
-        apps = list(filter(lambda app: self.installer.get_icon(app, FEATURED_ICON_SIZE) is not None, apps))
-        apps = apps[0:9]
         random.shuffle(apps)
+        apps = apps[0:9]
 
         size_group = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
         self.featured_app_names = []
@@ -1538,7 +1544,7 @@ class Application(Gtk.Application):
             else:
                 review_info = None
             icon = self.get_application_icon(pkginfo, FEATURED_ICON_SIZE)
-            tile = VerticalPackageTile(pkginfo, icon, self.installer, show_package_type=False, review_info=review_info)
+            tile = VerticalPackageTile(pkginfo, icon, self.installer, show_package_type=True, review_info=review_info)
             size_group.add_widget(tile)
             self.flowbox_featured.insert(tile, -1)
             self.picks_tiles.append(tile)
