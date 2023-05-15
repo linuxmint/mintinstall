@@ -1363,7 +1363,7 @@ class Application(Gtk.Application):
             self.review_cache = reviews.ReviewCache()
             self.review_cache.connect("reviews-updated", self.update_review_widgets)
 
-            self.load_picks_on_landing()
+            self.load_popular_on_landing()
             self.load_top_rated_on_landing()
             self.load_categories_on_landing()
 
@@ -1438,7 +1438,7 @@ class Application(Gtk.Application):
     def on_featured_clicked(self, button, pkginfo):
         self.show_package(pkginfo, self.PAGE_LANDING)
 
-    def load_picks_on_landing(self):
+    def load_popular_on_landing(self):
         box = self.builder.get_object("box_picks")
 
         label = self.builder.get_object("label_picks")
@@ -1561,7 +1561,7 @@ class Application(Gtk.Application):
         box.show_all()
 
     def update_review_widgets(self, rcache):
-        self.load_picks_on_landing()
+        self.load_popular_on_landing()
 
     def update_conditional_widgets(self):
         sensitive = len(self.installed_category.pkginfos) > 0 \
