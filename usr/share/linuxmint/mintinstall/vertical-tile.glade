@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.40.0 -->
+<!-- Generated with glade 3.38.2 -->
 <interface domain="mintinstall">
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkOverlay" id="vertical_package_tile">
@@ -242,7 +242,7 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="tooltip-text" translatable="yes">Installed</property>
-            <property name="icon-name">emblem-installed</property>
+            <property name="icon-name">mintinstall-installed</property>
           </object>
           <packing>
             <property name="expand">False</property>

@@ -721,7 +721,7 @@ class PackageRow(Gtk.ListBoxRow):
         self.installed = self.installer.pkginfo_is_installed(self.pkginfo)
 
         if self.installed:
-            self.installed_mark.set_from_icon_name("emblem-ok-symbolic", Gtk.IconSize.LARGE_TOOLBAR)
+            self.installed_mark.set_from_icon_name("mintinstall-installed", Gtk.IconSize.LARGE_TOOLBAR)
         else:
             self.installed_mark.clear()
 
@@ -827,7 +827,7 @@ class VerticalPackageTile(Gtk.FlowBoxChild):
         self.installed = self.installer.pkginfo_is_installed(self.pkginfo)
 
         if self.installed:
-            self.installed_mark.set_from_icon_name("emblem-installed", Gtk.IconSize.MENU)
+            self.installed_mark.set_from_icon_name("mintinstall-installed", Gtk.IconSize.MENU)
         else:
             self.installed_mark.clear()
 
