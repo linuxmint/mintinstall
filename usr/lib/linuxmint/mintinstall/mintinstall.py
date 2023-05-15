@@ -980,6 +980,9 @@ class Application(Gtk.Application):
         self.action_button_signal_id = 0
         self.launch_button_signal_id = 0
 
+        self.banner_app_name = None
+        self.featured_app_names = []
+
         self.add_categories()
 
         self.main_window = None
@@ -1280,6 +1283,7 @@ class Application(Gtk.Application):
             ]
         )
 
+        self.flowbox_featured = None
         self.flowbox_top_rated = None
 
         self.package_type_store = Gtk.ListStore(int, str, str, str, object) # index, label, summary, icon-name, remotename, pkginfo
@@ -1360,13 +1364,9 @@ class Application(Gtk.Application):
 
             self.apply_aliases()
 
-            self.load_banner()
-
+            self.load_landing_apps()
             self.review_cache = reviews.ReviewCache()
-            self.review_cache.connect("reviews-updated", self.update_review_widgets)
-
-            self.load_top_rated()
-            self.load_featured()
+            self.review_cache.connect("reviews-updated", self.load_landing_apps)
             self.load_categories_on_landing()
 
             self.sync_installed_apps()
@@ -1428,7 +1428,7 @@ class Application(Gtk.Application):
                 return
 
         tile = BannerTile(pkginfo, self.installer, app_json, self.on_banner_clicked)
-
+        self.banner_app_name = pkginfo.name
         flowbox.insert(tile, -1)
         box.pack_start(flowbox, True, True, 0)
         box.show_all()
@@ -1458,10 +1458,13 @@ class Application(Gtk.Application):
         for child in self.flowbox_top_rated:
             child.destroy()
 
-        apps = [info for info in self.all_category.pkginfos if info.refid == "" or info.refid.startswith("app")]
+        apps = []
+        for info in self.all_category.pkginfos:
+            if info.refid == "" or info.refid.startswith("app"):
+                if info.name != self.banner_app_name and info.name not in self.featured_app_names:
+                    if self.installer.get_icon(info, FEATURED_ICON_SIZE) is not None:
+                        apps.append(info)
         apps.sort(key=functools.cmp_to_key(self.package_compare_non_installed))
-
-        apps = list(filter(lambda app: self.installer.get_icon(app, FEATURED_ICON_SIZE) is not None, apps))
         apps = apps[0:30]
         random.shuffle(apps)
 
@@ -1485,26 +1488,28 @@ class Application(Gtk.Application):
         label.set_text(_("Featured"))
         label.show()
 
-        flowbox = Gtk.FlowBox()
-        flowbox.set_min_children_per_line(3)
-        flowbox.set_max_children_per_line(10)
-        flowbox.set_row_spacing(0)
-        flowbox.set_column_spacing(0)
-        flowbox.set_homogeneous(False)
-        flowbox.connect("child-activated", self.on_flowbox_child_activated, self.PAGE_LANDING)
-        flowbox.connect("selected-children-changed", self.navigate_flowbox, self.builder.get_object("scrolledwindow_landing"))
-        self.flowbox_featured = flowbox
-        box.add(flowbox)
+        if self.flowbox_featured is None:
+            flowbox = Gtk.FlowBox()
+            flowbox.set_min_children_per_line(3)
+            flowbox.set_max_children_per_line(10)
+            flowbox.set_row_spacing(0)
+            flowbox.set_column_spacing(0)
+            flowbox.set_homogeneous(False)
+            flowbox.connect("child-activated", self.on_flowbox_child_activated, self.PAGE_LANDING)
+            flowbox.connect("selected-children-changed", self.navigate_flowbox, self.builder.get_object("scrolledwindow_landing"))
+            self.flowbox_featured = flowbox
+            box.add(flowbox)
 
         for child in self.flowbox_featured:
             child.destroy()
-
 
         apps = []
         featured_list = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/picks.list")
         for name in featured_list:
             pkginfo = self.installer.find_pkginfo(name)
             if pkginfo is None:
+                continue
+            if pkginfo.name == self.banner_app_name:
                 continue
             if pkginfo.refid == "" or pkginfo.refid.startswith("app"):
                 apps.append(pkginfo)
@@ -1515,6 +1520,7 @@ class Application(Gtk.Application):
         random.shuffle(apps)
 
         size_group = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
+        self.featured_app_names = []
         for pkginfo in apps:
             if self.review_cache:
                 review_info = self.review_cache[pkginfo.name]
@@ -1525,6 +1531,7 @@ class Application(Gtk.Application):
             size_group.add_widget(tile)
             self.flowbox_featured.insert(tile, -1)
             self.picks_tiles.append(tile)
+            self.featured_app_names.append(pkginfo.name)
         box.show_all()
 
     @print_timing
@@ -1564,7 +1571,10 @@ class Application(Gtk.Application):
         box.pack_start(flowbox, True, True, 0)
         box.show_all()
 
-    def update_review_widgets(self, rcache):
+    def load_landing_apps(self, rcache=None):
+        self.picks_tiles = []
+        self.load_banner()
+        self.load_featured()
         self.load_top_rated()
 
     def update_conditional_widgets(self):
