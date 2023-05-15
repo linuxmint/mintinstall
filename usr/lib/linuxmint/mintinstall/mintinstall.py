@@ -1520,7 +1520,6 @@ class Application(Gtk.Application):
             if name.startswith("flatpak:"):
                 name = name.replace("flatpak:", "")
                 pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_FLATPAK)
-                print(name, pkginfo.refid)
             else:
                 pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_APT)
             if pkginfo is None:
@@ -1531,7 +1530,6 @@ class Application(Gtk.Application):
                 continue
             if pkginfo.refid == "" or pkginfo.refid.startswith("app"):
                 apps.append(pkginfo)
-                print("append", pkginfo.name, self.review_cache[pkginfo.name].score)
 
         random.shuffle(apps)
         apps = apps[0:9]
