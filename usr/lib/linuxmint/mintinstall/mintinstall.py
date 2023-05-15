@@ -1506,7 +1506,7 @@ class Application(Gtk.Application):
         apps.sort(key=functools.cmp_to_key(self.package_compare))
 
         apps = list(filter(lambda app: self.installer.get_icon(app, FEATURED_ICON_SIZE) is not None, apps))
-        apps = apps[0:8]
+        apps = apps[0:9]
         random.shuffle(apps)
         apps.sort(key=lambda app: self.installer.pkginfo_is_installed(app))
 
