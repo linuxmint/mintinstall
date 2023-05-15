@@ -897,15 +897,26 @@ class SubcategoryFlowboxChild(Gtk.FlowBoxChild):
 
         self.category = category
 
+        cat_name = category.name
+        cat_icon = category.icon_name
         if is_all:
             cat_name = _("All")
-        else:
-            cat_name = category.name
+            cat_icon = "mintinstall-all-symbolic"
 
-        self.button = Gtk.ToggleButton(label=cat_name, active=active)
-        self.add(self.button)
+        self.button = Gtk.ToggleButton(active=active)
 
         self.button.connect("clicked", self._activate_fb_child)
+
+        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, valign=Gtk.Align.START)
+        image = Gtk.Image(icon_name=cat_icon, icon_size=Gtk.IconSize.MENU)
+        label = Gtk.Label(label=cat_name)
+        box.pack_start(image, False, False, 0)
+        box.pack_start(label, False, False, 0)
+        box.show_all()
+
+        self.button.add(box)
+
+        self.add(self.button)
 
     def _activate_fb_child(self, widget):
         self.activate()
@@ -2090,7 +2101,7 @@ class Application(Gtk.Application):
         self.flatpak_category = Category("Flatpak", None, self.categories, "mintinstall-package-flatpak-symbolic")
 
         # ALL
-        self.all_category = Category(_("All Applications"), None, self.categories, "view-grid-symbolic")
+        self.all_category = Category(_("All Applications"), None, self.categories, "mintinstall-all-symbolic")
         with os.scandir("/usr/share/linuxmint/mintinstall/categories/") as it:
             for entry in it:
                 if entry.path.endswith(".list"):
@@ -2098,120 +2109,120 @@ class Application(Gtk.Application):
                     sorted(self.all_category.matchingPackages)
 
         # INTERNET
-        category = Category(_("Internet"), None, self.categories, "web-browser-symbolic")
+        category = Category(_("Internet"), None, self.categories, "mintinstall-web-symbolic")
 
-        subcat = Category(_("Web"), category, self.categories)
+        subcat = Category(_("Web"), category, self.categories, "mintinstall-web-symbolic")
         self.sections["web"] = subcat
         self.sections["net"] = subcat
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/internet-web.list")
 
-        subcat = Category(_("Email"), category, self.categories)
+        subcat = Category(_("Email"), category, self.categories, "mintinstall-email-symbolic")
         self.sections["mail"] = subcat
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/internet-email.list")
 
-        subcat = Category(_("Chat"), category, self.categories)
+        subcat = Category(_("Chat"), category, self.categories, "mintinstall-chat-symbolic")
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/internet-chat.list")
 
-        subcat = Category(_("File sharing"), category, self.categories)
+        subcat = Category(_("File sharing"), category, self.categories, "mintinstall-share-symbolic")
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/internet-filesharing.list")
 
         self.root_categories[category.name] = category
 
         # SOUND AND VIDEO
-        category = Category(_("Sound and video"), None, self.categories, "emblem-music-symbolic")
+        category = Category(_("Sound and video"), None, self.categories, "mintinstall-music-symbolic")
         category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/sound-video.list")
-        subcat = Category(_("Sound"), category, self.categories)
+        subcat = Category(_("Sound"), category, self.categories, "mintinstall-music-symbolic")
         self.sections["sound"] = subcat
-        subcat = Category(_("Video"), category, self.categories)
+        subcat = Category(_("Video"), category, self.categories, "mintinstall-video-symbolic")
         self.sections["video"] = subcat
         self.root_categories[category.name] = category
 
         # GRAPHICS
-        category = Category(_("Graphics"), None, self.categories, "applications-graphics-symbolic")
+        category = Category(_("Graphics"), None, self.categories, "mintinstall-drawing-symbolic")
         self.sections["graphics"] = category
         category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/graphics.list")
 
-        subcat = Category(_("3D"), category, self.categories)
+        subcat = Category(_("3D"), category, self.categories, "mintinstall-3d-symbolic")
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/graphics-3d.list")
-        subcat = Category(_("Drawing"), category, self.categories)
+        subcat = Category(_("Drawing"), category, self.categories, "mintinstall-drawing-symbolic")
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/graphics-drawing.list")
-        subcat = Category(_("Photography"), category, self.categories)
+        subcat = Category(_("Photography"), category, self.categories, "mintinstall-photo-symbolic")
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/graphics-photography.list")
-        subcat = Category(_("Publishing"), category, self.categories)
+        subcat = Category(_("Publishing"), category, self.categories, "mintinstall-publishing-symbolic")
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/graphics-publishing.list")
-        subcat = Category(_("Scanning"), category, self.categories)
+        subcat = Category(_("Scanning"), category, self.categories, "mintinstall-scanning-symbolic")
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/graphics-scanning.list")
-        subcat = Category(_("Viewers"), category, self.categories)
+        subcat = Category(_("Viewers"), category, self.categories, "mintinstall-viewers-symbolic")
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/graphics-viewers.list")
         self.root_categories[category.name] = category
 
         # OFFICE
-        category = Category(_("Office"), None, self.categories, "x-office-presentation-symbolic")
+        category = Category(_("Office"), None, self.categories, "mintinstall-office-symbolic")
         self.sections["office"] = category
         self.sections["editors"] = category
         self.root_categories[category.name] = category
 
         # GAMES
-        category = Category(_("Games"), None, self.categories, "applications-games-symbolic")
+        category = Category(_("Games"), None, self.categories, "mintinstall-games-symbolic")
         self.sections["games"] = category
         category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/games.list")
 
-        subcat = Category(_("Board games"), category, self.categories)
+        subcat = Category(_("Board games"), category, self.categories, "mintinstall-board-symbolic")
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/games-board.list")
-        subcat = Category(_("First-person"), category, self.categories)
+        subcat = Category(_("First-person"), category, self.categories, "mintinstall-fps-symbolic")
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/games-fps.list")
-        subcat = Category(_("Real-time strategy"), category, self.categories)
+        subcat = Category(_("Real-time strategy"), category, self.categories, "mintinstall-rts-symbolic")
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/games-rts.list")
-        subcat = Category(_("Turn-based strategy"), category, self.categories)
+        subcat = Category(_("Turn-based strategy"), category, self.categories, "mintinstall-tbs-symbolic")
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/games-tbs.list")
-        subcat = Category(_("Emulators"), category, self.categories)
+        subcat = Category(_("Emulators"), category, self.categories, "mintinstall-emulator-symbolic")
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/games-emulators.list")
-        subcat = Category(_("Simulation and racing"), category, self.categories)
+        subcat = Category(_("Simulation and racing"), category, self.categories, "mintinstall-sim-symbolic")
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/games-simulations.list")
         self.root_categories[category.name] = category
 
         # ACCESSORIES
-        category = Category(_("Accessories"), None, self.categories, "plugins")
+        category = Category(_("Accessories"), None, self.categories, "mintinstall-accessories-symbolic")
         self.sections["accessories"] = category
         self.sections["utils"] = category
         self.root_categories[category.name] = category
 
         # SYSTEM TOOLS
-        category = Category(_("System tools"), None, self.categories, "settings-configure")
+        category = Category(_("System tools"), None, self.categories, "mintinstall-system-symbolic")
         self.sections["system"] = category
         self.sections["admin"] = category
         category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/system-tools.list")
         self.root_categories[category.name] = category
 
         # FONTS
-        category = Category(_("Fonts"), None, self.categories, "font-x-generic-symbolic")
+        category = Category(_("Fonts"), None, self.categories, "mintinstall-fonts-symbolic")
         self.sections["fonts"] = category
         category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/fonts.list")
         self.root_categories[category.name] = category
 
         # EDUCATION
-        category = Category(_("Science and Education"), None, self.categories, "applications-science-symbolic")
-        subcat = Category(_("Science"), category, self.categories)
+        category = Category(_("Science and Education"), None, self.categories, "mintinstall-science-symbolic")
+        subcat = Category(_("Science"), category, self.categories, "mintinstall-science-symbolic")
         self.sections["science"] = subcat
-        subcat = Category(_("Maths"), category, self.categories)
+        subcat = Category(_("Maths"), category, self.categories, "mintinstall-maths-symbolic")
         self.sections["math"] = subcat
-        subcat = Category(_("Education"), category, self.categories)
+        subcat = Category(_("Education"), category, self.categories, "mintinstall-education-symbolic")
         self.sections["education"] = subcat
-        subcat = Category(_("Electronics"), category, self.categories)
+        subcat = Category(_("Electronics"), category, self.categories, "mintinstall-electronic-symbolic")
         self.sections["electronics"] = subcat
         category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/education.list")
         self.root_categories[category.name] = category
 
         # PROGRAMMING
-        category = Category(_("Programming"), None, self.categories, "format-text-code")
+        category = Category(_("Programming"), None, self.categories, "mintinstall-programming-symbolic")
         self.sections["devel"] = category
-        subcat = Category(_("Java"), category, self.categories)
+        subcat = Category(_("Java"), category, self.categories, "mintinstall-java-symbolic")
         self.sections["java"] = subcat
-        subcat = Category(_("PHP"), category, self.categories)
+        subcat = Category(_("PHP"), category, self.categories, "mintinstall-php-symbolic")
         self.sections["php"] = subcat
-        subcat = Category(_("Python"), category, self.categories)
+        subcat = Category(_("Python"), category, self.categories, "mintinstall-python-symbolic")
         self.sections["python"] = subcat
-        subcat = Category(_("Essentials"), category, self.categories)
+        subcat = Category(_("Essentials"), category, self.categories, "xapp-favorites-app-symbolic")
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/development-essentials.list")
         self.root_categories[category.name] = category
 

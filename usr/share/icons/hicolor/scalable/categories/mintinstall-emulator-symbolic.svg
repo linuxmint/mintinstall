@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   id="svg7384"
+   version="1.1"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   height="16"
+   sodipodi:docname="mintinstall-emulator-symbolic.svg"
+   width="16.000002"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <metadata
+     id="metadata90">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>Gnome Symbolic Icon Theme</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     inkscape:cy="6.2313785"
+     inkscape:current-layer="layer13"
+     inkscape:window-width="2560"
+     pagecolor="#555753"
+     showborder="true"
+     showguides="true"
+     inkscape:snap-nodes="true"
+     objecttolerance="10"
+     showgrid="true"
+     inkscape:object-nodes="true"
+     inkscape:pageshadow="2"
+     inkscape:guide-bbox="true"
+     inkscape:window-x="2560"
+     inkscape:snap-bbox="true"
+     bordercolor="#666666"
+     id="namedview88"
+     inkscape:window-maximized="1"
+     inkscape:snap-global="true"
+     inkscape:window-y="0"
+     gridtolerance="10"
+     inkscape:zoom="22.627417"
+     inkscape:window-height="1352"
+     borderopacity="1"
+     guidetolerance="10"
+     inkscape:cx="10.938058"
+     inkscape:bbox-paths="false"
+     inkscape:snap-grids="true"
+     inkscape:pageopacity="1"
+     inkscape:snap-to-guides="true"
+     inkscape:pagecheckerboard="0">
+    <inkscape:grid
+       visible="true"
+       spacingx="1"
+       type="xygrid"
+       spacingy="1"
+       id="grid4866"
+       empspacing="2"
+       enabled="true"
+       snapvisiblegridlinesonly="true"
+       originx="0"
+       originy="0" />
+  </sodipodi:namedview>
+  <title
+     id="title9167">Gnome Symbolic Icon Theme</title>
+  <defs
+     id="defs7386" />
+  <g
+     transform="translate(-482,-176)"
+     inkscape:groupmode="layer"
+     id="layer9"
+     inkscape:label="status"
+     style="display:inline" />
+  <g
+     transform="translate(-482,-176)"
+     inkscape:groupmode="layer"
+     id="layer10"
+     inkscape:label="devices" />
+  <g
+     transform="translate(-482,-176)"
+     inkscape:groupmode="layer"
+     id="layer11"
+     inkscape:label="apps" />
+  <g
+     transform="translate(-482,-176)"
+     inkscape:groupmode="layer"
+     id="layer12"
+     inkscape:label="actions" />
+  <g
+     transform="translate(-482,-176)"
+     inkscape:groupmode="layer"
+     id="layer13"
+     inkscape:label="places">
+    <g
+       transform="translate(254.0002,-820)"
+       id="g40072"
+       inkscape:label="folder-remote" />
+    <g
+       id="g979"
+       transform="matrix(0.03191489,0,0,0.03191489,482.5,176.5)"
+       style="fill:#bebebe;fill-opacity:1">
+      <g
+         id="g977"
+         style="fill:#bebebe;fill-opacity:1">
+        <g
+           id="g975"
+           style="fill:#bebebe;fill-opacity:1">
+          <path
+             d="M 402.5,0 H 67.5 C 30.28,0 0,30.28 0,67.5 v 335 C 0,439.72 30.28,470 67.5,470 h 335 c 37.22,0 67.5,-30.28 67.5,-67.5 V 67.5 C 470,30.28 439.72,0 402.5,0 Z M 455,227.5 h -32.5 c -4.143,0 -7.5,3.358 -7.5,7.5 0,4.142 3.357,7.5 7.5,7.5 H 455 v 160 c 0,28.949 -23.552,52.5 -52.5,52.5 H 67.5 C 38.551,455 15,431.449 15,402.5 v -160 h 32.5 c 4.142,0 7.5,-3.358 7.5,-7.5 0,-4.142 -3.358,-7.5 -7.5,-7.5 H 15 V 67.5 C 15,38.551 38.551,15 67.5,15 h 335 c 28.948,0 52.5,23.551 52.5,52.5 z"
+             id="path959"
+             style="fill:#bebebe;fill-opacity:1" />
+          <path
+             d="m 77.5,242.5 h 315 c 4.143,0 7.5,-3.358 7.5,-7.5 0,-4.142 -3.357,-7.5 -7.5,-7.5 h -315 c -4.142,0 -7.5,3.358 -7.5,7.5 0,4.142 3.358,7.5 7.5,7.5 z"
+             id="path961"
+             style="fill:#bebebe;fill-opacity:1" />
+          <path
+             d="m 77.5,212.5 h 315 c 4.143,0 7.5,-3.358 7.5,-7.5 V 47.5 C 400,43.358 396.643,40 392.5,40 H 77.5 C 73.358,40 70,43.358 70,47.5 V 205 c 0,4.142 3.358,7.5 7.5,7.5 z M 85,55 H 385 V 197.5 H 85 Z"
+             id="path963"
+             style="fill:#bebebe;fill-opacity:1" />
+          <path
+             d="m 362.5,257.5 h -255 c -4.142,0 -7.5,3.358 -7.5,7.5 v 157.5 c 0,4.142 3.358,7.5 7.5,7.5 h 255 c 4.143,0 7.5,-3.358 7.5,-7.5 V 265 c 0,-4.142 -3.357,-7.5 -7.5,-7.5 z M 355,415 H 115 V 272.5 h 240 z"
+             id="path965"
+             style="fill:#bebebe;fill-opacity:1" />
+          <circle
+             cx="412.5"
+             cy="396.25"
+             r="10"
+             id="circle967"
+             style="fill:#bebebe;fill-opacity:1" />
+          <path
+             d="M 77.5,371.25 H 65 v -12.5 c 0,-4.142 -3.358,-7.5 -7.5,-7.5 -4.142,0 -7.5,3.358 -7.5,7.5 v 12.5 H 37.5 c -4.142,0 -7.5,3.358 -7.5,7.5 0,4.142 3.358,7.5 7.5,7.5 H 50 v 12.5 c 0,4.142 3.358,7.5 7.5,7.5 4.142,0 7.5,-3.358 7.5,-7.5 v -12.5 h 12.5 c 4.142,0 7.5,-3.358 7.5,-7.5 0,-4.142 -3.358,-7.5 -7.5,-7.5 z"
+             id="path969"
+             style="fill:#bebebe;fill-opacity:1" />
+          <path
+             d="m 57.5,281.25 c -15.164,0 -27.5,12.336 -27.5,27.5 0,15.164 12.336,27.5 27.5,27.5 15.164,0 27.5,-12.336 27.5,-27.5 0,-15.164 -12.336,-27.5 -27.5,-27.5 z m 0,40 c -6.893,0 -12.5,-5.607 -12.5,-12.5 0,-6.893 5.607,-12.5 12.5,-12.5 6.893,0 12.5,5.607 12.5,12.5 0,6.893 -5.607,12.5 -12.5,12.5 z"
+             id="path971"
+             style="fill:#bebebe;fill-opacity:1" />
+          <path
+             d="m 385,308.75 c 0,15.164 12.337,27.5 27.5,27.5 15.163,0 27.5,-12.336 27.5,-27.5 0,-15.164 -12.337,-27.5 -27.5,-27.5 -15.163,0 -27.5,12.336 -27.5,27.5 z m 40,0 c 0,6.893 -5.607,12.5 -12.5,12.5 -6.893,0 -12.5,-5.607 -12.5,-12.5 0,-6.893 5.607,-12.5 12.5,-12.5 6.893,0 12.5,5.607 12.5,12.5 z"
+             id="path973"
+             style="fill:#bebebe;fill-opacity:1" />
+        </g>
+      </g>
+    </g>
+  </g>
+  <g
+     transform="translate(-482,-176)"
+     inkscape:groupmode="layer"
+     id="layer14"
+     inkscape:label="mimetypes" />
+  <g
+     transform="translate(-482,-176)"
+     inkscape:groupmode="layer"
+     id="layer15"
+     inkscape:label="emblems"
+     style="display:inline" />
+</svg>
