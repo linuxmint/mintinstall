@@ -1470,7 +1470,7 @@ class Application(Gtk.Application):
             child.destroy()
 
         apps = []
-        for info in self.all_category.pkginfos:
+        for info in (self.all_category.pkginfos + self.flatpak_category.pkginfos):
             if info.refid == "" or info.refid.startswith("app"):
                 if info.name != self.banner_app_name and info.name not in self.featured_app_names:
                     if self.installer.get_icon(info, FEATURED_ICON_SIZE) is not None:
