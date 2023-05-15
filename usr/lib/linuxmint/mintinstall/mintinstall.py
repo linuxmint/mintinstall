@@ -1466,7 +1466,6 @@ class Application(Gtk.Application):
         apps = list(filter(lambda app: self.installer.get_icon(app, FEATURED_ICON_SIZE) is not None, apps))
         apps = apps[0:30]
         random.shuffle(apps)
-        apps.sort(key=lambda app: self.installer.pkginfo_is_installed(app))
 
         size_group = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
         for pkginfo in apps:
@@ -1502,13 +1501,20 @@ class Application(Gtk.Application):
         for child in self.flowbox_top_rated:
             child.destroy()
 
-        apps = [info for info in self.all_category.pkginfos if info.refid == "" or info.refid.startswith("app")]
-        apps.sort(key=functools.cmp_to_key(self.package_compare_non_installed))
 
+        apps = []
+        featured_list = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/picks.list")
+        for name in featured_list:
+            pkginfo = self.installer.find_pkginfo(name)
+            if pkginfo is None:
+                continue
+            if pkginfo.refid == "" or pkginfo.refid.startswith("app"):
+                apps.append(pkginfo)
+
+        apps.sort(key=functools.cmp_to_key(self.package_compare_non_installed))
         apps = list(filter(lambda app: self.installer.get_icon(app, FEATURED_ICON_SIZE) is not None, apps))
         apps = apps[0:9]
         random.shuffle(apps)
-        apps.sort(key=lambda app: self.installer.pkginfo_is_installed(app))
 
         size_group = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
         for pkginfo in apps:
@@ -2072,20 +2078,6 @@ class Application(Gtk.Application):
         self.installed_category.matchingPackages = self.settings.get_strv(INSTALLED_APPS)
 
         self.active_tasks_category = Category(_("Currently working on the following packages"), None, None)
-
-        self.picks_category = Category(_("Editors' Picks"), None, self.categories)
-
-        edition = ""
-        try:
-            with open("/etc/os-release") as f:
-                config = dict([line.strip().split("=") for line in f])
-                edition = config['NAME']
-        except:
-            pass
-        if "LMDE" in edition:
-            self.picks_category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/picks-lmde.list")
-        else:
-            self.picks_category.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/picks.list")
 
         self.flatpak_category = Category("Flatpak", None, self.categories, "mintinstall-package-flatpak-symbolic")
 
