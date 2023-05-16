@@ -3057,7 +3057,7 @@ class Application(Gtk.Application):
                 if task.type == "install":
                     action_button_description = _("Please use apt-get to install this package.")
                 else:
-                    action_button_description = _("You must use apt-get to remove this package.")
+                    action_button_description = _("Use apt-get to remove this package.")
 
                 self.action_button.set_sensitive(False)
             elif task.info_ready_status == task.STATUS_UNKNOWN:
