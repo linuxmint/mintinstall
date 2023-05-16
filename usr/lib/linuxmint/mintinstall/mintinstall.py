@@ -605,7 +605,7 @@ class BannerTile(Gtk.FlowBoxChild):
 #BannerTitle {
     color: %(color)s;
     font-weight: bold;
-    font-size: 24px;
+    font-size: 48px;
     padding-top: 12px;
 }
 #BannerSummary {
@@ -639,8 +639,8 @@ class BannerTile(Gtk.FlowBoxChild):
         vbox.pack_start(label_name, False, False, 0)
         vbox.pack_start(label_summary, False, False, 0)
 
-        hbox = Gtk.Box(spacing=32)
-        hbox.pack_start(image, True, True, 0)
+        hbox = Gtk.Box(spacing=24)
+        hbox.pack_start(image, False, False, 0)
         hbox.pack_start(vbox, True, True, 0)
 
         self.add(hbox)
