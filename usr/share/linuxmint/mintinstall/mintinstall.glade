@@ -63,17 +63,6 @@
     <property name="can-focus">False</property>
     <property name="icon-name">go-next-symbolic</property>
   </object>
-  <object class="GtkImage" id="image9">
-    <property name="visible">True</property>
-    <property name="can-focus">False</property>
-    <property name="icon-name">mintinstall-flatpak-logo-symbolic</property>
-    <property name="icon_size">3</property>
-  </object>
-  <object class="GtkImage" id="subsearch_image">
-    <property name="visible">True</property>
-    <property name="can-focus">False</property>
-    <property name="icon-name">category-search-symbolic</property>
-  </object>
   <object class="GtkWindow" id="main_window">
     <property name="can-focus">False</property>
     <property name="window-position">center</property>
@@ -85,122 +74,6 @@
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="orientation">vertical</property>
-        <child>
-          <object class="GtkToolbar" id="toolbar">
-            <property name="visible">True</property>
-            <property name="can-focus">False</property>
-            <property name="icon_size">4</property>
-            <child>
-              <object class="GtkToolItem">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <child>
-                  <object class="GtkBox">
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="spacing">6</property>
-                    <child>
-                      <object class="GtkButton" id="back_button">
-                        <property name="visible">True</property>
-                        <property name="can-focus">True</property>
-                        <property name="receives-default">True</property>
-                        <property name="image">image5</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkButton" id="active_tasks_button">
-                        <property name="visible">True</property>
-                        <property name="can-focus">True</property>
-                        <property name="receives-default">True</property>
-                        <property name="image">active_tasks_spinner</property>
-                        <property name="always-show-image">True</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkButton" id="menu_button">
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                        <property name="receives-default">False</property>
-                        <property name="image">image6</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="pack-type">end</property>
-                        <property name="position">2</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkBox" id="search_tool_item">
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                        <child>
-                          <object class="GtkSearchEntry" id="search_entry">
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <property name="primary-icon-name">edit-find-symbolic</property>
-                            <property name="primary-icon-activatable">False</property>
-                            <property name="primary-icon-sensitive">False</property>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkToggleButton" id="subsearch_toggle">
-                            <property name="visible">True</property>
-                            <property name="can-focus">False</property>
-                            <property name="receives-default">False</property>
-                            <property name="tooltip-text" translatable="yes">Limit search to current listing</property>
-                            <property name="image">subsearch_image</property>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">1</property>
-                          </packing>
-                        </child>
-                        <style>
-                          <class name="linked"/>
-                        </style>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="pack-type">end</property>
-                        <property name="position">3</property>
-                      </packing>
-                    </child>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <style>
-              <class name="primary-toolbar"/>
-            </style>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
         <child>
           <object class="GtkStack" id="page_stack">
             <property name="visible">True</property>
@@ -1846,5 +1719,96 @@
         </child>
       </object>
     </child>
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="show-close-button">True</property>
+        <child>
+          <object class="GtkButton" id="back_button">
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <property name="image">image5</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="menu_button">
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="image">image6</property>
+          </object>
+          <packing>
+            <property name="pack-type">end</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="active_tasks_button">
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <property name="image">active_tasks_spinner</property>
+            <property name="always-show-image">True</property>
+          </object>
+          <packing>
+            <property name="pack-type">end</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox" id="search_tool_item">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <child>
+              <object class="GtkSearchEntry" id="search_entry">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="primary-icon-name">edit-find-symbolic</property>
+                <property name="primary-icon-activatable">False</property>
+                <property name="primary-icon-sensitive">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="subsearch_toggle">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">False</property>
+                <property name="tooltip-text" translatable="yes">Limit search to current listing</property>
+                <property name="image">subsearch_image</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <style>
+              <class name="linked"/>
+            </style>
+          </object>
+          <packing>
+            <property name="position">4</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkImage" id="image9">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="icon-name">mintinstall-flatpak-logo-symbolic</property>
+    <property name="icon_size">3</property>
+  </object>
+  <object class="GtkImage" id="subsearch_image">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="icon-name">category-search-symbolic</property>
   </object>
 </interface>
