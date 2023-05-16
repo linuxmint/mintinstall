@@ -585,7 +585,7 @@ class SaneProgressBar(Gtk.DrawingArea):
 
 
 class BannerTile(Gtk.FlowBoxChild):
-    def __init__(self, pkginfo, installer, name, app_json, on_clicked_action):
+    def __init__(self, pkginfo, installer, name, is_flatpak, app_json, on_clicked_action):
         super(Gtk.FlowBoxChild, self).__init__()
 
         self.pkginfo = pkginfo
@@ -612,7 +612,11 @@ class BannerTile(Gtk.FlowBoxChild):
     color: %(color)s;
     font-weight: normal;
     font-size: 16px;
-    padding-top: 12px;
+    padding-top: 10px;
+}
+#BannerFlatpakLabel {
+    font-weight: normal;
+    font-size: 12px;
 }
 """ % {'background':background, 'color':color}
 
@@ -638,6 +642,14 @@ class BannerTile(Gtk.FlowBoxChild):
 
         vbox.pack_start(label_name, False, False, 0)
         vbox.pack_start(label_summary, False, False, 0)
+
+        if is_flatpak:
+            box_flatpak = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+            box_flatpak.pack_start(Gtk.Image.new_from_icon_name("mintinstall-package-flatpak-symbolic", Gtk.IconSize.MENU), False, False, 0)
+            label_flatpak = Gtk.Label(label="Flathub")
+            label_flatpak.set_name("BannerFlatpakLabel")
+            box_flatpak.pack_start(label_flatpak, False, False, 0)
+            vbox.pack_start(box_flatpak, False, False, 0)
 
         hbox = Gtk.Box(spacing=24)
         hbox.pack_start(image, False, False, 0)
@@ -1391,6 +1403,7 @@ class Application(Gtk.Application):
 
         tries = 0
         pkginfo = None
+        is_flatpak = False
 
         while True:
             app_json = random.sample(json_array, 1)[0]
@@ -1398,8 +1411,10 @@ class Application(Gtk.Application):
             if name.startswith("flatpak:"):
                 name = name.replace("flatpak:", "")
                 pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_FLATPAK)
+                is_flatpak = True
             else:
                 pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_APT)
+                is_flatpak = False
 
             if pkginfo is not None:
                 if self.installer.pkginfo_is_installed(pkginfo) and tries < 10:
@@ -1414,7 +1429,7 @@ class Application(Gtk.Application):
                 box.hide()
                 return
 
-        tile = BannerTile(pkginfo, self.installer, name, app_json, self.on_banner_clicked)
+        tile = BannerTile(pkginfo, self.installer, name, is_flatpak, app_json, self.on_banner_clicked)
         self.banner_app_name = pkginfo.name
         flowbox.insert(tile, -1)
         box.pack_start(flowbox, True, True, 0)
