@@ -585,54 +585,36 @@ class SaneProgressBar(Gtk.DrawingArea):
 
 
 class BannerTile(Gtk.FlowBoxChild):
-    def __init__(self, pkginfo, installer, app_json, on_clicked_action):
+    def __init__(self, pkginfo, installer, name, app_json, on_clicked_action):
         super(Gtk.FlowBoxChild, self).__init__()
 
         self.pkginfo = pkginfo
         self.installer = installer
 
-        image = app_json["image"]
-        image_uri = (f"/usr/share/linuxmint/mintinstall/featured/{image}")
+        image_uri = (f"/usr/share/linuxmint/mintinstall/featured/{name}.svg")
         background = app_json["background"]
-        border_color = app_json["border_color"]
         color = app_json["text_color"]
 
         css = """
 #BannerTile {
     background: %(background)s;
     color: %(color)s;
-    border-color: %(border_color)s;
     padding: 12px;
-    outline-color: alpha(%(color)s, 0.75);
-    outline-style: dashed;
-    outline-offset: 2px;
     border-radius: 5px;
 }
-
 #BannerTitle {
     color: %(color)s;
     font-weight: bold;
     font-size: 24px;
+    padding-top: 12px;
 }
-
 #BannerSummary {
     color: %(color)s;
     font-weight: normal;
     font-size: 16px;
+    padding-top: 12px;
 }
-
-#BannerCtaBtn {
-    background: transparent;
-    color: %(color)s;
-    font-weight: bold;
-    font-size: 14px;
-    border: 1px solid %(color)s;
-}
-#BannerCtaBtn:hover {
-    background: %(color)s;
-    color: %(border_color)s;
-}
-""" % {'background':background, 'border_color':border_color, 'color':color}
+""" % {'background':background, 'color':color}
 
         self.set_name("BannerTile")
         style_provider = Gtk.CssProvider()
@@ -649,16 +631,6 @@ class BannerTile(Gtk.FlowBoxChild):
         label_summary.set_label(self.installer.get_summary(pkginfo))
         label_summary.set_name("BannerSummary")
 
-        button_cta = Gtk.Button()
-        button_cta.set_label(_("See More"))
-        button_cta.set_name("BannerCtaBtn")
-
-        if pkginfo != None:
-            button_cta.connect("clicked", on_clicked_action, pkginfo)
-
-        cta_box = Gtk.Box(halign=Gtk.Align.END)
-        cta_box.pack_start(button_cta, False, False, 0)
-
         image = Gtk.Image.new_from_file(image_uri)
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, halign=Gtk.Align.START)
@@ -666,7 +638,6 @@ class BannerTile(Gtk.FlowBoxChild):
 
         vbox.pack_start(label_name, False, False, 0)
         vbox.pack_start(label_summary, False, False, 0)
-        vbox.pack_start(cta_box, False, False, 0)
 
         hbox = Gtk.Box(spacing=32)
         hbox.pack_start(image, True, True, 0)
@@ -1423,7 +1394,12 @@ class Application(Gtk.Application):
 
         while True:
             app_json = random.sample(json_array, 1)[0]
-            pkginfo = self.installer.cache.find_pkginfo(app_json["name"], 'a')
+            name = app_json["name"]
+            if name.startswith("flatpak:"):
+                name = name.replace("flatpak:", "")
+                pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_FLATPAK)
+            else:
+                pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_APT)
 
             if pkginfo is not None:
                 if self.installer.pkginfo_is_installed(pkginfo) and tries < 10:
@@ -1438,7 +1414,7 @@ class Application(Gtk.Application):
                 box.hide()
                 return
 
-        tile = BannerTile(pkginfo, self.installer, app_json, self.on_banner_clicked)
+        tile = BannerTile(pkginfo, self.installer, name, app_json, self.on_banner_clicked)
         self.banner_app_name = pkginfo.name
         flowbox.insert(tile, -1)
         box.pack_start(flowbox, True, True, 0)

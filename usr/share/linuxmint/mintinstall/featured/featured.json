@@ -1,44 +1,112 @@
 [
   {
     "name": "blender",
-    "image": "blender.svg",
-    "background": "linear-gradient(45deg, #fb8c00, #FFB74D)",
-    "border_color": "#fb8c00",
-    "text_color": "#3c2c1c"
+    "background": "linear-gradient(45deg, #FB8C00, #FFB74D)",
+    "text_color": "#3C2C1C"
   },
   {
-    "name": "flameshot",
-    "image": "flameshot.svg",
-    "background": "radial-gradient(#ab15d1 0.65px, #8800AA 0.65px) 0 0 / 13px 13px repeat, #8800AA",
-    "border_color": "#8800AA",
-    "text_color": "#ffffff"
+    "name": "sublime-text",
+    "background": "radial-gradient(#7a4700 0.65px, #505050 0.65px) 0 0 / 13px 13px repeat, #ff9800",
+    "text_color": "#f0f0f0"
   },
   {
-    "name": "gimp",
-    "image": "gimp.svg",
-    "background": "radial-gradient(#dbb109 0.65px, #FECB00 0.65px) 0 0 / 13px 13px repeat, #FECB00",
-    "border_color": "#FECB00",
-    "text_color": "#333333"
+    "name": "vlc",
+    "background": "linear-gradient(135deg, #f38806 25%, #fb9006 25%, #fb9006 50%, #f38806 50%, #f38806 75%, #fb9006 75%, #fb9006 100%)",
+    "text_color": "#3C2C1C"
   },
   {
     "name": "inkscape",
-    "image": "inkscape.svg",
-    "background": "linear-gradient(to right, #f55d75, #FF875C)",
-    "border_color": "#f55d75",
-    "text_color": "#ffffff"
+    "background": "radial-gradient(#66718c 0.65px, #4b4b50 0.65px) 0 0 / 13px 13px repeat, #66718c",
+    "text_color": "#fefefe"
+  },
+  {
+    "name": "gimp",
+    "background": "radial-gradient(#DBB109 0.65px, #FECB00 0.65px) 0 0 / 13px 13px repeat, #FECB00",
+    "text_color": "#333333"
+  },
+  {
+    "name": "flatpak:com.ktechpit.whatsie",
+    "background": "linear-gradient(to top, #fefffe, #eeeeee)",
+    "text_color": "#414141"
+  },
+  {
+    "name": "spotify-client",
+    "background": "linear-gradient(to top, #31d565, #1ed760)",
+    "text_color": "#fffeff"
+  },
+  {
+    "name": "audacity",
+    "background": "linear-gradient(45deg, #f3df1b, #ff6c01)",
+    "text_color": "#00003b"
   },
   {
     "name": "qbittorrent",
-    "image": "qbittorrent.svg",
     "background": "linear-gradient(to right, #60A0E6, #4482CF)",
-    "border_color": "#4482CF",
-    "text_color": "#e6f3fc"
+    "text_color": "#E6F3FC"
   },
   {
     "name": "steam:i386",
-    "image": "steam.svg",
-    "background": "radial-gradient(#6fbce8 0.65px, transparent 0.65px) 0 0 / 13px 13px repeat, linear-gradient(to right, #11273D, #194761, #11273D), #11273D",
-    "border_color": "#11273D",
+    "background": "radial-gradient(#6FBCE8 0.65px, transparent 0.65px) 0 0 / 13px 13px repeat, linear-gradient(to right, #11273D, #194761, #11273D), #11273D",
+    "text_color": "#ffffff"
+  },
+  {
+    "name": "dropbox",
+    "background": "linear-gradient(to left, #004391, #1b63ad)",
+    "text_color": "#ececec"
+  },
+  {
+    "name": "filezilla",
+    "background": "linear-gradient(to right, #b80000, #b80000)",
+    "text_color": "#fffefb"
+  },
+  {
+    "name": "google-earth-pro-stable",
+    "background": "linear-gradient(to right, #013364, #024b90)",
+    "text_color": "#ffffff"
+  },
+  {
+    "name": "skypeforlinux",
+    "background": "linear-gradient(45deg, #0267a4, #0281cb)",
+    "text_color": "#ffffff"
+  },
+  {
+    "name": "flatpak:com.bitwarden.desktop",
+    "background": "radial-gradient(circle at center, #165ad5 0, #1052c9 100%)",
+    "text_color": "#ffffff"
+  },
+  {
+    "name": "flatpak:org.telegram.desktop",
+    "background": "linear-gradient(to bottom, #1c8ad5, #51bae9)",
+    "text_color": "#E6F3FC"
+  },
+  {
+    "name": "flatpak:com.discordapp.Discord",
+    "background": "linear-gradient(45deg, #5567e3, #7289d9)",
+    "text_color": "#ffffff"
+  },
+  {
+    "name": "flatpak:org.signal.Signal",
+    "background": "linear-gradient(to bottom, #f7f7f7, #fafafa)",
+    "text_color": "#1a1a1a"
+  },
+  {
+    "name": "flatpak:com.visualstudio.code",
+    "background": "linear-gradient(to right, #2d2c32, #2c2c32)",
+    "text_color": "#fefefe"
+  },
+  {
+    "name": "flatpak:com.todoist.Todoist",
+    "background": "#f5f5f5",
+    "text_color": "#e44332"
+  },
+  {
+    "name": "flatpak:com.slack.Slack",
+    "background": "linear-gradient(45deg, #f7f7f7, #f5f5f5)",
+    "text_color": "#000000"
+  },
+  {
+    "name": "flatpak:us.zoom.Zoom",
+    "background": "linear-gradient(to right, #4a8cff, #4a8cff)",
     "text_color": "#ffffff"
   }
 ]
