@@ -35,16 +35,20 @@ class ReviewInfo:
         self.num_reviews = num_reviews
 
     def update_stats(self):
-        points = 0
         sum_rating = 0
         self.num_reviews = len(self.reviews)
         self.avg_rating = 0
         for review in self.reviews:
-            points = points + (review.rating - 3)
             sum_rating = sum_rating + review.rating
         if self.num_reviews > 0:
             self.avg_rating = round(float(sum_rating) / float(self.num_reviews), 1)
-        self.score = points
+            # establish a score based on a 10 votes sample
+            significant_votes = min(10, self.num_reviews)
+            missing_votes = 10 - significant_votes
+            # assume votes voted like the avg, and missing votes vote 2.5 stars.
+            self.score = round((self.avg_rating*significant_votes+2.5*missing_votes)/10, 1)
+        else:
+            self.score = 0
 
     @classmethod
     def from_json(cls, json_data:dict):
