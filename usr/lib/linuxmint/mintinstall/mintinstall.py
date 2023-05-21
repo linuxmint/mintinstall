@@ -890,7 +890,7 @@ class SubcategoryFlowboxChild(Gtk.FlowBoxChild):
 
         self.button.connect("clicked", self._activate_fb_child)
 
-        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, valign=Gtk.Align.START)
+        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, valign=Gtk.Align.CENTER)
         image = Gtk.Image(icon_name=cat_icon, icon_size=Gtk.IconSize.MENU)
         label = Gtk.Label(label=cat_name)
         box.pack_start(image, False, False, 0)
@@ -913,7 +913,7 @@ class CategoryButton(Gtk.Button):
         self.set_can_focus(False)
         self.set_hexpand(True)
 
-        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, valign=Gtk.Align.START)
+        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, valign=Gtk.Align.CENTER)
         image = Gtk.Image(icon_name=category.icon_name, icon_size=Gtk.IconSize.MENU)
         label = Gtk.Label(label=category.name)
         box.pack_start(image, False, False, 0)
