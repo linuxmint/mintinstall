@@ -1,3 +1,60 @@
+mintinstall (8.2.5) victoria; urgency=medium
+
+  [ Michael Webster ]
+  * Reset the stars count labels whenever the details view is displayed.
+  * Update flatpak match data.
+
+  [ hduelme ]
+  * replace equality None check with identity None check (#362)
+
+  [ Michael Webster ]
+  * search: consider match location (name, summary, description) before ordering by score and alphabetically.
+  * Use a different tooltip when dep resolution fails for removing a package.
+  * Update flatpak match info.
+
+  [ wilfison ]
+  * simplifies UI of VerticalPackageTile
+  * ignore glade and python temporary files
+  * bugfix: no category VerticalPackageTile
+  * add sections and categories to landing page
+  * update Details Page layout
+  * show package type only if it's a flatpack
+  * fix icon names
+  * convert and update featured images to svg
+  * convert featured list to json file
+  * update FeatureTile with new design
+  * add CTA button in FeatureTile
+
+  [ Clement Lefebvre ]
+  * tile: Always show the summary
+  * FeatureTile: Fix clicking outside of the see-more button
+  * FeatureTile: More spacing, align button to the right
+  * Top rated: Have 9 tiles
+  * Top-rated/popular: Prefer non-installed apps
+  * Rename function
+  * Top Rated: Get list from picks.list
+  * Round banner and add a bit of margin between banner and scrolledwindow
+  * Rename featured -> banner
+  * Rename top-rated -> featured, popular -> top-rated.
+  * Don't show the banner app in featured
+  * Add icons to categories and subcategories
+  * Add flatpaks to the list of featured apps
+  * Remove unpopular/installed apps from featured list
+  * Improve quality of installed mark icon
+  * Remove debug print statements
+  * Include flatpaks in top rated apps
+  * Update featured/banner apps
+  * Banner: Increase title font, don't expand icon.
+  * CSD window: Reduce vertical footprint by removing the toolbar
+  * Banner: Indicate if selected app is a flatpak
+  * Tune the score formula
+  * l10n: Update POT
+
+  [ kacperpaczos ]
+  * Improvements in appearance (#365)
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon, 05 Jun 2023 13:31:13 +0100
+
 mintinstall (8.2.4) vera; urgency=medium
 
   [ Michael Webster ]
