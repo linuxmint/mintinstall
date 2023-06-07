@@ -3153,6 +3153,18 @@ class Application(Gtk.Application):
                                 info = Gio.DesktopAppInfo.new_from_filename(desktop_file + ".desktop")
                             exec_string = info.get_commandline()
                             break
+                else:
+                    desktop_file = os.path.join(self.installer.get_flatpak_root_path(), "exports/share/applications", pkginfo.name)
+                    info = None
+                    try:
+                        info = Gio.DesktopAppInfo.new_from_filename(desktop_file)
+                    except TypeError:
+                        try:
+                            info = Gio.DesktopAppInfo.new_from_filename(desktop_file + ".desktop")
+                        except:
+                            pass
+                    if info is not None:
+                        exec_string = info.get_commandline()
 
         if exec_string is not None:
             task.exec_string = exec_string
