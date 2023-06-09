@@ -121,6 +121,10 @@ DEB_EQUIVS = dict((v, k) for k,v in FLATPAK_EQUIVS.items())
 KB = 1000
 MB = KB * 1000
 
+# Featured Apps in main view
+AMOUNT_OF_APPS_IN_LINE = 3
+AMOUNT_OF_LINES = 3
+
 def get_size_for_display(size):
     if size == 0:
         return ""
@@ -936,6 +940,7 @@ class Application(Gtk.Application):
                                           flags=Gio.ApplicationFlags.HANDLES_OPEN | Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
 
         self.gui_ready = False
+        self.apps = []
 
         self.low_res = self.get_low_res_screen()
 
@@ -1435,6 +1440,51 @@ class Application(Gtk.Application):
         box.pack_start(flowbox, True, True, 0)
         box.show_all()
 
+    def on_size_allocate(self, flowbox, allocation):
+        global AMOUNT_OF_APPS_IN_LINE
+        global AMOUNT_OF_LINES
+
+        # Get the width of the first child in FlowBox
+        first_child = flowbox.get_child_at_index(0)
+        allocation_child = first_child.get_allocation()
+        child_width = allocation_child.width
+
+        amount_of_apps_in_line_now = round(allocation.width / child_width)
+
+        # Check if the number of apps in the line has changed
+        if amount_of_apps_in_line_now != AMOUNT_OF_APPS_IN_LINE:
+            amount_of_apps_now = AMOUNT_OF_APPS_IN_LINE * AMOUNT_OF_LINES
+
+            # Update the global variables (3*3 or 2*x)
+            AMOUNT_OF_APPS_IN_LINE = amount_of_apps_in_line_now
+            if amount_of_apps_in_line_now == 3:
+                AMOUNT_OF_LINES = 3
+            else:
+                AMOUNT_OF_LINES = 2
+
+            amount_of_apps_next = AMOUNT_OF_APPS_IN_LINE * AMOUNT_OF_LINES
+
+            # Add or remove widgets based on the number of apps in the next line
+            if amount_of_apps_next > amount_of_apps_now:
+                size_group = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
+                for pkginfo in self.apps[amount_of_apps_now:amount_of_apps_next]:
+                    if self.review_cache:
+                        review_info = self.review_cache[pkginfo.name]
+                    else:
+                        review_info = None
+                    icon = self.get_application_icon(pkginfo, FEATURED_ICON_SIZE)
+                    tile = VerticalPackageTile(pkginfo, icon, self.installer, show_package_type=True, review_info=review_info)
+                    size_group.add_widget(tile)
+                    self.flowbox_featured.insert(tile, -1)
+                    self.picks_tiles.append(tile)
+                    self.featured_app_names.append(pkginfo.name)
+            else:
+                for index in range(amount_of_apps_now - amount_of_apps_next):
+                    last_widget = self.flowbox_featured.get_children()[-1]
+                    self.flowbox_featured.remove(last_widget)
+                    self.picks_tiles.pop()
+                    self.featured_app_names.pop()
+
     def on_banner_clicked(self, button, pkginfo):
         self.show_package(pkginfo, self.PAGE_LANDING)
 
@@ -1499,13 +1549,14 @@ class Application(Gtk.Application):
             flowbox.set_homogeneous(False)
             flowbox.connect("child-activated", self.on_flowbox_child_activated, self.PAGE_LANDING)
             flowbox.connect("selected-children-changed", self.navigate_flowbox, self.builder.get_object("scrolledwindow_landing"))
+            flowbox.connect("size-allocate", self.on_size_allocate)
             self.flowbox_featured = flowbox
             box.add(flowbox)
 
         for child in self.flowbox_featured:
             child.destroy()
 
-        apps = []
+        # self.apps from init
         featured_list = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/picks.list")
         for name in featured_list:
             if name.startswith("flatpak:"):
@@ -1520,14 +1571,14 @@ class Application(Gtk.Application):
             if self.installer.pkginfo_is_installed(pkginfo):
                 continue
             if pkginfo.refid == "" or pkginfo.refid.startswith("app"):
-                apps.append(pkginfo)
+                self.apps.append(pkginfo)
 
-        random.shuffle(apps)
-        apps = apps[0:9]
+        random.shuffle(self.apps)
+        self.apps = self.apps[:16]
 
         size_group = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
         self.featured_app_names = []
-        for pkginfo in apps:
+        for pkginfo in self.apps[:AMOUNT_OF_APPS_IN_LINE * AMOUNT_OF_LINES]:
             if self.review_cache:
                 review_info = self.review_cache[pkginfo.name]
             else:
