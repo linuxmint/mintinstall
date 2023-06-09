@@ -741,6 +741,7 @@
         "steam": "com.valvesoftware.Steam",
         "stellarium": "org.stellarium.Stellarium",
         "subtitlecomposer": "org.kde.subtitlecomposer",
+        "sublime-text": "com.sublimetext.three",
         "sumo": "org.eclipse.sumo",
         "supertux": "org.supertuxproject.SuperTux",
         "supertuxkart": "net.supertuxkart.SuperTuxKart",
