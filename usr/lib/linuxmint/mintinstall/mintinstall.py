@@ -47,6 +47,7 @@ from math import pi
 DEGREES = pi / 180
 
 FALLBACK_PACKAGE_ICON_PATH = "/usr/share/linuxmint/mintinstall/data/available.png"
+FLATHUB_MEDIA_BASE_URL = "https://dl.flathub.org/media/"
 
 #Hardcoded mouse back button key for button-press-event
 #May not work on all mice
@@ -300,6 +301,11 @@ class ScreenshotDownloader(threading.Thread):
         self.pkginfo = pkginfo
         self.settings = Gio.Settings(schema_id="com.linuxmint.install")
 
+    def prefix_media_base_url(self, url):
+        if (not url.startswith("http")) and self.pkginfo.remote == "flathub":
+            return FLATHUB_MEDIA_BASE_URL + url
+        return url
+
     def run(self):
         num_screenshots = 0
         self.application.screenshots = []
@@ -313,15 +319,16 @@ class ScreenshotDownloader(threading.Thread):
 
                         image = screenshot.get_image(624, 351)
 
-                        if requests.head(image.get_url(), timeout=5).status_code < 400:
+                        url = self.prefix_media_base_url(image.get_url())
+                        if requests.head(url, timeout=5).status_code < 400:
                             num_screenshots += 1
 
                             local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
 
                             source = screenshot.get_source()
 
-                            source_url = source.get_url()
-                            self.save_to_file(image.get_url(), source_url, local_name)
+                            source_url = self.prefix_media_base_url(source.get_url())
+                            self.save_to_file(url, source_url, local_name)
 
                             self.add_screenshot(self.pkginfo, local_name, num_screenshots)
             except Exception as e:
