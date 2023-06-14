@@ -1,3 +1,14 @@
+mintinstall (8.2.6) victoria; urgency=medium
+
+  [ Michael Webster ]
+  * Try other ways to get a flatpak's desktop file if appstream info isn't available.
+  * Update flatpak match info.
+
+  [ kacperpaczos ]
+  * Update flatpak match info.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 14 Jun 2023 09:22:55 +0200
+
 mintinstall (8.2.5) victoria; urgency=medium
 
   [ Michael Webster ]
