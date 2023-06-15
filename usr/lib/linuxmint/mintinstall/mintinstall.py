@@ -635,7 +635,7 @@ class BannerTile(Gtk.FlowBoxChild):
                                                  Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         label_name = Gtk.Label(xalign=0)
-        label_name.set_label(self.installer.get_display_name(pkginfo))
+        label_name.set_label(app_json['display_name'] or self.installer.get_display_name(pkginfo))
         label_name.set_name("BannerTitle")
 
         label_summary = Gtk.Label(xalign=0)
