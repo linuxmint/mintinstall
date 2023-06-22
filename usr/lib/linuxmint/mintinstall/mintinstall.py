@@ -3095,8 +3095,7 @@ class Application(Gtk.Application):
 
         if self.installer.pkginfo_is_installed(pkginfo):
             if task.freed_size > 0:
-                sizeinfo = _("%(localSize)s of disk space freed") \
-                                 % {'localSize': get_size_for_display(task.freed_size)}
+                sizeinfo = get_size_for_display(task.freed_size)
             elif task.install_size > 0:
                 sizeinfo = _("%(localSize)s of disk space required") \
                                  % {'localSize': get_size_for_display(task.install_size)}
