@@ -1,3 +1,11 @@
+mintinstall (8.2.7) victoria; urgency=medium
+
+  [ Michael Webster ]
+  * Fix screenshot downloading a relative url is provided.
+  * Don't use `xx disk space freed` when viewing an installed package, just show its size.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon, 26 Jun 2023 10:34:51 +0200
+
 mintinstall (8.2.6) victoria; urgency=medium
 
   [ Michael Webster ]
