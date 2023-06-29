@@ -1455,7 +1455,7 @@ class Application(Gtk.Application):
         if self.flowbox_top_rated is None:
             flowbox = Gtk.FlowBox()
             flowbox.set_min_children_per_line(3)
-            flowbox.set_max_children_per_line(10)
+            flowbox.set_max_children_per_line(3)
             flowbox.set_row_spacing(0)
             flowbox.set_column_spacing(0)
             flowbox.set_homogeneous(False)
@@ -1500,7 +1500,7 @@ class Application(Gtk.Application):
         if self.flowbox_featured is None:
             flowbox = Gtk.FlowBox()
             flowbox.set_min_children_per_line(3)
-            flowbox.set_max_children_per_line(10)
+            flowbox.set_max_children_per_line(3)
             flowbox.set_row_spacing(0)
             flowbox.set_column_spacing(0)
             flowbox.set_homogeneous(False)
