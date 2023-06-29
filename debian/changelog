@@ -1,3 +1,9 @@
+mintinstall (8.2.8) victoria; urgency=medium
+
+  * flowbox: Only allow 3 children per row
+
+ -- Clement Lefebvre <root@linuxmint.com>  Thu, 29 Jun 2023 17:51:13 +0200
+
 mintinstall (8.2.7) victoria; urgency=medium
 
   [ Michael Webster ]
