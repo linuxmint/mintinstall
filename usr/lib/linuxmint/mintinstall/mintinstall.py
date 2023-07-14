@@ -937,6 +937,8 @@ class Application(Gtk.Application):
     PAGE_DETAILS = "details"
     PAGE_LOADING = "loading"
     PAGE_SEARCHING = "searching"
+    PAGE_SEARCHING = "searching"
+    
 
     def __init__(self):
         super(Application, self).__init__(application_id='com.linuxmint.mintinstall',
@@ -1219,6 +1221,11 @@ class Application(Gtk.Application):
         self.refresh_cache_menuitem.show()
         self.refresh_cache_menuitem.set_sensitive(False)
         submenu.append(self.refresh_cache_menuitem)
+        
+        software_sources_menuitem = Gtk.MenuItem(label=_("Software sources..."))
+        software_sources_menuitem.connect("activate", self.open_software_sources)
+        software_sources_menuitem.show()
+        submenu.append(software_sources_menuitem)
 
         separator = Gtk.SeparatorMenuItem()
         separator.show()
@@ -1589,6 +1596,12 @@ class Application(Gtk.Application):
         self.load_banner()
         self.load_featured()
         self.load_top_rated()
+    
+    def open_software_sources(self,_):
+        """Opens Mint's Software Sources and refreshes the cache afterwards."""
+        
+        os.system('software-sources')
+        self.refresh_cache()
 
     def update_conditional_widgets(self):
         sensitive = len(self.installed_category.pkginfos) > 0 \
