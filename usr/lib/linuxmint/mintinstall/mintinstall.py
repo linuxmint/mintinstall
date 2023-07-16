@@ -1119,7 +1119,7 @@ class Application(Gtk.Application):
 
         # If it's less than our threshold than consider us 'low res'. The workarea being used is in
         # app pixels, so hidpi will also be affected here regardless of device resolution.
-        if height < 768:
+        if height < 800:
             print("MintInstall: low resolution detected (%dpx height), limiting window height." % (height))
             return True
 
@@ -1391,7 +1391,7 @@ class Application(Gtk.Application):
 
             # This overrides the glade 800x600 defaults. 300 is excessively small so the window works
             # out its own minimum height.
-            self.main_window.set_default_geometry(800, 300)
+            self.main_window.set_default_size(800, 500)
             return
 
         for child in box.get_children():
