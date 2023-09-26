@@ -27,9 +27,5 @@ flatpak:us.zoom.Zoom
 flatpak:com.ktechpit.whatsie
 flatpak:org.kde.kdenlive
 flatpak:com.usebottles.bottles
-flatpak:com.github.tchx84.Flatseal
-flatpak:org.gnome.Boxes
 flatpak:net.lutris.Lutris
 flatpak:com.github.dail8859.NotepadNext
-flatpak:org.gnome.Builder
-flatpak:org.kde.kdevelop
