@@ -751,6 +751,7 @@
         "srain": "im.srain.Srain",
         "starfighter": "io.github.pr_starfighter.starfighter",
         "steam": "com.valvesoftware.Steam",
+        "steam:i386": "com.valvesoftware.Steam",
         "stellarium": "org.stellarium.Stellarium",
         "sublime-text": "com.sublimetext.three",
         "subtitlecomposer": "org.kde.subtitlecomposer",
