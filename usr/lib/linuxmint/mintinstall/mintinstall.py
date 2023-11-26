@@ -2542,14 +2542,6 @@ class Application(Gtk.Application):
                     is_match = True
                     pkginfo.search_tier = 0
                     break
-                if (search_in_summary and termsUpper in self.installer.get_summary(pkginfo, for_search=True).upper()):
-                    is_match = True
-                    pkginfo.search_tier = 100
-                    break
-                if(search_in_description and termsUpper in self.installer.get_description(pkginfo, for_search=True).upper()):
-                    is_match = True
-                    pkginfo.search_tier = 200
-                    break
                 # pkginfo.name for flatpaks is their id (org.foo.BarMaker), which
                 # may not actually contain the app's name. In this case their display
                 # names are better. The 'name' is still checked first above, because
@@ -2557,6 +2549,14 @@ class Application(Gtk.Application):
                 if pkginfo.pkg_hash.startswith("f") and all(piece in self.installer.get_display_name(pkginfo).upper() for piece in termsSplit):
                     is_match = True
                     pkginfo.search_tier = 0
+                    break
+                if (search_in_summary and termsUpper in self.installer.get_summary(pkginfo, for_search=True).upper()):
+                    is_match = True
+                    pkginfo.search_tier = 100
+                    break
+                if(search_in_description and termsUpper in self.installer.get_description(pkginfo, for_search=True).upper()):
+                    is_match = True
+                    pkginfo.search_tier = 200
                     break
                 break
 
