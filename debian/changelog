@@ -1,3 +1,15 @@
+mintinstall (8.2.9) virginia; urgency=medium
+
+  [ Michael Webster ]
+  * Fix default window sizes for normal and low-resolution mode.
+  * Update flatpak match info.
+
+  [ Clement Lefebvre ]
+  * l10n: Update POT
+  * l10n: Generate files
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon, 27 Nov 2023 14:43:53 +0000
+
 mintinstall (8.2.8) victoria; urgency=medium
 
   * flowbox: Only allow 3 children per row
