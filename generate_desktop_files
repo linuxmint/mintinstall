@@ -19,6 +19,7 @@ Type=Application
 Encoding=UTF-8
 Categories=Application;System;Settings;XFCE;X-XFCE-SettingsDialog;X-XFCE-SystemSettings;
 NotShowIn=KDE;
+StartupNotify=true
 """
 
 additionalfiles.generate(DOMAIN, PATH, "usr/share/applications/mintinstall.desktop", prefix, _("Software Manager"), _("Install new applications"), suffix)
