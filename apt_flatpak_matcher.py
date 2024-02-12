@@ -118,7 +118,8 @@ class Scraper():
                         # print("4",(fname.lower() == "%s.%s" % (aname.lower(), aname.lower())), fname.lower(),aname.lower(), aname.lower())
                         # if (aname.lower() in fname.lower()) or \
                         if (aname.lower() in fname.lower() and len(aname) / len(fname) > 0.5) or \
-                           (aname.lower() in f.name.split(".")) or \
+                           (aname.lower() in f.name.lower().split(".")) or \
+                           (aname.startswith("flatpak-") and f.name == "org.flatpak.%s" % aname[8:].capitalize()) or \
                            (aname.startswith("gnome-") and f.name == "org.gnome.%s" % aname[6:].capitalize()) or \
                            (fname.lower() == "%s.%s" % (aname.lower(), aname.lower())) or \
                            (hp_url_a == hp_url_f):
