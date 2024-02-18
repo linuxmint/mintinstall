@@ -21,6 +21,8 @@ from pathlib import Path
 import tempfile
 import base64
 import types
+import traceback
+from operator import attrgetter
 
 import gi
 gi.require_version('Gtk', '3.0')
@@ -828,6 +830,14 @@ class Category:
         while cat.parent is not None:
             cat = cat.parent
 
+class SortPackage:
+    def __init__(self, pkg):
+        self.pkg = pkg
+        self.name = pkg.name
+        self.installed = False
+        self.score_desc = 0
+        self.search_tier = pkg.search_tier if hasattr(pkg, "search_tier") else 0
+
 class SubcategoryFlowboxChild(Gtk.FlowBoxChild):
     def __init__(self, category, is_all=False, active=False):
         super(Gtk.FlowBoxChild, self).__init__()
@@ -935,6 +945,7 @@ class Application(Gtk.Application):
 
         self.main_window = None
 
+    @print_timing
     def do_activate(self):
         if self.main_window is None:
             if self.installer.init_sync():
@@ -1362,6 +1373,7 @@ class Application(Gtk.Application):
             housekeeping.run()
         except Exception as e:
             print("Loading error: %s" % e)
+            traceback.print_tb(e.__traceback__)
             GLib.idle_add(self.refresh_cache)
 
     def load_banner(self):
@@ -1456,7 +1468,7 @@ class Application(Gtk.Application):
                 if info.name != self.banner_app_name and info.name not in self.featured_app_names:
                     if self.installer.get_icon(info, FEATURED_ICON_SIZE) is not None:
                         apps.append(info)
-        apps.sort(key=functools.cmp_to_key(self.package_compare_non_installed))
+        apps = self.sort_packages(apps, attrgetter("installed", "score_desc", "name"))
         apps = apps[0:30]
         random.shuffle(apps)
 
@@ -2240,6 +2252,15 @@ class Application(Gtk.Application):
 
         return False
 
+    def get_installed_package_hashes(self):
+        installed_fp_refs = installer._flatpak.get_fp_sys().list_installed_refs(None)
+        fp_hashes = [installer._flatpak.make_pkg_hash(ref) for ref in installed_fp_refs]
+
+        apt_cache = installer._apt.get_apt_cache()
+        apt_hashes = [installer._apt.make_pkg_hash(pkg) for pkg in apt_cache if pkg.installed]
+
+        return apt_hashes + fp_hashes
+
     @print_timing
     def process_matching_packages(self):
         # Process matching packages
@@ -2594,61 +2615,28 @@ class Application(Gtk.Application):
         else:
             return (string)
 
-    # prefer non-installed pkgs, sort them by installed, then by score.
-    def package_compare_non_installed(self, pkga, pkgb):
-        if self.installer.pkginfo_is_installed(pkga) == self.installer.pkginfo_is_installed(pkgb):
-            return self.package_compare(pkga, pkgb)
-        elif self.installer.pkginfo_is_installed(pkga):
-            return 1
-        else:
-            return -1
+    @print_timing
+    def sort_packages(self, pkgs, key_func):
+        sort_pkgs = []
+        installed_hashes = self.get_installed_package_hashes()
 
-    def package_compare(self, pkga, pkgb):
-        score_a = 0
-        score_b = 0
+        for pkg in pkgs:
+            sort_pkg = SortPackage(pkg)
+            sort_pkg.installed = pkg.pkg_hash in installed_hashes
 
-        try:
-            score_a = self.review_cache[pkga.name].score
-        except:
-            pass
-
-        try:
-            score_b = self.review_cache[pkgb.name].score
-        except:
-            pass
-
-        if score_a == score_b:
             # A flatpak's 'name' may not even have the app's name in it.
             # It's better to compare by their display names
-            if pkga.pkg_hash.startswith("f"):
-                name_a = self.installer.get_display_name(pkga)
-            else:
-                name_a = pkga.name
-            if pkgb.pkg_hash.startswith("f"):
-                name_b = self.installer.get_display_name(pkgb)
-            else:
-                name_b = pkgb.name
+            if pkg.pkg_hash.startswith("f"):
+                sort_pkg.name = self.installer.get_display_name(pkg)
 
-            if name_a < name_b:
-                return -1
-            elif name_a > name_b:
-                return 1
-            else:
-                return 0
+            if self.review_cache and pkg.name in self.review_cache:
+                sort_pkg.score_desc = -self.review_cache[pkg.name].score
 
-        if score_a > score_b:
-            return -1
-        else:  # score_a < score_b
-            return 1
+            sort_pkgs.append(sort_pkg)
 
-    def package_compare_for_search(self, pkga, pkgb):
-        try:
-            if pkga.search_tier != pkgb.search_tier:
-                return pkga.search_tier - pkgb.search_tier
-        except:
-            pass
+        sort_pkgs.sort(key=key_func)
 
-        return self.package_compare(pkga, pkgb)
+        return [pkg.pkg for pkg in sort_pkgs]
 
     def show_packages(self, pkginfos, from_search=False):
         if self.one_package_idle_timer > 0:
@@ -2680,9 +2668,9 @@ class Application(Gtk.Application):
         apps = [info for info in pkginfos if info.refid == "" or info.refid.startswith("app")]
 
         if from_search:
-            apps.sort(key=functools.cmp_to_key(self.package_compare_for_search))
+            apps = self.sort_packages(apps, attrgetter("search_tier", "score_desc", "name"))
         else:
-            apps.sort(key=functools.cmp_to_key(self.package_compare))
+            apps = self.sort_packages(apps, attrgetter("score_desc", "name"))
 
         apps = apps[0:201]
 
