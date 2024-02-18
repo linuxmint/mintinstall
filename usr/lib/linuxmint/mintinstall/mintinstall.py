@@ -26,7 +26,8 @@ import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('XApp', '1.0')
 gi.require_version('AppStreamGlib', '1.0')
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, XApp, AppStreamGlib, Pango
+gi.require_version('Handy', '1')
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, XApp, AppStreamGlib, Pango, Handy
 import cairo
 
 from mintcommon.installer import installer
@@ -42,6 +43,8 @@ FEATURED_ICON_SIZE = 48
 DETAILS_ICON_SIZE = 64
 SCREENSHOT_HEIGHT = 351
 SCREENSHOT_WIDTH = 624
+
+SCROLL_TIMER = 15
 
 from math import pi
 DEGREES = pi / 180
@@ -592,15 +595,40 @@ class SaneProgressBar(Gtk.DrawingArea):
 
 
 class BannerTile(Gtk.FlowBoxChild):
-    def __init__(self, pkginfo, installer, name, is_flatpak, app_json, on_clicked_action):
+    featured_packages = []
+    current_index = 0
+
+    def on_back_clicked(self, button):
+        current_index = self.carousel.get_position()
+        total_pages = self.carousel.get_n_pages()
+        prev_position = (current_index - 1) % total_pages  
+        prev_widget = self.pages[int(prev_position)]
+        self.carousel.scroll_to(prev_widget)
+
+    def next_click(self):
+        current_index = self.carousel.get_position()
+        total_pages = self.carousel.get_n_pages()
+        next_position = (current_index + 1) % total_pages
+        next_widget = self.pages[int(next_position)]
+        self.carousel.scroll_to(next_widget)
+
+        # Returning True will keep the timer active and repeat the function call
+        return True
+
+    def on_forward_clicked(self, button):
+        self.next_click()
+    
+    def __init__(self, pkginfo, installer, name, is_flatpak, background, color, on_clicked_action, carousel, pages):
         super(Gtk.FlowBoxChild, self).__init__()
 
         self.pkginfo = pkginfo
         self.installer = installer
+        self.carousel = carousel
+        self.pages = pages
+        self.background = background
+        self.color = color
 
         image_uri = (f"/usr/share/linuxmint/mintinstall/featured/{name}.svg")
-        background = app_json["background"]
-        color = app_json["text_color"]
 
         css = """
 #BannerTile {
@@ -625,26 +653,43 @@ class BannerTile(Gtk.FlowBoxChild):
     font-weight: normal;
     font-size: 12px;
 }
+/* Customize the back/forward buttons */
+.transparent-button {
+    background-color: rgba(255, 255, 255, 0);
+    border: 3px solid;
+    border-color: rgba(255, 255, 255, 0.8);
+    border-radius: 16px;
+}
+.transparent-button:hover {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+.transparent-button:active {
+    background-color: rgba(255, 255, 255, 1);
+
+}
 """ % {'background':background, 'color':color}
 
         self.set_name("BannerTile")
         style_provider = Gtk.CssProvider()
         style_provider.load_from_data(str.encode(css))
-        Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(),
-                                                 style_provider,
-                                                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        """Have to re-use .add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION) for every widget because
+        add_provider doesn't cascade to children, and cant set the whole screen context anymore either """
+        self.get_style_context().add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         label_name = Gtk.Label(xalign=0)
         label_name.set_label(self.installer.get_display_name(pkginfo))
         label_name.set_name("BannerTitle")
+        label_name.get_style_context().add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         label_summary = Gtk.Label(xalign=0)
         label_summary.set_label(self.installer.get_summary(pkginfo))
         label_summary.set_name("BannerSummary")
+        label_summary.get_style_context().add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         image = Gtk.Image.new_from_file(image_uri)
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, halign=Gtk.Align.START)
+        vbox.get_style_context().add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         vbox.set_border_width(6)
 
         vbox.pack_start(label_name, False, False, 0)
@@ -652,16 +697,38 @@ class BannerTile(Gtk.FlowBoxChild):
 
         if is_flatpak:
             box_flatpak = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+            box_flatpak.get_style_context().add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
             box_flatpak.pack_start(Gtk.Image.new_from_icon_name("mintinstall-package-flatpak-symbolic", Gtk.IconSize.MENU), False, False, 0)
             label_flatpak = Gtk.Label(label="Flathub")
             label_flatpak.set_name("BannerFlatpakLabel")
+            label_flatpak.get_style_context().add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
             box_flatpak.pack_start(label_flatpak, False, False, 0)
             vbox.pack_start(box_flatpak, False, False, 0)
 
+        # Back button
+        icon_theme = Gtk.IconTheme.get_default()
+        back_button = Gtk.Button()
+        back_icon = icon_theme.load_icon("go-previous-symbolic", 16, 0)
+        back_button.set_image(Gtk.Image.new_from_pixbuf(back_icon))
+        back_button.connect("clicked", self.on_back_clicked)
+        back_button.get_style_context().add_class("transparent-button")
+        back_button.get_style_context().add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+        # Forward button
+        forward_button = Gtk.Button()
+        forward_icon = icon_theme.load_icon("go-next-symbolic", 16, 0)
+        forward_button.set_image(Gtk.Image.new_from_pixbuf(forward_icon))
+        forward_button.connect("clicked", self.on_forward_clicked)
+        forward_button.get_style_context().add_class("transparent-button")
+        forward_button.get_style_context().add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
         hbox = Gtk.Box(spacing=24)
+        hbox.get_style_context().add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        hbox.pack_start(back_button, False, False, 0)
         hbox.pack_start(image, False, False, 0)
         hbox.pack_start(vbox, True, True, 0)
-
+        hbox.pack_end(forward_button, False, False, 0)
+        
         self.add(hbox)
 
 class PackageRow(Gtk.ListBoxRow):
@@ -1385,6 +1452,7 @@ class Application(Gtk.Application):
 
     def load_banner(self):
         box = self.builder.get_object("box_banner")
+        carousel_items = []
 
         if self.low_res:
             box.hide()
@@ -1397,49 +1465,71 @@ class Application(Gtk.Application):
         for child in box.get_children():
             child.destroy()
 
-        flowbox = Gtk.FlowBox()
-        flowbox.set_min_children_per_line(1)
-        flowbox.set_max_children_per_line(1)
-        flowbox.set_row_spacing(0)
-        flowbox.set_column_spacing(0)
-        flowbox.set_homogeneous(True)
-
-        flowbox.connect("child-activated", self.on_flowbox_child_activated, self.PAGE_LANDING)
+        # Create the carousel and set its properties
+        carousel = Handy.Carousel()
+        carousel.props.spacing = 12  # Adjust the spacing between items as needed
+        carousel.set_allow_scroll_wheel(False)
 
         json_array = json.load(open("/usr/share/linuxmint/mintinstall/featured/featured.json", "r"))
 
         tries = 0
         pkginfo = None
         is_flatpak = False
+        """ Instead of using random.sample(json_array, 1)[0], 
+        we first randomly shuffle the json_array using random.shuffle. 
+        Then we select the first 5 elements from the shuffled array using json_array[:5]. 
+        This ensures that each time you run the code, it will pick 5 unique elements from the json_array.
+        """
+        random.shuffle(json_array)
 
-        while True:
-            app_json = random.sample(json_array, 1)[0]
-            name = app_json["name"]
-            if name.startswith("flatpak:"):
-                name = name.replace("flatpak:", "")
-                pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_FLATPAK)
-                is_flatpak = True
-            else:
-                pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_APT)
-                is_flatpak = False
+        for app_json in json_array[:5]:            
+            flowbox = Gtk.FlowBox()
+            flowbox.set_min_children_per_line(1)
+            flowbox.set_max_children_per_line(1)
+            flowbox.set_row_spacing(0)
+            flowbox.set_column_spacing(0)
+            flowbox.set_homogeneous(True)
 
-            if pkginfo is not None:
-                if self.installer.pkginfo_is_installed(pkginfo) and tries < 10:
+            flowbox.connect("child-activated", self.on_flowbox_child_activated, self.PAGE_LANDING)
+
+            while True:
+                name = app_json["name"]
+                background = app_json["background"]
+                color = app_json["text_color"]
+                if name.startswith("flatpak:"):
+                    name = name.replace("flatpak:", "")
+                    pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_FLATPAK)
+                    is_flatpak = True
+                else:
+                    pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_APT)
+                    is_flatpak = False
+
+                if pkginfo is not None:
+                    if self.installer.pkginfo_is_installed(pkginfo) and tries < 10:
+                        tries += 1
+                        continue
+                    break
+                else:
                     tries += 1
-                    continue
-                break
-            else:
-                tries += 1
 
-            if tries > 10:
-                print("Error while loading the banner.")
-                box.hide()
-                return
+                if tries > 10:
+                    print("Error while loading the banner.")
+                    box.hide()
+                    return
 
-        tile = BannerTile(pkginfo, self.installer, name, is_flatpak, app_json, self.on_banner_clicked)
-        self.banner_app_name = pkginfo.name
-        flowbox.insert(tile, -1)
-        box.pack_start(flowbox, True, True, 0)
+            tile = BannerTile(pkginfo, self.installer, name, is_flatpak, background, color, self.on_banner_clicked, carousel, carousel_items)
+            self.banner_app_name = pkginfo.name
+            flowbox.insert(tile, -1)
+            carousel_items.append(flowbox)
+        # Start the timer for automatic scrolling every x seconds
+        self.timer_id = GLib.timeout_add_seconds(SCROLL_TIMER, BannerTile(pkginfo, self.installer, name, is_flatpak, 
+                                                background, color, self.on_banner_clicked, carousel, 
+                                                carousel_items).next_click)
+        for value, item in enumerate(carousel_items):
+            carousel.insert(item, value)
+
+        # Add the carousel to the main container
+        box.pack_start(carousel, True, True, 0)    
         box.show_all()
 
     def on_banner_clicked(self, button, pkginfo):
