@@ -1203,36 +1203,40 @@ class Application(Gtk.Application):
         separator.show()
         submenu.append(separator)
 
+        search_menuitem = Gtk.MenuItem(label=_("Search preferences"))
+        search_submenu = Gtk.Menu()
+        search_menuitem.set_submenu(search_submenu)
+        search_menuitem.show()
+        submenu.append(search_menuitem)
+
         search_summary_menuitem = Gtk.CheckMenuItem(label=_("Search in packages summary (slower search)"))
         search_summary_menuitem.set_active(self.settings.get_boolean(SEARCH_IN_SUMMARY))
         search_summary_menuitem.connect("toggled", self.set_search_filter, SEARCH_IN_SUMMARY)
         search_summary_menuitem.show()
-        submenu.append(search_summary_menuitem)
+        search_submenu.append(search_summary_menuitem)
 
         search_description_menuitem = Gtk.CheckMenuItem(label=_("Search in packages description (even slower search)"))
         search_description_menuitem.set_active(self.settings.get_boolean(SEARCH_IN_DESCRIPTION))
         search_description_menuitem.connect("toggled", self.set_search_filter, SEARCH_IN_DESCRIPTION)
         search_description_menuitem.show()
-        submenu.append(search_description_menuitem)
+        search_submenu.append(search_description_menuitem)
 
-        package_type_preference_submenu = Gtk.Menu()
-        package_type_preference_group = None
+        separator = Gtk.SeparatorMenuItem()
+        separator.show()
+        search_submenu.append(separator)
+
+        package_type_group = None
         for value, label in [
-            (PACKAGE_TYPE_PREFERENCE_ALL, _("Show all")),
-            (PACKAGE_TYPE_PREFERENCE_APT, _("Prefer system package")),
-            (PACKAGE_TYPE_PREFERENCE_FLATPAK, _("Prefer Flatpak")),
+            (PACKAGE_TYPE_PREFERENCE_ALL, _("Include all package types in results")),
+            (PACKAGE_TYPE_PREFERENCE_FLATPAK, _("Include only the Flatpak version of an app, if one exists")),
+            (PACKAGE_TYPE_PREFERENCE_APT, _("Include only the system package, if one exists")),
         ]:
-            package_type_preference_submenuitem = Gtk.RadioMenuItem.new_with_label(package_type_preference_group, label)
-            package_type_preference_group = package_type_preference_submenuitem.get_group()
-            package_type_preference_submenuitem.set_active(self.settings.get_string(PACKAGE_TYPE_PREFERENCE) == value)
-            package_type_preference_submenuitem.connect("toggled", self.set_package_type_preference, value)
-            package_type_preference_submenuitem.show()
-            package_type_preference_submenu.append(package_type_preference_submenuitem)
-
-        package_type_preference_menuitem = Gtk.MenuItem(label=_("Package type preference in search results"))
-        package_type_preference_menuitem.set_submenu(package_type_preference_submenu)
-        package_type_preference_menuitem.show()
-        submenu.append(package_type_preference_menuitem)
+            package_type_menuitem = Gtk.RadioMenuItem.new_with_label(package_type_group, label)
+            package_type_group = package_type_menuitem.get_group()
+            package_type_menuitem.set_active(self.settings.get_string(PACKAGE_TYPE_PREFERENCE) == value)
+            package_type_menuitem.connect("toggled", self.set_package_type_preference, value)
+            package_type_menuitem.show()
+            search_submenu.append(package_type_menuitem)
 
         separator = Gtk.SeparatorMenuItem()
         separator.show()
