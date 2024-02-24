@@ -990,16 +990,20 @@ class Application(Gtk.Application):
 
     def do_activate(self):
         if self.main_window is None:
-            if self.installer.init_sync():
-                self.create_window(self.PAGE_LANDING)
-                self.on_installer_ready()
-            else:
-                self.installer.init(self.on_installer_ready)
-                self.create_window(self.PAGE_LOADING)
-
+            self.create_window(self.PAGE_LOADING)
             self.add_window(self.main_window)
+            self.update_conditional_widgets()
+
+            t = threading.Thread(target=self._init_installer_thread, args=[])
+            t.start()
 
         self.main_window.present()
+
+    def _init_installer_thread(self):
+        if self.installer.init_sync():
+            self.on_installer_ready()
+        else:
+            self.installer.init(self.on_installer_ready)
 
     def do_command_line(self, command_line, data=None):
         Gtk.Application.do_command_line(self, command_line)
@@ -1361,7 +1365,6 @@ class Application(Gtk.Application):
     def on_installer_ready(self):
         try:
             self.process_matching_packages()
-            self.refresh_cache_menuitem.set_sensitive(True)
 
             self.apply_aliases()
 
@@ -1379,6 +1382,8 @@ class Application(Gtk.Application):
             GLib.idle_add(self.process_unmatched_packages)
 
             housekeeping.run()
+
+            self.refresh_cache_menuitem.set_sensitive(True)
         except Exception as e:
             print("Loading error: %s" % e)
             GLib.idle_add(self.refresh_cache)
@@ -1591,6 +1596,11 @@ class Application(Gtk.Application):
         self.load_top_rated()
 
     def update_conditional_widgets(self):
+        if not self.gui_ready:
+            self.installed_menuitem.set_sensitive(False)
+            self.subsearch_toggle.set_sensitive(False)
+            return
+
         sensitive = len(self.installed_category.pkginfos) > 0 \
                     and not ((self.page_stack.get_visible_child_name() == self.PAGE_LIST) \
                     and (self.current_category == self.installed_category))
@@ -2456,6 +2466,9 @@ class Application(Gtk.Application):
 
     @print_timing
     def show_search_results(self, terms):
+        if not self.gui_ready:
+            return False
+
         label = self.builder.get_object("label_cat_name")
         label.hide()
 
