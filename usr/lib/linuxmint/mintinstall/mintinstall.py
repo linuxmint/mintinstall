@@ -47,6 +47,7 @@ from math import pi
 DEGREES = pi / 180
 
 FALLBACK_PACKAGE_ICON_PATH = "/usr/share/linuxmint/mintinstall/data/available.png"
+VERIFIED_IMAGE_PATH = "/usr/share/linuxmint/mintinstall/data/verified.svg"
 FLATHUB_MEDIA_BASE_URL = "https://dl.flathub.org/media/"
 
 #Hardcoded mouse back button key for button-press-event
@@ -60,6 +61,7 @@ INSTALLED_APPS = "installed-apps"
 SEARCH_IN_CATEGORY = "search-in-category"
 HAMONIKR_SCREENSHOTS = "hamonikr-screenshots"
 PACKAGE_TYPE_PREFERENCE = "search-package-type-preference"
+SEARCH_VERIFIED_ONLY = "search-verified-only"
 # Allowed values
 PACKAGE_TYPE_PREFERENCE_ALL = "all"
 PACKAGE_TYPE_PREFERENCE_APT = "apt"
@@ -597,7 +599,7 @@ class SaneProgressBar(Gtk.DrawingArea):
 
 
 class BannerTile(Gtk.FlowBoxChild):
-    def __init__(self, pkginfo, installer, name, is_flatpak, app_json, on_clicked_action):
+    def __init__(self, pkginfo, installer, name, is_flatpak, show_verified, app_json, on_clicked_action):
         super(Gtk.FlowBoxChild, self).__init__()
 
         self.pkginfo = pkginfo
@@ -661,6 +663,8 @@ class BannerTile(Gtk.FlowBoxChild):
             label_flatpak = Gtk.Label(label="Flathub")
             label_flatpak.set_name("BannerFlatpakLabel")
             box_flatpak.pack_start(label_flatpak, False, False, 0)
+            if show_verified:
+                box_flatpak.pack_start(Gtk.Image.new_from_icon_name("mintinstall-verified-symbolic", Gtk.IconSize.MENU), False, False, 0)
             vbox.pack_start(box_flatpak, False, False, 0)
 
         hbox = Gtk.Box(spacing=24)
@@ -778,6 +782,7 @@ class VerticalPackageTile(Gtk.FlowBoxChild):
         self.package_type_emblem = self.builder.get_object("package_type_emblem")
         self.package_type_name = self.builder.get_object("package_type_name")
         self.installed_mark = self.builder.get_object("installed_mark")
+        self.verified_mark = self.builder.get_object("verified_mark")
 
         self.icon_holder.add(icon)
 
@@ -802,9 +807,21 @@ class VerticalPackageTile(Gtk.FlowBoxChild):
                 if remote_info is None:
                     self.package_type_name.set_label(pkginfo.remote.capitalize())
 
-                self.package_type_box.set_tooltip_text(_("This package is a Flatpak"))
+                verified = False
+                try:
+                    asapp = self.installer.get_appstream_app_for_pkginfo(pkginfo)
+                    verified = asapp.get_metadata()["flathub::verification::verified"]
+                except (AttributeError, KeyError):
+                    pass
+
                 self.package_type_emblem.set_from_icon_name("mintinstall-package-flatpak-symbolic", Gtk.IconSize.MENU)
                 self.package_type_box.show()
+
+                if verified:
+                    self.package_type_box.set_tooltip_text(_("This package is a Flatpak from a verified source"))
+                    self.verified_mark.set_visible(True)
+                else:
+                    self.package_type_box.set_tooltip_text(_("This package is a Flatpak"))
             else:
                 self.package_type_name.hide()
                 self.package_type_emblem.hide()
@@ -1172,6 +1189,7 @@ class Application(Gtk.Application):
         self.progress_box = self.builder.get_object("progress_box")
         self.action_button = self.builder.get_object("action_button")
         self.launch_button = self.builder.get_object("launch_button")
+        self.verified_box = self.builder.get_object("verified_box")
         self.active_tasks_button = self.builder.get_object("active_tasks_button")
         self.active_tasks_spinner = self.builder.get_object("active_tasks_spinner")
         self.no_packages_found_label = self.builder.get_object("no_packages_found_label")
@@ -1240,7 +1258,17 @@ class Application(Gtk.Application):
 
         separator = Gtk.SeparatorMenuItem()
         separator.show()
+        search_submenu.append(separator)
+
+        separator = Gtk.SeparatorMenuItem()
+        separator.show()
         submenu.append(separator)
+
+        search_summary_menuitem = Gtk.CheckMenuItem(label=_("Only include verified flatpaks in search results"))
+        search_summary_menuitem.set_active(self.settings.get_boolean(SEARCH_VERIFIED_ONLY))
+        self.settings.bind(SEARCH_VERIFIED_ONLY, search_summary_menuitem, "active", Gio.SettingsBindFlags.DEFAULT)
+        search_summary_menuitem.show()
+        search_submenu.append(search_summary_menuitem)
 
         self.refresh_cache_menuitem = Gtk.MenuItem(label=_("Refresh the list of packages"))
         self.refresh_cache_menuitem.connect("activate", self.on_refresh_cache_clicked)
@@ -1464,7 +1492,9 @@ class Application(Gtk.Application):
                 box.hide()
                 return
 
-        tile = BannerTile(pkginfo, self.installer, name, is_flatpak, app_json, self.on_banner_clicked)
+        show_verified = is_flatpak and self.flatpak_is_verified(pkginfo)
+
+        tile = BannerTile(pkginfo, self.installer, name, is_flatpak, show_verified, app_json, self.on_banner_clicked)
         self.banner_app_name = pkginfo.name
         flowbox.insert(tile, -1)
         box.pack_start(flowbox, True, True, 0)
@@ -2528,6 +2558,7 @@ class Application(Gtk.Application):
 
         search_in_summary = self.settings.get_boolean(SEARCH_IN_SUMMARY)
         search_in_description = self.settings.get_boolean(SEARCH_IN_DESCRIPTION)
+        verified_flatpaks_only = self.settings.get_boolean(SEARCH_VERIFIED_ONLY)
 
         package_type_preference = self.settings.get_string(PACKAGE_TYPE_PREFERENCE)
         hidden_packages = set()
@@ -2539,9 +2570,13 @@ class Application(Gtk.Application):
                 self.search_idle_timer = 0
                 return False
 
+            flatpak = pkginfo.pkg_hash.startswith("f")
             is_match = False
 
             while True:
+                if flatpak and verified_flatpaks_only and not self.flatpak_is_verified(pkginfo):
+                    break
+
                 if all(piece in pkginfo.name.upper() for piece in termsSplit):
                     is_match = True
                     pkginfo.search_tier = 0
@@ -2550,7 +2585,7 @@ class Application(Gtk.Application):
                 # may not actually contain the app's name. In this case their display
                 # names are better. The 'name' is still checked first above, because
                 # it's static - get_display_name() may involve a lookup with appstream.
-                if pkginfo.pkg_hash.startswith("f") and all(piece in self.installer.get_display_name(pkginfo).upper() for piece in termsSplit):
+                if flatpak and all(piece in self.installer.get_display_name(pkginfo).upper() for piece in termsSplit):
                     is_match = True
                     pkginfo.search_tier = 0
                     break
@@ -2566,9 +2601,9 @@ class Application(Gtk.Application):
 
             if is_match:
                 searched_packages.append(pkginfo)
-                if package_type_preference == PACKAGE_TYPE_PREFERENCE_APT and pkginfo.pkg_hash.startswith("a"):
+                if package_type_preference == PACKAGE_TYPE_PREFERENCE_APT and not flatpak:
                     hidden_packages.add(FLATPAK_EQUIVS.get(pkginfo.name))
-                elif package_type_preference == PACKAGE_TYPE_PREFERENCE_FLATPAK and pkginfo.pkg_hash.startswith("f"):
+                elif package_type_preference == PACKAGE_TYPE_PREFERENCE_FLATPAK and flatpak:
                     hidden_packages.add(DEB_EQUIVS.get(pkginfo.name))
 
             # Repeat until empty
@@ -2786,6 +2821,15 @@ class Application(Gtk.Application):
 
         return Gdk.EVENT_PROPAGATE
 
+    def flatpak_is_verified(self, pkginfo):
+        try:
+            asapp = self.installer.get_appstream_app_for_pkginfo(pkginfo)
+            return asapp.get_metadata()["flathub::verification::verified"]
+        except (AttributeError, KeyError):
+            pass
+
+        return False
+
     def package_type_combo_changed(self, combo):
         iter = combo.get_active_iter()
         if iter:
@@ -2870,10 +2914,13 @@ class Application(Gtk.Application):
             self.package_type_combo.set_active_iter(to_use_iter)
             self.package_type_combo.set_tooltip_text(tooltip)
 
+        self.verified_box.hide()
+
         if pkginfo.pkg_hash.startswith("f"):
             self.flatpak_details_vgroup.show()
             # We don't know flatpak versions until the task reports back, apt we know immediately.
             self.builder.get_object("application_version").set_label("")
+            self.verified_box.set_visible(self.flatpak_is_verified(pkginfo))
         else:
             self.flatpak_details_vgroup.hide()
             self.builder.get_object("application_version").set_label(self.installer.get_version(pkginfo))
