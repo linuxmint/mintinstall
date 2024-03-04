@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.38.2 -->
+<!-- Generated with glade 3.40.0 -->
 <interface domain="mintinstall">
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkOverlay" id="vertical_package_tile">
@@ -142,6 +142,18 @@
                     <property name="expand">False</property>
                     <property name="fill">True</property>
                     <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkImage" id="verified_mark">
+                    <property name="can-focus">False</property>
+                    <property name="no-show-all">True</property>
+                    <property name="icon-name">mintinstall-verified-symbolic</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">2</property>
                   </packing>
                 </child>
               </object>
