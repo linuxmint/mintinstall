@@ -673,84 +673,9 @@ class BannerTile(Gtk.FlowBoxChild):
 
         self.add(hbox)
 
-class PackageRow(Gtk.ListBoxRow):
-    def __init__(self, pkginfo, icon, summary, installer, from_search=False, review_info=None):
-        super(Gtk.ListBoxRow, self).__init__()
-        self.pkginfo = pkginfo
-        self.installed_mark = Gtk.Image()
-        self.installer = installer
-        self.asapp = self.installer.get_appstream_app_for_pkginfo(pkginfo)
-
-        glade_file = "/usr/share/linuxmint/mintinstall/package-row.glade"
-        self.builder = Gtk.Builder()
-        self.builder.add_from_file(glade_file)
-
-        self.main_box = self.builder.get_object("package_row")
-        self.add(self.main_box)
-        self.main_box.connect("button-press-event", lambda w, e: Gdk.EVENT_PROPAGATE)
-        self.main_box.connect("button-release-event", lambda w, e: Gdk.EVENT_PROPAGATE)
-
-        self.app_icon_holder = self.builder.get_object("app_icon_holder")
-        self.app_display_name = self.builder.get_object("app_display_name")
-        self.app_summary = self.builder.get_object("app_summary")
-        self.flatpak_badge = self.builder.get_object("flatpak_badge")
-        self.category_label = self.builder.get_object("category_label")
-        self.installed_mark = self.builder.get_object("installed_mark")
-
-        self.app_icon_holder.add(icon)
-
-        display_name = self.installer.get_display_name(pkginfo)
-        display_name = GLib.markup_escape_text(display_name)
-
-        if pkginfo.pkg_hash.startswith("f"):
-            self.flatpak_badge.show()
-        else:
-            self.flatpak_badge.hide()
-
-        self.app_display_name.set_label(display_name)
-        self.app_summary.set_label(summary)
-        self.show_all()
-
-        if review_info:
-            self.fill_rating_widget(review_info)
-
-        self.refresh_state()
-
-    def refresh_state(self):
-        self.installed = self.installer.pkginfo_is_installed(self.pkginfo)
-
-        if self.installed:
-            self.installed_mark.set_from_icon_name("mintinstall-installed", Gtk.IconSize.LARGE_TOOLBAR)
-        else:
-            self.installed_mark.clear()
-
-    def fill_rating_widget(self, review_info):
-        review_info_box = self.builder.get_object("review_info_box")
-
-        stars_box = self.builder.get_object("stars_box")
-
-        rating = review_info.avg_rating
-        remaining_stars = 5
-        while rating >= 1.0:
-            stars_box.pack_start(Gtk.Image.new_from_icon_name("starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
-            rating -= 1
-            remaining_stars -= 1
-        if rating > 0.0:
-            stars_box.pack_start(Gtk.Image.new_from_icon_name("semi-starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
-            remaining_stars -= 1
-        for i in range (remaining_stars):
-            stars_box.pack_start(Gtk.Image.new_from_icon_name("non-starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
-        stars_box.show_all()
-
-        num_reviews_label = self.builder.get_object("num_reviews_label")
-
-        # TRANSLATORS: showing specific number of reviews in the list view and the header of the package details.
-        review_text = gettext.ngettext("%d Review", "%d Reviews", review_info.num_reviews) % review_info.num_reviews
-        num_reviews_label.set_label(review_text)
-
-class VerticalPackageTile(Gtk.FlowBoxChild):
+class PackageTile(Gtk.FlowBoxChild):
     def __init__(self, pkginfo, icon, installer, show_package_type=False, review_info=None):
-        super(VerticalPackageTile, self).__init__()
+        super(PackageTile, self).__init__()
 
         self.button = Gtk.Button();
         self.button.connect("clicked", self._activate_fb_child)
@@ -768,7 +693,7 @@ class VerticalPackageTile(Gtk.FlowBoxChild):
                 self.pkg_category = pkginfo.categories[1]
 
 
-        glade_file = "/usr/share/linuxmint/mintinstall/vertical-tile.glade"
+        glade_file = "/usr/share/linuxmint/mintinstall/package-tile.glade"
         self.builder = Gtk.Builder()
         self.builder.add_from_file(glade_file)
 
@@ -1542,7 +1467,7 @@ class Application(Gtk.Application):
             else:
                 review_info = None
             icon = self.get_application_icon(pkginfo, FEATURED_ICON_SIZE)
-            tile = VerticalPackageTile(pkginfo, icon, self.installer, show_package_type=True, review_info=review_info)
+            tile = PackageTile(pkginfo, icon, self.installer, show_package_type=True, review_info=review_info)
             size_group.add_widget(tile)
             self.flowbox_top_rated.insert(tile, -1)
             self.picks_tiles.append(tile)
@@ -1598,7 +1523,7 @@ class Application(Gtk.Application):
             else:
                 review_info = None
             icon = self.get_application_icon(pkginfo, FEATURED_ICON_SIZE)
-            tile = VerticalPackageTile(pkginfo, icon, self.installer, show_package_type=True, review_info=review_info)
+            tile = PackageTile(pkginfo, icon, self.installer, show_package_type=True, review_info=review_info)
             size_group.add_widget(tile)
             self.flowbox_featured.insert(tile, -1)
             self.picks_tiles.append(tile)
@@ -2802,7 +2727,7 @@ class Application(Gtk.Application):
         else:
             review_info = None
 
-        tile = VerticalPackageTile(pkginfo, icon, self.installer, show_package_type=True, review_info=review_info)
+        tile = PackageTile(pkginfo, icon, self.installer, show_package_type=True, review_info=review_info)
         self.flowbox_applications.insert(tile, -1)
         self.category_tiles.append(tile)
 
