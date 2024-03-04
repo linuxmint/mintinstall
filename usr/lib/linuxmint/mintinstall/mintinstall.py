@@ -59,6 +59,11 @@ SEARCH_IN_DESCRIPTION = "search-in-description"
 INSTALLED_APPS = "installed-apps"
 SEARCH_IN_CATEGORY = "search-in-category"
 HAMONIKR_SCREENSHOTS = "hamonikr-screenshots"
+PACKAGE_TYPE_PREFERENCE = "search-package-type-preference"
+# Allowed values
+PACKAGE_TYPE_PREFERENCE_ALL = "all"
+PACKAGE_TYPE_PREFERENCE_APT = "apt"
+PACKAGE_TYPE_PREFERENCE_FLATPAK = "flatpak"
 
 # package type combobox columns
 # index, label, icon-name, tooltip, pkginfo
@@ -1198,17 +1203,40 @@ class Application(Gtk.Application):
         separator.show()
         submenu.append(separator)
 
+        search_menuitem = Gtk.MenuItem(label=_("Search preferences"))
+        search_submenu = Gtk.Menu()
+        search_menuitem.set_submenu(search_submenu)
+        search_menuitem.show()
+        submenu.append(search_menuitem)
+
         search_summary_menuitem = Gtk.CheckMenuItem(label=_("Search in packages summary (slower search)"))
         search_summary_menuitem.set_active(self.settings.get_boolean(SEARCH_IN_SUMMARY))
         search_summary_menuitem.connect("toggled", self.set_search_filter, SEARCH_IN_SUMMARY)
         search_summary_menuitem.show()
-        submenu.append(search_summary_menuitem)
+        search_submenu.append(search_summary_menuitem)
 
         search_description_menuitem = Gtk.CheckMenuItem(label=_("Search in packages description (even slower search)"))
         search_description_menuitem.set_active(self.settings.get_boolean(SEARCH_IN_DESCRIPTION))
         search_description_menuitem.connect("toggled", self.set_search_filter, SEARCH_IN_DESCRIPTION)
         search_description_menuitem.show()
-        submenu.append(search_description_menuitem)
+        search_submenu.append(search_description_menuitem)
+
+        separator = Gtk.SeparatorMenuItem()
+        separator.show()
+        search_submenu.append(separator)
+
+        package_type_group = None
+        for value, label in [
+            (PACKAGE_TYPE_PREFERENCE_ALL, _("Include all package types in results")),
+            (PACKAGE_TYPE_PREFERENCE_FLATPAK, _("Include only the Flatpak version of an app, if one exists")),
+            (PACKAGE_TYPE_PREFERENCE_APT, _("Include only the system package, if one exists")),
+        ]:
+            package_type_menuitem = Gtk.RadioMenuItem.new_with_label(package_type_group, label)
+            package_type_group = package_type_menuitem.get_group()
+            package_type_menuitem.set_active(self.settings.get_string(PACKAGE_TYPE_PREFERENCE) == value)
+            package_type_menuitem.connect("toggled", self.set_package_type_preference, value)
+            package_type_menuitem.show()
+            search_submenu.append(package_type_menuitem)
 
         separator = Gtk.SeparatorMenuItem()
         separator.show()
@@ -1944,6 +1972,14 @@ class Application(Gtk.Application):
         if (self.searchentry.get_text() != ""):
             self.show_search_results(terms)
 
+    def set_package_type_preference(self, radiomenuitem, value):
+        if radiomenuitem.get_active():
+            self.settings.set_string(PACKAGE_TYPE_PREFERENCE, value)
+
+            terms = self.searchentry.get_text()
+            if terms != "":
+                self.show_search_results(terms)
+
     def open_about(self, widget):
         dlg = Gtk.AboutDialog()
         dlg.set_transient_for(self.main_window)
@@ -2493,6 +2529,9 @@ class Application(Gtk.Application):
         search_in_summary = self.settings.get_boolean(SEARCH_IN_SUMMARY)
         search_in_description = self.settings.get_boolean(SEARCH_IN_DESCRIPTION)
 
+        package_type_preference = self.settings.get_string(PACKAGE_TYPE_PREFERENCE)
+        hidden_packages = set()
+
         def idle_search_one_package(pkginfos):
             try:
                 pkginfo = pkginfos.pop(0)
@@ -2500,28 +2539,37 @@ class Application(Gtk.Application):
                 self.search_idle_timer = 0
                 return False
 
+            is_match = False
+
             while True:
                 if all(piece in pkginfo.name.upper() for piece in termsSplit):
-                    searched_packages.append(pkginfo)
+                    is_match = True
                     pkginfo.search_tier = 0
-                    break
-                if (search_in_summary and termsUpper in self.installer.get_summary(pkginfo, for_search=True).upper()):
-                    searched_packages.append(pkginfo)
-                    pkginfo.search_tier = 100
-                    break
-                if(search_in_description and termsUpper in self.installer.get_description(pkginfo, for_search=True).upper()):
-                    searched_packages.append(pkginfo)
-                    pkginfo.search_tier = 200
                     break
                 # pkginfo.name for flatpaks is their id (org.foo.BarMaker), which
                 # may not actually contain the app's name. In this case their display
                 # names are better. The 'name' is still checked first above, because
                 # it's static - get_display_name() may involve a lookup with appstream.
                 if pkginfo.pkg_hash.startswith("f") and all(piece in self.installer.get_display_name(pkginfo).upper() for piece in termsSplit):
-                    searched_packages.append(pkginfo)
+                    is_match = True
                     pkginfo.search_tier = 0
                     break
+                if (search_in_summary and termsUpper in self.installer.get_summary(pkginfo, for_search=True).upper()):
+                    is_match = True
+                    pkginfo.search_tier = 100
+                    break
+                if(search_in_description and termsUpper in self.installer.get_description(pkginfo, for_search=True).upper()):
+                    is_match = True
+                    pkginfo.search_tier = 200
+                    break
                 break
+
+            if is_match:
+                searched_packages.append(pkginfo)
+                if package_type_preference == PACKAGE_TYPE_PREFERENCE_APT and pkginfo.pkg_hash.startswith("a"):
+                    hidden_packages.add(FLATPAK_EQUIVS.get(pkginfo.name))
+                elif package_type_preference == PACKAGE_TYPE_PREFERENCE_FLATPAK and pkginfo.pkg_hash.startswith("f"):
+                    hidden_packages.add(DEB_EQUIVS.get(pkginfo.name))
 
             # Repeat until empty
             if len(pkginfos) > 0:
@@ -2529,7 +2577,14 @@ class Application(Gtk.Application):
 
             self.search_idle_timer = 0
 
-            GLib.idle_add(self.on_search_results_complete, searched_packages)
+            if package_type_preference == PACKAGE_TYPE_PREFERENCE_APT:
+                results = [p for p in searched_packages if not (p.pkg_hash.startswith("f") and p.name in hidden_packages)]
+            elif package_type_preference == PACKAGE_TYPE_PREFERENCE_FLATPAK:
+                results = [p for p in searched_packages if not (p.pkg_hash.startswith("a") and p.name in hidden_packages)]
+            else:
+                results = searched_packages
+
+            GLib.idle_add(self.on_search_results_complete, results)
             return False
 
         self.search_idle_timer = GLib.idle_add(idle_search_one_package, list(listing))
