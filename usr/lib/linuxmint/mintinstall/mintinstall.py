@@ -27,8 +27,8 @@ from operator import attrgetter
 import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('XApp', '1.0')
-gi.require_version('AppStreamGlib', '1.0')
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, XApp, AppStreamGlib, Pango
+gi.require_version('AppStream', '1.0')
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, XApp, AppStream, Pango
 import cairo
 
 from mintcommon.installer import installer
@@ -304,11 +304,12 @@ class AsyncImage(Gtk.Image):
         self.emit("image-loaded")
 
 class ScreenshotDownloader(threading.Thread):
-    def __init__(self, application, pkginfo):
+    def __init__(self, application, pkginfo, scale):
         threading.Thread.__init__(self)
         self.application = application
         self.pkginfo = pkginfo
         self.settings = Gio.Settings(schema_id="com.linuxmint.install")
+        self.scale_factor = scale
 
     def prefix_media_base_url(self, url):
         if (not url.startswith("http")) and self.pkginfo.remote == "flathub":
@@ -326,7 +327,7 @@ class ScreenshotDownloader(threading.Thread):
                 if len(self.application.installer.get_screenshots(self.pkginfo)) > 0:
                     for screenshot in self.pkginfo.screenshots:
 
-                        image = screenshot.get_image(624, 351)
+                        image = screenshot.get_image(624, 351, self.scale_factor)
 
                         url = self.prefix_media_base_url(image.get_url())
                         if requests.head(url, timeout=5).status_code < 400:
@@ -334,10 +335,13 @@ class ScreenshotDownloader(threading.Thread):
 
                             local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
 
-                            source = screenshot.get_source()
+                            images = screenshot.get_images_all()
+                            for i in images:
+                                if i.get_kind() == AppStream.ImageKind.SOURCE:
+                                    source = i
 
-                            source_url = self.prefix_media_base_url(source.get_url())
-                            self.save_to_file(url, source_url, local_name)
+                                    source_url = self.prefix_media_base_url(source.get_url())
+                                    self.save_to_file(url, source_url, local_name)
 
                             self.add_screenshot(self.pkginfo, local_name, num_screenshots)
             except Exception as e:
@@ -468,7 +472,7 @@ class FlatpakAddonRow(Gtk.ListBoxRow):
         name_size_group.add_widget(name)
         label_box.pack_start(name, False, False, 0)
 
-        summary = Gtk.Label(label=addon.get_comment(), xalign=0.0, wrap=True, max_width_chars=60, selectable=True)
+        summary = Gtk.Label(label=addon.get_summary(), xalign=0.0, wrap=True, max_width_chars=60, selectable=True)
         label_box.pack_start(summary, False, False, 0)
 
         if not self.app.installer.pkginfo_is_installed(self.pkginfo):
@@ -1741,7 +1745,7 @@ class Application(Gtk.Application):
             self.add_screenshot(pkginfo, ss_path, n)
 
         if n == 0:
-            downloadScreenshots = ScreenshotDownloader(self, pkginfo)
+            downloadScreenshots = ScreenshotDownloader(self, pkginfo, self.main_window.get_scale_factor())
             downloadScreenshots.start()
 
     def add_screenshot(self, pkginfo, ss_path, n):
@@ -3177,8 +3181,8 @@ class Application(Gtk.Application):
                 launchables = self.installer.get_flatpak_launchables(pkginfo)
                 if launchables:
                     for launchable in launchables:
-                        if launchable.get_kind() == AppStreamGlib.LaunchableKind.DESKTOP_ID:
-                            desktop_id = launchable.get_value()
+                        if launchable.get_kind() == AppStream.LaunchableKind.DESKTOP_ID:
+                            [desktop_id] = launchable.get_entries()
                             desktop_file = os.path.join(self.installer.get_flatpak_root_path(), "exports/share/applications", desktop_id)
                             print(desktop_file)
                             try:
