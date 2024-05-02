@@ -2815,7 +2815,6 @@ class Application(Gtk.Application):
             ascomp = self.installer.get_appstream_app_for_pkginfo(pkginfo)
             return not ascomp.has_tag("flathub", "verified")
         except (AttributeError, KeyError) as e:
-            print(e)
             pass
 
         return True
