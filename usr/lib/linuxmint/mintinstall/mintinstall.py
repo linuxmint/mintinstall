@@ -63,7 +63,7 @@ INSTALLED_APPS = "installed-apps"
 SEARCH_IN_CATEGORY = "search-in-category"
 HAMONIKR_SCREENSHOTS = "hamonikr-screenshots"
 PACKAGE_TYPE_PREFERENCE = "search-package-type-preference"
-SEARCH_VERIFIED_ONLY = "search-verified-only"
+SEARCH_SKIP_UNVERIFIED = "search-skip-unverified"
 # Allowed values
 PACKAGE_TYPE_PREFERENCE_ALL = "all"
 PACKAGE_TYPE_PREFERENCE_APT = "apt"
@@ -629,13 +629,15 @@ class SaneProgressBar(Gtk.DrawingArea):
 
 
 class BannerTile(Gtk.FlowBoxChild):
-    def __init__(self, pkginfo, installer, name, is_flatpak, show_verified, app_json, on_clicked_action):
+    def __init__(self, pkginfo, installer, name, is_flatpak, app_json, on_clicked_action):
         super(Gtk.FlowBoxChild, self).__init__()
 
         self.pkginfo = pkginfo
         self.installer = installer
+        self.is_flatpak = is_flatpak
+        self.init_name = name
 
-        image_uri = (f"/usr/share/linuxmint/mintinstall/featured/{name}.svg")
+        self.image_uri = (f"/usr/share/linuxmint/mintinstall/featured/{name}.svg")
         background = app_json["background"]
         color = app_json["text_color"]
 
@@ -670,16 +672,22 @@ class BannerTile(Gtk.FlowBoxChild):
         Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(),
                                                  style_provider,
                                                  Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        self.box = None
+        self.repopulate_tile()
+
+    def repopulate_tile(self):
+        if self.box is not None:
+            self.box.destroy()
 
         label_name = Gtk.Label(xalign=0)
-        label_name.set_label(self.installer.get_display_name(pkginfo))
+        label_name.set_label(self.installer.get_display_name(self.pkginfo))
         label_name.set_name("BannerTitle")
 
         label_summary = Gtk.Label(xalign=0)
-        label_summary.set_label(self.installer.get_summary(pkginfo))
+        label_summary.set_label(self.installer.get_summary(self.pkginfo))
         label_summary.set_name("BannerSummary")
 
-        image = Gtk.Image.new_from_file(image_uri)
+        image = Gtk.Image.new_from_file(self.image_uri)
 
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, halign=Gtk.Align.START)
         vbox.set_border_width(6)
@@ -687,24 +695,24 @@ class BannerTile(Gtk.FlowBoxChild):
         vbox.pack_start(label_name, False, False, 0)
         vbox.pack_start(label_summary, False, False, 0)
 
-        if is_flatpak:
+        if self.is_flatpak:
             box_flatpak = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
             box_flatpak.pack_start(Gtk.Image.new_from_icon_name("mintinstall-package-flatpak-symbolic", Gtk.IconSize.MENU), False, False, 0)
             label_flatpak = Gtk.Label(label="Flathub")
             label_flatpak.set_name("BannerFlatpakLabel")
             box_flatpak.pack_start(label_flatpak, False, False, 0)
-            if show_verified:
-                box_flatpak.pack_start(Gtk.Image.new_from_icon_name("mintinstall-verified-symbolic", Gtk.IconSize.MENU), False, False, 0)
             vbox.pack_start(box_flatpak, False, False, 0)
 
         hbox = Gtk.Box(spacing=24)
         hbox.pack_start(image, False, False, 0)
         hbox.pack_start(vbox, True, True, 0)
-
+        hbox.show_all()
         self.add(hbox)
 
+        self.box = hbox
+
 class PackageTile(Gtk.FlowBoxChild):
-    def __init__(self, pkginfo, icon, installer, show_package_type=False, review_info=None):
+    def __init__(self, pkginfo, installer, show_package_type=False, review_info=None):
         super(PackageTile, self).__init__()
 
         self.button = Gtk.Button();
@@ -714,6 +722,8 @@ class PackageTile(Gtk.FlowBoxChild):
 
         self.pkginfo = pkginfo
         self.installer = installer
+        self.review_info = review_info
+        self.show_package_type = show_package_type
 
         self.pkg_category = ''
         if len(pkginfo.categories) > 0:
@@ -738,51 +748,50 @@ class PackageTile(Gtk.FlowBoxChild):
         self.package_type_name = self.builder.get_object("package_type_name")
         self.installed_mark = self.builder.get_object("installed_mark")
         self.verified_mark = self.builder.get_object("verified_mark")
+        self.icon = None
 
-        self.icon_holder.add(icon)
+        self.repopulate_tile()
 
-        display_name = self.installer.get_display_name(pkginfo)
+    def repopulate_tile(self):
+        if self.icon is not None:
+            self.icon.destroy()
+
+        icon_string = self.installer.get_icon(self.pkginfo, FEATURED_ICON_SIZE)
+        if not icon_string:
+            icon_string = FALLBACK_PACKAGE_ICON_PATH
+        self.icon = AsyncImage(icon_string, FEATURED_ICON_SIZE, FEATURED_ICON_SIZE)
+        self.icon_holder.add(self.icon)
+
+        display_name = self.installer.get_display_name(self.pkginfo)
         self.package_label.set_label(display_name)
 
-        summary = self.installer.get_summary(pkginfo)
+        summary = self.installer.get_summary(self.pkginfo)
         self.package_summary.set_label(summary)
 
-        if show_package_type:
-            if pkginfo.pkg_hash.startswith("f"):
+        if self.show_package_type:
+            if self.pkginfo.pkg_hash.startswith("f"):
 
                 remote_info = None
 
                 try:
-                    remote_info = self.installer.get_remote_info_for_name(pkginfo.remote)
+                    remote_info = self.installer.get_remote_info_for_name(self.pkginfo.remote)
                     if remote_info:
                         self.package_type_name.set_label(remote_info.title)
                 except:
                     pass
 
                 if remote_info is None:
-                    self.package_type_name.set_label(pkginfo.remote.capitalize())
-
-                verified = False
-                try:
-                    asapp = self.installer.get_appstream_app_for_pkginfo(pkginfo)
-                    verified = asapp.get_metadata()["flathub::verification::verified"]
-                except (AttributeError, KeyError):
-                    pass
+                    self.package_type_name.set_label(self.pkginfo.remote.capitalize())
 
                 self.package_type_emblem.set_from_icon_name("mintinstall-package-flatpak-symbolic", Gtk.IconSize.MENU)
                 self.package_type_box.show()
-
-                if verified:
-                    self.package_type_box.set_tooltip_text(_("This package is a Flatpak from a verified source"))
-                    self.verified_mark.set_visible(True)
-                else:
-                    self.package_type_box.set_tooltip_text(_("This package is a Flatpak"))
+                self.package_type_box.set_tooltip_text(_("This package is a Flatpak"))
             else:
                 self.package_type_name.hide()
                 self.package_type_emblem.hide()
 
-        if review_info:
-            self.fill_rating_widget(review_info)
+        if self.review_info:
+            self.fill_rating_widget(self.review_info)
 
         self.show_all()
         self.refresh_state()
@@ -943,6 +952,7 @@ class Application(Gtk.Application):
             self.locale = self.locale.split("_")[0]
 
         self.installer = installer.Installer()
+        self.installer.connect("appstream-changed", self.on_appstream_changed)
         self.task_cancellable = None
         self.current_task = None
         self.recursion_buster = False
@@ -1157,7 +1167,7 @@ class Application(Gtk.Application):
         self.progress_box = self.builder.get_object("progress_box")
         self.action_button = self.builder.get_object("action_button")
         self.launch_button = self.builder.get_object("launch_button")
-        self.verified_box = self.builder.get_object("verified_box")
+        self.unsafe_box = self.builder.get_object("unsafe_box")
         self.active_tasks_button = self.builder.get_object("active_tasks_button")
         self.active_tasks_spinner = self.builder.get_object("active_tasks_spinner")
         self.no_packages_found_label = self.builder.get_object("no_packages_found_label")
@@ -1228,6 +1238,16 @@ class Application(Gtk.Application):
                 package_type_menuitem.connect("toggled", self.set_package_type_preference, value)
                 package_type_menuitem.show()
                 search_submenu.append(package_type_menuitem)
+
+            separator = Gtk.SeparatorMenuItem()
+            separator.show()
+            search_submenu.append(separator)
+
+            search_summary_menuitem = Gtk.CheckMenuItem(label=_("Hide Flatpaks that are not verified by their remote"))
+            search_summary_menuitem.set_active(self.settings.get_boolean(SEARCH_SKIP_UNVERIFIED))
+            self.settings.bind(SEARCH_SKIP_UNVERIFIED, search_summary_menuitem, "active", Gio.SettingsBindFlags.DEFAULT)
+            search_summary_menuitem.show()
+            search_submenu.append(search_summary_menuitem)
 
         self.refresh_cache_menuitem = Gtk.MenuItem(label=_("Refresh the list of packages"))
         self.refresh_cache_menuitem.connect("activate", self.on_refresh_cache_clicked)
@@ -1301,6 +1321,7 @@ class Application(Gtk.Application):
 
         self.flowbox_featured = None
         self.flowbox_top_rated = None
+        self.banner_tile = None
 
         self.package_type_store = Gtk.ListStore(int, str, str, str, object) # index, label, summary, icon-name, remotename, pkginfo
 
@@ -1316,7 +1337,7 @@ class Application(Gtk.Application):
         self.package_type_combo.set_model(self.package_type_store)
         self.package_type_combo.show_all()
         self.package_type_combo_container = self.builder.get_object("package_type_combo_container")
-        self.package_type_combo_container.pack_start(self.package_type_combo, False, False, 0)
+        self.package_type_combo_container.pack_start(self.package_type_combo, True, True, 0)
         self.single_version_package_type_box = self.builder.get_object("single_version_package_type_box")
         self.single_version_package_type_icon = self.builder.get_object("single_version_package_type_icon")
         self.single_version_package_type_label = self.builder.get_object("single_version_package_type_label")
@@ -1372,6 +1393,12 @@ class Application(Gtk.Application):
 
     def on_refresh_cache_clicked(self, widget, data=None):
         self.refresh_cache()
+
+    def on_appstream_changed(self, installer):
+        for tile in self.picks_tiles:
+            tile.repopulate_tile()
+        if self.banner_tile is not None:
+            self.banner_tile.repopulate_tile()
 
     def on_installer_ready(self):
         try:
@@ -1453,11 +1480,10 @@ class Application(Gtk.Application):
                 box.hide()
                 return
 
-        show_verified = is_flatpak and self.flatpak_is_verified(pkginfo)
-
-        tile = BannerTile(pkginfo, self.installer, name, is_flatpak, show_verified, app_json, self.on_banner_clicked)
+        tile = BannerTile(pkginfo, self.installer, name, is_flatpak, app_json, self.on_banner_clicked)
         self.banner_app_name = pkginfo.name
         flowbox.insert(tile, -1)
+        self.banner_tile = tile
         box.pack_start(flowbox, True, True, 0)
         box.show_all()
 
@@ -1502,8 +1528,7 @@ class Application(Gtk.Application):
                 review_info = self.review_cache[pkginfo.name]
             else:
                 review_info = None
-            icon = self.get_application_icon(pkginfo, FEATURED_ICON_SIZE)
-            tile = PackageTile(pkginfo, icon, self.installer, show_package_type=True, review_info=review_info)
+            tile = PackageTile(pkginfo, self.installer, show_package_type=True, review_info=review_info)
             size_group.add_widget(tile)
             self.flowbox_top_rated.insert(tile, -1)
             self.picks_tiles.append(tile)
@@ -1558,8 +1583,7 @@ class Application(Gtk.Application):
                 review_info = self.review_cache[pkginfo.name]
             else:
                 review_info = None
-            icon = self.get_application_icon(pkginfo, FEATURED_ICON_SIZE)
-            tile = PackageTile(pkginfo, icon, self.installer, show_package_type=True, review_info=review_info)
+            tile = PackageTile(pkginfo, self.installer, show_package_type=True, review_info=review_info)
             size_group.add_widget(tile)
             self.flowbox_featured.insert(tile, -1)
             self.picks_tiles.append(tile)
@@ -2536,7 +2560,7 @@ class Application(Gtk.Application):
 
         search_in_summary = self.settings.get_boolean(SEARCH_IN_SUMMARY)
         search_in_description = self.settings.get_boolean(SEARCH_IN_DESCRIPTION)
-        verified_flatpaks_only = self.settings.get_boolean(SEARCH_VERIFIED_ONLY)
+        verified_flatpaks_only = self.settings.get_boolean(SEARCH_SKIP_UNVERIFIED)
 
         package_type_preference = self.settings.get_string(PACKAGE_TYPE_PREFERENCE)
         hidden_packages = set()
@@ -2552,7 +2576,7 @@ class Application(Gtk.Application):
             is_match = False
 
             while True:
-                if flatpak and verified_flatpaks_only and not self.flatpak_is_verified(pkginfo):
+                if flatpak and verified_flatpaks_only and self.flatpak_is_unsafe(pkginfo):
                     break
 
                 if all(piece in pkginfo.name.upper() for piece in termsSplit):
@@ -2747,7 +2771,7 @@ class Application(Gtk.Application):
         else:
             review_info = None
 
-        tile = PackageTile(pkginfo, icon, self.installer, show_package_type=True, review_info=review_info)
+        tile = PackageTile(pkginfo, self.installer, show_package_type=True, review_info=review_info)
         self.flowbox_applications.insert(tile, -1)
         self.category_tiles.append(tile)
 
@@ -2766,14 +2790,15 @@ class Application(Gtk.Application):
 
         return Gdk.EVENT_PROPAGATE
 
-    def flatpak_is_verified(self, pkginfo):
+    def flatpak_is_unsafe(self, pkginfo):
         try:
-            asapp = self.installer.get_appstream_app_for_pkginfo(pkginfo)
-            return asapp.get_metadata()["flathub::verification::verified"]
-        except (AttributeError, KeyError):
+            ascomp = self.installer.get_appstream_app_for_pkginfo(pkginfo)
+            return not ascomp.has_tag("flathub", "verified")
+        except (AttributeError, KeyError) as e:
+            print(e)
             pass
 
-        return False
+        return True
 
     def package_type_combo_changed(self, combo):
         iter = combo.get_active_iter()
@@ -2848,24 +2873,32 @@ class Application(Gtk.Application):
                     i += 1
 
         if i == 1:
-            self.package_type_combo_container.hide()
+            self.package_type_combo.hide()
             self.single_version_package_type_box.show()
             self.single_version_package_type_label.set_label(row[PACKAGE_TYPE_COMBO_LABEL])
             self.single_version_package_type_icon.set_from_icon_name(row[PACKAGE_TYPE_COMBO_ICON_NAME], Gtk.IconSize.BUTTON)
             self.single_version_package_type_box.set_tooltip_text(row[PACKAGE_TYPE_COMBO_SUMMARY])
         else:
             self.single_version_package_type_box.hide()
-            self.package_type_combo_container.show()
+            self.package_type_combo.show()
             self.package_type_combo.set_active_iter(to_use_iter)
             self.package_type_combo.set_tooltip_text(tooltip)
 
-        self.verified_box.hide()
+        self.unsafe_box.hide()
+        self.builder.get_object("application_dev_name").set_label("")
 
         if pkginfo.pkg_hash.startswith("f"):
             self.flatpak_details_vgroup.show()
             # We don't know flatpak versions until the task reports back, apt we know immediately.
             self.builder.get_object("application_version").set_label("")
-            self.verified_box.set_visible(self.flatpak_is_verified(pkginfo))
+            self.unsafe_box.set_visible(self.flatpak_is_unsafe(pkginfo))
+
+            ascomp = self.installer.get_appstream_app_for_pkginfo(pkginfo)
+
+            if ascomp is not None:
+                dev_name = ascomp.get_developer().get_name()
+                if dev_name is not None:
+                    self.builder.get_object("application_dev_name").set_label(_("by %s" % dev_name))
         else:
             self.flatpak_details_vgroup.hide()
             self.builder.get_object("application_version").set_label(self.installer.get_version(pkginfo))
