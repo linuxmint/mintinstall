@@ -14,6 +14,7 @@ import subprocess
 import platform
 import functools
 import requests
+import time
 import json
 import re
 import math
@@ -193,8 +194,6 @@ class AsyncImage(Gtk.Image):
         self.loader = None
         self.width = 1
         self.height = 1
-
-        self.request_stream = None
 
         self.connect("destroy", self.on_destroyed)
 
@@ -937,6 +936,7 @@ class Application(Gtk.Application):
                                           flags=Gio.ApplicationFlags.HANDLES_OPEN | Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
 
         self.gui_ready = False
+        self.start_time = time.time()
 
         self.low_res = self.get_low_res_screen()
 
@@ -1427,11 +1427,17 @@ class Application(Gtk.Application):
             housekeeping.run()
 
             self.refresh_cache_menuitem.set_sensitive(True)
+            self.print_startup_time()
         except Exception as e:
             print("Loading error: %s" % e)
             traceback.print_tb(e.__traceback__)
             GLib.idle_add(self.refresh_cache)
 
+    def print_startup_time(self):
+        end_time = time.time()
+        print('Mintinstall startup took %0.3f ms' % ((end_time - self.start_time) * 1000.0,))
+
+    @print_timing
     def load_banner(self):
         box = self.builder.get_object("box_banner")
 
@@ -1495,6 +1501,7 @@ class Application(Gtk.Application):
     def on_banner_clicked(self, button, pkginfo):
         self.show_package(pkginfo, self.PAGE_LANDING)
 
+    @print_timing
     def load_top_rated(self):
         box = self.builder.get_object("box_top_rated")
 
@@ -1539,6 +1546,7 @@ class Application(Gtk.Application):
             self.picks_tiles.append(tile)
         box.show_all()
 
+    @print_timing
     def load_featured(self):
         box = self.builder.get_object("box_featured")
 
@@ -3240,7 +3248,6 @@ class Application(Gtk.Application):
                         if launchable.get_kind() == AppStream.LaunchableKind.DESKTOP_ID:
                             [desktop_id] = launchable.get_entries()
                             desktop_file = os.path.join(self.installer.get_flatpak_root_path(), "exports/share/applications", desktop_id)
-                            print(desktop_file)
                             try:
                                 info = Gio.DesktopAppInfo.new_from_filename(desktop_file)
                             except TypeError:
