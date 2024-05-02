@@ -997,7 +997,7 @@ class Application(Gtk.Application):
 
     def _init_installer_thread(self):
         if self.installer.init_sync():
-            self.on_installer_ready()
+            GLib.idle_add(self.on_installer_ready)
         else:
             self.installer.init(self.on_installer_ready)
 
