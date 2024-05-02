@@ -349,8 +349,12 @@ class ScreenshotDownloader(threading.Thread):
                 # Add additional screenshots from AppStream
                 if len(self.application.installer.get_screenshots(self.pkginfo)) > 0:
                     for screenshot in self.pkginfo.screenshots:
-
-                        image = screenshot.get_image(624, 351, self.scale_factor)
+            
+                        # compatibility with libappstream < 1.0.0
+                        try:
+                            image = screenshot.get_image(624, 351, self.scale_factor)
+                        except TypeError:
+                            image = screenshot.get_image(624, 351)
 
                         url = self.prefix_media_base_url(image.get_url())
                         if requests.head(url, timeout=5).status_code < 400:
@@ -2912,7 +2916,11 @@ class Application(Gtk.Application):
             ascomp = self.installer.get_appstream_app_for_pkginfo(pkginfo)
 
             if ascomp is not None:
-                dev_name = ascomp.get_developer().get_name()
+                # compatibility with libappstream < 1.0.0
+                try:
+                    dev_name = ascomp.get_developer().get_name()
+                except AttributeError:
+                    dev_name = ascomp.get_developer_name()
                 if dev_name is not None:
                     self.builder.get_object("application_dev_name").set_label(_("by %s" % dev_name))
         else:
