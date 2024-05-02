@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="16"
+   height="16"
+   version="1.1"
+   id="svg831"
+   sodipodi:docname="mintinstall-unverified.svg"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs835" />
+  <sodipodi:namedview
+     id="namedview833"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     inkscape:zoom="54.4375"
+     inkscape:cx="7.9908152"
+     inkscape:cy="7.9908152"
+     inkscape:window-width="2560"
+     inkscape:window-height="1348"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg831" />
+  <g
+     color="#bebebe"
+     fill="#474747"
+     id="g829"
+     style="fill:#d9514a;fill-opacity:1">
+    <path
+       d="M2 1v7c0 2.072 1.498 3.695 2.832 4.889a18.66 18.66 0 002.66 1.972l.516.305.512-.31s1.32-.8 2.65-2.002C12.5 11.65 14 10.044 14 8V1zm2 2h8v5c0 .92-1 2.313-2.17 3.37-.913.825-1.477 1.154-1.836 1.386-.358-.226-.918-.543-1.828-1.358C5 10.355 4 8.98 4 8z"
+       font-family="sans-serif"
+       font-weight="400"
+       overflow="visible"
+       style="font-feature-settings:normal;font-variant-alternates:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-variant-numeric:normal;font-variant-position:normal;isolation:auto;mix-blend-mode:normal;shape-padding:0;text-decoration-color:#000;text-decoration-line:none;text-decoration-style:solid;text-indent:0;text-orientation:mixed;text-transform:none;fill:#d9514a;fill-opacity:1"
+       id="path825" />
+    <path
+       d="M8 4v7.5c-.42-.294-.581-.355-1.156-.875C5.755 9.641 5 8.357 5 8V4z"
+       overflow="visible"
+       id="path827"
+       style="fill:#d9514a;fill-opacity:1" />
+  </g>
+</svg>
