@@ -2,4 +2,5 @@
 
 sudo rm -rf /usr/lib/linuxmint/mintinstall
 sudo cp -R usr /
+sudo glib-compile-schemas /usr/share/glib-2.0/schemas/
 mintinstall
