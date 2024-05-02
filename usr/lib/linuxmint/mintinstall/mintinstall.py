@@ -155,6 +155,30 @@ class NonScrollingComboBox(Gtk.ComboBox):
         # any scrollable parents when passing over the combobox.
         Gtk.Widget.do_scroll_event(self, event)
 
+class HeadingMenuItem(Gtk.MenuItem):
+    def __init__(self, *args, **kargs):
+        Gtk.MenuItem.__init__(self, *args, **kargs)
+        label = self.get_child()
+
+        if (isinstance(label, Gtk.Label)):
+            label.set_use_markup(True)
+            label.set_markup("<b>%s</b>" % label.get_label())
+
+    def do_button_press_event(self, event):
+        return Gdk.EVENT_STOP
+
+    def do_button_release_event(self, event):
+        return Gdk.EVENT_STOP
+
+    def do_key_press_event(self, event):
+        return Gdk.EVENT_STOP
+
+    def do_key_release_event(self, event):
+        return Gdk.EVENT_STOP
+
+    def do_enter_notify_event(self, event):
+        return Gdk.EVENT_STOP
+
 class AsyncImage(Gtk.Image):
     __gsignals__ = {
         'image-loaded': (GObject.SignalFlags.RUN_LAST, None, ()),
@@ -1183,36 +1207,27 @@ class Application(Gtk.Application):
         search_description_menuitem.show()
         search_submenu.append(search_description_menuitem)
 
-        separator = Gtk.SeparatorMenuItem()
-        separator.show()
-        search_submenu.append(separator)
-
-        package_type_group = None
-        for value, label in [
-            (PACKAGE_TYPE_PREFERENCE_ALL, _("Include all package types in results")),
-            (PACKAGE_TYPE_PREFERENCE_FLATPAK, _("Include only the Flatpak version of an app, if one exists")),
-            (PACKAGE_TYPE_PREFERENCE_APT, _("Include only the system package, if one exists")),
-        ]:
-            package_type_menuitem = Gtk.RadioMenuItem.new_with_label(package_type_group, label)
-            package_type_group = package_type_menuitem.get_group()
-            package_type_menuitem.set_active(self.settings.get_string(PACKAGE_TYPE_PREFERENCE) == value)
-            package_type_menuitem.connect("toggled", self.set_package_type_preference, value)
-            package_type_menuitem.show()
-            search_submenu.append(package_type_menuitem)
 
         separator = Gtk.SeparatorMenuItem()
         separator.show()
         search_submenu.append(separator)
 
-        separator = Gtk.SeparatorMenuItem()
-        separator.show()
-        submenu.append(separator)
+        if self.installer.have_flatpak:
+            header = HeadingMenuItem(label=_("When an app has multiple formats:"), visible=True)
+            search_submenu.append(header)
 
-        search_summary_menuitem = Gtk.CheckMenuItem(label=_("Only include verified flatpaks in search results"))
-        search_summary_menuitem.set_active(self.settings.get_boolean(SEARCH_VERIFIED_ONLY))
-        self.settings.bind(SEARCH_VERIFIED_ONLY, search_summary_menuitem, "active", Gio.SettingsBindFlags.DEFAULT)
-        search_summary_menuitem.show()
-        search_submenu.append(search_summary_menuitem)
+            package_type_group = None
+            for value, label in [
+                (PACKAGE_TYPE_PREFERENCE_ALL, _("List all types")),
+                (PACKAGE_TYPE_PREFERENCE_FLATPAK, _("Only list the Flatpak")),
+                (PACKAGE_TYPE_PREFERENCE_APT, _("Only list the system package")),
+            ]:
+                package_type_menuitem = Gtk.RadioMenuItem.new_with_label(package_type_group, label)
+                package_type_group = package_type_menuitem.get_group()
+                package_type_menuitem.set_active(self.settings.get_string(PACKAGE_TYPE_PREFERENCE) == value)
+                package_type_menuitem.connect("toggled", self.set_package_type_preference, value)
+                package_type_menuitem.show()
+                search_submenu.append(package_type_menuitem)
 
         self.refresh_cache_menuitem = Gtk.MenuItem(label=_("Refresh the list of packages"))
         self.refresh_cache_menuitem.connect("activate", self.on_refresh_cache_clicked)
