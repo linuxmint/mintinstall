@@ -934,6 +934,7 @@ class Application(Gtk.Application):
     PAGE_DETAILS = "details"
     PAGE_LOADING = "loading"
     PAGE_SEARCHING = "searching"
+    PAGE_GENERATING_CACHE = "generating_cache"
 
     def __init__(self):
         super(Application, self).__init__(application_id='com.linuxmint.mintinstall',
@@ -1003,7 +1004,7 @@ class Application(Gtk.Application):
         if self.installer.init_sync():
             GLib.idle_add(self.on_installer_ready)
         else:
-            self.loading_label.set_label(_("Generating cache, one moment"))
+            self.page_stack.set_visible_child_name(self.PAGE_GENERATING_CACHE)
             self.installer.init(self.on_installer_ready)
 
     def do_command_line(self, command_line, data=None):
@@ -1057,9 +1058,7 @@ class Application(Gtk.Application):
             self.installer.get_pkginfo_from_ref_file(file, self.on_pkginfo_from_uri_complete)
 
     def start_add_new_flatpak_remote(self, file):
-        self.builder.get_object("loading_spinner").start()
-        self.loading_label.set_label(_("Generating cache, one moment"))
-        self.page_stack.set_visible_child_name(self.PAGE_LOADING)
+        self.page_stack.set_visible_child_name(self.PAGE_GENERATING_CACHE)
         self.installer.add_remote_from_repo_file(file, self.add_new_flatpak_remote_finished)
 
     def add_new_flatpak_remote_finished(self, file=None, error=None):
@@ -1168,7 +1167,6 @@ class Application(Gtk.Application):
         self.detail_view_icon.show()
         self.builder.get_object("application_icon_holder").add(self.detail_view_icon)
 
-        self.loading_label = self.builder.get_object("loading_label")
         self.status_label = self.builder.get_object("label_ongoing")
         self.progressbar = self.builder.get_object("progressbar1")
         self.progress_box = self.builder.get_object("progress_box")
@@ -1387,11 +1385,9 @@ class Application(Gtk.Application):
         self.subcat_flowbox.connect("child-activated", self.on_subcategory_selected)
 
     def refresh_cache(self):
-        self.builder.get_object("loading_spinner").start()
         self.refresh_cache_menuitem.set_sensitive(False)
 
-        self.page_stack.set_visible_child_name(self.PAGE_LOADING)
-        self.loading_label.set_label(_("Generating cache, one moment"))
+        self.page_stack.set_visible_child_name(self.PAGE_GENERATING_CACHE)
 
         self.installer.force_new_cache(self._on_refresh_cache_complete)
 
@@ -1409,7 +1405,7 @@ class Application(Gtk.Application):
             self.banner_tile.repopulate_tile()
 
     def on_installer_ready(self):
-        self.loading_label.set_label(_("Loading, please wait"))
+        self.page_stack.set_visible_child_name(self.PAGE_LOADING)
         try:
             self.process_matching_packages()
 
@@ -2392,8 +2388,6 @@ class Application(Gtk.Application):
                 pkginfo.display_name = ALIASES[pkg_name]
 
     def finish_loading_visual(self):
-        self.builder.get_object("loading_spinner").stop()
-
         if self.page_stack.get_visible_child_name() != self.PAGE_LANDING:
             self.page_stack.set_visible_child_name(self.PAGE_LANDING)
 
@@ -2566,7 +2560,6 @@ class Application(Gtk.Application):
         self.back_button.set_sensitive(True)
         self.previous_page = self.PAGE_LANDING
         if self.page_stack.get_visible_child_name() != self.PAGE_SEARCHING:
-            self.builder.get_object("loading_spinner").start()
             self.page_stack.set_visible_child_name(self.PAGE_SEARCHING)
 
         termsUpper = terms.upper()
@@ -2648,7 +2641,6 @@ class Application(Gtk.Application):
 
     def on_search_results_complete(self, results):
         self.page_stack.set_visible_child_name(self.PAGE_LIST)
-        self.builder.get_object("loading_spinner").stop()
         self.show_packages(results, from_search=True)
 
     def on_app_row_activated(self, listbox, row, previous_page):
@@ -2912,6 +2904,7 @@ class Application(Gtk.Application):
             self.builder.get_object("application_version").set_label("")
             self.unsafe_box.set_visible(self.flatpak_is_unsafe(pkginfo))
 
+            self.builder.get_object("application_dev_name").set_label(_("Unknown maintainer"))
             ascomp = self.installer.get_appstream_app_for_pkginfo(pkginfo)
 
             if ascomp is not None:
