@@ -2711,14 +2711,16 @@ class Application(Gtk.Application):
         else:
             self.app_list_stack.set_visible_child_name("results")
 
-        apps = [info for info in pkginfos if info.refid == "" or (info.refid.startswith("app") and self.should_show_pkginfo(info))]
-
-        if from_search:
-            apps = self.sort_packages(apps, attrgetter("unverified", "search_tier", "score_desc", "name"))
+        if self.current_category == self.installed_category:
+            apps = [info for info in pkginfos if info.refid == "" or info.refid.startswith("app")]
+            apps = self.sort_packages(apps, attrgetter("name"))
         else:
-            apps = self.sort_packages(apps, attrgetter("unverified", "score_desc", "name"))
-
-        apps = apps[0:201]
+            apps = [info for info in pkginfos if info.refid == "" or (info.refid.startswith("app") and self.should_show_pkginfo(info))]
+            if from_search:
+                apps = self.sort_packages(apps, attrgetter("unverified", "search_tier", "score_desc", "name"))
+            else:
+                apps = self.sort_packages(apps, attrgetter("unverified", "score_desc", "name"))
+            apps = apps[0:201]
 
         # Identify name collisions (to show more info when multiple apps have the same name)
         package_titles = []
