@@ -781,8 +781,12 @@ class PackageTile(Gtk.FlowBoxChild):
                 self.package_type_name.hide()
                 self.package_type_emblem.hide()
 
-        if self.review_info:
-            self.fill_rating_widget(self.review_info)
+        if self.pkginfo.verified:
+            self.builder.get_object("review_info_box").show()
+            if self.review_info:
+                self.fill_rating_widget(self.review_info)
+        else:
+            self.builder.get_object("unsafe_box").show()
 
         self.show_all()
         self.refresh_state()
@@ -862,6 +866,7 @@ class SortPackage:
     def __init__(self, pkg):
         self.pkg = pkg
         self.name = pkg.name
+        self.unverified = not pkg.verified
         self.installed = False
         self.score_desc = 0
         self.search_tier = pkg.search_tier if hasattr(pkg, "search_tier") else 0
@@ -1429,6 +1434,10 @@ class Application(Gtk.Application):
             if name.startswith("flatpak:"):
                 name = name.replace("flatpak:", "")
                 pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_FLATPAK)
+
+                if not pkginfo.verified:
+                    continue
+
                 is_flatpak = True
             else:
                 pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_APT)
@@ -1483,6 +1492,9 @@ class Application(Gtk.Application):
         apps = []
         for info in (self.all_category.pkginfos + self.flatpak_category.pkginfos):
             if info.refid == "" or info.refid.startswith("app"):
+                if not info.verified:
+                    continue
+
                 if info.name != self.banner_app_name and info.name not in self.featured_app_names:
                     if self.installer.get_icon(info, FEATURED_ICON_SIZE) is not None:
                         apps.append(info)
@@ -1492,7 +1504,7 @@ class Application(Gtk.Application):
 
         size_group = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
         for pkginfo in apps:
-            if self.review_cache:
+            if self.review_cache and pkginfo.verified:
                 review_info = self.review_cache[pkginfo.name]
             else:
                 review_info = None
@@ -1531,6 +1543,8 @@ class Application(Gtk.Application):
             if name.startswith("flatpak:"):
                 name = name.replace("flatpak:", "")
                 pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_FLATPAK)
+                if not pkginfo.verified:
+                    continue
             else:
                 pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_APT)
             if pkginfo is None:
@@ -1548,7 +1562,7 @@ class Application(Gtk.Application):
         size_group = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
         self.featured_app_names = []
         for pkginfo in apps:
-            if self.review_cache:
+            if self.review_cache and pkginfo.verified:
                 review_info = self.review_cache[pkginfo.name]
             else:
                 review_info = None
@@ -1601,6 +1615,12 @@ class Application(Gtk.Application):
         self.load_banner()
         self.load_featured()
         self.load_top_rated()
+
+    def should_show_pkginfo(self, pkginfo):
+        if pkginfo.pkg_hash.startswith("fp:") and not self.settings.get_boolean(prefs.ALLOW_UNVERIFIED_FLATPAKS):
+            return pkginfo.verified
+
+        return True
 
     def update_conditional_widgets(self):
         if not self.gui_ready:
@@ -2530,7 +2550,6 @@ class Application(Gtk.Application):
             GLib.source_remove(self.search_idle_timer)
             self.search_idle_timer = 0
 
-        verified_flatpaks_only = self.settings.get_boolean(SEARCH_SKIP_UNVERIFIED)
         search_in_summary = self.settings.get_boolean(prefs.SEARCH_IN_SUMMARY)
         search_in_description = self.settings.get_boolean(prefs.SEARCH_IN_DESCRIPTION)
 
@@ -2548,7 +2567,7 @@ class Application(Gtk.Application):
             is_match = False
 
             while True:
-                if flatpak and verified_flatpaks_only and self.flatpak_is_unsafe(pkginfo):
+                if not self.should_show_pkginfo(pkginfo):
                     break
 
                 if all(piece in pkginfo.name.upper() for piece in termsSplit):
@@ -2692,12 +2711,12 @@ class Application(Gtk.Application):
         else:
             self.app_list_stack.set_visible_child_name("results")
 
-        apps = [info for info in pkginfos if info.refid == "" or info.refid.startswith("app")]
+        apps = [info for info in pkginfos if info.refid == "" or (info.refid.startswith("app") and self.should_show_pkginfo(info))]
 
         if from_search:
-            apps = self.sort_packages(apps, attrgetter("search_tier", "score_desc", "name"))
+            apps = self.sort_packages(apps, attrgetter("unverified", "search_tier", "score_desc", "name"))
         else:
-            apps = self.sort_packages(apps, attrgetter("score_desc", "name"))
+            apps = self.sort_packages(apps, attrgetter("unverified", "score_desc", "name"))
 
         apps = apps[0:201]
 
@@ -2761,15 +2780,6 @@ class Application(Gtk.Application):
 
         return Gdk.EVENT_PROPAGATE
 
-    def flatpak_is_unsafe(self, pkginfo):
-        try:
-            ascomp = self.installer.get_appstream_app_for_pkginfo(pkginfo)
-            return not ascomp.has_tag("flathub", "verified")
-        except (AttributeError, KeyError) as e:
-            pass
-
-        return True
-
     def package_type_combo_changed(self, combo):
         iter = combo.get_active_iter()
         if iter:
@@ -2789,6 +2799,7 @@ class Application(Gtk.Application):
         self.reset_scroll_view(self.builder.get_object("scrolled_details"))
 
         self.current_pkginfo = pkginfo
+        is_flatpak = pkginfo.pkg_hash.startswith("fp:")
 
         # Set to busy while the installer figures out what to do
         self.builder.get_object("notebook_progress").set_current_page(self.SPINNER_TAB)
@@ -2815,7 +2826,7 @@ class Application(Gtk.Application):
         tooltip = None
 
         # add system if this is a system package, or one exists in our match table.
-        if pkginfo.pkg_hash.startswith("a"):
+        if not is_flatpak:
             row_pkginfo = pkginfo
         else:
             match = self.get_deb_for_flatpak(pkginfo)
@@ -2830,7 +2841,7 @@ class Application(Gtk.Application):
                 tooltip = row[PACKAGE_TYPE_COMBO_SUMMARY]
             i += 1
 
-        if pkginfo.pkg_hash.startswith("f") or self.get_flatpak_for_deb(pkginfo) is not None:
+        if is_flatpak or self.get_flatpak_for_deb(pkginfo) is not None:
             a_flatpak = self.get_flatpak_for_deb(pkginfo) or pkginfo
             for remote in self.installer.list_flatpak_remotes():
                 row_pkginfo = self.installer.find_pkginfo(a_flatpak.name, installer.PKG_TYPE_FLATPAK, remote=remote.name)
@@ -2857,11 +2868,16 @@ class Application(Gtk.Application):
         self.unsafe_box.hide()
         self.builder.get_object("application_dev_name").set_label("")
 
-        if pkginfo.pkg_hash.startswith("f"):
+        if is_flatpak:
             self.flatpak_details_vgroup.show()
             # We don't know flatpak versions until the task reports back, apt we know immediately.
             self.builder.get_object("application_version").set_label("")
-            self.unsafe_box.set_visible(self.flatpak_is_unsafe(pkginfo))
+
+            if pkginfo.verified:
+                self.builder.get_object("dev_name_box").set_tooltip_text("")
+            else:
+                self.unsafe_box.show()
+                self.builder.get_object("dev_name_box").set_tooltip_text(_("Flathub has not verified the identity of this developer."))
 
             self.builder.get_object("application_dev_name").set_label(_("Unknown maintainer"))
             ascomp = self.installer.get_appstream_app_for_pkginfo(pkginfo)
@@ -2930,83 +2946,89 @@ class Application(Gtk.Application):
         else:
             app_description.hide()
 
-        review_info = self.review_cache[pkginfo.name]
-
-        label_num_reviews = self.builder.get_object("application_num_reviews")
-
-        # TRANSLATORS: showing specific number of reviews in the list view and the header of the package details.
-        review_text = gettext.ngettext("%d Review", "%d Reviews", review_info.num_reviews) % review_info.num_reviews
-        label_num_reviews.set_label(review_text)
-
-        self.builder.get_object("application_avg_rating").set_label(str(review_info.avg_rating))
-
-        box_stars = self.builder.get_object("box_stars")
-        for child in box_stars.get_children():
-            box_stars.remove(child)
-        rating = review_info.avg_rating
-        remaining_stars = 5
-        while rating >= 1.0:
-            box_stars.pack_start(Gtk.Image(icon_name="starred-symbolic", pixel_size=16), False, False, 0)
-            rating -= 1
-            remaining_stars -= 1
-        if rating > 0.0:
-            box_stars.pack_start(Gtk.Image(icon_name="semi-starred-symbolic", pixel_size=16), False, False, 0)
-            remaining_stars -= 1
-        for i in range(remaining_stars):
-            box_stars.pack_start(Gtk.Image(icon_name="non-starred-symbolic", pixel_size=16), False, False, 0)
-
-        box_stars.show_all()
-
         box_reviews = self.builder.get_object("box_reviews")
 
         for child in box_reviews.get_children():
             box_reviews.remove(child)
 
-        for i in range(0, 5):
-            self.star_bars[i].set_fraction(0.0)
-            self.builder.get_object("stars_count_%d" % (i + 1)).set_label("")
+        if not is_flatpak or pkginfo.verified:
+            review_info = self.review_cache[pkginfo.name]
 
-        reviews = review_info.reviews
-        reviews.sort(key=lambda x: x.date, reverse=True)
+            label_num_reviews = self.builder.get_object("application_num_reviews")
 
-        stars = [0, 0, 0, 0, 0]
-        n_reviews = len(reviews)
+            # TRANSLATORS: showing specific number of reviews in the list view and the header of the package details.
+            review_text = gettext.ngettext("%d Review", "%d Reviews", review_info.num_reviews) % review_info.num_reviews
+            label_num_reviews.set_label(review_text)
 
-        if n_reviews > 0:
-            # TRANSLATORS: reviews heading in package details view
-            # label_reviews.set_text(_("Reviews"))
-            i = 0
-            for review in reviews:
-                if i < 10:
-                    comment = review.comment.strip()
-                    comment = comment.replace("'", "\'")
-                    comment = comment.replace('"', '\"')
-                    comment = self.capitalize(comment)
-                    review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
-                    tile = ReviewTile(review.username, review_date, comment, review.rating)
-                    box_reviews.add(tile)
-                    i = i +1
+            self.builder.get_object("application_avg_rating").set_label(str(review_info.avg_rating))
 
-                stars[review.rating - 1] += 1
+            box_stars = self.builder.get_object("box_stars")
+            for child in box_stars.get_children():
+                box_stars.remove(child)
+            rating = review_info.avg_rating
+            remaining_stars = 5
+            while rating >= 1.0:
+                box_stars.pack_start(Gtk.Image(icon_name="starred-symbolic", pixel_size=16), False, False, 0)
+                rating -= 1
+                remaining_stars -= 1
+            if rating > 0.0:
+                box_stars.pack_start(Gtk.Image(icon_name="semi-starred-symbolic", pixel_size=16), False, False, 0)
+                remaining_stars -= 1
+            for i in range(remaining_stars):
+                box_stars.pack_start(Gtk.Image(icon_name="non-starred-symbolic", pixel_size=16), False, False, 0)
+
+            box_stars.show_all()
 
             for i in range(0, 5):
-                widget_idx = i + 1
-                label = self.builder.get_object("stars_count_%s" % widget_idx)
+                self.star_bars[i].set_fraction(0.0)
+                self.builder.get_object("stars_count_%d" % (i + 1)).set_label("")
 
-                label.set_label(str(stars[i]))
-                self.star_bars[i].set_fraction(stars[i] / n_reviews)
+            reviews = review_info.reviews
+            reviews.sort(key=lambda x: x.date, reverse=True)
 
-        add_your_own = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        add_your_own.set_margin_start(12)
-        add_your_own.set_margin_end(12)
-        add_your_own.set_margin_top(12)
-        add_your_own.set_margin_bottom(12)
+            stars = [0, 0, 0, 0, 0]
+            n_reviews = len(reviews)
 
-        community_link = "https://community.linuxmint.com/software/view/%s" % pkginfo.name
-        label = Gtk.Label(xalign=0.0, use_markup=True, label=_("Click <a href='%s'>here</a> to add your own review.") % community_link)
-        add_your_own.pack_start(label, True, True, 0)
-        box_reviews.add(add_your_own)
-        box_reviews.show_all()
+            if n_reviews > 0:
+                # TRANSLATORS: reviews heading in package details view
+                # label_reviews.set_text(_("Reviews"))
+                i = 0
+                for review in reviews:
+                    if i < 10:
+                        comment = review.comment.strip()
+                        comment = comment.replace("'", "\'")
+                        comment = comment.replace('"', '\"')
+                        comment = self.capitalize(comment)
+                        review_date = datetime.fromtimestamp(review.date).strftime("%Y.%m.%d")
+                        tile = ReviewTile(review.username, review_date, comment, review.rating)
+                        box_reviews.add(tile)
+                        i = i +1
+
+                    stars[review.rating - 1] += 1
+
+                for i in range(0, 5):
+                    widget_idx = i + 1
+                    label = self.builder.get_object("stars_count_%s" % widget_idx)
+
+                    label.set_label(str(stars[i]))
+                    self.star_bars[i].set_fraction(stars[i] / n_reviews)
+
+            add_your_own = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+            add_your_own.set_margin_start(12)
+            add_your_own.set_margin_end(12)
+            add_your_own.set_margin_top(12)
+            add_your_own.set_margin_bottom(12)
+
+            community_link = "https://community.linuxmint.com/software/view/%s" % pkginfo.name
+            label = Gtk.Label(xalign=0.0, use_markup=True, label=_("Click <a href='%s'>here</a> to add your own review.") % community_link)
+            add_your_own.pack_start(label, True, True, 0)
+            box_reviews.add(add_your_own)
+            box_reviews.show_all()
+            self.builder.get_object("reviews_page").show()
+            self.builder.get_object("details_review_box").show()
+        else:
+            self.builder.get_object("reviews_page").hide()
+            self.builder.get_object("details_review_box").hide()
 
         # Screenshots
         self.destroy_screenshot_window()
@@ -3034,7 +3056,9 @@ class Application(Gtk.Application):
     def get_flatpak_for_deb(self, pkginfo):
         try:
             fp_name = FLATPAK_EQUIVS[pkginfo.name]
-            return self.installer.find_pkginfo(fp_name, installer.PKG_TYPE_FLATPAK)
+            flatpak_pkginfo = self.installer.find_pkginfo(fp_name, installer.PKG_TYPE_FLATPAK)
+            if self.should_show_pkginfo(flatpak_pkginfo):
+                return flatpak_pkginfo
         except:
             return None
 

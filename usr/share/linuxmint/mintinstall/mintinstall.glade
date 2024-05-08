@@ -626,10 +626,9 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkBox">
+                          <object class="GtkBox" id="dev_name_box">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="tooltip-text" translatable="yes">Flathub has not verified the identity of this developer.</property>
                             <property name="margin-top">6</property>
                             <child>
                               <object class="GtkLabel" id="application_dev_name">
@@ -1359,7 +1358,7 @@
                                           </packing>
                                         </child>
                                         <child>
-                                          <object class="GtkBox">
+                                          <object class="GtkBox" id="details_review_box">
                                             <property name="height-request">130</property>
                                             <property name="visible">True</property>
                                             <property name="can-focus">False</property>

@@ -172,8 +172,8 @@
                 <property name="valign">end</property>
                 <child>
                   <object class="GtkBox" id="review_info_box">
-                    <property name="visible">True</property>
                     <property name="can-focus">False</property>
+                    <property name="no-show-all">True</property>
                     <property name="halign">end</property>
                     <property name="valign">center</property>
                     <property name="hexpand">True</property>
@@ -218,6 +218,36 @@
                     <property name="expand">False</property>
                     <property name="fill">True</property>
                     <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkBox" id="unsafe_box">
+                    <property name="can-focus">False</property>
+                    <property name="no-show-all">True</property>
+                    <property name="tooltip-text" translatable="yes">Flathub has not verified the identity of this application's developer.</property>
+                    <property name="halign">end</property>
+                    <property name="valign">center</property>
+                    <property name="hexpand">True</property>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="valign">center</property>
+                        <property name="pixel-size">12</property>
+                        <property name="icon-name">mintinstall-unverified</property>
+                        <property name="icon_size">1</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
                   </packing>
                 </child>
               </object>
