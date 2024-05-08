@@ -40,9 +40,9 @@
       <summary></summary>
       <description></description>
     </key>
-    <key type="b" name="search-skip-unverified">
+    <key type="b" name="allow-unverified-flatpaks">
       <default>false</default>
-      <summary>Exclude unverified flatpaks from search results.</summary>
+      <summary>If true, unverified Flatpaks will be shown.</summary>
       <description></description>
     </key>
   </schema>

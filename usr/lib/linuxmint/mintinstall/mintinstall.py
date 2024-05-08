@@ -34,6 +34,7 @@ import cairo
 
 from mintcommon.installer import installer
 from mintcommon.installer import dialogs
+import prefs
 import reviews
 import housekeeping
 from misc import print_timing, networking_available
@@ -56,19 +57,6 @@ FLATHUB_MEDIA_BASE_URL = "https://dl.flathub.org/media/"
 #Hardcoded mouse back button key for button-press-event
 #May not work on all mice
 MOUSE_BACK_BUTTON = 8
-
-# Gsettings keys
-SEARCH_IN_SUMMARY = "search-in-summary"
-SEARCH_IN_DESCRIPTION = "search-in-description"
-INSTALLED_APPS = "installed-apps"
-SEARCH_IN_CATEGORY = "search-in-category"
-HAMONIKR_SCREENSHOTS = "hamonikr-screenshots"
-PACKAGE_TYPE_PREFERENCE = "search-package-type-preference"
-SEARCH_SKIP_UNVERIFIED = "search-skip-unverified"
-# Allowed values
-PACKAGE_TYPE_PREFERENCE_ALL = "all"
-PACKAGE_TYPE_PREFERENCE_APT = "apt"
-PACKAGE_TYPE_PREFERENCE_FLATPAK = "flatpak"
 
 # package type combobox columns
 # index, label, icon-name, tooltip, pkginfo
@@ -411,7 +399,7 @@ class ScreenshotDownloader(threading.Thread):
         except Exception as e:
             pass
         
-        if self.settings.get_boolean(HAMONIKR_SCREENSHOTS):
+        if self.settings.get_boolean(prefs.HAMONIKR_SCREENSHOTS):
             try:
                 # Add additional screenshots from Hamonikr
                 from bs4 import BeautifulSoup
@@ -935,6 +923,7 @@ class Application(Gtk.Application):
     PAGE_LOADING = "loading"
     PAGE_SEARCHING = "searching"
     PAGE_GENERATING_CACHE = "generating_cache"
+    PAGE_PREFS = "prefs"
 
     def __init__(self):
         super(Application, self).__init__(application_id='com.linuxmint.mintinstall',
@@ -1204,61 +1193,17 @@ class Application(Gtk.Application):
         separator.show()
         submenu.append(separator)
 
-        search_menuitem = Gtk.MenuItem(label=_("Search preferences"))
-        search_submenu = Gtk.Menu()
-        search_menuitem.set_submenu(search_submenu)
-        search_menuitem.show()
-        submenu.append(search_menuitem)
-
-        search_summary_menuitem = Gtk.CheckMenuItem(label=_("Search in packages summary (slower search)"))
-        search_summary_menuitem.set_active(self.settings.get_boolean(SEARCH_IN_SUMMARY))
-        search_summary_menuitem.connect("toggled", self.set_search_filter, SEARCH_IN_SUMMARY)
-        search_summary_menuitem.show()
-        search_submenu.append(search_summary_menuitem)
-
-        search_description_menuitem = Gtk.CheckMenuItem(label=_("Search in packages description (even slower search)"))
-        search_description_menuitem.set_active(self.settings.get_boolean(SEARCH_IN_DESCRIPTION))
-        search_description_menuitem.connect("toggled", self.set_search_filter, SEARCH_IN_DESCRIPTION)
-        search_description_menuitem.show()
-        search_submenu.append(search_description_menuitem)
-
-
-        separator = Gtk.SeparatorMenuItem()
-        separator.show()
-        search_submenu.append(separator)
-
-        if self.installer.have_flatpak:
-            header = HeadingMenuItem(label=_("When an app has multiple formats:"), visible=True)
-            search_submenu.append(header)
-
-            package_type_group = None
-            for value, label in [
-                (PACKAGE_TYPE_PREFERENCE_ALL, _("List all types")),
-                (PACKAGE_TYPE_PREFERENCE_FLATPAK, _("Only list the Flatpak")),
-                (PACKAGE_TYPE_PREFERENCE_APT, _("Only list the system package")),
-            ]:
-                package_type_menuitem = Gtk.RadioMenuItem.new_with_label(package_type_group, label)
-                package_type_group = package_type_menuitem.get_group()
-                package_type_menuitem.set_active(self.settings.get_string(PACKAGE_TYPE_PREFERENCE) == value)
-                package_type_menuitem.connect("toggled", self.set_package_type_preference, value)
-                package_type_menuitem.show()
-                search_submenu.append(package_type_menuitem)
-
-            separator = Gtk.SeparatorMenuItem()
-            separator.show()
-            search_submenu.append(separator)
-
-            search_summary_menuitem = Gtk.CheckMenuItem(label=_("Hide Flatpaks that are not verified by their remote"))
-            search_summary_menuitem.set_active(self.settings.get_boolean(SEARCH_SKIP_UNVERIFIED))
-            self.settings.bind(SEARCH_SKIP_UNVERIFIED, search_summary_menuitem, "active", Gio.SettingsBindFlags.DEFAULT)
-            search_summary_menuitem.show()
-            search_submenu.append(search_summary_menuitem)
-
         self.refresh_cache_menuitem = Gtk.MenuItem(label=_("Refresh the list of packages"))
         self.refresh_cache_menuitem.connect("activate", self.on_refresh_cache_clicked)
         self.refresh_cache_menuitem.show()
         self.refresh_cache_menuitem.set_sensitive(False)
         submenu.append(self.refresh_cache_menuitem)
+
+        self.prefs_menuitem = Gtk.MenuItem(label=_("Preferences"))
+        self.prefs_menuitem.connect("activate", self.on_prefs_clicked)
+        self.prefs_menuitem.show()
+        self.prefs_menuitem.set_sensitive(True)
+        submenu.append(self.prefs_menuitem)
 
         separator = Gtk.SeparatorMenuItem()
         separator.show()
@@ -1282,6 +1227,9 @@ class Application(Gtk.Application):
         flowbox.connect("selected-children-changed", self.navigate_flowbox, self.builder.get_object("scrolledwindow_applications"))
         self.flowbox_applications = flowbox
 
+        box = self.builder.get_object("box_prefs")
+        box.pack_start(prefs.PrefsWidget(), True, True, 0)
+
         box = self.builder.get_object("box_cat_page")
         box.add(self.flowbox_applications)
 
@@ -1295,7 +1243,7 @@ class Application(Gtk.Application):
         self.searchentry.connect("activate", self.on_search_entry_activated)
 
         self.subsearch_toggle = self.builder.get_object("subsearch_toggle")
-        self.subsearch_toggle.set_active(self.settings.get_boolean(SEARCH_IN_CATEGORY))
+        self.subsearch_toggle.set_active(self.settings.get_boolean(prefs.SEARCH_IN_CATEGORY))
         self.subsearch_toggle.connect("toggled", self.on_subsearch_toggled)
 
         self.active_tasks_button.connect("clicked", self.on_active_tasks_button_clicked)
@@ -1323,6 +1271,8 @@ class Application(Gtk.Application):
                 self.builder.get_object("next_ss_button"),
             ]
         )
+
+        self.search_tool_item = self.builder.get_object("search_tool_item")
 
         self.flowbox_featured = None
         self.flowbox_top_rated = None
@@ -1394,6 +1344,12 @@ class Application(Gtk.Application):
     def _on_refresh_cache_complete(self):
         self.add_categories()
         self.installer.init(self.on_installer_ready)
+
+    def on_prefs_clicked(self, widget, data=None):
+        self.previous_page = self.PAGE_LANDING
+        self.search_tool_item.set_sensitive(False)
+        self.back_button.set_sensitive(True)
+        self.page_stack.set_visible_child_name(self.PAGE_PREFS)
 
     def on_refresh_cache_clicked(self, widget, data=None):
         self.refresh_cache()
@@ -1684,7 +1640,7 @@ class Application(Gtk.Application):
     def update_state(self, pkginfo):
         self.update_activity_widgets()
 
-        installed_packages = self.settings.get_strv(INSTALLED_APPS)
+        installed_packages = self.settings.get_strv(prefs.INSTALLED_APPS)
         if self.installer.pkginfo_is_installed(pkginfo):
             if pkginfo.pkg_hash not in installed_packages:
                 installed_packages.append(pkginfo.pkg_hash)
@@ -1697,7 +1653,7 @@ class Application(Gtk.Application):
                     if iter_package.pkg_hash == pkginfo.pkg_hash:
                         self.installed_category.pkginfos.remove(iter_package)
 
-        self.settings.set_strv(INSTALLED_APPS, installed_packages)
+        self.settings.set_strv(prefs.INSTALLED_APPS, installed_packages)
 
         if self.current_pkginfo is not None and self.current_pkginfo.pkg_hash == pkginfo.pkg_hash:
             # flatpaks added by flatpakref files auto-remove their remotes when uninstalled
@@ -1763,7 +1719,7 @@ class Application(Gtk.Application):
 
         installed_packages = self.installer.cache.get_manually_installed_packages()
         if not installed_packages:
-            installed_packages = self.settings.get_strv(INSTALLED_APPS)
+            installed_packages = self.settings.get_strv(prefs.INSTALLED_APPS)
             installed_packages = self.modernize_installed_list(installed_packages)
 
         new_installed_packages = []
@@ -1783,7 +1739,7 @@ class Application(Gtk.Application):
                 except ValueError:
                     pass
 
-        self.settings.set_strv(INSTALLED_APPS, new_installed_packages)
+        self.settings.set_strv(prefs.INSTALLED_APPS, new_installed_packages)
 
     def show_installed_apps(self, menuitem):
         self.show_category(self.installed_category)
@@ -1966,7 +1922,7 @@ class Application(Gtk.Application):
         menu.popup_at_pointer(None)
 
     def on_subsearch_toggled(self, button):
-        self.settings.set_boolean(SEARCH_IN_CATEGORY, button.get_active())
+        self.settings.set_boolean(prefs.SEARCH_IN_CATEGORY, button.get_active())
 
         if button.get_active():
             return
@@ -2007,7 +1963,7 @@ class Application(Gtk.Application):
 
     def set_package_type_preference(self, radiomenuitem, value):
         if radiomenuitem.get_active():
-            self.settings.set_string(PACKAGE_TYPE_PREFERENCE, value)
+            self.settings.set_string(prefs.PACKAGE_TYPE_PREFERENCE, value)
 
             terms = self.searchentry.get_text()
             if terms != "":
@@ -2165,7 +2121,7 @@ class Application(Gtk.Application):
         self.root_categories = {}
 
         self.installed_category = Category(_("Installed Applications"), None, self.categories)
-        self.installed_category.matchingPackages = self.settings.get_strv(INSTALLED_APPS)
+        self.installed_category.matchingPackages = self.settings.get_strv(prefs.INSTALLED_APPS)
 
         self.active_tasks_category = Category(_("Currently working on the following packages"), None, None)
 
@@ -2441,6 +2397,9 @@ class Application(Gtk.Application):
                 self.installer.cancel_task(self.current_task)
             self.current_task = None
 
+        if self.page_stack.get_visible_child_name() == self.PAGE_PREFS:
+            self.search_tool_item.set_sensitive(True)
+
         self.current_pkginfo = None
         self.page_stack.set_visible_child_name(self.previous_page)
         if self.previous_page == self.PAGE_LANDING:
@@ -2571,11 +2530,11 @@ class Application(Gtk.Application):
             GLib.source_remove(self.search_idle_timer)
             self.search_idle_timer = 0
 
-        search_in_summary = self.settings.get_boolean(SEARCH_IN_SUMMARY)
-        search_in_description = self.settings.get_boolean(SEARCH_IN_DESCRIPTION)
         verified_flatpaks_only = self.settings.get_boolean(SEARCH_SKIP_UNVERIFIED)
+        search_in_summary = self.settings.get_boolean(prefs.SEARCH_IN_SUMMARY)
+        search_in_description = self.settings.get_boolean(prefs.SEARCH_IN_DESCRIPTION)
 
-        package_type_preference = self.settings.get_string(PACKAGE_TYPE_PREFERENCE)
+        package_type_preference = self.settings.get_string(prefs.PACKAGE_TYPE_PREFERENCE)
         hidden_packages = set()
 
         def idle_search_one_package(pkginfos):
@@ -2616,9 +2575,9 @@ class Application(Gtk.Application):
 
             if is_match:
                 searched_packages.append(pkginfo)
-                if package_type_preference == PACKAGE_TYPE_PREFERENCE_APT and not flatpak:
+                if package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_APT and not flatpak:
                     hidden_packages.add(FLATPAK_EQUIVS.get(pkginfo.name))
-                elif package_type_preference == PACKAGE_TYPE_PREFERENCE_FLATPAK and flatpak:
+                elif package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_FLATPAK and flatpak:
                     hidden_packages.add(DEB_EQUIVS.get(pkginfo.name))
 
             # Repeat until empty
@@ -2627,9 +2586,9 @@ class Application(Gtk.Application):
 
             self.search_idle_timer = 0
 
-            if package_type_preference == PACKAGE_TYPE_PREFERENCE_APT:
+            if package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_APT:
                 results = [p for p in searched_packages if not (p.pkg_hash.startswith("f") and p.name in hidden_packages)]
-            elif package_type_preference == PACKAGE_TYPE_PREFERENCE_FLATPAK:
+            elif package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_FLATPAK:
                 results = [p for p in searched_packages if not (p.pkg_hash.startswith("a") and p.name in hidden_packages)]
             else:
                 results = searched_packages
@@ -2950,7 +2909,7 @@ class Application(Gtk.Application):
 
         description = self.installer.get_description(pkginfo)
 
-        if self.settings.get_boolean(HAMONIKR_SCREENSHOTS):
+        if self.settings.get_boolean(prefs.HAMONIKR_SCREENSHOTS):
             try:
                 from bs4 import BeautifulSoup
                 hamonikrpkgname = pkginfo.name.replace("-","_")
