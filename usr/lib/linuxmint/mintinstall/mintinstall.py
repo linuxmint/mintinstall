@@ -1233,7 +1233,8 @@ class Application(Gtk.Application):
         self.flowbox_applications = flowbox
 
         box = self.builder.get_object("box_prefs")
-        box.pack_start(prefs.PrefsWidget(), True, True, 0)
+        warning_box = self.builder.get_object("box_unverified_warning")
+        box.pack_start(prefs.PrefsWidget(warning_box), True, True, 0)
 
         box = self.builder.get_object("box_cat_page")
         box.add(self.flowbox_applications)
@@ -2875,12 +2876,6 @@ class Application(Gtk.Application):
             # We don't know flatpak versions until the task reports back, apt we know immediately.
             self.builder.get_object("application_version").set_label("")
 
-            if pkginfo.verified:
-                self.builder.get_object("dev_name_box").set_tooltip_text("")
-            else:
-                self.unsafe_box.show()
-                self.builder.get_object("dev_name_box").set_tooltip_text(_("Flathub has not verified the identity of this developer."))
-
             self.builder.get_object("application_dev_name").set_label(_("Unknown maintainer"))
             ascomp = self.installer.get_appstream_app_for_pkginfo(pkginfo)
 
@@ -2892,6 +2887,11 @@ class Application(Gtk.Application):
                     dev_name = ascomp.get_developer_name()
                 if dev_name is not None:
                     self.builder.get_object("application_dev_name").set_label(_("by %s" % dev_name))
+
+            if not pkginfo.verified:
+                self.unsafe_box.show()
+                self.builder.get_object("application_dev_name").set_label("")
+
         else:
             self.flatpak_details_vgroup.hide()
             self.builder.get_object("application_version").set_label(self.installer.get_version(pkginfo))

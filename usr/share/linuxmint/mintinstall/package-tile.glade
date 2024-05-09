@@ -224,7 +224,7 @@
                   <object class="GtkBox" id="unsafe_box">
                     <property name="can-focus">False</property>
                     <property name="no-show-all">True</property>
-                    <property name="tooltip-text" translatable="yes">Flathub has not verified the identity of this application's developer.</property>
+                    <property name="tooltip-text" translatable="yes">Unverified Flatpak</property>
                     <property name="halign">end</property>
                     <property name="valign">center</property>
                     <property name="hexpand">True</property>

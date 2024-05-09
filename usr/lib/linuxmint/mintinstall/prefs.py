@@ -26,7 +26,7 @@ PACKAGE_TYPE_PREFERENCE_FLATPAK = "flatpak"
 _ = gettext.gettext
 
 class PrefsWidget(Gtk.Box):
-    def __init__(self):
+    def __init__(self, warning_box):
         Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -45,14 +45,12 @@ class PrefsWidget(Gtk.Box):
 
         section = page.add_section(_("Flatpaks"))
 
-        widget = GSettingsSwitch(_("Allow unverified Flatpaks"), SCHEMA_ID, ALLOW_UNVERIFIED_FLATPAKS)
+
+        widget = GSettingsSwitch(_("Show unverified Flatpaks (not recommended)"), SCHEMA_ID, ALLOW_UNVERIFIED_FLATPAKS)
         section.add_row(widget)
 
-        widget = Text(_("<b>A verified Flatpak has had its publisher confirmed to be either the original developer, or an authorized third-party. " +
-                        "Caution is recommended when installing unverified Flatpaks.</b>"))
-        widget.content_widget.set_use_markup(True)
-        section.add_row(widget)
-
+        section.add(warning_box)
+        
         search_options = [
             [PACKAGE_TYPE_PREFERENCE_ALL, _("List all types")],
             (PACKAGE_TYPE_PREFERENCE_FLATPAK, _("Only list the Flatpak")),

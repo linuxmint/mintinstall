@@ -19,6 +19,87 @@
     <property name="visible">True</property>
     <property name="can-focus">False</property>
   </object>
+  <object class="GtkBox" id="box_unverified_warning">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="spacing">12</property>
+    <child>
+      <object class="GtkImage">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="halign">center</property>
+        <property name="valign">start</property>
+        <property name="icon-name">dialog-warning</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">6</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="halign">start</property>
+            <property name="label" translatable="yes">Unverified Flatpaks represent a huge security risk</property>
+            <property name="wrap">True</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="halign">start</property>
+            <property name="label" translatable="yes">They are not officially approved by the developer of the application and could be maintained by anyone.</property>
+            <property name="wrap">True</property>
+            <property name="wrap-mode">char</property>
+            <property name="max-width-chars">70</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="halign">start</property>
+            <property name="label" translatable="yes">To avoid any potential malware, Linux Mint strongly recommends against unverified Flatpaks.</property>
+            <property name="wrap">True</property>
+            <property name="wrap-mode">char</property>
+            <property name="max-width-chars">70</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">5</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">True</property>
+        <property name="fill">True</property>
+        <property name="position">1</property>
+      </packing>
+    </child>
+  </object>
   <object class="GtkImage" id="image1">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
@@ -672,7 +753,7 @@
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
                                     <property name="valign">center</property>
-                                    <property name="label" translatable="yes">Unverified</property>
+                                    <property name="label" translatable="yes">Unverified Flatpak</property>
                                     <attributes>
                                       <attribute name="weight" value="bold"/>
                                       <attribute name="scale" value="0.75"/>
