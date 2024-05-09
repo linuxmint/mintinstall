@@ -209,7 +209,6 @@
               </object>
               <packing>
                 <property name="name">loading</property>
-                <property name="title" translatable="yes">page0</property>
               </packing>
             </child>
             <child>
@@ -716,7 +715,6 @@
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
                                 <property name="valign">center</property>
-                                <property name="label" translatable="yes">By Joe Hill</property>
                                 <style>
                                   <class name="dim-label"/>
                                 </style>
