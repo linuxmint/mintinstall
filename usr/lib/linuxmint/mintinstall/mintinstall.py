@@ -2885,6 +2885,10 @@ class Application(Gtk.Application):
                     dev_name = ascomp.get_developer().get_name()
                 except AttributeError:
                     dev_name = ascomp.get_developer_name()
+
+                if dev_name is None:
+                    dev_name = ascomp.get_project_group()
+
                 if dev_name is not None:
                     self.builder.get_object("application_dev_name").set_label(_("by %s" % dev_name))
 
