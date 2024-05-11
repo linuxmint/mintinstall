@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-09 17:53+0100\n"
+"POT-Creation-Date: 2024-05-11 11:09+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -32,7 +32,7 @@ msgid "Add"
 msgstr ""
 
 #: usr/lib/linuxmint/mintinstall/mintinstall.py:516
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:3108
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:3112
 msgid "Remove"
 msgstr ""
 
@@ -317,107 +317,107 @@ msgstr ""
 msgid "Unknown maintainer"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:2889
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:2893
 #, python-format
 msgid "by %s"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:2913
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:2917
 #: usr/share/linuxmint/mintinstall/mintinstall.glade.h:20
 msgid "Homepage"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:2922
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:2926
 #: usr/share/linuxmint/mintinstall/mintinstall.glade.h:21
 msgid "Documentation"
 msgstr ""
 
 #. TRANSLATORS: showing specific number of reviews in the list view and the header of the package details.
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:2962
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:2966
 #, python-format
 msgid "%d Review"
 msgid_plural "%d Reviews"
 msgstr[0] ""
 msgstr[1] ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:3025
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:3029
 #, python-format
 msgid "Click <a href='%s'>here</a> to add your own review."
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:3079
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:3083
 msgid ""
 "Unable to communicate with servers. Check your Internet connection and try "
 "again."
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:3112
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:3116
 msgid "Installed"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:3114
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:3118
 msgid "Removing"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:3116
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:3120
 msgid "Install"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:3124
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:3128
 msgid "Not installed"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:3126
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:3130
 msgid "Installing"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:3130
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:3134
 msgid "Cannot remove"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:3131
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:3135
 msgid "Removing this package could cause irreparable damage to your system."
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:3133
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:3137
 msgid "Cannot install"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:3134
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:3138
 msgid "Installing this package could cause irreparable damage to your system."
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:3142
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:3146
 msgid "Not available"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:3146
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:3150
 msgid "Please use apt-get to install this package."
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:3148
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:3152
 msgid "Use apt-get to remove this package."
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:3152
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:3156
 msgid "Try again"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:3155
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:3159
 msgid "Something went wrong. Click to try again."
-msgstr ""
-
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:3181
-#, python-format
-msgid "%(localSize)s of disk space required"
 msgstr ""
 
 #: usr/lib/linuxmint/mintinstall/mintinstall.py:3185
 #, python-format
+msgid "%(localSize)s of disk space required"
+msgstr ""
+
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:3189
+#, python-format
 msgid "%(downloadSize)s to download, %(localSize)s of disk space freed"
 msgstr ""
 
-#: usr/lib/linuxmint/mintinstall/mintinstall.py:3188
+#: usr/lib/linuxmint/mintinstall/mintinstall.py:3192
 #, python-format
 msgid "%(downloadSize)s to download, %(localSize)s of disk space required"
 msgstr ""
@@ -438,8 +438,8 @@ msgstr ""
 
 #: usr/share/linuxmint/mintinstall/mintinstall.glade.h:3
 msgid ""
-"To avoid any potential malware, Linux Mint strongly recommends against "
-"unverified Flatpaks."
+"To avoid potential malware, it is strongly recommended not to use unverified "
+"Flatpaks."
 msgstr ""
 
 #: usr/share/linuxmint/mintinstall/mintinstall.glade.h:4
