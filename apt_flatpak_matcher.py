@@ -70,73 +70,68 @@ class Scraper():
                     continue
                 # if len(pkginfo.name.split(".")) > 3:
                     # continue
-                if pkginfo.name.endswith(".Locale"):
+                if pkginfo.name.endswith((".Locale", ".Debug", ".Sources", ".Codecs")):
                     continue
-                if pkginfo.name.endswith(".Debug"):
-                    continue
-                if pkginfo.name.endswith(".Sources"):
-                    continue
-                if pkginfo.name.endswith(".Codecs"):
-                    continue
-                if "Gtk3theme" in pkginfo.name:
-                    continue
-                if ".Addon." in pkginfo.name:
+                if (any(s in pkginfo.name for s in ("Gtk3theme", ".Addon.", "Platform"))):
                     continue
 
                 self.fp.append(pkginfo)
 
         matches = []
 
-        with open("good", "w") as goodfile:
-            with open("bad", "w") as badfile:
-                for apt_pkginfo in self.apt:
-                    for f in self.fp:
-                        match = None
-                        # print(apt_pkginfo.name.rsplit(":"))
-                        aname = apt_pkginfo.name.rsplit(":")[0] # foobar:i386
-                        # print(apt_pkginfo.name, aname)
-                        if aname in matches or f.name in matches:
-                            continue
+        for apt_pkginfo in self.apt:
+            for f in self.fp:
+                match = None
+                # print(apt_pkginfo.name.rsplit(":"))
+                aname = apt_pkginfo.name.rsplit(":")[0] # foobar:i386
+                # print(apt_pkginfo.name, aname)
+                if aname in matches or f.name in matches:
+                    continue
 
-                        hp_url_a = self.installer.get_homepage_url(apt_pkginfo)
-                        hp_url_f = self.installer.get_homepage_url(f)
+                hp_url_a = self.installer.get_homepage_url(apt_pkginfo)
+                hp_url_f = self.installer.get_homepage_url(f)
 
-                        hn_a = urlparse(hp_url_a).hostname or '<none>-apt'
-                        hn_f = urlparse(hp_url_f).hostname or '<none-fp'
+                hn_a = urlparse(hp_url_a).hostname or '<none>-apt'
+                hn_f = urlparse(hp_url_f).hostname or '<none-fp'
 
-                        if hp_url_a == "github.com" and hp_url_f == "github.com":
-                            continue
+                if hp_url_a == "github.com" and hp_url_f == "github.com":
+                    continue
 
-                        fname = f.name.partition(".")[2]
-                        # if len(aname) == 0:
-                            # continue
-                        if aname == "seahorse":
-                            print(aname, fname)
-                        # print("1", aname.lower() == fname.lower().rpartition(".")[2], aname.lower(), fname.lower().rpartition(".")[2])
-                        # print("2",(aname.lower() in fname.split(".")[0] and len(aname) / len(fname.split(".")[0]) > 0.5), aname.lower(), fname.split(".")[0])
-                        # print("3",(aname.startswith("gnome-") and f.name == "org.gnome.%s" % aname[6:].capitalize()))
-                        # print("4",(fname.lower() == "%s.%s" % (aname.lower(), aname.lower())), fname.lower(),aname.lower(), aname.lower())
-                        # if (aname.lower() in fname.lower()) or \
-                        if (aname.lower() in fname.lower() and len(aname) / len(fname) > 0.5) or \
-                           (aname.lower() in f.name.lower().split(".")) or \
-                           (aname.startswith("flatpak-") and f.name == "org.flatpak.%s" % aname[8:].capitalize()) or \
-                           (aname.startswith("gnome-") and f.name == "org.gnome.%s" % aname[6:].capitalize()) or \
-                           (fname.lower() == "%s.%s" % (aname.lower(), aname.lower())) or \
-                           (hp_url_a == hp_url_f):
+                if self.installer.get_summary(f) == "":
+                    continue
 
-                            print("\n\\\n%s\n%s\n\n%s\n%s\n\n%s\n%s\n/\n" % 
-                                        (aname, f.name,
-                                         self.installer.get_summary(apt_pkginfo), self.installer.get_summary(f),
-                                         hp_url_a, hp_url_f))
-                            i = input("enter to accept, or n to skip: ")
-                            if i == "n":
-                                badfile.write("%s\n" % (aname,))
-                                continue
-                            elif i == "q":
-                                exit(0)
-                            matches.append(aname)
-                            matches.append(f.name)
-                            goodfile.write("%s, %s\n" % (aname, f.name))
+                fname = f.name.partition(".")[2]
+                # if len(aname) == 0:
+                    # continue
+                if aname == "seahorse":
+                    print(aname, fname)
+                # print("1", aname.lower() == fname.lower().rpartition(".")[2], aname.lower(), fname.lower().rpartition(".")[2])
+                # print("2",(aname.lower() in fname.split(".")[0] and len(aname) / len(fname.split(".")[0]) > 0.5), aname.lower(), fname.split(".")[0])
+                # print("3",(aname.startswith("gnome-") and f.name == "org.gnome.%s" % aname[6:].capitalize()))
+                # print("4",(fname.lower() == "%s.%s" % (aname.lower(), aname.lower())), fname.lower(),aname.lower(), aname.lower())
+                # if (aname.lower() in fname.lower()) or \
+                if (aname.lower() in fname.lower() and len(aname) / len(fname) > 0.5) or \
+                   (aname.lower() in f.name.lower().split(".")) or \
+                   (aname.startswith("flatpak-") and f.name == "org.flatpak.%s" % aname[8:].capitalize()) or \
+                   (aname.startswith("gnome-") and f.name == "org.gnome.%s" % aname[6:].capitalize()) or \
+                   (fname.lower() == "%s.%s" % (aname.lower(), aname.lower())) or \
+                   (hp_url_a == hp_url_f):
+
+                    print("\n\\\n%s\n%s\n\n%s\n%s\n\n%s\n%s\n/\n" % 
+                                (aname, f.name,
+                                 self.installer.get_summary(apt_pkginfo), self.installer.get_summary(f),
+                                 hp_url_a, hp_url_f))
+                    i = input("enter to accept, or n to skip: ")
+                    if i == "n":
+                        with open("bad", "a") as badfile:
+                            badfile.write("%s\n" % (aname,))
+                        continue
+                    elif i == "q":
+                        exit(0)
+                    matches.append(aname)
+                    matches.append(f.name)
+                    with open("good", "a") as goodfile:
+                        goodfile.write('"%s": "%s",\n' % (aname, f.name))
 
         quit_ml()
 
