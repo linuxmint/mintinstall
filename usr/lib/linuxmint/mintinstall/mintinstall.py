@@ -1419,16 +1419,22 @@ class Application(Gtk.Application):
         for child in box.get_children():
             child.destroy()
 
+        overlay = Gtk.Overlay()
+        box.pack_start(overlay, True, True, 0)
+
         stack = Gtk.Stack()
         stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
         stack.set_transition_duration(BANNER_TIMER)
+        overlay.add(stack)
 
-        dot_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
-        dot_box.set_halign(Gtk.Align.CENTER)
-        
+        dot_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
+                          halign=Gtk.Align.CENTER,
+                          valign=Gtk.Align.END)
+        overlay.add_overlay(dot_box)
+
         json_array = json.load(open("/usr/share/linuxmint/mintinstall/featured/featured.json", "r"))
         random.shuffle(json_array)
-        
+
         selected_apps = set()
         num_selected = 0
 
@@ -1442,7 +1448,7 @@ class Application(Gtk.Application):
 
             if name in selected_apps:
                 continue
-            
+
             if name.startswith("flatpak:"):
                 name = name.replace("flatpak:", "")
                 pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_FLATPAK)
@@ -1475,16 +1481,31 @@ class Application(Gtk.Application):
             stack.add_named(flowbox, str(len(stack.get_children())))
 
             icon = Gtk.Image.new_from_icon_name("media-record-symbolic", Gtk.IconSize.MENU)
-            icon.set_pixel_size(10) 
+            icon.set_pixel_size(5)
 
-            dot_button = Gtk.Button()
-            dot_button.set_relief(Gtk.ReliefStyle.NONE)
-            dot_button.set_image(icon)
+            button_class_override = """
+                #BannerDotOverlay {
+                    background-color: rgba(0, 0, 0, 0);
+                    border-color: rgba(0, 0, 0, 0);
+                    min-height: 12px;
+                    min-width: 22px;
+                }
+            """
+            provider = Gtk.CssProvider()
+            provider.load_from_data(str.encode(button_class_override))
+
+            dot_button = Gtk.Button(
+                halign=Gtk.Align.CENTER,
+                valign=Gtk.Align.END,
+                name="BannerDotOverlay",
+                relief=Gtk.ReliefStyle.NONE,
+                can_focus=False,
+                image=icon
+            )
+
+            dot_button.get_style_context().add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
             dot_button.connect("clicked", self.on_dot_clicked, stack, len(stack.get_children()) - 1)
             dot_box.pack_start(dot_button, False, False, 0)
-
-        box.pack_start(stack, True, True, 0)
-        box.pack_start(dot_box, False, False, 5)
 
         self.update_dot_buttons(dot_box, 0)
 
@@ -1513,11 +1534,11 @@ class Application(Gtk.Application):
         for i, button in enumerate(dot_box.get_children()):
             if i == current_index: #Bigger do if current slide
                 icon = Gtk.Image.new_from_icon_name("media-record-symbolic", Gtk.IconSize.MENU)
-                icon.set_pixel_size(15) 
+                icon.set_pixel_size(10) 
                 button.set_image(icon)
             else:
                 icon = Gtk.Image.new_from_icon_name("media-record-symbolic", Gtk.IconSize.MENU)
-                icon.set_pixel_size(10)
+                icon.set_pixel_size(5)
                 button.set_image(icon)
 
     def on_banner_clicked(self, button, pkginfo):
