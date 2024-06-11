@@ -385,24 +385,23 @@ class ScreenshotDownloader(threading.Thread):
         try:
             # Add additional screenshots from Debian
             from bs4 import BeautifulSoup
-            page = BeautifulSoup(urllib.request.urlopen("http://screenshots.debian.net/package/%s" % self.pkginfo.name, timeout=5), "lxml")
+            page = BeautifulSoup(urllib.request.urlopen("https://screenshots.debian.net/package/%s" % self.pkginfo.name, timeout=5), "lxml")
             images = page.findAll('img')
             for image in images:
                 if num_screenshots >= 4:
                     break
-                if image['src'].startswith('/screenshots'):
+                if image['src'].startswith('/screenshots') or image['src'].startswith("/shrine/screenshot"):
                     num_screenshots += 1
 
-                    thumb = "http://screenshots.debian.net%s" % image['src']
+                    thumb = "https://screenshots.debian.net%s" % image['src']
                     link = thumb.replace("_small", "_large")
-
                     local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
                     self.save_to_file(link, None, local_name)
 
                     self.add_screenshot(self.pkginfo, local_name, num_screenshots)
         except Exception as e:
             pass
-        
+
         if self.settings.get_boolean(prefs.HAMONIKR_SCREENSHOTS):
             try:
                 # Add additional screenshots from Hamonikr
@@ -1960,7 +1959,8 @@ class Application(Gtk.Application):
                 self.screenshot_window.present()
                 return
         else:
-            multiple_images = len(self.installer.get_screenshots(self.current_pkginfo)) > 1
+            multiple_images = len(self.installer.get_screenshots(self.current_pkginfo)) > 1 or \
+                                  self.screenshot_stack.last > 1
             self.screenshot_window = ScreenshotWindow(self.main_window, multiple_images)
             self.screenshot_window.connect("next-image", self.next_enlarged_screenshot_requested)
             self.screenshot_window.connect("destroy", self.enlarged_screenshot_window_destroyed)
