@@ -3125,6 +3125,7 @@ class Application(Gtk.Application):
         self.ss_swipe_handler.set_propagation_phase(Gtk.PropagationPhase.NONE)
         self.screenshot_stack.last = 0
         self.screenshot_stack.add_named(Gtk.Spinner(active=True), "spinner")
+        self.screenshot_controls_vgroup.set_visible(False)
         self.add_screenshots(pkginfo)
         self.screenshot_stack.show_all()
         self.screenshot_stack.grab_focus()
