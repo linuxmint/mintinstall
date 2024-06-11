@@ -1480,15 +1480,19 @@ class Application(Gtk.Application):
 
             stack.add_named(flowbox, str(len(stack.get_children())))
 
-            icon = Gtk.Image.new_from_icon_name("media-record-symbolic", Gtk.IconSize.MENU)
+            icon = Gtk.Image.new_from_icon_name("mintinstall-banner-dot", Gtk.IconSize.MENU)
             icon.set_pixel_size(5)
 
             button_class_override = """
                 #BannerDotOverlay {
                     background-color: rgba(0, 0, 0, 0);
+                    background-image: none;
                     border-color: rgba(0, 0, 0, 0);
                     min-height: 12px;
                     min-width: 22px;
+                    -gtk-icon-shadow: none;
+                    -gtk-icon-effect: none;
+                    box-shadow: none;
                 }
             """
             provider = Gtk.CssProvider()
@@ -1533,11 +1537,11 @@ class Application(Gtk.Application):
     def update_dot_buttons(self, dot_box, current_index):
         for i, button in enumerate(dot_box.get_children()):
             if i == current_index: #Bigger do if current slide
-                icon = Gtk.Image.new_from_icon_name("media-record-symbolic", Gtk.IconSize.MENU)
-                icon.set_pixel_size(10) 
+                icon = Gtk.Image.new_from_icon_name("mintinstall-banner-dot", Gtk.IconSize.MENU)
+                icon.set_pixel_size(10)
                 button.set_image(icon)
             else:
-                icon = Gtk.Image.new_from_icon_name("media-record-symbolic", Gtk.IconSize.MENU)
+                icon = Gtk.Image.new_from_icon_name("mintinstall-banner-dot", Gtk.IconSize.MENU)
                 icon.set_pixel_size(5)
                 button.set_image(icon)
 
