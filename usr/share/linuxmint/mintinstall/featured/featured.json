@@ -45,6 +45,11 @@
     "text_color": "#E6F3FC"
   },
   {
+    "name": "steam-installer",
+    "background": "radial-gradient(#6FBCE8 0.65px, transparent 0.65px) 0 0 / 13px 13px repeat, linear-gradient(to right, #11273D, #194761, #11273D), #11273D",
+    "text_color": "#ffffff"
+  },
+  {
     "name": "steam:i386",
     "background": "radial-gradient(#6FBCE8 0.65px, transparent 0.65px) 0 0 / 13px 13px repeat, linear-gradient(to right, #11273D, #194761, #11273D), #11273D",
     "text_color": "#ffffff"
