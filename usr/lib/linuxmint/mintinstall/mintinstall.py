@@ -2958,20 +2958,10 @@ class Application(Gtk.Application):
             self.builder.get_object("application_version").set_label("")
 
             self.builder.get_object("application_dev_name").set_label(_("Unknown maintainer"))
-            ascomp = self.installer.get_appstream_app_for_pkginfo(pkginfo)
 
-            if ascomp is not None:
-                # compatibility with libappstream < 1.0.0
-                try:
-                    dev_name = ascomp.get_developer().get_name()
-                except AttributeError:
-                    dev_name = ascomp.get_developer_name()
-
-                if dev_name is None:
-                    dev_name = ascomp.get_project_group()
-
-                if dev_name is not None:
-                    self.builder.get_object("application_dev_name").set_label(_("by %s" % dev_name))
+            dev_name = pkginfo.developer
+            if dev_name is not None:
+                self.builder.get_object("application_dev_name").set_label(_("by %s" % dev_name))
 
             if not pkginfo.verified:
                 self.unsafe_box.show()
