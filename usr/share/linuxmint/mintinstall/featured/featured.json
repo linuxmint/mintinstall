@@ -50,11 +50,6 @@
     "text_color": "#ffffff"
   },
   {
-    "name": "steam:i386",
-    "background": "radial-gradient(#6FBCE8 0.65px, transparent 0.65px) 0 0 / 13px 13px repeat, linear-gradient(to right, #11273D, #194761, #11273D), #11273D",
-    "text_color": "#ffffff"
-  },
-  {
     "name": "dropbox",
     "background": "linear-gradient(to left, #004391, #1b63ad)",
     "text_color": "#ececec"

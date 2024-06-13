@@ -1053,8 +1053,6 @@
         "sqlitebrowser": "org.sqlitebrowser.sqlitebrowser",
         "srain": "im.srain.Srain",
         "starfighter": "io.github.pr_starfighter.starfighter",
-        "steam": "com.valvesoftware.Steam",
-        "steam:i386": "com.valvesoftware.Steam",
         "steam-installer": "com.valvesoftware.Steam",
         "stellarium": "org.stellarium.Stellarium",
         "strawberry": "org.strawberrymusicplayer.strawberry",

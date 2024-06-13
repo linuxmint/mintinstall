@@ -92,7 +92,6 @@ Gtk.IconTheme.get_default().append_search_path("/usr/share/linuxmint/mintinstall
 # List of aliases
 ALIASES = {}
 ALIASES['spotify-client'] = "Spotify"
-ALIASES['steam-launcher'] = "Steam"
 ALIASES['steam-installer'] = "Steam"
 ALIASES['minecraft-launcher'] = "Minecraft"
 ALIASES['virtualbox-qt'] = "Virtualbox " # Added a space to force alias
