@@ -1287,6 +1287,9 @@ class Application(Gtk.Application):
         self.flowbox_featured = None
         self.flowbox_top_rated = None
         self.banner_tile = None
+        self.banner_dot_box = None
+        self.banner_stack = None
+        self.banner_slideshow_timeout_id = 0
 
         self.package_type_store = Gtk.ListStore(int, str, str, str, object) # index, label, summary, icon-name, remotename, pkginfo
 
@@ -1421,15 +1424,15 @@ class Application(Gtk.Application):
         overlay = Gtk.Overlay()
         box.pack_start(overlay, True, True, 0)
 
-        stack = Gtk.Stack()
-        stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
-        stack.set_transition_duration(BANNER_TIMER)
-        overlay.add(stack)
+        self.banner_stack = Gtk.Stack()
+        self.banner_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
+        self.banner_stack.set_transition_duration(BANNER_TIMER)
+        overlay.add(self.banner_stack)
 
-        dot_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
+        self.banner_dot_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
                           halign=Gtk.Align.CENTER,
                           valign=Gtk.Align.END)
-        overlay.add_overlay(dot_box)
+        overlay.add_overlay(self.banner_dot_box)
 
         json_array = json.load(open("/usr/share/linuxmint/mintinstall/featured/featured.json", "r"))
         random.shuffle(json_array)
@@ -1477,7 +1480,8 @@ class Application(Gtk.Application):
             tile = BannerTile(pkginfo, self.installer, name, background, color, is_flatpak, app_json, self.on_banner_clicked)
             flowbox.insert(tile, -1)
 
-            stack.add_named(flowbox, str(len(stack.get_children())))
+            flowbox.show_all()
+            self.banner_stack.add_named(flowbox, str(len(self.banner_stack.get_children())))
 
             icon = Gtk.Image.new_from_icon_name("mintinstall-banner-dot", Gtk.IconSize.MENU)
             icon.set_pixel_size(5)
@@ -1507,34 +1511,36 @@ class Application(Gtk.Application):
             )
 
             dot_button.get_style_context().add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-            dot_button.connect("clicked", self.on_dot_clicked, stack, len(stack.get_children()) - 1)
-            dot_box.pack_start(dot_button, False, False, 0)
+            dot_button.connect("clicked", self.on_dot_clicked, len(self.banner_stack.get_children()) - 1)
+            self.banner_dot_box.pack_start(dot_button, False, False, 0)
 
-        self.update_dot_buttons(dot_box, 0)
-
-        self.slideshow_timeout_id = GLib.timeout_add_seconds(5, self.on_slideshow_timeout, stack, dot_box)
-
+        self.update_dot_buttons(0)
         box.show_all()
 
-    def on_dot_clicked(self, button, stack, index):
-        self.reset_slideshow_timer(stack, button.get_parent())
-        stack.set_visible_child_name(str(index))
-        self.update_dot_buttons(button.get_parent(), index)
+    def on_dot_clicked(self, button, index):
+        self.start_slideshow_timer(self.banner_stack, button.get_parent())
+        self.banner_stack.set_visible_child_name(str(index))
+        self.update_dot_buttons(index)
 
-    def reset_slideshow_timer(self, stack, dot_box):
-        GLib.source_remove(self.slideshow_timeout_id)
-        self.slideshow_timeout_id = GLib.timeout_add_seconds(5, self.on_slideshow_timeout, stack, dot_box)
+    def start_slideshow_timer(self):
+        self.stop_slideshow_timer()
+        self.banner_slideshow_timeout_id = GLib.timeout_add_seconds(5, self.on_slideshow_timeout)
 
-    def on_slideshow_timeout(self, stack, dot_box):
-        visible_child = stack.get_visible_child()
-        index = stack.get_children().index(visible_child)
-        new_index = (index + 1) % len(stack.get_children())
-        stack.set_visible_child_name(str(new_index))
-        self.update_dot_buttons(dot_box, new_index)
+    def stop_slideshow_timer(self):
+        if self.banner_slideshow_timeout_id > 0:
+            GLib.source_remove(self.banner_slideshow_timeout_id)
+            self.banner_slideshow_timeout_id = 0
+
+    def on_slideshow_timeout(self):
+        visible_child = self.banner_stack.get_visible_child()
+        index = self.banner_stack.get_children().index(visible_child)
+        new_index = (index + 1) % len(self.banner_stack.get_children())
+        self.banner_stack.set_visible_child_name(str(new_index))
+        self.update_dot_buttons(new_index)
         return True
 
-    def update_dot_buttons(self, dot_box, current_index):
-        for i, button in enumerate(dot_box.get_children()):
+    def update_dot_buttons(self, current_index):
+        for i, button in enumerate(self.banner_dot_box.get_children()):
             if i == current_index: #Bigger do if current slide
                 icon = Gtk.Image.new_from_icon_name("mintinstall-banner-dot", Gtk.IconSize.MENU)
                 icon.set_pixel_size(10)
@@ -2366,6 +2372,7 @@ class Application(Gtk.Application):
 
     def finished_loading_packages(self):
         self.finish_loading_visual()
+        self.start_slideshow_timer()
 
         self.gui_ready = True
         self.update_conditional_widgets()
@@ -2517,6 +2524,8 @@ class Application(Gtk.Application):
                 tile.grab_focus()
             except IndexError:
                 pass
+
+            self.start_slideshow_timer()
 
         if self.previous_page == self.PAGE_LIST:
             self.previous_page = self.PAGE_LANDING
@@ -2767,6 +2776,8 @@ class Application(Gtk.Application):
         return [pkg.pkg for pkg in sort_pkgs]
 
     def show_packages(self, pkginfos, from_search=False):
+        self.stop_slideshow_timer()
+
         if self.one_package_idle_timer > 0:
             GLib.source_remove(self.one_package_idle_timer)
             self.one_package_idle_timer = 0
@@ -2873,6 +2884,7 @@ class Application(Gtk.Application):
     @print_timing
     def show_package(self, pkginfo, previous_page):
         self.page_stack.set_visible_child_name(self.PAGE_DETAILS)
+        self.stop_slideshow_timer()
         self.builder.get_object("details_notebook").set_current_page(0)
         self.previous_page = previous_page
         self.back_button.set_sensitive(True)
