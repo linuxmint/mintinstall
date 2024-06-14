@@ -1517,7 +1517,7 @@ class Application(Gtk.Application):
         box.show_all()
 
     def on_dot_clicked(self, button, index):
-        self.start_slideshow_timer(self.banner_stack, button.get_parent())
+        self.start_slideshow_timer()
         self.banner_stack.set_visible_child_name(str(index))
         self.update_dot_buttons(index)
 
