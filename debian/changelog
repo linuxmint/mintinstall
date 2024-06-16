@@ -1,3 +1,69 @@
+mintinstall (8.3.0) wilma; urgency=medium
+
+  [ Michael Webster ]
+  * flatpak match data: Add a second entry for steam:i386.
+  * Update flatpak match data.
+
+  [ Ulrik de Muelenaere ]
+  * Add a setting to filter apt/Flatpak results for the same application, with a fix for search sorting (#398)
+
+  [ Michael Webster ]
+  * Add a verified badge for flatpaks from Flathub.
+  * Cleanup some files.
+
+  [ Alexander K ]
+  * Speed up initialization by optimizing package sorting
+  * Initialize application in a thread for a responsive GUI
+
+  [ Michael Webster ]
+  * Add script to check category lists for non-existent packages.
+  * Update test script to compile settings schemas.
+  * Use AppStream instead of AppStreamGlib.
+  * Rework search preferences submenu, add header row for search filtering options.
+  * Flag unverified Flatpaks, not verified, display developer name when available.
+  * Don't call self.on_installer_ready on a thread.
+  * Misc. optimizations mainly aimed at startup time.
+  * Use a different message in the busy view during startup.
+  * Clean up, add some more benchmarking to costly operations.
+  * Handle some API breaks between AppStream versions.
+  * Add missing icon.
+  * Remove a leftover print statement.
+  * Use a static image instead of a spinner during app startup.
+  * Add a preferences page, move search settings there.
+  * Hide unverified Flatpaks by default, discourage them otherwise.
+  * When showing installed apps, always show all Flatpaks.
+
+  [ Clement Lefebvre ]
+  * Rephrase warnings/badge/tooltips for unverified flatpaks
+  * l10n: Update POT
+  * l10n: Generate files
+
+  [ Michael Webster ]
+  * Try the project_group if developer and developer_name are missing from appdata.
+
+  [ Michael Webster ]
+  * apt_flatpak_matcher.py: Write output files after each iteration instead of waiting until the end.
+  * Update apt<->flatpak matches.
+
+  [ Corbin Auriti ]
+  * Add Banner Slideshow using Gtk.Stack with nice animations (#417)
+
+  [ Michael Webster ]
+  * Recognize the new apt steam-installer package.
+  * banner: Ignore banner apps with no pkginfo.
+  * Overlay the banner dots on the banner's bottom to save space.
+  * Don't use symbolic banner dots, override some more css for them.
+  * Use https for debian.net screenshot lookups, improve screenshots for deb packages.
+  * Reset the screenshot controls when loading a new package.
+  * Use the cached 'developer' field instead of relying on appstream.
+  * Pause the banner timer when not on the landing page, don't start it until mintinstall is done initializing.
+  * Remove the 'steam' package from featured/banner apps, only allow 'steam-installer'
+
+  [ Corbin Auriti ]
+  * fix dot click error (#425)
+
+ -- Clement Lefebvre <root@linuxmint.com>  Sun, 16 Jun 2024 11:23:35 +0100
+
 mintinstall (8.2.9) virginia; urgency=medium
 
   [ Michael Webster ]
