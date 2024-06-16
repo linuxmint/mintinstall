@@ -451,7 +451,7 @@ mintinstall (7.9.0) tara; urgency=medium
   * Use GtkRevealer instead of notebook for the main page switching.
   * Setup list view asynchronously, but switch to it immediately.
   * Optimize add_package checks by highest match count to lowest (roughly)
-  * Load package data from the apt cache asynchronously.  Load landing items immediately.  This allows the application to become useable in about 1 second (down from 3-5)
+  * Load package data from the apt cache asynchronously.  Load landing items immediately.  This allows the application to become usable in about 1 second (down from 3-5)
   * Take chunks of the apt cache rather than one at a time.  250 per callback seems to have little impact on gui, while still keeping time to a minimum.
   * Add loading indicator for cache state
   * Update the list page once loading is complete
@@ -1024,7 +1024,7 @@ mintinstall (7.3.5) lisa; urgency=low
 
 mintinstall (7.3.4) lisa; urgency=low
 
-  * Removed commercial apps from categories view 
+  * Removed commercial apps from categories view
 
  -- Clement Lefebvre <root@linuxmint.com>  Tue,  8 Nov 2011 12:54:00 +0000
 
@@ -1122,7 +1122,7 @@ mintinstall (7.1.6) isadora; urgency=low
   * New option to use external browser for links
 
  -- Clement Lefebvre <root@linuxmint.com>  Wed,  2 Jun 2010 12:18:00 +0000
- 
+
 mintinstall (7.1.5) isadora; urgency=low
 
   * Using hashtables, significant speed improvements
@@ -1219,7 +1219,7 @@ mintinstall (7.0.1) isadora; urgency=low
 
 mintinstall (7.0.0) isadora; urgency=low
 
-  * Complete rewrite 
+  * Complete rewrite
 
  -- Clement Lefebvre <root@linuxmint.com>  Wed,  31 Mar 2010 16:36:00 +0000
 
@@ -1261,7 +1261,7 @@ mintinstall (6.4.6) helena; urgency=low
 
 mintinstall (6.4.5) helena; urgency=low
 
-  * Uses mint-common to launch browsers in user-mode 
+  * Uses mint-common to launch browsers in user-mode
 
  -- Clement Lefebvre <root@linuxmint.com>  Fri,  30 Oct 2009 17:41:00 +0000
 
@@ -1451,7 +1451,7 @@ mintinstall (5.3.7) felicia; urgency=low
 
 mintinstall (5.3.6) felicia; urgency=low
 
-  * Doesn't download what's already there on the local machine. Refresh process (not the initial one) is now much faster. 
+  * Doesn't download what's already there on the local machine. Refresh process (not the initial one) is now much faster.
 
  -- Clement Lefebvre <clem@linuxmint.com>  Sun,  11 Jan 2009 17:33:00 +0000
 
@@ -1477,7 +1477,7 @@ mintinstall (5.3.3) felicia; urgency=low
 mintinstall (5.3.2) felicia; urgency=low
 
   * added version info in about dialog
-  * show a linkButton for items website in frontend 
+  * show a linkButton for items website in frontend
   * fixed missing icon in search dialog
   * Added nb, ca, ro, pt_PT, pt_BR, es, ko and sk translations
 
@@ -1555,7 +1555,7 @@ mintinstall (3.7) elyssa; urgency=low
 
   * Mint icon in confirmation dialog
   * Now uses local repositories for mint files without repos (faster)
-  * new translations: ga pt_BR tr pl de da it sk 
+  * new translations: ga pt_BR tr pl de da it sk
   * corrections on nl
 
  -- Clement Lefebvre <clem@linuxmint.com>  Sat,  29 Mar 2008 16:23:00 +0000
@@ -1598,7 +1598,7 @@ mintinstall (3.2) daryna; urgency=low
 
 mintinstall (3.1) daryna; urgency=low
 
-  * new sources.list 
+  * new sources.list
 
  -- clem <root@linuxmint.com>  Wed,  14 Nov 2007 02:44:00 +0000
 
@@ -1632,7 +1632,7 @@ mintinstall (2.7) daryna; urgency=low
  -- clem <root@linuxmint.com>  Wed,  17 Oct 2007 23:47:00 +0000
 
 mintinstall (2.6) daryna; urgency=low
- 
+
   * now uses synaptic
   * i18n
 
@@ -1653,13 +1653,13 @@ mintinstall (2.4) cassandra; urgency=low
 
 mintinstall (2.3) cassandra; urgency=low
 
-  * Crashed when the package wasn't in the default repos. Fixed. 
+  * Crashed when the package wasn't in the default repos. Fixed.
 
  -- clem <root@linuxmint.com>  Fri,  22 Jun 2007 13:02:00 +0000
 
 mintinstall (2.2) cassandra; urgency=low
 
-  * Quick fix. 
+  * Quick fix.
 
  -- clem <root@linuxmint.com>  Mon,  11 Jun 2007 00:07:00 +0000
 
@@ -1671,7 +1671,7 @@ mintinstall (2.1) cassandra; urgency=low
   * improved package status detection
   * uses the new medibuntu repo
 
- -- clem <root@linuxmint.com>  Sun,  10 Jun 2007 23:23:00 +0000 
+ -- clem <root@linuxmint.com>  Sun,  10 Jun 2007 23:23:00 +0000
 
 mintinstall (2.0) cassandra; urgency=low
 
@@ -1696,15 +1696,15 @@ mintinstall (1.8) cassandra; urgency=low
 mintinstall (1.7) cassandra; urgency=low
 
   * Better backup of the sources.list
-  * Can now restore sources.list if something goes wrong. 
-  * Progressbar fix. 
+  * Can now restore sources.list if something goes wrong.
+  * Progressbar fix.
 
  -- clem <root@linuxmint.com>  Tue,  15 May 2007 13:58:36 +0000
 
 mintinstall (1.6) cassandra; urgency=low
- 
+
   * mintInstall now deletes locks at startup
-  * copys sources.list to backup instead of moving it
+  * copies sources.list to backup instead of moving it
 
  -- clem <root@linuxmint.com>  Tue,  8 May 2007 12:20:00 +0000
 
@@ -1726,7 +1726,7 @@ mintinstall (1.4) cassandra; urgency=low
 mintinstall (1.3) cassandra; urgency=low
 
   * Fixed bug in KEY Command
-  * Repositories now add to sources.list instead of replacing it. 
+  * Repositories now add to sources.list instead of replacing it.
 
  -- clem <root@linuxmint.com>  Thu,  3 May 2007 14:55:27 +0000
 

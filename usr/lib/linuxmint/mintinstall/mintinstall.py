@@ -58,7 +58,7 @@ FLATHUB_MEDIA_BASE_URL = "https://dl.flathub.org/media/"
 #May not work on all mice
 MOUSE_BACK_BUTTON = 8
 
-#How many miliseconds between banner slides
+#How many milliseconds between banner slides
 BANNER_TIMER = 500
 
 # package type combobox columns
@@ -663,11 +663,11 @@ class BannerTile(Gtk.FlowBoxChild):
         style_provider = Gtk.CssProvider()
         style_provider.load_from_data(str.encode(css))
 
-        """ Have to re-use .add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION) for every widget because
-        add_provider doesn't cascade to children, and cant set the whole screen context for multiple tiles 
+        """ Have to reuse .add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION) for every widget because
+        add_provider doesn't cascade to children, and can't set the whole screen context for multiple tiles
         without making them uniform """
         self.get_style_context().add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-        
+
         label_name = Gtk.Label(xalign=0)
         label_name.set_label(self.installer.get_display_name(self.pkginfo))
         label_name.set_name("BannerTitle")
