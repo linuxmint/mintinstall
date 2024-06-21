@@ -1,3 +1,11 @@
+mintinstall (8.3.1) wilma; urgency=medium
+
+  [ Michael Webster ]
+  * debian/control: Add lxml dependency (needed by bs4).
+  * Use only large images for the debian.net screenshot harvester.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Fri, 21 Jun 2024 17:05:00 +0100
+
 mintinstall (8.3.0) wilma; urgency=medium
 
   [ Michael Webster ]
