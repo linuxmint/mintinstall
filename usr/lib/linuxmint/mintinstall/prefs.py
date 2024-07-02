@@ -58,7 +58,7 @@ class PrefsWidget(Gtk.Box):
         ]
 
         section = page.add_section()
-        widget = GSettingsComboBox(_("When an app has mutiple formats:"), SCHEMA_ID, PACKAGE_TYPE_PREFERENCE, search_options)
+        widget = GSettingsComboBox(_("When an app has multiple formats:"), SCHEMA_ID, PACKAGE_TYPE_PREFERENCE, search_options)
         section.add_row(widget)
 
         self.show_all()
