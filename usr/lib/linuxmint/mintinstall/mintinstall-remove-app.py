@@ -46,7 +46,7 @@ class AppUninstaller:
                                           self.on_installer_info_ready, None,
                                           self.on_uninstall_complete, self.on_uninstall_progress, use_mainloop=True)
         else:
-            print("Package '%s' is not installed" % self.pkginfo.name)
+            print("Package '%s' is not installed" % pkg_name)
             self.on_uninstall_complete(None)
 
     def on_installer_info_ready(self, task):
@@ -60,7 +60,7 @@ class AppUninstaller:
     def on_uninstall_progress(self, pkginfo, progress, estimating, status_text=None):
         if self.progress_window is None:
             self.progress_window = Gtk.Dialog()
-            self.progress_window.set_default_geometry(400, -1)
+            self.progress_window.set_default_size(400, -1)
             self.progress_window.set_title(_("Removing"))
             self.progress_window.connect("delete-event", self.dialog_delete_event)
 
