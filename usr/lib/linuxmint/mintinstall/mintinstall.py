@@ -385,7 +385,7 @@ class ScreenshotDownloader(threading.Thread):
             # Add additional screenshots from Debian
             from bs4 import BeautifulSoup
             page = BeautifulSoup(urllib.request.urlopen("https://screenshots.debian.net/package/%s" % self.pkginfo.name, timeout=5), "lxml")
-            images = page.findAll(href=re.compile(r"/shrine/screenshot/simage/large-"))
+            images = page.findAll(href=re.compile(r"/shrine/screenshot[/\d\w]*large-[\w\d]*.png"))
             for image in images:
                 if num_screenshots >= 4:
                     break
