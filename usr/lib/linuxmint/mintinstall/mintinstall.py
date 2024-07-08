@@ -1521,10 +1521,16 @@ class Application(Gtk.Application):
         self.update_dot_buttons(index)
 
     def start_slideshow_timer(self):
+        if self.low_res:
+            return
+
         self.stop_slideshow_timer()
         self.banner_slideshow_timeout_id = GLib.timeout_add_seconds(5, self.on_slideshow_timeout)
 
     def stop_slideshow_timer(self):
+        if self.low_res:
+            return
+
         if self.banner_slideshow_timeout_id > 0:
             GLib.source_remove(self.banner_slideshow_timeout_id)
             self.banner_slideshow_timeout_id = 0
