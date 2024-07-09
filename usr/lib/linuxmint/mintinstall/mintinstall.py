@@ -3033,8 +3033,7 @@ class Application(Gtk.Application):
         app_description = self.builder.get_object("application_description")
 
         if description not in (None, ''):
-            subbed = re.sub(r'\n+', '\n\n', description).rstrip()
-            app_description.set_label(subbed)
+            app_description.set_label(description)
             app_description.show()
         else:
             app_description.hide()
