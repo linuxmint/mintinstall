@@ -1,3 +1,30 @@
+mintinstall (8.3.2) wilma; urgency=medium
+
+  [ Michael Webster ]
+  * Update apt-flatpak match info.
+  * Fix makepot script.
+  * mintinstall-remove-app.py: Fix a potential error if attempting to remove a not-installed app.
+
+  [ Clement Lefebvre ]
+  * l10n: Update POT
+
+  [ Michael Webster ]
+  * prefs.py: Fix typo.
+
+  [ Clement Lefebvre ]
+  * l10n: Update POT
+
+  [ Michael Webster ]
+  * Improve search for screenshots on debian.net.
+  * Don't try to start the banner slideshow in low resolution mode.
+  * Don't try to fix description formatting.
+  * debian/control: Add missing dependencies.
+
+  [ Clement Lefebvre ]
+  * Update favorites
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 17 Jul 2024 16:00:40 +0100
+
 mintinstall (8.3.1) wilma; urgency=medium
 
   [ Michael Webster ]
