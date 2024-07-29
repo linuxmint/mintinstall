@@ -1453,7 +1453,7 @@ class Application(Gtk.Application):
                 name = name.replace("flatpak:", "")
                 pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_FLATPAK)
 
-                if not pkginfo.verified:
+                if pkginfo is None or not pkginfo.verified:
                     continue
 
                 is_flatpak = True
@@ -1634,7 +1634,7 @@ class Application(Gtk.Application):
             if name.startswith("flatpak:"):
                 name = name.replace("flatpak:", "")
                 pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_FLATPAK)
-                if not pkginfo.verified:
+                if pkginfo is None or not pkginfo.verified:
                     continue
             else:
                 pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_APT)
@@ -2387,8 +2387,11 @@ class Application(Gtk.Application):
         return False
 
     def get_installed_package_hashes(self):
-        installed_fp_refs = installer._flatpak.get_fp_sys().list_installed_refs(None)
-        fp_hashes = [installer._flatpak.make_pkg_hash(ref) for ref in installed_fp_refs]
+        if self.installer.have_flatpak:
+            installed_fp_refs = installer._flatpak.get_fp_sys().list_installed_refs(None)
+            fp_hashes = [installer._flatpak.make_pkg_hash(ref) for ref in installed_fp_refs]
+        else:
+            fp_hashes = []
 
         apt_cache = installer._apt.get_apt_cache()
         apt_hashes = [installer._apt.make_pkg_hash(pkg) for pkg in apt_cache if pkg.installed]
