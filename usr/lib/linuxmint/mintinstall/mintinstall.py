@@ -3303,8 +3303,11 @@ class Application(Gtk.Application):
                 for desktop_file in [
                     # foo.desktop
                     "/usr/share/applications/%s.desktop" % bin_name,
-                    # foo in foo-bar.desktop
+                    # foo in foo-bar.desktop or foo_bar.desktop
                     "/usr/share/applications/%s.desktop" % bin_name.split("-")[0],
+                    "/usr/share/applications/%s.desktop" % bin_name.split("_")[0],
+                    # foo-bar package with foo_bar.desktop
+                    "/usr/share/applications/%s.desktop" % bin_name.replace("-", "_"),
                     # foo in org.bar.Foo.desktop
                     "/usr/share/applications/%s.desktop" % bin_name.split(".")[-1],
                     "/usr/share/app-install/desktop/%s:%s.desktop" % (bin_name, bin_name)
