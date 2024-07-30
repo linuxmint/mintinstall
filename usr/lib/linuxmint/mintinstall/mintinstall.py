@@ -2142,8 +2142,9 @@ class Application(Gtk.Application):
 
         from mintcommon.installer import cache
 
-        self.installer.cache = cache.PkgCache(self.installer.have_flatpak)
-        self.installer.force_new_cache()
+        self.installer.cache = cache.PkgCache(None, None, self.installer.have_flatpak)
+        self.installer.cache._generate_cache_thread()
+
         self.installer.backend_table = {}
 
         self.installer.initialize_appstream()
@@ -3321,8 +3322,11 @@ class Application(Gtk.Application):
                 for desktop_file in [
                     # foo.desktop
                     "/usr/share/applications/%s.desktop" % bin_name,
-                    # foo in foo-bar.desktop
+                    # foo in foo-bar.desktop or foo_bar.desktop
                     "/usr/share/applications/%s.desktop" % bin_name.split("-")[0],
+                    "/usr/share/applications/%s.desktop" % bin_name.split("_")[0],
+                    # foo-bar package with foo_bar.desktop
+                    "/usr/share/applications/%s.desktop" % bin_name.replace("-", "_"),
                     # foo in org.bar.Foo.desktop
                     "/usr/share/applications/%s.desktop" % bin_name.split(".")[-1],
                     "/usr/share/app-install/desktop/%s:%s.desktop" % (bin_name, bin_name)
