@@ -1,3 +1,12 @@
+mintinstall (8.3.3) wilma; urgency=medium
+
+  [ Michael Webster ]
+  * Guard against flatpak support in some recent changes.
+  * Add a couple more possibilities for .desktop file names when showing the 'launch' button.
+  * Fix command-line execution for listing packages.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Sun, 04 Aug 2024 13:49:11 +0100
+
 mintinstall (8.3.2) wilma; urgency=medium
 
   [ Michael Webster ]
