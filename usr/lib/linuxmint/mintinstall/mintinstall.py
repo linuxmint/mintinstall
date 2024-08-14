@@ -1712,17 +1712,13 @@ class Application(Gtk.Application):
         self.load_featured()
         self.load_top_rated()
 
-
-
     def open_software_sources(self,_):
+        # Opens Mint's Software Sources and refreshes the cache afterwards
         def on_process_exited(proc, result):
             proc.wait_finish(result)
             self.refresh_cache()
-        """Opens Mint's Software Sources and refreshes the cache afterwards."""
-
-        # Launch mintsources
         p = Gio.Subprocess.new(["mintsources"], 0)
-        # Add a callback for when it finishes...
+        # Add a callback when we exit mintsources
         p.wait_async(None, on_process_exited)
 
     def should_show_pkginfo(self, pkginfo):
