@@ -2,7 +2,7 @@
 
 Software Manager for Linux Mint.
 
-![image](https://user-images.githubusercontent.com/19881231/122644976-86767180-d120-11eb-9cf4-eed2813f749b.png)
+![image](https://linuxmint.com/web/img/screenshots/c9.jpg)
 
 ## Build
 Get source code
