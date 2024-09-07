@@ -1,12 +1,44 @@
-Mintinstall installer tests:
+I'm doing this so that you can read the email because you haven't looked at it for 24 hours and I'm starting to suspect you.
 
-apt errors:
-- select python3 package, should immediately change button to forbidden (can't remove) - no error popup
-- select grep, should be forbidden also - no error popup
-- select tar, should show try again, popup showing dependency error
-- any operation, no network connection, should popup network connection error (network isn't needed to 'show' a package)
+https://github.com/MustafaKoca9/MustafaKoca/blob/MustafaKoca9-patch-1/Ekran%20G%C3%B6r%C3%BCnt%C3%BCs%C3%BC%20-%202024-09-07%2015-52-48.png
 
-flatpak errors:
-- disconnect network, select package, should show network connection error (this happens while attempting to resolve the package info).
-- select package, start install, disconnect network, should show specific operation error, as well as a network error triggered by
-  reloading the package view.
+first of all, I'm sending a few vulnerable directories, contact me urgently
+www.linuxmint.com
+arc.linuxmint.com
+www.arc.linuxmint.com
+autodiscover.arc.linuxmint.com
+cpanel.arc.linuxmint.com
+cpcalendars.arc.linuxmint.com
+cpcontacts.arc.linuxmint.com
+mail.arc.linuxmint.com
+webdisk.arc.linuxmint.com
+webmail.arc.linuxmint.com
+blog.linuxmint.com
+www.blog.linuxmint.com
+build.linuxmint.com
+www.build.linuxmint.com
+cinnamon-spices.linuxmint.com
+www.cinnamon-spices.linuxmint.com
+community.linuxmint.com
+www.community.linuxmint.com
+developer.linuxmint.com
+forums.linuxmint.com
+www.forums.linuxmint.com
+gem.linuxmint.com
+www.gem.linuxmint.com
+lwww.linuxmint.com
+www.lwww.linuxmint.com
+projects.linuxmint.com
+segfault.linuxmint.com
+www.segfault.linuxmint.com
+soci.linuxmint.com
+www.soci.linuxmint.com
+autodiscover.soci.linuxmint.com
+cpanel.soci.linuxmint.com
+cpcalendars.soci.linuxmint.com
+cpcontacts.soci.linuxmint.com
+mail.soci.linuxmint.com
+webdisk.soci.linuxmint.com
+webmail.soci.linuxmint.com
+torrents.linuxmint.com
+www.torrents.linuxmint.com
