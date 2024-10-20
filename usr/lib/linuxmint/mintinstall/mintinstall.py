@@ -377,12 +377,12 @@ class BannerTile(Gtk.FlowBoxChild):
         self.get_style_context().add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         label_name = Gtk.Label(xalign=0)
-        label_name.set_label(self.installer.get_display_name(self.pkginfo))
+        label_name.set_label(pkginfo.get_display_name())
         label_name.set_name("BannerTitle")
         label_name.get_style_context().add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         label_summary = Gtk.Label(xalign=0)
-        label_summary.set_label(self.installer.get_summary(self.pkginfo))
+        label_summary.set_label(pkginfo.get_summary())
         label_summary.set_name("BannerSummary")
         label_summary.get_style_context().add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
@@ -456,16 +456,16 @@ class PackageTile(Gtk.FlowBoxChild):
         if self.icon is not None:
             self.icon.destroy()
 
-        icon_string = self.installer.get_icon(self.pkginfo, FEATURED_ICON_SIZE)
+        icon_string = self.pkginfo.get_icon(imaging.FEATURED_ICON_SIZE)
         if not icon_string:
             icon_string = imaging.FALLBACK_PACKAGE_ICON_PATH
         self.icon = imaging.get_icon(icon_string, imaging.FEATURED_ICON_SIZE)
         self.icon_holder.add(self.icon)
 
-        display_name = self.installer.get_display_name(self.pkginfo)
+        display_name = self.pkginfo.get_display_name()
         self.package_label.set_label(display_name)
 
-        summary = self.installer.get_summary(self.pkginfo)
+        summary = self.pkginfo.get_summary()
         self.package_summary.set_label(summary)
 
         if self.show_package_type:
@@ -1280,7 +1280,7 @@ class Application(Gtk.Application):
                     continue
 
                 if info.name != self.banner_app_name and info.name not in self.featured_app_names:
-                    if self.installer.get_icon(info, FEATURED_ICON_SIZE) is not None:
+                    if info.get_icon(imaging.FEATURED_ICON_SIZE) is not None:
                         apps.append(info)
         apps = self.sort_packages(apps, attrgetter("installed", "score_desc", "name"))
         apps = apps[0:30]
@@ -1401,10 +1401,13 @@ class Application(Gtk.Application):
         self.load_top_rated()
 
     def should_show_pkginfo(self, pkginfo):
-        if pkginfo.pkg_hash.startswith("fp:") and not self.settings.get_boolean(prefs.ALLOW_UNVERIFIED_FLATPAKS):
+        if pkginfo.pkg_hash.startswith("apt"):
+            return True
+
+        if not self.settings.get_boolean(prefs.ALLOW_UNVERIFIED_FLATPAKS):
             return pkginfo.verified
 
-        return True
+        return pkginfo.refid.startswith("app/")
 
     def update_conditional_widgets(self):
         if not self.gui_ready:
@@ -1836,11 +1839,11 @@ class Application(Gtk.Application):
         for pkg_hash in pkginfos.keys():
             pkginfo = self.installer.cache[pkg_hash]
 
-            description = self.installer.get_description(pkginfo)
+            description = pkginfo.get_description(pkginfo)
             description = description.replace("\r\n", "<br>")
             description = description.replace("\n", "<br>")
 
-            summary = self.installer.get_summary(pkginfo)
+            summary = pkginfo.get_summary(pkginfo)
             url = ""
             try:
                 url = self.installer.get_homepage_url(pkginfo)
@@ -2291,7 +2294,7 @@ class Application(Gtk.Application):
         self.show_category(child.category)
 
     def get_application_icon_string(self, pkginfo, size):
-        string = self.installer.get_icon(pkginfo, size)
+        string = pkginfo.get_icon(size, self.installer.get_appstream_pkg_for_pkginfo(pkginfo))
 
         if not string:
             string = imaging.FALLBACK_PACKAGE_ICON_PATH
@@ -2369,15 +2372,15 @@ class Application(Gtk.Application):
                 # may not actually contain the app's name. In this case their display
                 # names are better. The 'name' is still checked first above, because
                 # it's static - get_display_name() may involve a lookup with appstream.
-                if flatpak and all(piece in self.installer.get_display_name(pkginfo).upper() for piece in termsSplit):
+                if flatpak and all(piece in pkginfo.get_display_name().upper() for piece in termsSplit):
                     is_match = True
                     pkginfo.search_tier = 0
                     break
-                if (search_in_summary and termsUpper in self.installer.get_summary(pkginfo, for_search=True).upper()):
+                if (search_in_summary and termsUpper in pkginfo.get_summary().upper()):
                     is_match = True
                     pkginfo.search_tier = 100
                     break
-                if(search_in_description and termsUpper in self.installer.get_description(pkginfo, for_search=True).upper()):
+                if(search_in_description and termsUpper in self.installer.get_description(pkginfo).upper()):
                     is_match = True
                     pkginfo.search_tier = 200
                     break
@@ -2464,7 +2467,7 @@ class Application(Gtk.Application):
             # A flatpak's 'name' may not even have the app's name in it.
             # It's better to compare by their display names
             if pkg.pkg_hash.startswith("f"):
-                sort_pkg.name = self.installer.get_display_name(pkg)
+                sort_pkg.name = pkg.get_display_name()
 
             if self.review_cache and pkg.name in self.review_cache:
                 sort_pkg.score_desc = -self.review_cache[pkg.name].score
@@ -2505,13 +2508,15 @@ class Application(Gtk.Application):
             self.app_list_stack.set_visible_child_name("results")
 
         if self.current_category == self.installed_category:
+            # Installed category we want to show all apps even if they're 'unverified'
             apps = [info for info in pkginfos if info.refid == "" or info.refid.startswith("app")]
             apps = self.sort_packages(apps, attrgetter("name"))
         else:
-            apps = [info for info in pkginfos if info.refid == "" or (info.refid.startswith("app") and self.should_show_pkginfo(info))]
             if from_search:
+                apps = [info for info in pkginfos] # should_show_pkginfo was applied during search matching
                 apps = self.sort_packages(apps, attrgetter("unverified", "search_tier", "score_desc", "name"))
             else:
+                apps = [info for info in pkginfos if self.should_show_pkginfo(info)]
                 apps = self.sort_packages(apps, attrgetter("unverified", "score_desc", "name"))
             apps = apps[0:201]
 
@@ -2522,7 +2527,7 @@ class Application(Gtk.Application):
         bad_ones = []
         for pkginfo in apps:
             try:
-                title = self.installer.get_display_name(pkginfo).lower()
+                title = pkginfo.get_display_name().lower()
                 if title in package_titles and title not in collisions:
                     collisions.append(title)
                 package_titles.append(title)
@@ -2545,11 +2550,9 @@ class Application(Gtk.Application):
             self.one_package_idle_timer = 0
             return False
 
-        icon = self.get_application_icon(pkginfo, LIST_ICON_SIZE)
+        icon = self.get_application_icon(pkginfo, imaging.LIST_ICON_SIZE)
 
-        summary = self.installer.get_summary(pkginfo)
-        summary = summary.replace("<", "&lt;")
-        summary = summary.replace("&", "&amp;")
+        summary = pkginfo.get_summary()
 
         if self.review_cache:
             review_info = self.review_cache[pkginfo.name]
@@ -2669,11 +2672,11 @@ class Application(Gtk.Application):
             # We don't know flatpak versions until the task reports back, apt we know immediately.
             self.builder.get_object("application_version").set_label("")
 
-            self.builder.get_object("application_dev_name").set_label(_("Unknown maintainer"))
-
-            dev_name = pkginfo.developer
-            if dev_name is not None:
+            dev_name = self.installer.get_developer(pkginfo)
+            if dev_name != "":
                 self.builder.get_object("application_dev_name").set_label(_("by %s" % dev_name))
+            else:
+                self.builder.get_object("application_dev_name").set_label(_("Unknown maintainer"))
 
             if not pkginfo.verified:
                 self.unsafe_box.show()
@@ -2685,10 +2688,10 @@ class Application(Gtk.Application):
 
         self.package_type_combo.connect("changed", self.package_type_combo_changed)
 
-        app_name = self.installer.get_display_name(pkginfo)
+        app_name = pkginfo.get_display_name()
 
         self.builder.get_object("application_name").set_label(app_name)
-        self.builder.get_object("application_summary").set_label(self.installer.get_summary(pkginfo))
+        self.builder.get_object("application_summary").set_label(pkginfo.get_summary())
         self.builder.get_object("application_package").set_label(pkginfo.name)
         self.builder.get_object("application_size").set_markup("")
         self.builder.get_object("application_remote").set_markup("")
