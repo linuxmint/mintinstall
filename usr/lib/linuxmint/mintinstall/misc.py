@@ -2,10 +2,10 @@
 
 import os
 import time
-import requests
 
-DEBUG_MODE = os.getenv("MINTINSTALL_DEBUG", False)
 from gi.repository import Gio
+
+DEBUG_MODE = os.getenv("DEBUG", False)
 
 # Used as a decorator to time functions
 def print_timing(func):
