@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.38.2 -->
-<interface>
+<!-- Generated with glade 3.40.0 -->
+<interface domain="mintinstall">
   <requires lib="gtk+" version="3.22"/>
   <object class="GtkSizeGroup"/>
   <object class="GtkSizeGroup"/>
@@ -621,6 +621,7 @@
                       <object class="GtkBox">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
+                        <property name="valign">center</property>
                         <property name="orientation">vertical</property>
                         <child>
                           <object class="GtkBox" id="application_icon_holder">

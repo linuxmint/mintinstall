@@ -5,6 +5,14 @@ DEB_VERSION := $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' '
 %:
 	dh ${@}
 
+override_dh_auto_install:
+	mkdir -p debian/mintinstall/usr/share/linuxmint/mintinstall
+	cd resources &&	glib-compile-resources \
+		--target=../debian/mintinstall/usr/share/linuxmint/mintinstall/mintinstall.gresource mintinstall.gresource.xml \
+		&& cd ..
+	cp resources/*.glade debian/mintinstall/usr/share/linuxmint/mintinstall
+	dh_auto_install
+
 # Inject version number in the code
 override_dh_installdeb:
 	dh_installdeb

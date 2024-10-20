@@ -3,4 +3,9 @@
 sudo rm -rf /usr/lib/linuxmint/mintinstall
 sudo cp -R usr /
 sudo glib-compile-schemas /usr/share/glib-2.0/schemas/
-mintinstall
+mkdir -p debian/mintinstall/usr/share/linuxmint/mintinstall
+cd resources && sudo glib-compile-resources \
+    --target=/usr/share/linuxmint/mintinstall/mintinstall.gresource mintinstall.gresource.xml \
+    && cd ..
+
+DEBUG=1 mintinstall
