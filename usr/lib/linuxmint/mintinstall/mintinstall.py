@@ -23,8 +23,7 @@ from operator import attrgetter
 import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('XApp', '1.0')
-gi.require_version('AppStream', '1.0')
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, XApp, AppStream, Pango
+from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, XApp, Pango
 import cairo
 
 from mintcommon.installer import installer
@@ -3020,16 +3019,14 @@ class Application(Gtk.Application):
             else:
                 launchables = self.installer.get_flatpak_launchables(pkginfo)
                 if launchables:
-                    for launchable in launchables:
-                        if launchable.get_kind() == AppStream.LaunchableKind.DESKTOP_ID:
-                            [desktop_id] = launchable.get_entries()
-                            desktop_file = os.path.join(self.installer.get_flatpak_root_path(), "exports/share/applications", desktop_id)
-                            try:
-                                info = Gio.DesktopAppInfo.new_from_filename(desktop_file)
-                            except TypeError:
-                                info = Gio.DesktopAppInfo.new_from_filename(desktop_file + ".desktop")
-                            exec_string = info.get_commandline()
-                            break
+                    for desktop_id in launchables:
+                        desktop_file = os.path.join(self.installer.get_flatpak_root_path(), "exports/share/applications", desktop_id)
+                        try:
+                            info = Gio.DesktopAppInfo.new_from_filename(desktop_file)
+                        except TypeError:
+                            info = Gio.DesktopAppInfo.new_from_filename(desktop_file + ".desktop")
+                        exec_string = info.get_commandline()
+                        break
                 else:
                     desktop_file = os.path.join(self.installer.get_flatpak_root_path(), "exports/share/applications", pkginfo.name)
                     info = None
