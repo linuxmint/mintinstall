@@ -5,6 +5,7 @@ import time
 import requests
 
 DEBUG_MODE = os.getenv("MINTINSTALL_DEBUG", False)
+from gi.repository import Gio
 
 # Used as a decorator to time functions
 def print_timing(func):
@@ -25,9 +26,5 @@ def debug(str):
     print("Mintinstall (DEBUG): %s" % str)
 
 def networking_available():
-    try:
-        requests.get("https://8.8.8.8", timeout=1)
-        return True
-    except Exception as e:
-        print(e)
-        return False
+    nm = Gio.NetworkMonitor.get_default()
+    return nm.get_connectivity() == Gio.NetworkConnectivity.FULL
