@@ -3171,5 +3171,9 @@ class DottedProgressLabel(Gtk.Fixed):
 
 if __name__ == "__main__":
     os.system("mkdir -p %s" % imaging.SCREENSHOT_DIR)
+
+    if os.environ.get("RAYON_NUM_THREADS") is None:
+        os.environ["RAYON_NUM_THREADS"] = "2"
+
     app = Application()
     app.run(sys.argv)
