@@ -2376,6 +2376,12 @@ class Application(Gtk.Application):
                     is_match = True
                     pkginfo.search_tier = 0
                     break
+
+                if termsUpper in pkginfo.get_keywords().upper():
+                    is_match = True
+                    pkginfo.search_tier = 50
+                    break
+
                 if (search_in_summary and termsUpper in pkginfo.get_summary().upper()):
                     is_match = True
                     pkginfo.search_tier = 100
