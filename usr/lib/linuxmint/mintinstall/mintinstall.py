@@ -899,7 +899,7 @@ class Application(Gtk.Application):
         self.refresh_cache_menuitem.set_sensitive(False)
         submenu.append(self.refresh_cache_menuitem)
 
-        software_sources_menuitem = Gtk.MenuItem(label=_("Software sources..."))
+        software_sources_menuitem = Gtk.MenuItem(label=_("Software sources"))
         software_sources_menuitem.connect("activate", self.open_software_sources)
         software_sources_menuitem.show()
         submenu.append(software_sources_menuitem)

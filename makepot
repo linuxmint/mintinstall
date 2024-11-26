@@ -1,9 +1,9 @@
 #!/bin/bash
 
-intltool-extract --type=gettext/glade usr/share/linuxmint/mintinstall/mintinstall.glade
+intltool-extract --type=gettext/glade resources/mintinstall.glade
 xgettext --language=Python -cTRANSLATORS --keyword=_ --keyword=N_ --output=mintinstall.pot  \
     usr/lib/linuxmint/mintinstall/*.py                              \
     generate_desktop_files                                                    \
-    usr/share/linuxmint/mintinstall/mintinstall.glade.h
+    resources/mintinstall.glade.h
 
-rm -f usr/share/linuxmint/mintinstall/mintinstall.glade.h
+rm -f resources/mintinstall.glade.h
