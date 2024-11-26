@@ -1,3 +1,24 @@
+mintinstall (8.3.4) xia; urgency=medium
+
+  [ Michael Webster ]
+  * Load glade files using GResource.
+  * Use Gio for checking network connectivity when an operation fails.
+  * Move screenshot and icon generators to a separate file.
+  * Remove dependency, references to AppStream.
+  * Make debug environment variable the same as mint-common
+  * Adapt to mint-common installer changes.
+  * Limit number of rsvg threads.
+  * Remove mintinstall-remove-app.
+  * search: Check keywords also.
+
+  [ rlatosky ]
+  * Add software sources into submenu (Adding code from PR #382) (#432)
+
+  [ Clement Lefebvre ]
+  * l10n: Update POT
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue, 26 Nov 2024 10:40:00 +0000
+
 mintinstall (8.3.3) wilma; urgency=medium
 
   [ Michael Webster ]
