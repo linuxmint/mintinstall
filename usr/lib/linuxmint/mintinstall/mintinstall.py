@@ -160,14 +160,14 @@ class HeadingMenuItem(Gtk.MenuItem):
         return Gdk.EVENT_STOP
 
 class FlatpakAddonRow(Gtk.ListBoxRow):
-    def __init__(self, app, parent_pkginfo, addon, name_size_group, button_size_group):
+    def __init__(self, app, parent_pkginfo, addon_pkginfo, name_size_group, button_size_group):
         Gtk.ListBoxRow.__init__(self)
         self.box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4, margin_start=10, margin_end=10, margin_top=4, margin_bottom=4)
         self.add(self.box)
 
         self.app = app
-        self.pkginfo = parent_pkginfo
-        self.addon = addon
+        self.parent_pkginfo = parent_pkginfo
+        self.addon_pkginfo = addon_pkginfo
 
         self.spinner = Gtk.Spinner(active=True, no_show_all=True, visible=True)
         self.box.pack_start(self.spinner, False, False, 0)
@@ -183,59 +183,42 @@ class FlatpakAddonRow(Gtk.ListBoxRow):
         self.action.connect("clicked", self.action_clicked)
         self.box.pack_end(self.action, False, False, 0)
 
-        info_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, valign=Gtk.Align.CENTER)
-        self.box.pack_end(info_box, False, False, 4)
-
-        self.size_label = Gtk.Label(use_markup=True, no_show_all=True)
-        self.size_label.get_style_context().add_class("dim-label")
-        info_box.pack_start(self.size_label, False, False, 0)
-
         label_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
         self.box.pack_start(label_box, False, False, 0)
 
-        name = Gtk.Label(label="<b>%s</b>" % addon.get_name(), use_markup=True, xalign=0.0, selectable=True)
+        name = Gtk.Label(label="<b>%s</b>" % addon_pkginfo.get_display_name(), use_markup=True, xalign=0.0, selectable=True)
         name_size_group.add_widget(name)
         label_box.pack_start(name, False, False, 0)
 
-        summary = Gtk.Label(label=addon.get_summary(), xalign=0.0, wrap=True, max_width_chars=60, selectable=True)
+        summary = Gtk.Label(label=addon_pkginfo.get_summary(), xalign=0.0, wrap=True, max_width_chars=60, selectable=True)
         label_box.pack_start(summary, False, False, 0)
 
-        if not self.app.installer.pkginfo_is_installed(self.pkginfo):
+        if not self.app.installer.pkginfo_is_installed(self.parent_pkginfo):
             self.action.hide()
             self.set_sensitive(False)
             return
 
         self.action.show()
-        self.prepare_task()
+        self.update_button()
 
-    def prepare_task(self):
-        self.app.installer.create_addon_task(self.addon, self.pkginfo.remote, self.pkginfo.remote_url,
-                                             self.info_ready, self.info_error,
-                                             self.installer_finished, self.installer_progress, use_mainloop=True)
-
-    def info_ready(self, task):
-        self.task = task
-
-        if task.type == task.INSTALL_TASK:
+    def update_button(self):
+        if not self.app.installer.pkginfo_is_installed(self.addon_pkginfo):
             self.action.set_label(_("Add"))
             self.action.set_sensitive(True)
             self.action.get_style_context().add_class("suggested-action")
             self.action.get_style_context().remove_class("destructive-action")
             self.spinner.hide()
-        elif task.type == task.UNINSTALL_TASK:
+        else:
             self.action.set_label(_("Remove"))
             self.action.set_sensitive(True)
             self.action.get_style_context().add_class("destructive-action")
             self.action.get_style_context().remove_class("suggested-action")
             self.spinner.hide()
 
-        # TODO - just size or say 'Size:' ?
-        if task.freed_size > 0:
-            self.size_label.set_label(get_size_for_display(task.freed_size))
-        elif task.install_size > 0:
-            self.size_label.set_label(get_size_for_display(task.install_size))
-
-        self.size_label.show()
+    def info_ready(self, task):
+        self.app.installer.execute_task(task)
+        self.action.set_label("")
+        self.app.update_activity_widgets()
 
     def info_error(self, task):
         self.task = task
@@ -247,14 +230,14 @@ class FlatpakAddonRow(Gtk.ListBoxRow):
         self.action.get_style_context().remove_class("destructive-action")
 
     def action_clicked(self, widget):
-        self.app.installer.execute_task(self.task)
-
-        self.action.set_label("")
-        self.app.update_activity_widgets()
+        self.app.installer.select_pkginfo(self.addon_pkginfo,
+                                          self.info_ready, self.info_error,
+                                          self.installer_finished, self.installer_progress,
+                                          use_mainloop=True)
 
     def installer_finished(self, task):
         self.app.update_activity_widgets()
-        self.prepare_task()
+        self.update_button()
 
     def installer_progress(self, pkginfo, progress, estimating, status_text=None):
         self.spinner.show()
@@ -3091,7 +3074,7 @@ class Application(Gtk.Application):
 
         first = True
         for addon in addons:
-            print("Discovered addon: %s" % addon.get_name())
+            print("Discovered addon: %s" % addon.name)
             first = False
 
             row = FlatpakAddonRow(self, pkginfo, addon, name_size_group, button_size_group)
