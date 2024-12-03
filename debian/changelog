@@ -1,3 +1,10 @@
+mintinstall (8.3.5) xia; urgency=medium
+
+  [ Michael Webster ]
+  * Simplify how flatpak addons are displayed.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue, 03 Dec 2024 10:16:55 +0000
+
 mintinstall (8.3.4) xia; urgency=medium
 
   [ Michael Webster ]
