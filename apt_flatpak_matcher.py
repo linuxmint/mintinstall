@@ -78,8 +78,14 @@ class Scraper():
                 self.fp.append(pkginfo)
 
         matches = []
-
+        skip = True
         for apt_pkginfo in self.apt:
+            if skip:
+                if apt_pkginfo.name != "moon-lander":
+                    continue
+                else:
+                    skip = False
+
             for f in self.fp:
                 match = None
                 # print(apt_pkginfo.name.rsplit(":"))
@@ -97,7 +103,7 @@ class Scraper():
                 if hp_url_a == "github.com" and hp_url_f == "github.com":
                     continue
 
-                if self.installer.get_summary(f) == "":
+                if f.get_summary() == "":
                     continue
 
                 fname = f.name.partition(".")[2]
@@ -119,7 +125,7 @@ class Scraper():
 
                     print("\n\\\n%s\n%s\n\n%s\n%s\n\n%s\n%s\n/\n" % 
                                 (aname, f.name,
-                                 self.installer.get_summary(apt_pkginfo), self.installer.get_summary(f),
+                                 apt_pkginfo.get_summary(), f.get_summary(),
                                  hp_url_a, hp_url_f))
                     i = input("enter to accept, or n to skip: ")
                     if i == "n":
