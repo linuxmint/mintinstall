@@ -1,3 +1,11 @@
+mintinstall (8.3.6) xia; urgency=medium
+
+  [ Michael Webster ]
+  * Fix wrapping and alignment of Flatpak preference labels.
+  * Update flatpak match info.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Thu, 19 Dec 2024 16:20:47 +0000
+
 mintinstall (8.3.5) xia; urgency=medium
 
   [ Michael Webster ]
