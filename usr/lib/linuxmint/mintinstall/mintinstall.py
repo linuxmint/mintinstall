@@ -2331,8 +2331,6 @@ class Application(Gtk.Application):
             listing = self.installer.cache.values()
             self.current_category = None
 
-        # don't just hide the flowbox, but also its parent
-        # self.subcat_flowbox.hide()
         subcat_box = self.builder.get_object("box_subcategories")
         subcat_box.hide()
         self.back_button.set_sensitive(True)
