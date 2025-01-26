@@ -1822,7 +1822,7 @@ class Application(Gtk.Application):
         self.installer.backend_table = {}
 
         self.installer.initialize_appstream()
-        self.installer.generate_uncached_pkginfos(self.installer.cache)
+        self.installer.generate_uncached_pkginfos()
 
         self.add_categories()
         self.process_matching_packages()
@@ -1836,11 +1836,11 @@ class Application(Gtk.Application):
         for pkg_hash in pkginfos.keys():
             pkginfo = self.installer.cache[pkg_hash]
 
-            description = pkginfo.get_description(pkginfo)
+            description = self.installer.get_description(pkginfo)
             description = description.replace("\r\n", "<br>")
             description = description.replace("\n", "<br>")
 
-            summary = pkginfo.get_summary(pkginfo)
+            summary = pkginfo.get_summary()
             url = ""
             try:
                 url = self.installer.get_homepage_url(pkginfo)
