@@ -1780,12 +1780,8 @@ class Application(Gtk.Application):
         dlg.set_program_name("mintinstall")
         dlg.set_comments(_("Software Manager"))
         try:
-            h = open('/usr/share/common-licenses/GPL', 'r')
-            s = h.readlines()
-            gpl = ""
-            for line in s:
-                gpl += line
-            h.close()
+            with open('/usr/share/common-licenses/GPL', 'r') as h:
+                gpl = h.read()
             dlg.set_license(gpl)
         except Exception as e:
             print(e)
