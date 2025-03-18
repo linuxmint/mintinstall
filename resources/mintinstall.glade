@@ -253,10 +253,6 @@
               <object class="GtkBox" id="box_landing">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="margin-start">8</property>
-                <property name="margin-end">8</property>
-                <property name="margin-top">8</property>
-                <property name="margin-bottom">8</property>
                 <property name="orientation">vertical</property>
                 <property name="spacing">6</property>
                 <child>
@@ -280,13 +276,16 @@
                               <object class="GtkBox" id="scroll_box">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
+                                <property name="border-width">9</property>
                                 <property name="orientation">vertical</property>
                                 <child>
                                   <object class="GtkBox" id="box_banner">
                                     <property name="height-request">160</property>
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
-                                    <property name="margin-right">10</property>
+                                    <property name="margin-start">3</property>
+                                    <property name="margin-end">3</property>
+                                    <property name="margin-top">3</property>
                                     <property name="margin-bottom">8</property>
                                     <property name="orientation">vertical</property>
                                     <child>
@@ -329,7 +328,6 @@
                                       <object class="GtkBox" id="box_featured">
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
-                                        <property name="margin-right">10</property>
                                         <property name="orientation">vertical</property>
                                         <child>
                                           <placeholder/>
@@ -378,7 +376,6 @@
                                       <object class="GtkBox" id="box_categories">
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
-                                        <property name="margin-right">10</property>
                                         <property name="orientation">vertical</property>
                                         <child>
                                           <placeholder/>
@@ -427,7 +424,6 @@
                                       <object class="GtkBox" id="box_top_rated">
                                         <property name="visible">True</property>
                                         <property name="can-focus">False</property>
-                                        <property name="margin-right">10</property>
                                         <property name="orientation">vertical</property>
                                         <child>
                                           <placeholder/>
@@ -474,23 +470,43 @@
               <object class="GtkBox" id="box_list">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="margin-start">8</property>
-                <property name="margin-end">8</property>
-                <property name="margin-bottom">8</property>
                 <property name="orientation">vertical</property>
                 <property name="baseline-position">top</property>
                 <child>
-                  <object class="GtkLabel" id="label_cat_name">
+                  <object class="GtkBox" id="box_cat_label">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="xpad">6</property>
-                    <property name="ypad">12</property>
-                    <property name="xalign">0</property>
-                    <property name="yalign">0</property>
-                    <attributes>
-                      <attribute name="weight" value="bold"/>
-                      <attribute name="scale" value="1.2"/>
-                    </attributes>
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkLabel" id="label_cat_name">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="xpad">12</property>
+                        <property name="ypad">12</property>
+                        <property name="xalign">0</property>
+                        <property name="yalign">0</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                          <attribute name="scale" value="1.2"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkSeparator">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -516,6 +532,7 @@
                               <object class="GtkBox" id="box_cat_page">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
+                                <property name="border-width">9</property>
                                 <property name="orientation">vertical</property>
                                 <child>
                                   <placeholder/>
@@ -578,14 +595,16 @@
                   <packing>
                     <property name="expand">True</property>
                     <property name="fill">True</property>
-                    <property name="position">2</property>
+                    <property name="position">1</property>
                   </packing>
                 </child>
                 <child>
                   <object class="GtkBox" id="box_subcategories">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="margin-top">5</property>
+                    <property name="margin-start">9</property>
+                    <property name="margin-end">9</property>
+                    <property name="margin-bottom">9</property>
                     <child>
                       <placeholder/>
                     </child>
@@ -593,7 +612,7 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
-                    <property name="position">3</property>
+                    <property name="position">2</property>
                   </packing>
                 </child>
               </object>
@@ -1039,7 +1058,7 @@
                           <object class="GtkBox" id="box2">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="border-width">6</property>
+                            <property name="border-width">12</property>
                             <property name="orientation">vertical</property>
                             <property name="spacing">4</property>
                             <child>
