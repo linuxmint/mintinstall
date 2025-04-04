@@ -65,11 +65,6 @@
     "text_color": "#ffffff"
   },
   {
-    "name": "skypeforlinux",
-    "background": "linear-gradient(45deg, #0267a4, #0281cb)",
-    "text_color": "#ffffff"
-  },
-  {
     "name": "flatpak:com.bitwarden.desktop",
     "background": "radial-gradient(circle at center, #165ad5 0, #1052c9 100%)",
     "text_color": "#ffffff"
