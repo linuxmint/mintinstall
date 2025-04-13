@@ -19,6 +19,7 @@ import math
 from pathlib import Path
 import traceback
 from operator import attrgetter
+from collections import namedtuple
 
 import gi
 gi.require_version('Gtk', '3.0')
@@ -611,6 +612,8 @@ class CategoryButton(Gtk.Button):
 
         self.add(box)
 
+PkgInfoSearchCache = namedtuple('PkgInfoSearchCache', ['name', 'display_name', 'keywords', 'summary', 'description'])
+
 class Application(Gtk.Application):
     (ACTION_TAB, PROGRESS_TAB, SPINNER_TAB) = list(range(3))
 
@@ -663,6 +666,7 @@ class Application(Gtk.Application):
         self.installer_pulse_timer = 0
         self.search_changed_timer = 0
         self.search_idle_timer = 0
+        self.generate_search_cache_idle_timer = 0
 
         self.action_button_signal_id = 0
         self.launch_button_signal_id = 0
@@ -1052,6 +1056,9 @@ class Application(Gtk.Application):
         if self.banner_tile is not None:
             self.banner_tile.repopulate_tile()
 
+        GLib.idle_add(self.pregenerate_search_cache)
+
+
     def on_installer_ready(self):
         self.page_stack.set_visible_child_name(self.PAGE_LOADING)
         try:
@@ -1072,10 +1079,14 @@ class Application(Gtk.Application):
             # Can take some time, don't block for it (these are categorizing packages based on apt info, not our listings)
             GLib.idle_add(self.process_unmatched_packages)
 
+            if not self.installer.have_flatpak:
+                GLib.idle_add(self.pregenerate_search_cache)
+
             housekeeping.run()
 
             self.refresh_cache_menuitem.set_sensitive(True)
             self.print_startup_time()
+
         except Exception as e:
             print("Loading error: %s" % e)
             traceback.print_tb(e.__traceback__)
@@ -1397,11 +1408,11 @@ class Application(Gtk.Application):
         # Add a callback when we exit mintsources
         p.wait_async(None, on_process_exited)
 
-    def should_show_pkginfo(self, pkginfo):
+    def should_show_pkginfo(self, pkginfo, allow_unverified_flatpaks):
         if pkginfo.pkg_hash.startswith("apt"):
             return True
 
-        if not self.settings.get_boolean(prefs.ALLOW_UNVERIFIED_FLATPAKS):
+        if not allow_unverified_flatpaks:
             return pkginfo.verified
 
         return pkginfo.refid.startswith("app/")
@@ -1753,6 +1764,10 @@ class Application(Gtk.Application):
             self.show_category(self.current_category)
         elif terms != "" and len(terms) >= 3:
             self.show_search_results(terms)
+        elif terms == "":
+            page = self.page_stack.get_visible_child_name()
+            if page == self.PAGE_LIST or page == self.PAGE_SEARCHING:
+                self.go_back_action()
 
         self.search_changed_timer = 0
         return False
@@ -2185,6 +2200,11 @@ class Application(Gtk.Application):
     def on_back_button_clicked(self, button):
         self.go_back_action()
 
+    def cancel_running_search(self):
+        if self.search_idle_timer > 0:
+            GLib.source_remove(self.search_idle_timer)
+            self.search_idle_timer = 0
+
     def go_back_action(self):
         XApp.set_window_progress(self.main_window, 0)
         self.stop_progress_pulse()
@@ -2201,6 +2221,8 @@ class Application(Gtk.Application):
             if not self.installer.task_running(self.current_task):
                 self.installer.cancel_task(self.current_task)
             self.current_task = None
+
+        self.cancel_running_search()
 
         if self.page_stack.get_visible_child_name() == self.PAGE_PREFS:
             self.search_tool_item.set_sensitive(True)
@@ -2304,6 +2326,42 @@ class Application(Gtk.Application):
 
         return imaging.get_icon(icon_string, size)
 
+    def update_package_search_cache(self, pkginfo, search_in_description):
+        if not hasattr(pkginfo, "search_cache"):
+            pkginfo.search_cache = PkgInfoSearchCache(
+                name=pkginfo.name.upper(),
+                display_name=pkginfo.get_display_name().upper(),
+                keywords=pkginfo.get_keywords().upper(),
+                summary=pkginfo.get_summary().upper(),
+                description=None
+                if not search_in_description
+                else self.installer.get_description(pkginfo, for_search=True).upper()
+            )
+
+        # installer.get_description() is very slow, so we only fetch it if it's required
+        if search_in_description and pkginfo.search_cache.description is None:
+            description = self.installer.get_description(pkginfo, for_search=True).upper()
+            pkginfo.search_cache = pkginfo.search_cache._replace(description=description)
+
+    def pregenerate_search_cache(self):
+        if self.generate_search_cache_idle_timer > 0:
+            GLib.source_remove(self.generate_search_cache_idle_timer)
+            self.generate_search_cache_idle_timer = 0
+
+        search_in_description = self.settings.get_boolean(prefs.SEARCH_IN_DESCRIPTION)
+        pkginfos = self.installer.cache.values()
+
+        def generate_package_cache(pkginfos_iter):
+            try:
+                pkginfo = next(pkginfos_iter)
+                self.update_package_search_cache(pkginfo, search_in_description)
+                return True
+            except StopIteration:
+                self.generate_search_cache_idle_timer = 0
+                return False
+
+        self.generate_search_cache_idle_timer = GLib.idle_add(generate_package_cache, iter(pkginfos))
+
     @print_timing
     def show_search_results(self, terms):
         if not self.gui_ready:
@@ -2339,53 +2397,65 @@ class Application(Gtk.Application):
 
         searched_packages = []
 
-        if self.search_idle_timer > 0:
-            GLib.source_remove(self.search_idle_timer)
-            self.search_idle_timer = 0
+        self.cancel_running_search()
 
         search_in_summary = self.settings.get_boolean(prefs.SEARCH_IN_SUMMARY)
         search_in_description = self.settings.get_boolean(prefs.SEARCH_IN_DESCRIPTION)
 
         package_type_preference = self.settings.get_string(prefs.PACKAGE_TYPE_PREFERENCE)
         hidden_packages = set()
+        allow_unverified_flatpaks = self.settings.get_boolean(prefs.ALLOW_UNVERIFIED_FLATPAKS)
 
         def idle_search_one_package(pkginfos):
             try:
-                pkginfo = pkginfos.pop(0)
-            except IndexError:
+                pkginfo = next(pkginfos)
+            except StopIteration:
                 self.search_idle_timer = 0
+
+                if package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_APT:
+                    results = [p for p in searched_packages if not (p.pkg_hash.startswith("f") and p.name in hidden_packages)]
+                elif package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_FLATPAK:
+                    results = [p for p in searched_packages if not (p.pkg_hash.startswith("a") and p.name in hidden_packages)]
+                else:
+                    results = searched_packages
+
+                GLib.idle_add(self.on_search_results_complete, results)
                 return False
 
             flatpak = pkginfo.pkg_hash.startswith("f")
             is_match = False
 
             while True:
-                if not self.should_show_pkginfo(pkginfo):
+                if not self.should_show_pkginfo(pkginfo, allow_unverified_flatpaks):
                     break
 
-                if all(piece in pkginfo.name.upper() for piece in termsSplit):
+                self.update_package_search_cache(pkginfo, search_in_description)
+
+                if all(piece in pkginfo.search_cache.name for piece in termsSplit):
                     is_match = True
                     pkginfo.search_tier = 0
                     break
+
                 # pkginfo.name for flatpaks is their id (org.foo.BarMaker), which
                 # may not actually contain the app's name. In this case their display
                 # names are better. The 'name' is still checked first above, because
                 # it's static - get_display_name() may involve a lookup with appstream.
-                if flatpak and all(piece in pkginfo.get_display_name().upper() for piece in termsSplit):
+                if flatpak and all(piece in pkginfo.search_cache.display_name for piece in termsSplit):
                     is_match = True
                     pkginfo.search_tier = 0
                     break
 
-                if termsUpper in pkginfo.get_keywords().upper():
+                if termsUpper in pkginfo.search_cache.keywords:
                     is_match = True
                     pkginfo.search_tier = 50
                     break
 
-                if (search_in_summary and termsUpper in pkginfo.get_summary().upper()):
+                if (search_in_summary and termsUpper in pkginfo.search_cache.summary):
                     is_match = True
                     pkginfo.search_tier = 100
                     break
-                if(search_in_description and termsUpper in self.installer.get_description(pkginfo).upper()):
+
+                if (search_in_description and termsUpper in pkginfo.search_cache.description):
                     is_match = True
                     pkginfo.search_tier = 200
                     break
@@ -2398,23 +2468,9 @@ class Application(Gtk.Application):
                 elif package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_FLATPAK and flatpak:
                     hidden_packages.add(DEB_EQUIVS.get(pkginfo.name))
 
-            # Repeat until empty
-            if len(pkginfos) > 0:
-                return True
+            return True
 
-            self.search_idle_timer = 0
-
-            if package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_APT:
-                results = [p for p in searched_packages if not (p.pkg_hash.startswith("f") and p.name in hidden_packages)]
-            elif package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_FLATPAK:
-                results = [p for p in searched_packages if not (p.pkg_hash.startswith("a") and p.name in hidden_packages)]
-            else:
-                results = searched_packages
-
-            GLib.idle_add(self.on_search_results_complete, results)
-            return False
-
-        self.search_idle_timer = GLib.idle_add(idle_search_one_package, list(listing))
+        self.search_idle_timer = GLib.idle_add(idle_search_one_package, iter(listing))
 
     def on_search_results_complete(self, results):
         self.page_stack.set_visible_child_name(self.PAGE_LIST)
@@ -2485,6 +2541,7 @@ class Application(Gtk.Application):
 
     def show_packages(self, pkginfos, from_search=False):
         self.stop_slideshow_timer()
+        allow_unverified_flatpaks = self.settings.get_boolean(prefs.ALLOW_UNVERIFIED_FLATPAKS)
 
         if self.one_package_idle_timer > 0:
             GLib.source_remove(self.one_package_idle_timer)
@@ -2521,7 +2578,7 @@ class Application(Gtk.Application):
                 apps = [info for info in pkginfos] # should_show_pkginfo was applied during search matching
                 apps = self.sort_packages(apps, attrgetter("unverified", "search_tier", "score_desc", "name"))
             else:
-                apps = [info for info in pkginfos if self.should_show_pkginfo(info)]
+                apps = [info for info in pkginfos if self.should_show_pkginfo(info, allow_unverified_flatpaks)]
                 apps = self.sort_packages(apps, attrgetter("unverified", "score_desc", "name"))
             apps = apps[0:201]
 
@@ -2851,10 +2908,11 @@ class Application(Gtk.Application):
         self.show_package(pkginfo, self.previous_page)
 
     def get_flatpak_for_deb(self, pkginfo):
+        allow_unverified_flatpaks = self.settings.get_boolean(prefs.ALLOW_UNVERIFIED_FLATPAKS)
         try:
             fp_name = FLATPAK_EQUIVS[pkginfo.name]
             flatpak_pkginfo = self.installer.find_pkginfo(fp_name, installer.PKG_TYPE_FLATPAK)
-            if self.should_show_pkginfo(flatpak_pkginfo):
+            if self.should_show_pkginfo(flatpak_pkginfo, allow_unverified_flatpaks):
                 return flatpak_pkginfo
         except:
             return None
