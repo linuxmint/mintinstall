@@ -2266,6 +2266,7 @@ class Application(Gtk.Application):
     def show_category(self, category):
         self.current_pkginfo = None
 
+        cat_box = self.builder.get_object("box_cat_label")
         label = self.builder.get_object("label_cat_name")
 
         self.current_category = category
@@ -2275,12 +2276,14 @@ class Application(Gtk.Application):
         self.back_button.set_sensitive(True)
 
         label.set_text(self.current_category.name)
-        label.show()
 
         if category.parent:
             self.show_subcategories(category.parent)
         else:
             self.show_subcategories(category)
+
+        label.show()
+        cat_box.show()
 
         self.show_packages(category.pkginfos, from_search=False)
 
@@ -2303,6 +2306,8 @@ class Application(Gtk.Application):
                 child = SubcategoryFlowboxChild(cat, is_all=False, active=self.current_category == cat)
                 self.subcat_flowbox.add(child)
 
+        subcat_box = self.builder.get_object("box_subcategories")
+        subcat_box.show()
         self.subcat_flowbox.show_all()
 
     def on_subcategory_selected(self, flowbox, child, data=None):
@@ -2362,7 +2367,7 @@ class Application(Gtk.Application):
         if not self.gui_ready:
             return False
 
-        label = self.builder.get_object("label_cat_name")
+        label = self.builder.get_object("box_cat_label")
         label.hide()
 
         XApp.set_window_progress(self.main_window, 0)
@@ -2380,7 +2385,8 @@ class Application(Gtk.Application):
             listing = self.installer.cache.values()
             self.current_category = None
 
-        self.subcat_flowbox.hide()
+        subcat_box = self.builder.get_object("box_subcategories")
+        subcat_box.hide()
         self.back_button.set_sensitive(True)
         self.previous_page = self.PAGE_LANDING
         if self.page_stack.get_visible_child_name() != self.PAGE_SEARCHING:
