@@ -244,9 +244,9 @@ class FlatpakAddonRow(Gtk.ListBoxRow):
         self.spinner.show()
 
 class SaneProgressBar(Gtk.DrawingArea):
-    def __init__(self):
-        super(Gtk.DrawingArea, self).__init__(width_request=-1,
-                                              height_request=8,
+    def __init__(self, width=-1, height=8):
+        super(Gtk.DrawingArea, self).__init__(width_request=width,
+                                              height_request=height,
                                               margin_top=1, #???  to align better with the stars and count
                                               hexpand=True,
                                               valign=Gtk.Align.CENTER,
@@ -692,7 +692,7 @@ class Application(Gtk.Application):
 
     def _init_installer_thread(self):
         if self.installer.init_sync():
-            GLib.idle_add(self.on_installer_ready)
+            self.on_installer_ready()
         else:
             self.page_stack.set_visible_child_name(self.PAGE_GENERATING_CACHE)
             self.installer.init(self.on_installer_ready)
@@ -859,6 +859,12 @@ class Application(Gtk.Application):
         self.progress_label = DottedProgressLabel()
         self.progress_box.pack_start(self.progress_label, False, False, 0)
         self.progress_label.show()
+
+        # self.progress_bar = self.builder.get_object('search_progress_bar')
+        box_searching = self.builder.get_object('search_progress_bar')
+        self.progress_bar = SaneProgressBar(-1, 12)
+        box_searching.pack_start(self.progress_bar, True, True, 0)
+        self.progress_bar.show()
 
         box_reviews = self.builder.get_object("box_reviews")
 
@@ -1060,7 +1066,10 @@ class Application(Gtk.Application):
 
 
     def on_installer_ready(self):
-        self.page_stack.set_visible_child_name(self.PAGE_LOADING)
+        def set_loading_page():
+            self.page_stack.set_visible_child_name(self.PAGE_LOADING)
+        GLib.idle_add(set_loading_page)
+
         try:
             self.process_matching_packages()
 
@@ -2406,11 +2415,15 @@ class Application(Gtk.Application):
         hidden_packages = set()
         allow_unverified_flatpaks = self.settings.get_boolean(prefs.ALLOW_UNVERIFIED_FLATPAKS)
 
-        def idle_search_one_package(pkginfos):
+        list_size = len(listing)
+        self.search_progress = 0
+
+        def idle_search_one_package(pkginfos, list_size):
             try:
                 pkginfo = next(pkginfos)
             except StopIteration:
                 self.search_idle_timer = 0
+                self.search_progress = 0
 
                 if package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_APT:
                     results = [p for p in searched_packages if not (p.pkg_hash.startswith("f") and p.name in hidden_packages)]
@@ -2420,6 +2433,12 @@ class Application(Gtk.Application):
                     results = searched_packages
 
                 GLib.idle_add(self.on_search_results_complete, results)
+                return False
+            except RuntimeError:  # dictionary changed size during iteration
+                self.search_idle_timer = 0
+                self.search_progress = 0
+
+                self.go_back_action()
                 return False
 
             flatpak = pkginfo.pkg_hash.startswith("f")
@@ -2468,9 +2487,21 @@ class Application(Gtk.Application):
                 elif package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_FLATPAK and flatpak:
                     hidden_packages.add(DEB_EQUIVS.get(pkginfo.name))
 
+            self.search_progress = self.search_progress + 1
+            self.update_progress(self.search_progress / list_size)
+
             return True
 
-        self.search_idle_timer = GLib.idle_add(idle_search_one_package, iter(listing))
+        self.search_idle_timer = GLib.idle_add(idle_search_one_package, iter(listing), list_size)
+
+    def update_progress(self, progress):
+        progress = max(0.0, min(1.0, progress))
+
+        def update_progress_ui():
+            self.progress_bar.set_fraction(progress)
+            return False
+
+        GLib.idle_add(update_progress_ui)
 
     def on_search_results_complete(self, results):
         self.page_stack.set_visible_child_name(self.PAGE_LIST)
