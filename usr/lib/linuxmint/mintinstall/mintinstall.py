@@ -614,6 +614,69 @@ class CategoryButton(Gtk.Button):
 
 PkgInfoSearchCache = namedtuple('PkgInfoSearchCache', ['name', 'display_name', 'keywords', 'summary', 'description'])
 
+
+class CooperativeIterator:
+    """
+    Iterates over items cooperatively within the GLib main loop, yielding periodically to keep the UI responsive.
+    """
+    def __init__(self, iterable, on_per_item, *, on_progress=None, on_finish=None, on_error=None, max_duration_ms=16, **kwargs):
+        self._size = len(iterable) if hasattr(iterable, '__len__') else None
+        self._iterator = iter(iterable)
+        self._on_per_item = on_per_item
+        self._on_progress = on_progress
+        self._on_finish = on_finish
+        self._on_error = on_error
+        self._kwargs = kwargs
+        self._max_duration = max_duration_ms / 1000.0
+        self._cancelled = False
+
+    def run(self):
+        self._start_time = time.monotonic()
+        self._current_index = 0
+        GLib.idle_add(self._process)
+
+    def _process(self):
+        if self._cancelled:
+            return False
+
+        start_time = time.monotonic()
+
+        try:
+            while not self._cancelled:
+                item = next(self._iterator)
+
+                self._on_per_item(item, **self._kwargs)
+
+                self._current_index += 1
+                if self._on_progress and self._size is not None:
+                    self._on_progress(self._current_index / self._size)
+
+                if (time.monotonic() - start_time) >= self._max_duration:
+                    return True
+
+        except StopIteration:
+            if os.getenv("DEBUG", False):
+                elapsed_time = time.monotonic() - self._start_time
+                print(f"CooperativeIterator: Finished processing {self._on_per_item.__name__} in {elapsed_time:.3f} seconds.")
+
+            if self._on_finish:
+                try:
+                    self._on_finish(**self._kwargs)
+                except Exception as e:
+                    print(f"CooperativeIterator: Error in on_finish: {e}")
+            return False
+
+        except RuntimeError:
+            if self._on_error:
+                try:
+                    self._on_error()
+                except Exception as e:
+                    print(f"CooperativeIterator: Error in on_error: {e}")
+            return False
+
+    def cancel(self):
+        self._cancelled = True
+
 class Application(Gtk.Application):
     (ACTION_TAB, PROGRESS_TAB, SPINNER_TAB) = list(range(3))
 
@@ -665,7 +728,7 @@ class Application(Gtk.Application):
         self.one_package_idle_timer = 0
         self.installer_pulse_timer = 0
         self.search_changed_timer = 0
-        self.search_idle_timer = 0
+        self.search_iterator = None
         self.generate_search_cache_idle_timer = 0
 
         self.action_button_signal_id = 0
@@ -2210,9 +2273,9 @@ class Application(Gtk.Application):
         self.go_back_action()
 
     def cancel_running_search(self):
-        if self.search_idle_timer > 0:
-            GLib.source_remove(self.search_idle_timer)
-            self.search_idle_timer = 0
+        if self.search_iterator:
+            self.search_iterator.cancel()
+            self.search_iterator = None
 
     def go_back_action(self):
         XApp.set_window_progress(self.main_window, 0)
@@ -2412,35 +2475,34 @@ class Application(Gtk.Application):
         search_in_description = self.settings.get_boolean(prefs.SEARCH_IN_DESCRIPTION)
 
         package_type_preference = self.settings.get_string(prefs.PACKAGE_TYPE_PREFERENCE)
-        hidden_packages = set()
         allow_unverified_flatpaks = self.settings.get_boolean(prefs.ALLOW_UNVERIFIED_FLATPAKS)
 
-        list_size = len(listing)
-        self.search_progress = 0
+        def on_finish(list_size, searched_packages, hidden_packages, package_type_preference, **kwargs):
+            self.search_iterator = None
 
-        def idle_search_one_package(pkginfos, list_size):
-            try:
-                pkginfo = next(pkginfos)
-            except StopIteration:
-                self.search_idle_timer = 0
-                self.search_progress = 0
+            if package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_APT:
+                results = [p for p in searched_packages if not (p.pkg_hash.startswith("f") and p.name in hidden_packages)]
+            elif package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_FLATPAK:
+                results = [p for p in searched_packages if not (p.pkg_hash.startswith("a") and p.name in hidden_packages)]
+            else:
+                results = searched_packages
+            self.on_search_results_complete(results)
 
-                if package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_APT:
-                    results = [p for p in searched_packages if not (p.pkg_hash.startswith("f") and p.name in hidden_packages)]
-                elif package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_FLATPAK:
-                    results = [p for p in searched_packages if not (p.pkg_hash.startswith("a") and p.name in hidden_packages)]
-                else:
-                    results = searched_packages
+        def on_error():
+            self.search_iterator = None
 
-                GLib.idle_add(self.on_search_results_complete, results)
-                return False
-            except RuntimeError:  # dictionary changed size during iteration
-                self.search_idle_timer = 0
-                self.search_progress = 0
+            self.go_back_action()
 
-                self.go_back_action()
-                return False
-
+        def search_one_package(
+            pkginfo,
+            list_size,
+            searched_packages,
+            hidden_packages,
+            allow_unverified_flatpaks,
+            package_type_preference,
+            search_in_summary,
+            search_in_description
+        ):
             flatpak = pkginfo.pkg_hash.startswith("f")
             is_match = False
 
@@ -2487,21 +2549,29 @@ class Application(Gtk.Application):
                 elif package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_FLATPAK and flatpak:
                     hidden_packages.add(DEB_EQUIVS.get(pkginfo.name))
 
-            self.search_progress = self.search_progress + 1
-            self.update_progress(self.search_progress / list_size)
+        def on_progress(progress):
+            self.update_progress(progress)
 
-            return True
+        self.search_iterator = CooperativeIterator(
+            listing,
+            search_one_package,
+            on_finish=on_finish,
+            on_error=on_error,
+            on_progress=on_progress,
+            list_size=len(listing),
+            searched_packages=[],
+            hidden_packages=set(),
+            allow_unverified_flatpaks=allow_unverified_flatpaks,
+            package_type_preference=package_type_preference,
+            search_in_summary=search_in_summary,
+            search_in_description=search_in_description
+        )
+        self.search_iterator.run()
 
-        self.search_idle_timer = GLib.idle_add(idle_search_one_package, iter(listing), list_size)
 
     def update_progress(self, progress):
         progress = max(0.0, min(1.0, progress))
-
-        def update_progress_ui():
-            self.progress_bar.set_fraction(progress)
-            return False
-
-        GLib.idle_add(update_progress_ui)
+        self.progress_bar.set_fraction(progress)
 
     def on_search_results_complete(self, results):
         self.page_stack.set_visible_child_name(self.PAGE_LIST)
