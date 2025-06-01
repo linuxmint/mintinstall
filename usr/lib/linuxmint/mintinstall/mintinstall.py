@@ -966,7 +966,6 @@ class Application(Gtk.Application):
         self.flowbox_featured = None
         self.flowbox_top_rated = None
         self.banner_tile = None
-        self.banner_dot_box = None
         self.banner_stack = None
         self.banner_slideshow_timeout_id = 0
 
@@ -1087,6 +1086,11 @@ class Application(Gtk.Application):
 
     @print_timing
     def load_banner(self):
+        """
+        Load and configure the banner display with navigation controls.
+        The banner shows featured applications in a slideshow format.
+        """
+        # Get the main banner container
         box = self.builder.get_object("box_banner")
 
         if self.low_res:
@@ -1097,9 +1101,11 @@ class Application(Gtk.Application):
             self.main_window.set_default_size(800, 500)
             return
 
+        # Clear existing content
         for child in box.get_children():
             child.destroy()
 
+        # Setup main container and stack
         overlay = Gtk.Overlay()
         box.pack_start(overlay, True, True, 0)
 
@@ -1108,17 +1114,73 @@ class Application(Gtk.Application):
         self.banner_stack.set_transition_duration(BANNER_TIMER)
         overlay.add(self.banner_stack)
 
-        self.banner_dot_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
-                          halign=Gtk.Align.CENTER,
-                          valign=Gtk.Align.END)
-        overlay.add_overlay(self.banner_dot_box)
+        # Setup navigation controls container
+        self.banner_nav_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, 
+                                     spacing=5,
+                                     halign=Gtk.Align.END,
+                                     valign=Gtk.Align.END,
+                                     margin_right=10,
+                                     margin_bottom=10)
+        overlay.add_overlay(self.banner_nav_box)
 
+        # Create navigation buttons
+        left_arrow = Gtk.Button()
+        right_arrow = Gtk.Button()
+        left_image = Gtk.Image.new_from_icon_name("go-previous-symbolic", Gtk.IconSize.SMALL_TOOLBAR)
+        right_image = Gtk.Image.new_from_icon_name("go-next-symbolic", Gtk.IconSize.SMALL_TOOLBAR)
+
+        # Setup button styling
+        button_style_override = """
+            button {
+                background-color: rgba(75,75,75,0.70);
+                border: 1px solid rgb(135,135,135);
+                border-radius: 4px;
+                padding: 0;
+            }
+            button:hover {
+                background-color: rgba(110,110,110,0.70);
+                border: 1px solid rgb(135,135,135);
+                border-radius: 4px;                
+            }
+            button:active {
+                background-color: rgba(65,65,65,0.70);               
+            }
+            button image {
+                color: white;
+            }
+        """
+        css_provider = Gtk.CssProvider()
+        css_provider.load_from_data(str.encode(button_style_override))
+
+        # Apply styling to navigation elements
+        for widget in (left_arrow, right_arrow, left_image, right_image):
+            context = widget.get_style_context()
+            context.add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+        # Configure navigation buttons
+        left_arrow.add(left_image)
+        right_arrow.add(right_image)
+
+        for button in (left_arrow, right_arrow):
+            button.set_relief(Gtk.ReliefStyle.NONE)
+            button.set_size_request(26, 26)
+
+        # Set navigation directions
+        left_arrow.direction = -1
+        right_arrow.direction = 1
+
+        # Connect button signals
+        left_arrow.connect("clicked", self.on_arrow_clicked, self.banner_stack)
+        right_arrow.connect("clicked", self.on_arrow_clicked, self.banner_stack)
+
+        # Load featured applications
         json_array = json.load(open("/usr/share/linuxmint/mintinstall/featured/featured.json", "r"))
         random.shuffle(json_array)
 
         selected_apps = set()
         num_selected = 0
 
+        # Process featured applications
         for app_json in json_array:
             if num_selected >= 5:
                 break
@@ -1130,13 +1192,12 @@ class Application(Gtk.Application):
             if name in selected_apps:
                 continue
 
+            # Handle Flatpak and regular applications
             if name.startswith("flatpak:"):
                 name = name.replace("flatpak:", "")
                 pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_FLATPAK)
-
                 if pkginfo is None or not pkginfo.verified:
                     continue
-
                 is_flatpak = True
             else:
                 pkginfo = self.installer.find_pkginfo(name, installer.PKG_TYPE_APT)
@@ -1145,6 +1206,7 @@ class Application(Gtk.Application):
             if pkginfo is None:
                 continue
 
+            # Add application to banner
             selected_apps.add(name)
             num_selected += 1
 
@@ -1158,48 +1220,29 @@ class Application(Gtk.Application):
 
             tile = BannerTile(pkginfo, self.installer, name, background, color, is_flatpak, app_json, self.on_banner_clicked)
             flowbox.insert(tile, -1)
-
             flowbox.show_all()
             self.banner_stack.add_named(flowbox, str(len(self.banner_stack.get_children())))
 
-            icon = Gtk.Image.new_from_icon_name("mintinstall-banner-dot", Gtk.IconSize.MENU)
-            icon.set_pixel_size(5)
+        # Finalize navigation setup
+        self.banner_nav_box.pack_start(left_arrow, False, False, 0)
+        self.banner_nav_box.pack_start(right_arrow, False, False, 0)
 
-            button_class_override = """
-                #BannerDotOverlay {
-                    background-color: rgba(0, 0, 0, 0);
-                    background-image: none;
-                    border-color: rgba(0, 0, 0, 0);
-                    min-height: 12px;
-                    min-width: 22px;
-                    -gtk-icon-shadow: none;
-                    -gtk-icon-effect: none;
-                    box-shadow: none;
-                }
-            """
-            provider = Gtk.CssProvider()
-            provider.load_from_data(str.encode(button_class_override))
-
-            dot_button = Gtk.Button(
-                halign=Gtk.Align.CENTER,
-                valign=Gtk.Align.END,
-                name="BannerDotOverlay",
-                relief=Gtk.ReliefStyle.NONE,
-                can_focus=False,
-                image=icon
-            )
-
-            dot_button.get_style_context().add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-            dot_button.connect("clicked", self.on_dot_clicked, len(self.banner_stack.get_children()) - 1)
-            self.banner_dot_box.pack_start(dot_button, False, False, 0)
-
-        self.update_dot_buttons(0)
+        # Display the banner
         box.show_all()
 
-    def on_dot_clicked(self, button, index):
+    def on_arrow_clicked(self, button, banner_stack):
+        current_index = int(self.banner_stack.get_visible_child_name())
+        direction = getattr(button, "direction", 1)
+
+        if direction == 1:  # next
+            self.banner_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT)
+            new_index = (current_index + 1) % len(self.banner_stack.get_children())
+        else:  # previous
+            self.banner_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_RIGHT)
+            new_index = (current_index - 1) % len(self.banner_stack.get_children())
+            
+        self.banner_stack.set_visible_child_name(str(new_index))
         self.start_slideshow_timer()
-        self.banner_stack.set_visible_child_name(str(index))
-        self.update_dot_buttons(index)
 
     def start_slideshow_timer(self):
         if self.low_res:
@@ -1217,23 +1260,11 @@ class Application(Gtk.Application):
             self.banner_slideshow_timeout_id = 0
 
     def on_slideshow_timeout(self):
-        visible_child = self.banner_stack.get_visible_child()
-        index = self.banner_stack.get_children().index(visible_child)
-        new_index = (index + 1) % len(self.banner_stack.get_children())
+        current_index = int(self.banner_stack.get_visible_child_name())
+        self.banner_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT)
+        new_index = (current_index + 1) % len(self.banner_stack.get_children())
         self.banner_stack.set_visible_child_name(str(new_index))
-        self.update_dot_buttons(new_index)
         return True
-
-    def update_dot_buttons(self, current_index):
-        for i, button in enumerate(self.banner_dot_box.get_children()):
-            if i == current_index: #Bigger do if current slide
-                icon = Gtk.Image.new_from_icon_name("mintinstall-banner-dot", Gtk.IconSize.MENU)
-                icon.set_pixel_size(10)
-                button.set_image(icon)
-            else:
-                icon = Gtk.Image.new_from_icon_name("mintinstall-banner-dot", Gtk.IconSize.MENU)
-                icon.set_pixel_size(5)
-                button.set_image(icon)
 
     def on_banner_clicked(self, button, pkginfo):
         self.show_package(pkginfo, self.PAGE_LANDING)
