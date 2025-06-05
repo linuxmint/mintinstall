@@ -972,6 +972,7 @@ class Application(Gtk.Application):
         self.flowbox_top_rated = None
         self.banner_tile = None
         self.banner_stack = None
+        self.banner_dots_box = None
         self.banner_slideshow_timeout_id = 0
 
         self.package_type_store = Gtk.ListStore(int, str, str, str, object) # index, label, summary, icon-name, remotename, pkginfo
@@ -1119,15 +1120,6 @@ class Application(Gtk.Application):
         self.banner_stack.set_transition_duration(BANNER_TIMER)
         overlay.add(self.banner_stack)
 
-        # Setup navigation controls container
-        self.banner_nav_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, 
-                                     spacing=5,
-                                     halign=Gtk.Align.END,
-                                     valign=Gtk.Align.END,
-                                     margin_right=10,
-                                     margin_bottom=10)
-        overlay.add_overlay(self.banner_nav_box)
-
         # Create navigation buttons
         left_arrow = Gtk.Button()
         right_arrow = Gtk.Button()
@@ -1137,21 +1129,18 @@ class Application(Gtk.Application):
         # Setup button styling
         button_style_override = """
             button {
-                background-color: rgba(75,75,75,0.70);
-                border: 1px solid rgb(135,135,135);
-                border-radius: 4px;
+                background-color: transparent;
+                border: none;
                 padding: 0;
+                margin: 0;
+                min-height: 16px;
+                min-width: 16px;
             }
-            button:hover {
-                background-color: rgba(110,110,110,0.70);
-                border: 1px solid rgb(135,135,135);
-                border-radius: 4px;                
-            }
-            button:active {
-                background-color: rgba(65,65,65,0.70);               
+            button:hover image {
+                color: rgb(255, 255, 255);               
             }
             button image {
-                color: white;
+                color: rgba(255, 255, 255, 0.6);
             }
         """
         css_provider = Gtk.CssProvider()
@@ -1168,7 +1157,6 @@ class Application(Gtk.Application):
 
         for button in (left_arrow, right_arrow):
             button.set_relief(Gtk.ReliefStyle.NONE)
-            button.set_size_request(26, 26)
 
         # Set navigation directions
         left_arrow.direction = -1
@@ -1177,6 +1165,56 @@ class Application(Gtk.Application):
         # Connect button signals
         left_arrow.connect("clicked", self.on_arrow_clicked, self.banner_stack)
         right_arrow.connect("clicked", self.on_arrow_clicked, self.banner_stack)
+
+        # Create dots container (centered)
+        self.banner_dots_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
+                                       spacing=4,
+                                       halign=Gtk.Align.CENTER,
+                                       valign=Gtk.Align.CENTER)
+
+        # Create a background frame for navigation
+        dots_frame = Gtk.EventBox()
+        dots_frame.set_name("dots-frame")
+        
+        # Add CSS styling for the frame
+        frame_box_css = """
+            #dots-frame {
+                background-color: rgba(0, 0, 0, 0.25);
+                border-radius: 12px;
+            }
+        """
+        css_provider = Gtk.CssProvider()
+        css_provider.load_from_data(frame_box_css.encode())
+        dots_frame.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        
+        # Create navigation container with arrows and dots
+        nav_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
+                                spacing=8,
+                                halign=Gtk.Align.CENTER,
+                                valign=Gtk.Align.CENTER)
+        
+        # Add padding around navigation
+        nav_container.set_margin_start(8)
+        nav_container.set_margin_end(8)
+        nav_container.set_margin_top(5)
+        nav_container.set_margin_bottom(5)
+        
+        # Pack everything together
+        nav_container.pack_start(left_arrow, False, False, 0)
+        nav_container.pack_start(self.banner_dots_box, True, False, 0)
+        nav_container.pack_start(right_arrow, False, False, 0)
+        
+        dots_frame.add(nav_container)
+        
+        frame_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
+                                  halign=Gtk.Align.CENTER,
+                                  valign=Gtk.Align.END,
+                                  margin_bottom=5)
+        frame_container.pack_start(dots_frame, True, False, 0)
+        overlay.add_overlay(frame_container)
+
+        self.dots = []
+        self.current_dot_index = 0
 
         # Load featured applications
         json_array = json.load(open("/usr/share/linuxmint/mintinstall/featured/featured.json", "r"))
@@ -1228,12 +1266,54 @@ class Application(Gtk.Application):
             flowbox.show_all()
             self.banner_stack.add_named(flowbox, str(len(self.banner_stack.get_children())))
 
-        # Finalize navigation setup
-        self.banner_nav_box.pack_start(left_arrow, False, False, 0)
-        self.banner_nav_box.pack_start(right_arrow, False, False, 0)
+            # Create dot indicator
+            dot = Gtk.DrawingArea()
+            dot.set_size_request(10, 10)
+            dot.index = len(self.dots)  # Store index as a property
+            dot.connect("draw", self.draw_dot)
+            self.dots.append(dot)
+            self.banner_dots_box.pack_start(dot, False, False, 0)
 
         # Display the banner
         box.show_all()
+        self.update_dots(0)
+        self.start_slideshow_timer()
+
+    def draw_dot(self, widget, cr):
+        """
+        Draw a circular dot indicator with outline
+        """
+        # Get the dot's dimensions
+        width = widget.get_allocated_width()
+        height = widget.get_allocated_height()
+        
+        # Calculate center and radius
+        center_x = width / 2
+        center_y = height / 2
+        radius = min(width, height) / 2 - 1
+        
+        # Draw outline circle
+        cr.set_line_width(1)
+        cr.arc(center_x, center_y, radius, 0, 2 * math.pi)
+        cr.set_source_rgba(0, 0, 0, 0.25)  # Semi-transparent black outline
+        cr.stroke_preserve()
+        
+        # Fill circle
+        if widget.index == self.current_dot_index:
+            cr.set_source_rgba(1, 1, 1, 1)  # Active dot: solid white
+        else:
+            cr.set_source_rgba(1, 1, 1, 0.40) # Inactive dot: semi-transparent white
+        
+        cr.fill()
+        return False
+
+    def update_dots(self, current_index):
+        """
+        Update the appearance of dots based on the current banner index
+        """
+        self.current_dot_index = current_index
+        for dot in self.dots:
+            dot.queue_draw()
 
     def on_arrow_clicked(self, button, banner_stack):
         current_index = int(self.banner_stack.get_visible_child_name())
@@ -1247,10 +1327,15 @@ class Application(Gtk.Application):
             new_index = (current_index - 1) % len(self.banner_stack.get_children())
             
         self.banner_stack.set_visible_child_name(str(new_index))
+        self.update_dots(new_index)
         self.start_slideshow_timer()
 
     def start_slideshow_timer(self):
-        if self.low_res:
+        # Don't start timer if:
+        # - Low resolution screen
+        # - Not on landing page
+        if self.low_res or \
+           self.page_stack.get_visible_child_name() != self.PAGE_LANDING:
             return
 
         self.stop_slideshow_timer()
@@ -1269,6 +1354,7 @@ class Application(Gtk.Application):
         self.banner_stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT)
         new_index = (current_index + 1) % len(self.banner_stack.get_children())
         self.banner_stack.set_visible_child_name(str(new_index))
+        self.update_dots(new_index)
         return True
 
     def on_banner_clicked(self, button, pkginfo):
