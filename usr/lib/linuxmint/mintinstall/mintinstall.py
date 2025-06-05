@@ -897,6 +897,11 @@ class Application(Gtk.Application):
         separator.show()
         submenu.append(separator)
 
+        self.package_help_button = self.builder.get_object("package_help_button")
+        self.package_help_button.connect("clicked", self.on_package_help_clicked)
+        self.package_help_popover = Gtk.Popover(relative_to=self.package_help_button)
+        self.package_help_popover.add(self.builder.get_object("package_help_content_box"))
+
         about_menuitem = Gtk.MenuItem(label=_("About"))
         about_menuitem.connect("activate", self.open_about)
         about_menuitem.show()
@@ -1804,6 +1809,9 @@ class Application(Gtk.Application):
             if terms != "":
                 self.show_search_results(terms)
 
+    def on_package_help_clicked(self, button):
+        self.package_help_popover.popup()
+
     def open_about(self, widget):
         dlg = Gtk.AboutDialog()
         dlg.set_transient_for(self.main_window)
@@ -2699,6 +2707,8 @@ class Application(Gtk.Application):
             self.package_type_combo.show()
             self.package_type_combo.set_active_iter(to_use_iter)
             self.package_type_combo.set_tooltip_text(tooltip)
+
+        self.package_help_button.set_visible(i > 1 or is_flatpak)
 
         self.unsafe_box.hide()
         self.builder.get_object("application_dev_name").set_label("")
