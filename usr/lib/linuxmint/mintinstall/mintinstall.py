@@ -1331,11 +1331,7 @@ class Application(Gtk.Application):
         self.start_slideshow_timer()
 
     def start_slideshow_timer(self):
-        # Don't start timer if:
-        # - Low resolution screen
-        # - Not on landing page
-        if self.low_res or \
-           self.page_stack.get_visible_child_name() != self.PAGE_LANDING:
+        if self.low_res:
             return
 
         self.stop_slideshow_timer()
