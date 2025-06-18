@@ -335,14 +335,14 @@ class BannerTile(Gtk.FlowBoxChild):
 #BannerTitle {
     color: %(color)s;
     font-weight: bold;
-    font-size: 48px;
-    padding-top: 12px;
+    font-size: 44px;
+    padding-top: 8px;
 }
 #BannerSummary {
     color: %(color)s;
     font-weight: normal;
     font-size: 16px;
-    padding-top: 10px;
+    padding-top: 4px;
 }
 #BannerFlatpakLabel {
     font-weight: normal;
@@ -371,7 +371,7 @@ class BannerTile(Gtk.FlowBoxChild):
 
         image = Gtk.Image.new_from_file(self.image_uri)
 
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, halign=Gtk.Align.START)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8, margin_bottom=17, halign=Gtk.Align.START)
         vbox.get_style_context().add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         vbox.set_border_width(6)
 
@@ -1194,10 +1194,10 @@ class Application(Gtk.Application):
                                 valign=Gtk.Align.CENTER)
         
         # Add padding around navigation
-        nav_container.set_margin_start(8)
-        nav_container.set_margin_end(8)
-        nav_container.set_margin_top(5)
-        nav_container.set_margin_bottom(5)
+        nav_container.set_margin_start(7)
+        nav_container.set_margin_end(7)
+        nav_container.set_margin_top(4)
+        nav_container.set_margin_bottom(4)
         
         # Pack everything together
         nav_container.pack_start(left_arrow, False, False, 0)
