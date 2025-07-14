@@ -10,7 +10,6 @@ override_dh_auto_install:
 	cd resources &&	glib-compile-resources \
 		--target=../debian/mintinstall/usr/share/linuxmint/mintinstall/mintinstall.gresource mintinstall.gresource.xml \
 		&& cd ..
-	cp resources/*.glade debian/mintinstall/usr/share/linuxmint/mintinstall
 	dh_auto_install
 
 # Inject version number in the code
