@@ -78,14 +78,7 @@ class Scraper():
                 self.fp.append(pkginfo)
 
         matches = []
-        skip = True
         for apt_pkginfo in self.apt:
-            if skip:
-                if apt_pkginfo.name != "moon-lander":
-                    continue
-                else:
-                    skip = False
-
             for f in self.fp:
                 match = None
                 # print(apt_pkginfo.name.rsplit(":"))
