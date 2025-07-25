@@ -371,7 +371,7 @@ class BannerTile(Gtk.FlowBoxChild):
 
         image = Gtk.Image.new_from_file(self.image_uri)
 
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8, margin_bottom=17, halign=Gtk.Align.START)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8, halign=Gtk.Align.START)
         vbox.get_style_context().add_provider(style_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         vbox.set_border_width(6)
 
@@ -1205,9 +1205,10 @@ class Application(Gtk.Application):
         dots_frame.add(nav_container)
         
         frame_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,
-                                  halign=Gtk.Align.CENTER,
+                                  halign=Gtk.Align.END,
                                   valign=Gtk.Align.END,
-                                  margin_bottom=5)
+                                  margin_bottom=7,
+                                  margin_right=8)
         frame_container.pack_start(dots_frame, True, False, 0)
         overlay.add_overlay(frame_container)
 
