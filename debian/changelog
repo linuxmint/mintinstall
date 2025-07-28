@@ -1,3 +1,28 @@
+mintinstall (8.3.8) zara; urgency=medium
+
+  [ hduelme ]
+  * Use auto resource management for license file (#453)
+
+  [ Michael Webster ]
+  * Remove skypeforlinux from our featured/picks.
+
+  [ Lorenz Gillner ]
+  * Unify scrollbar positioning (#447)
+
+  [ Michael Webster ]
+  * Provide information about packaging types when a user views a Flatpak package, or one where both types are available.
+  * debian/rules: Don't install glade files.
+  * Update flatpak match info.
+
+  [ Hilyxx ]
+  * Rework dot buttons (#465)
+  * Place banner buttons on the right side. (#469)
+
+  [ Clement Lefebvre ]
+  * l10n: Update POT
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon, 28 Jul 2025 13:02:58 +0200
+
 mintinstall (8.3.7) xia; urgency=medium
 
   [ Michael Webster ]
