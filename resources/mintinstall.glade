@@ -231,7 +231,7 @@
           <object class="GtkLabel">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="label" translatable="yes">System packages are managed by your system and use shared libraries and resources.</property>
+            <property name="label" translatable="yes">System packages are managed by your Linux distribution and use shared libraries and resources.</property>
             <property name="wrap">True</property>
             <property name="width-chars">50</property>
             <property name="max-width-chars">50</property>
@@ -247,7 +247,7 @@
           <object class="GtkLabel">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="label" translatable="yes">They are stable but can become outdated over time, as they generally only receive bugfix and security updates.</property>
+            <property name="label" translatable="yes">They are safe, small and stable. They receive bug fixes and security updates but no newer versions.</property>
             <property name="wrap">True</property>
             <property name="width-chars">50</property>
             <property name="max-width-chars">50</property>
@@ -325,7 +325,7 @@
           <object class="GtkLabel">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="label" translatable="yes">Flatpaks are generally maintained by the application developers themselves, and usually provide the most up-to-date version.</property>
+            <property name="label" translatable="yes">Flatpaks are maintained and updated directly by their owner, with no control from your Linux distribution. They usually provide the most up to date version.</property>
             <property name="wrap">True</property>
             <property name="width-chars">50</property>
             <property name="max-width-chars">50</property>
@@ -341,7 +341,7 @@
           <object class="GtkLabel">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="label" translatable="yes">They are mostly self-contained, and rely on bundled dependencies (runtimes) instead of system packages. As a consequence, they tend to require significantly more disk space to install, though this is somewhat mitigated when multiple Flatpaks are using the same runtimes.</property>
+            <property name="label" translatable="yes">They take more disk space. Their security is not guaranteed by your Linux distribution, but by the Flatpak maintainer. It's essential you trust the maintainer before installing a Flatpak.</property>
             <property name="wrap">True</property>
             <property name="width-chars">50</property>
             <property name="max-width-chars">50</property>
