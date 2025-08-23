@@ -3,6 +3,8 @@
 # -*- coding: UTF-8 -*-
 
 import sys
+import requests
+import tempfile
 import os
 import gettext
 import threading
@@ -714,6 +716,26 @@ class Application(Gtk.Application):
 
             print("MintInstall: file not found", args[2])
             sys.exit(1)
+        elif num > 1 and args[1].startswith("flatpak+https"):
+            # Download flatpakref file
+            url = args[1]
+            filename = "ref.flatpakref"
+            response = requests.get(url[8:])
+            file_path = f"{tempfile.gettempdir()}/{filename}"
+            # Check if the request was successful (status code 200)
+            if response.status_code == 200:
+                # Open the file in binary write mode and save the content
+                with open(file_path, 'wb') as file:
+                    file.write(response.content)
+                print(f"File downloaded and saved to {file_path}")
+            else:
+                print(f"Failed to download file. HTTP Status code: {response.status_code}")
+
+            file = Gio.File.new_for_path(file_path)
+
+            self.activate()
+            self.installer.get_pkginfo_from_ref_file(file, self.on_pkginfo_from_uri_complete)
+            
         elif num > 1:
             print("MintInstall: Unknown arguments", args[1:])
             sys.exit(1)
