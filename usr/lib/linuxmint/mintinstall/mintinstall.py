@@ -629,8 +629,6 @@ class Application(Gtk.Application):
         self.gui_ready = False
         self.start_time = time.time()
 
-        self.low_res = self.get_low_res_screen()
-
         self.settings = Gio.Settings(schema_id="com.linuxmint.install")
         self.arch = platform.machine()
 
@@ -797,7 +795,7 @@ class Application(Gtk.Application):
         if pkginfo:
             self.show_package(pkginfo, self.PAGE_LANDING)
 
-    def get_low_res_screen(self):
+    def set_default_window_size(self):
         display = Gdk.Display.get_default()
         pointer = display.get_default_seat().get_pointer()
 
@@ -812,6 +810,7 @@ class Application(Gtk.Application):
         # app pixels, so hidpi will also be affected here regardless of device resolution.
         if height < 800:
             print("MintInstall: low resolution detected (%dpx height), limiting window height." % (height))
+            self.main_window.set_default_size(800, 550)
             return True
 
         return False
@@ -827,6 +826,7 @@ class Application(Gtk.Application):
         self.main_window = self.builder.get_object("main_window")
         self.main_window.set_title(_("Software Manager"))
         GLib.set_application_name(_("Software Manager"))
+        self.set_default_window_size()
 
         self.main_window.set_icon_name("mintinstall")
         self.main_window.connect("delete_event", self.close_application)
@@ -1097,14 +1097,6 @@ class Application(Gtk.Application):
         # Get the main banner container
         box = self.builder.get_object("box_banner")
 
-        if self.low_res:
-            box.hide()
-
-            # This overrides the glade 800x600 defaults. 300 is excessively small so the window works
-            # out its own minimum height.
-            self.main_window.set_default_size(800, 500)
-            return
-
         # Clear existing content
         for child in box.get_children():
             child.destroy()
@@ -1330,16 +1322,10 @@ class Application(Gtk.Application):
         self.start_slideshow_timer()
 
     def start_slideshow_timer(self):
-        if self.low_res:
-            return
-
         self.stop_slideshow_timer()
         self.banner_slideshow_timeout_id = GLib.timeout_add_seconds(5, self.on_slideshow_timeout)
 
     def stop_slideshow_timer(self):
-        if self.low_res:
-            return
-
         if self.banner_slideshow_timeout_id > 0:
             GLib.source_remove(self.banner_slideshow_timeout_id)
             self.banner_slideshow_timeout_id = 0
