@@ -19,6 +19,7 @@ import math
 from pathlib import Path
 import traceback
 from operator import attrgetter
+from collections import namedtuple
 
 import gi
 gi.require_version('Gtk', '3.0')
@@ -243,9 +244,9 @@ class FlatpakAddonRow(Gtk.ListBoxRow):
         self.spinner.show()
 
 class SaneProgressBar(Gtk.DrawingArea):
-    def __init__(self):
-        super(Gtk.DrawingArea, self).__init__(width_request=-1,
-                                              height_request=8,
+    def __init__(self, width=-1, height=8):
+        super(Gtk.DrawingArea, self).__init__(width_request=width,
+                                              height_request=height,
                                               margin_top=1, #???  to align better with the stars and count
                                               hexpand=True,
                                               valign=Gtk.Align.CENTER,
@@ -611,6 +612,71 @@ class CategoryButton(Gtk.Button):
 
         self.add(box)
 
+PkgInfoSearchCache = namedtuple('PkgInfoSearchCache', ['name', 'display_name', 'keywords', 'summary', 'description'])
+
+
+class CooperativeIterator:
+    """
+    Iterates over items cooperatively within the GLib main loop, yielding periodically to keep the UI responsive.
+    """
+    def __init__(self, iterable, on_per_item, *, on_progress=None, on_finish=None, on_error=None, max_duration_ms=16, **kwargs):
+        self._size = len(iterable) if hasattr(iterable, '__len__') else None
+        self._iterator = iter(iterable)
+        self._on_per_item = on_per_item
+        self._on_progress = on_progress
+        self._on_finish = on_finish
+        self._on_error = on_error
+        self._kwargs = kwargs
+        self._max_duration = max_duration_ms / 1000.0
+        self._cancelled = False
+
+    def run(self):
+        self._start_time = time.monotonic()
+        self._current_index = 0
+        GLib.idle_add(self._process)
+
+    def _process(self):
+        if self._cancelled:
+            return False
+
+        start_time = time.monotonic()
+
+        try:
+            while not self._cancelled:
+                item = next(self._iterator)
+
+                self._on_per_item(item, **self._kwargs)
+
+                self._current_index += 1
+                if self._on_progress and self._size is not None:
+                    self._on_progress(self._current_index / self._size)
+
+                if (time.monotonic() - start_time) >= self._max_duration:
+                    return True
+
+        except StopIteration:
+            if os.getenv("DEBUG", False):
+                elapsed_time = time.monotonic() - self._start_time
+                print(f"CooperativeIterator: Finished processing {self._on_per_item.__name__} in {elapsed_time:.3f} seconds.")
+
+            if self._on_finish:
+                try:
+                    self._on_finish(**self._kwargs)
+                except Exception as e:
+                    print(f"CooperativeIterator: Error in on_finish: {e}")
+            return False
+
+        except RuntimeError:
+            if self._on_error:
+                try:
+                    self._on_error()
+                except Exception as e:
+                    print(f"CooperativeIterator: Error in on_error: {e}")
+            return False
+
+    def cancel(self):
+        self._cancelled = True
+
 class Application(Gtk.Application):
     (ACTION_TAB, PROGRESS_TAB, SPINNER_TAB) = list(range(3))
 
@@ -660,7 +726,8 @@ class Application(Gtk.Application):
         self.one_package_idle_timer = 0
         self.installer_pulse_timer = 0
         self.search_changed_timer = 0
-        self.search_idle_timer = 0
+        self.search_iterator = None
+        self.generate_search_cache_idle_timer = 0
 
         self.action_button_signal_id = 0
         self.launch_button_signal_id = 0
@@ -686,7 +753,7 @@ class Application(Gtk.Application):
 
     def _init_installer_thread(self):
         if self.installer.init_sync():
-            GLib.idle_add(self.on_installer_ready)
+            self.on_installer_ready()
         else:
             self.page_stack.set_visible_child_name(self.PAGE_GENERATING_CACHE)
             self.installer.init(self.on_installer_ready)
@@ -853,6 +920,12 @@ class Application(Gtk.Application):
         self.progress_label = DottedProgressLabel()
         self.progress_box.pack_start(self.progress_label, False, False, 0)
         self.progress_label.show()
+
+        # self.progress_bar = self.builder.get_object('search_progress_bar')
+        box_searching = self.builder.get_object('search_progress_bar')
+        self.progress_bar = SaneProgressBar(-1, 12)
+        box_searching.pack_start(self.progress_bar, True, True, 0)
+        self.progress_bar.show()
 
         box_reviews = self.builder.get_object("box_reviews")
 
@@ -1055,8 +1128,14 @@ class Application(Gtk.Application):
         if self.banner_tile is not None:
             self.banner_tile.repopulate_tile()
 
+        GLib.idle_add(self.pregenerate_search_cache)
+
+
     def on_installer_ready(self):
-        self.page_stack.set_visible_child_name(self.PAGE_LOADING)
+        def set_loading_page():
+            self.page_stack.set_visible_child_name(self.PAGE_LOADING)
+        GLib.idle_add(set_loading_page)
+
         try:
             self.process_matching_packages()
 
@@ -1075,10 +1154,14 @@ class Application(Gtk.Application):
             # Can take some time, don't block for it (these are categorizing packages based on apt info, not our listings)
             GLib.idle_add(self.process_unmatched_packages)
 
+            if not self.installer.have_flatpak:
+                GLib.idle_add(self.pregenerate_search_cache)
+
             housekeeping.run()
 
             self.refresh_cache_menuitem.set_sensitive(True)
             self.print_startup_time()
+
         except Exception as e:
             print("Loading error: %s" % e)
             traceback.print_tb(e.__traceback__)
@@ -1500,11 +1583,11 @@ class Application(Gtk.Application):
         # Add a callback when we exit mintsources
         p.wait_async(None, on_process_exited)
 
-    def should_show_pkginfo(self, pkginfo):
+    def should_show_pkginfo(self, pkginfo, allow_unverified_flatpaks):
         if pkginfo.pkg_hash.startswith("apt"):
             return True
 
-        if not self.settings.get_boolean(prefs.ALLOW_UNVERIFIED_FLATPAKS):
+        if not allow_unverified_flatpaks:
             return pkginfo.verified
 
         return pkginfo.refid.startswith("app/")
@@ -1856,6 +1939,10 @@ class Application(Gtk.Application):
             self.show_category(self.current_category)
         elif terms != "" and len(terms) >= 3:
             self.show_search_results(terms)
+        elif terms == "":
+            page = self.page_stack.get_visible_child_name()
+            if page == self.PAGE_LIST or page == self.PAGE_SEARCHING:
+                self.go_back_action()
 
         self.search_changed_timer = 0
         return False
@@ -2291,6 +2378,11 @@ class Application(Gtk.Application):
     def on_back_button_clicked(self, button):
         self.go_back_action()
 
+    def cancel_running_search(self):
+        if self.search_iterator:
+            self.search_iterator.cancel()
+            self.search_iterator = None
+
     def go_back_action(self):
         XApp.set_window_progress(self.main_window, 0)
         self.stop_progress_pulse()
@@ -2307,6 +2399,8 @@ class Application(Gtk.Application):
             if not self.installer.task_running(self.current_task):
                 self.installer.cancel_task(self.current_task)
             self.current_task = None
+
+        self.cancel_running_search()
 
         if self.page_stack.get_visible_child_name() == self.PAGE_PREFS:
             self.search_tool_item.set_sensitive(True)
@@ -2410,6 +2504,42 @@ class Application(Gtk.Application):
 
         return imaging.get_icon(icon_string, size)
 
+    def update_package_search_cache(self, pkginfo, search_in_description):
+        if not hasattr(pkginfo, "search_cache"):
+            pkginfo.search_cache = PkgInfoSearchCache(
+                name=pkginfo.name.upper(),
+                display_name=pkginfo.get_display_name().upper(),
+                keywords=pkginfo.get_keywords().upper(),
+                summary=pkginfo.get_summary().upper(),
+                description=None
+                if not search_in_description
+                else self.installer.get_description(pkginfo, for_search=True).upper()
+            )
+
+        # installer.get_description() is very slow, so we only fetch it if it's required
+        if search_in_description and pkginfo.search_cache.description is None:
+            description = self.installer.get_description(pkginfo, for_search=True).upper()
+            pkginfo.search_cache = pkginfo.search_cache._replace(description=description)
+
+    def pregenerate_search_cache(self):
+        if self.generate_search_cache_idle_timer > 0:
+            GLib.source_remove(self.generate_search_cache_idle_timer)
+            self.generate_search_cache_idle_timer = 0
+
+        search_in_description = self.settings.get_boolean(prefs.SEARCH_IN_DESCRIPTION)
+        pkginfos = self.installer.cache.values()
+
+        def generate_package_cache(pkginfos_iter):
+            try:
+                pkginfo = next(pkginfos_iter)
+                self.update_package_search_cache(pkginfo, search_in_description)
+                return True
+            except StopIteration:
+                self.generate_search_cache_idle_timer = 0
+                return False
+
+        self.generate_search_cache_idle_timer = GLib.idle_add(generate_package_cache, iter(pkginfos))
+
     @print_timing
     def show_search_results(self, terms):
         if not self.gui_ready:
@@ -2445,53 +2575,74 @@ class Application(Gtk.Application):
 
         searched_packages = []
 
-        if self.search_idle_timer > 0:
-            GLib.source_remove(self.search_idle_timer)
-            self.search_idle_timer = 0
+        self.cancel_running_search()
 
         search_in_summary = self.settings.get_boolean(prefs.SEARCH_IN_SUMMARY)
         search_in_description = self.settings.get_boolean(prefs.SEARCH_IN_DESCRIPTION)
 
         package_type_preference = self.settings.get_string(prefs.PACKAGE_TYPE_PREFERENCE)
-        hidden_packages = set()
+        allow_unverified_flatpaks = self.settings.get_boolean(prefs.ALLOW_UNVERIFIED_FLATPAKS)
 
-        def idle_search_one_package(pkginfos):
-            try:
-                pkginfo = pkginfos.pop(0)
-            except IndexError:
-                self.search_idle_timer = 0
-                return False
+        def on_finish(list_size, searched_packages, hidden_packages, package_type_preference, **kwargs):
+            self.search_iterator = None
 
+            if package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_APT:
+                results = [p for p in searched_packages if not (p.pkg_hash.startswith("f") and p.name in hidden_packages)]
+            elif package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_FLATPAK:
+                results = [p for p in searched_packages if not (p.pkg_hash.startswith("a") and p.name in hidden_packages)]
+            else:
+                results = searched_packages
+            self.on_search_results_complete(results)
+
+        def on_error():
+            self.search_iterator = None
+
+            self.go_back_action()
+
+        def search_one_package(
+            pkginfo,
+            list_size,
+            searched_packages,
+            hidden_packages,
+            allow_unverified_flatpaks,
+            package_type_preference,
+            search_in_summary,
+            search_in_description
+        ):
             flatpak = pkginfo.pkg_hash.startswith("f")
             is_match = False
 
             while True:
-                if not self.should_show_pkginfo(pkginfo):
+                if not self.should_show_pkginfo(pkginfo, allow_unverified_flatpaks):
                     break
 
-                if all(piece in pkginfo.name.upper() for piece in termsSplit):
+                self.update_package_search_cache(pkginfo, search_in_description)
+
+                if all(piece in pkginfo.search_cache.name for piece in termsSplit):
                     is_match = True
                     pkginfo.search_tier = 0
                     break
+
                 # pkginfo.name for flatpaks is their id (org.foo.BarMaker), which
                 # may not actually contain the app's name. In this case their display
                 # names are better. The 'name' is still checked first above, because
                 # it's static - get_display_name() may involve a lookup with appstream.
-                if flatpak and all(piece in pkginfo.get_display_name().upper() for piece in termsSplit):
+                if flatpak and all(piece in pkginfo.search_cache.display_name for piece in termsSplit):
                     is_match = True
                     pkginfo.search_tier = 0
                     break
 
-                if termsUpper in pkginfo.get_keywords().upper():
+                if termsUpper in pkginfo.search_cache.keywords:
                     is_match = True
                     pkginfo.search_tier = 50
                     break
 
-                if (search_in_summary and termsUpper in pkginfo.get_summary().upper()):
+                if (search_in_summary and termsUpper in pkginfo.search_cache.summary):
                     is_match = True
                     pkginfo.search_tier = 100
                     break
-                if(search_in_description and termsUpper in self.installer.get_description(pkginfo).upper()):
+
+                if (search_in_description and termsUpper in pkginfo.search_cache.description):
                     is_match = True
                     pkginfo.search_tier = 200
                     break
@@ -2504,23 +2655,29 @@ class Application(Gtk.Application):
                 elif package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_FLATPAK and flatpak:
                     hidden_packages.add(DEB_EQUIVS.get(pkginfo.name))
 
-            # Repeat until empty
-            if len(pkginfos) > 0:
-                return True
+        def on_progress(progress):
+            self.update_progress(progress)
 
-            self.search_idle_timer = 0
+        self.search_iterator = CooperativeIterator(
+            listing,
+            search_one_package,
+            on_finish=on_finish,
+            on_error=on_error,
+            on_progress=on_progress,
+            list_size=len(listing),
+            searched_packages=[],
+            hidden_packages=set(),
+            allow_unverified_flatpaks=allow_unverified_flatpaks,
+            package_type_preference=package_type_preference,
+            search_in_summary=search_in_summary,
+            search_in_description=search_in_description
+        )
+        self.search_iterator.run()
 
-            if package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_APT:
-                results = [p for p in searched_packages if not (p.pkg_hash.startswith("f") and p.name in hidden_packages)]
-            elif package_type_preference == prefs.PACKAGE_TYPE_PREFERENCE_FLATPAK:
-                results = [p for p in searched_packages if not (p.pkg_hash.startswith("a") and p.name in hidden_packages)]
-            else:
-                results = searched_packages
 
-            GLib.idle_add(self.on_search_results_complete, results)
-            return False
-
-        self.search_idle_timer = GLib.idle_add(idle_search_one_package, list(listing))
+    def update_progress(self, progress):
+        progress = max(0.0, min(1.0, progress))
+        self.progress_bar.set_fraction(progress)
 
     def on_search_results_complete(self, results):
         self.page_stack.set_visible_child_name(self.PAGE_LIST)
@@ -2591,6 +2748,7 @@ class Application(Gtk.Application):
 
     def show_packages(self, pkginfos, from_search=False):
         self.stop_slideshow_timer()
+        allow_unverified_flatpaks = self.settings.get_boolean(prefs.ALLOW_UNVERIFIED_FLATPAKS)
 
         if self.one_package_idle_timer > 0:
             GLib.source_remove(self.one_package_idle_timer)
@@ -2627,7 +2785,7 @@ class Application(Gtk.Application):
                 apps = [info for info in pkginfos] # should_show_pkginfo was applied during search matching
                 apps = self.sort_packages(apps, attrgetter("unverified", "search_tier", "score_desc", "name"))
             else:
-                apps = [info for info in pkginfos if self.should_show_pkginfo(info)]
+                apps = [info for info in pkginfos if self.should_show_pkginfo(info, allow_unverified_flatpaks)]
                 apps = self.sort_packages(apps, attrgetter("unverified", "score_desc", "name"))
             apps = apps[0:201]
 
@@ -2959,10 +3117,11 @@ class Application(Gtk.Application):
         self.show_package(pkginfo, self.previous_page)
 
     def get_flatpak_for_deb(self, pkginfo):
+        allow_unverified_flatpaks = self.settings.get_boolean(prefs.ALLOW_UNVERIFIED_FLATPAKS)
         try:
             fp_name = FLATPAK_EQUIVS[pkginfo.name]
             flatpak_pkginfo = self.installer.find_pkginfo(fp_name, installer.PKG_TYPE_FLATPAK)
-            if self.should_show_pkginfo(flatpak_pkginfo):
+            if self.should_show_pkginfo(flatpak_pkginfo, allow_unverified_flatpaks):
                 return flatpak_pkginfo
         except:
             return None
