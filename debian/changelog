@@ -1,3 +1,11 @@
+mintinstall (8.3.9) gigi; urgency=medium
+
+  [ Michael Webster ]
+  * Always show the featured banner, regardless of window size.
+  * Update flatpak match info.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Sat, 13 Sep 2025 11:40:53 +0100
+
 mintinstall (8.3.8) zara; urgency=medium
 
   [ hduelme ]
