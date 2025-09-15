@@ -1,3 +1,9 @@
+mintinstall (8.4.0) gigi; urgency=medium
+
+  * postinst: Use wget instead of flatpak
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon, 15 Sep 2025 16:56:06 +0100
+
 mintinstall (8.3.9) gigi; urgency=medium
 
   [ Michael Webster ]
