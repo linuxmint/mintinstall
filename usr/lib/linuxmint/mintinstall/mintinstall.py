@@ -512,9 +512,9 @@ class ReviewTile(Gtk.ListBoxRow):
         ratings_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         stars_box = Gtk.Box()
         for i in range(rating):
-            stars_box.pack_start(Gtk.Image.new_from_icon_name("xapp-starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
+            stars_box.pack_start(Gtk.Image.new_from_icon_name("xsi-starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
         for i in range(5 - rating):
-            stars_box.pack_start(Gtk.Image.new_from_icon_name("xapp-non-starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
+            stars_box.pack_start(Gtk.Image.new_from_icon_name("xsi-non-starred-symbolic", Gtk.IconSize.MENU), False, False, 0)
         ratings_box.pack_start(stars_box, False, False, 0)
 
         label_name = Gtk.Label(xalign=0.0)
@@ -1113,8 +1113,8 @@ class Application(Gtk.Application):
         # Create navigation buttons
         left_arrow = Gtk.Button()
         right_arrow = Gtk.Button()
-        left_image = Gtk.Image.new_from_icon_name("xapp-go-previous-symbolic", Gtk.IconSize.SMALL_TOOLBAR)
-        right_image = Gtk.Image.new_from_icon_name("xapp-go-next-symbolic", Gtk.IconSize.SMALL_TOOLBAR)
+        left_image = Gtk.Image.new_from_icon_name("xsi-go-previous-symbolic", Gtk.IconSize.SMALL_TOOLBAR)
+        right_image = Gtk.Image.new_from_icon_name("xsi-go-next-symbolic", Gtk.IconSize.SMALL_TOOLBAR)
 
         # Setup button styling
         button_style_override = """
@@ -1673,7 +1673,7 @@ class Application(Gtk.Application):
 
         if ss_path is None:
             box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, valign=Gtk.Align.CENTER)
-            image = Gtk.Image(icon_name="xapp-face-uncertain-symbolic", icon_size=Gtk.IconSize.DIALOG)
+            image = Gtk.Image(icon_name="xsi-face-uncertain-symbolic", icon_size=Gtk.IconSize.DIALOG)
             label = Gtk.Label(label=_("No screenshots available"))
             box.pack_start(image, False, False, 0)
             box.pack_start(label, False, False, 0)
@@ -2148,7 +2148,7 @@ class Application(Gtk.Application):
         self.sections["php"] = subcat
         subcat = Category(_("Python"), category, self.categories, "mintinstall-python-symbolic")
         self.sections["python"] = subcat
-        subcat = Category(_("Essentials"), category, self.categories, "xapp-favorites-app-symbolic")
+        subcat = Category(_("Essentials"), category, self.categories, "xsi-favorites-app-symbolic")
         subcat.matchingPackages = self.file_to_array("/usr/share/linuxmint/mintinstall/categories/development-essentials.list")
         self.root_categories[category.name] = category
 
@@ -2872,14 +2872,14 @@ class Application(Gtk.Application):
             rating = review_info.avg_rating
             remaining_stars = 5
             while rating >= 1.0:
-                box_stars.pack_start(Gtk.Image(icon_name="xapp-starred-symbolic", pixel_size=16), False, False, 0)
+                box_stars.pack_start(Gtk.Image(icon_name="xsi-starred-symbolic", pixel_size=16), False, False, 0)
                 rating -= 1
                 remaining_stars -= 1
             if rating > 0.0:
-                box_stars.pack_start(Gtk.Image(icon_name="xapp-semi-starred-symbolic", pixel_size=16), False, False, 0)
+                box_stars.pack_start(Gtk.Image(icon_name="xsi-semi-starred-symbolic", pixel_size=16), False, False, 0)
                 remaining_stars -= 1
             for i in range(remaining_stars):
-                box_stars.pack_start(Gtk.Image(icon_name="xapp-non-starred-symbolic", pixel_size=16), False, False, 0)
+                box_stars.pack_start(Gtk.Image(icon_name="xsi-non-starred-symbolic", pixel_size=16), False, False, 0)
 
             box_stars.show_all()
 
