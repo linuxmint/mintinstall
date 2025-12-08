@@ -2,6 +2,7 @@
 
 DOMAIN = "mintinstall"
 PATH = "/usr/share/linuxmint/locale"
+KEYWORDS = "program,software,store,repository,package,add,install,uninstall,remove,apps,applications,games,flatpak"
 
 import os
 import gettext
@@ -22,7 +23,7 @@ NotShowIn=KDE;
 StartupNotify=true
 """
 
-additionalfiles.generate(DOMAIN, PATH, "usr/share/applications/mintinstall.desktop", prefix, _("Software Manager"), _("Install new applications"), suffix)
+additionalfiles.generate(DOMAIN, PATH, "usr/share/applications/mintinstall.desktop", prefix, _("Software Manager"), _("Install new applications"), suffix, keywords=KEYWORDS)
 
 suffix = """Exec=mintinstall
 Icon=software-properties-mint
@@ -33,4 +34,4 @@ Categories=System;
 OnlyShowIn=KDE;
 """
 
-additionalfiles.generate(DOMAIN, PATH, "usr/share/applications/mintinstall-kde.desktop", prefix, _("Software Manager"), _("Install new applications"), suffix, genericName=_("Install new applications"))
+additionalfiles.generate(DOMAIN, PATH, "usr/share/applications/mintinstall-kde.desktop", prefix, _("Software Manager"), _("Install new applications"), suffix, genericName=_("Install new applications"), keywords=KEYWORDS)
