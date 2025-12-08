@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import subprocess
+import sys
 import os
 
 # Remove any obsolete configuration file
@@ -11,4 +12,4 @@ if os.path.exists(obsolete_path):
 	except:
 		pass
 
-subprocess.call("/usr/lib/linuxmint/mintinstall/mintinstall.py")
+subprocess.call(["/usr/lib/linuxmint/mintinstall/mintinstall.py"] + sys.argv[1:])
