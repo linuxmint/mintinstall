@@ -1,3 +1,17 @@
+mintinstall (8.4.0) zena; urgency=medium
+
+  [ Clement Lefebvre ]
+  * Switch to XApp symbolic icons
+  * Switch to XSI
+
+  [ baronleonardo ]
+  * mintinstall: add keywords to the generated desktop file (#487)
+
+  [ Clement Lefebvre ]
+  * l10n: Generate files
+
+ -- Clement Lefebvre <root@linuxmint.com>  Thu, 11 Dec 2025 14:33:41 +0000
+
 mintinstall (8.3.9) gigi; urgency=medium
 
   [ Michael Webster ]
