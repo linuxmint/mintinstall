@@ -1,10 +1,9 @@
 #!/usr/bin/python3
 
 import os
-import threading
 import requests
 import urllib
-import re
+import json
 import logging
 from concurrent.futures import ThreadPoolExecutor
 
@@ -261,20 +260,22 @@ class ScreenshotDownloader():
 
         try:
             # Add additional screenshots from Debian
-            from bs4 import BeautifulSoup
-            page = BeautifulSoup(urllib.request.urlopen("https://screenshots.debian.net/package/%s" % self.pkginfo.name, timeout=5), "lxml")
-            images = page.findAll(href=re.compile(r"/shrine/screenshot[/\d\w]*large-[\w\d]*.png"))
-            for image in images:
+            json_url = "https://screenshots.debian.net/json/package/%s" % self.pkginfo.name
+            response = requests.get(json_url, timeout=5)
+            response.raise_for_status()
+            data = json.loads(response.text)
+            
+            screenshots = data.get("screenshots", [])
+            for screenshot in screenshots:
                 if num_screenshots >= 4:
                     break
 
-                num_screenshots += 1
-
-                thumb = "https://screenshots.debian.net%s" % image['href']
-                local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
-                self.save_to_file(thumb, None, local_name)
-
-                self.add_screenshot(self.pkginfo, local_name, num_screenshots)
+                screenshot_url = screenshot.get("screenshot_image_url")
+                if screenshot_url:
+                    num_screenshots += 1
+                    local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
+                    self.save_to_file(screenshot_url, None, local_name)
+                    self.add_screenshot(self.pkginfo, local_name, num_screenshots)
         except Exception as e:
             pass
 
