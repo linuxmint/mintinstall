@@ -647,6 +647,7 @@ class Application(Gtk.Application):
         self.recursion_buster = False
 
         self.install_on_startup_file = None
+        self.show_on_startup_pkg = None
 
         self.review_cache = None
         self.current_pkginfo = None
@@ -701,6 +702,22 @@ class Application(Gtk.Application):
             sys.exit(self.export_listing(flatpak_only=False))
         elif num > 1 and args[1] == "list-flatpak":
             sys.exit(self.export_listing(flatpak_only=True))
+        elif num == 3 and args[1] == "show":
+            target_pkg = args[2]
+            if self.gui_ready:
+                pkginfo = self.installer.find_pkginfo(target_pkg, installer.PKG_TYPE_APT)
+                if not pkginfo:
+                    pkginfo = self.installer.find_pkginfo(target_pkg, installer.PKG_TYPE_FLATPAK)
+                if pkginfo:
+                    self.show_package(pkginfo, self.PAGE_LANDING)
+                    self.main_window.present()
+                else:
+                    print(f"MintInstall: Package {target_pkg} not found.")
+            else:
+                self.show_on_startup_pkg = target_pkg
+                
+            self.activate()
+            return 0
         elif num == 3 and args[1] == "install":
             for try_method in (Gio.File.new_for_path, Gio.File.new_for_uri):
                 file = try_method(args[2])
@@ -2175,6 +2192,16 @@ class Application(Gtk.Application):
 
         self.gui_ready = True
         self.update_conditional_widgets()
+
+        if self.show_on_startup_pkg is not None:
+            pkginfo = self.installer.find_pkginfo(self.show_on_startup_pkg, installer.PKG_TYPE_APT)
+            if not pkginfo:
+                pkginfo = self.installer.find_pkginfo(self.show_on_startup_pkg, installer.PKG_TYPE_FLATPAK)
+            if pkginfo:
+                self.show_package(pkginfo, self.PAGE_LANDING)
+            else:
+                print(f"MintInstall: Package {self.show_on_startup_pkg} not found.")
+            self.show_on_startup_pkg = None
 
         if self.install_on_startup_file is not None:
             self.handle_command_line_install(self.install_on_startup_file)
