@@ -22,3 +22,7 @@ flatpak:com.todoist.Todoist
 flatpak:com.slack.Slack
 flatpak:us.zoom.Zoom
 flatpak:com.ktechpit.whatsie
+flatpak:org.kde.kdenlive
+flatpak:com.usebottles.bottles
+flatpak:net.lutris.Lutris
+flatpak:com.github.dail8859.NotepadNext
