@@ -60,6 +60,7 @@ class ScreenshotWindow(Gtk.Window):
         self.swipe_handler.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
         self.swipe_handler.connect("swipe", self.swipe_or_button_release)
         self.connect("key-press-event", self.on_key_press_event)
+        self.previous_focus_out_event_time = 0
         self.connect("focus-out-event", self.on_focus_out_event)
 
         self.scroll_handler = Gtk.EventControllerScroll.new(self, Gtk.EventControllerScrollFlags.VERTICAL)
@@ -171,7 +172,12 @@ class ScreenshotWindow(Gtk.Window):
         return Gdk.EVENT_PROPAGATE
 
     def on_focus_out_event(self, window, event, data=None):
-        GLib.timeout_add(200, lambda w: w.hide(), window)
+        # If System settings --> Keyboard --> Remember the last layout used for each window" is enabled
+        # It will cause multiple events which would trigger picture to close immediately after opening it
+        event_time = Gtk.get_current_event().get_time()
+        if event_time != self.previous_focus_out_event_time:
+            GLib.timeout_add(200, lambda w: w.hide(), window)
+            self.previous_focus_out_event_time = event_time
         return Gdk.EVENT_STOP
 
     def swipe_or_button_release(self, handler, vx, vy):
