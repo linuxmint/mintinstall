@@ -1,6 +1,50 @@
 #!/usr/bin/python3
 
+import os
 import subprocess
 import sys
+import tempfile
 
-subprocess.call(["/usr/lib/linuxmint/mintinstall/mintinstall.py", "install"] + sys.argv[1:])
+import gi
+gi.require_version('Gio', '2.0')
+gi.require_version('XApp', '1.0')
+from gi.repository import Gio, GLib, XApp
+
+
+def main():
+    args = sys.argv[1:]
+    tmp_path = None
+
+    if len(args) == 1 and args[0].lower().startswith(("flatpak+https://", "flatpak+http://")):
+        url = args[0][len("flatpak+"):]
+
+        if url.lower().endswith(".flatpakrepo"):
+            suffix = ".flatpakrepo"
+        else:
+            suffix = ".flatpakref"
+
+        try:
+            fd, tmp_path = tempfile.mkstemp(suffix=suffix, prefix="mintinstall-", dir=XApp.get_tmp_dir())
+            os.close(fd)
+
+            src = Gio.File.new_for_uri(url)
+            dst = Gio.File.new_for_path(tmp_path)
+            src.copy(dst, Gio.FileCopyFlags.OVERWRITE, None, None, None)
+
+            args = [tmp_path]
+        except GLib.Error as e:
+            print("mintinstall-fp-handler: Failed to download %s: %s" % (url, e.message), file=sys.stderr)
+            sys.exit(1)
+
+    try:
+        subprocess.call(["/usr/lib/linuxmint/mintinstall/mintinstall.py", "install"] + args)
+    finally:
+        if tmp_path:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+
+
+if __name__ == "__main__":
+    main()

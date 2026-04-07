@@ -7,4 +7,4 @@ Terminal=false
 Type=Application
 Encoding=UTF-8
 NoDisplay=true
-MimeType=application/vnd.flatpak.ref;application/vnd.flatpak.repo
+MimeType=application/vnd.flatpak.ref;application/vnd.flatpak.repo;x-scheme-handler/flatpak+https;x-scheme-handler/flatpak+http;
