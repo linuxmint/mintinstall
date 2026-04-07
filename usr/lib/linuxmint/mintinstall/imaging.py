@@ -1,16 +1,11 @@
 #!/usr/bin/python3
 
 import os
-import threading
 import requests
-import urllib
-import re
 import logging
 from concurrent.futures import ThreadPoolExecutor
 
 from gi.repository import GObject, Gtk, GLib, Gio, Gdk, GdkPixbuf
-
-import prefs
 
 SCREENSHOT_DIR = os.path.join(GLib.get_user_cache_dir(), "mintinstall", "screenshots")
 FLATHUB_MEDIA_BASE_URL = "https://dl.flathub.org/media/"
@@ -247,59 +242,33 @@ class ScreenshotDownloader():
                 self.add_screenshot(self.pkginfo, None, 0)
 
             return
-        try:
-            link = "https://community.linuxmint.com/img/screenshots/%s.png" % self.pkginfo.name
-            if requests.head(link, timeout=5).status_code < 400:
-                num_screenshots += 1
 
-                local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
-                self.save_to_file(link, None, local_name)
+        """
+        Community screenshots are ~95% from 2014 and severly outdated!
+        https://community.linuxmint.com/img/screenshots/
 
-                self.add_screenshot(self.pkginfo, local_name, num_screenshots)
-        except Exception as e:
-            print(e)
+        So add screenshots from Debshots.
+        Documentation: https://screenshots.debian.net/about
+        """
 
-        try:
-            # Add additional screenshots from Debian
-            from bs4 import BeautifulSoup
-            page = BeautifulSoup(urllib.request.urlopen("https://screenshots.debian.net/package/%s" % self.pkginfo.name, timeout=5), "lxml")
-            images = page.findAll(href=re.compile(r"/shrine/screenshot[/\d\w]*large-[\w\d]*.png"))
-            for image in images:
-                if num_screenshots >= 4:
+        DEBSHOTS_HOST = "https://screenshots.debian.net"
+        debshots_api = f"{DEBSHOTS_HOST}/json/package/{self.pkginfo.name}"
+
+        response = requests.get(debshots_api)
+        if response.status_code == 200:
+            data = response.json()
+            for image in data.get("screenshots", []):
+                if num_screenshots >= 8:
                     break
 
                 num_screenshots += 1
 
-                thumb = "https://screenshots.debian.net%s" % image['href']
-                local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
+                # image in "thumb_image_url" is too small
+                thumb = image.get("screenshot_image_url")
+                local_name = os.path.join(SCREENSHOT_DIR, f"{self.pkginfo.name}_{num_screenshots}.png")
                 self.save_to_file(thumb, None, local_name)
 
                 self.add_screenshot(self.pkginfo, local_name, num_screenshots)
-        except Exception as e:
-            pass
-
-        if self.settings.get_boolean(prefs.HAMONIKR_SCREENSHOTS):
-            try:
-                # Add additional screenshots from Hamonikr
-                from bs4 import BeautifulSoup
-                hamonikrpkgname = self.pkginfo.name.replace("-","_")
-                page = BeautifulSoup(urllib.request.urlopen("https://hamonikr.org/%s" % hamonikrpkgname, timeout=5), "lxml")
-                images = page.findAll('img')
-                for image in images:
-                    if num_screenshots >= 4:
-                        break
-                    if image['src'].startswith('https://hamonikr.org'):
-                        num_screenshots += 1
-
-                        thumb = "%s" % image['src']
-                        link = thumb
-
-                        local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
-                        self.save_to_file(link, None, local_name)
-
-                        self.add_screenshot(self.pkginfo, local_name, num_screenshots)
-            except Exception as e:
-                pass
 
         if num_screenshots == 0:
             self.add_screenshot(self.pkginfo, None, 0)

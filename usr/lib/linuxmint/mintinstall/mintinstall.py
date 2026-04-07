@@ -23,7 +23,7 @@ from operator import attrgetter
 import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('XApp', '1.0')
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject, GLib, Gio, XApp, Pango
+from gi.repository import Gtk, Gdk, GLib, Gio, XApp
 import cairo
 
 from mintcommon.installer import installer
@@ -400,7 +400,6 @@ class PackageTile(Gtk.FlowBoxChild):
     def __init__(self, pkginfo, installer, show_package_type=False, review_info=None):
         super(PackageTile, self).__init__()
 
-        self.button = Gtk.Button();
         self.button.connect("clicked", self._activate_fb_child)
         self.button.set_can_focus(False)
         self.add(self.button)
@@ -1671,7 +1670,7 @@ class Application(Gtk.Application):
         except AttributeError:
             pass
 
-        if ss_path is None:
+        if ss_path is None or not os.path.exists(ss_path):
             box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, valign=Gtk.Align.CENTER)
             image = Gtk.Image(icon_name="xsi-face-uncertain-symbolic", icon_size=Gtk.IconSize.DIALOG)
             label = Gtk.Label(label=_("No screenshots available"))
@@ -2829,19 +2828,6 @@ class Application(Gtk.Application):
             self.builder.get_object("application_help_page").hide()
 
         description = self.installer.get_description(pkginfo)
-
-        if self.settings.get_boolean(prefs.HAMONIKR_SCREENSHOTS):
-            try:
-                from bs4 import BeautifulSoup
-                hamonikrpkgname = pkginfo.name.replace("-","_")
-                page = BeautifulSoup(urllib.request.urlopen("https://hamonikr.org/%s" % hamonikrpkgname, timeout=5), "lxml")
-                texts = page.find("div","xe_content")
-                text = texts.get_text()
-                if text is not None:
-                    description = text
-            except Exception as e:
-                pass
-
         app_description = self.builder.get_object("application_description")
 
         if description not in (None, ''):

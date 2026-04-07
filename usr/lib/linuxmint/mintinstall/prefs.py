@@ -14,7 +14,6 @@ SEARCH_IN_SUMMARY = "search-in-summary"
 SEARCH_IN_DESCRIPTION = "search-in-description"
 INSTALLED_APPS = "installed-apps"
 SEARCH_IN_CATEGORY = "search-in-category"
-HAMONIKR_SCREENSHOTS = "hamonikr-screenshots"
 PACKAGE_TYPE_PREFERENCE = "search-package-type-preference"
 ALLOW_UNVERIFIED_FLATPAKS = "allow-unverified-flatpaks"
 
