@@ -441,6 +441,11 @@ class PackageTile(Gtk.FlowBoxChild):
             self.icon.destroy()
 
         icon_string = self.pkginfo.get_icon(imaging.FEATURED_ICON_SIZE)
+
+        # Check for flatpak names and if there is a icon present in the installed icon theme prefer that one
+        if self.pkginfo.pkg_hash.startswith("fp:") and Gtk.IconTheme.get_default().has_icon(self.pkginfo.name):
+            icon_string = self.pkginfo.name
+   
         if not icon_string:
             icon_string = imaging.FALLBACK_PACKAGE_ICON_PATH
         self.icon = imaging.get_icon(icon_string, imaging.FEATURED_ICON_SIZE)
@@ -2732,6 +2737,11 @@ class Application(Gtk.Application):
         # Set source-agnostic things
 
         icon_string = self.get_application_icon_string(pkginfo, imaging.DETAILS_ICON_SIZE)
+
+        # Check if package is a flatpak if so prefer themed icon over downloaded one
+        if is_flatpak and Gtk.IconTheme.get_default().has_icon(pkginfo.name):
+            icon_string = pkginfo.name
+
         self.detail_view_icon.set_icon_string(icon_string)
 
         self.package_type_store.clear()
