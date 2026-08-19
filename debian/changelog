@@ -1,3 +1,18 @@
+mintinstall (8.4.1) alfa; urgency=medium
+
+  [ Michael Webster ]
+  * .github/workflows: Add generate-test-packages trigger.
+  * .github: Add stale workflow.
+  * Fix kate/kwrite flatpak match swap.
+  * mintinstall-fp-handler: Handle http/https+flatpak browser links also.
+  * search: Fix regression in description searches.
+  * Update apt/flatpak match data.
+  * reviews.py: Fix python 3.14 multiprocessing error.
+  * addons: Call installer.get_addons() asynchronously to prevent lag when viewing a flatpak with many addons.
+  * mintinstall.py: Use xapp for network proxy setup.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 19 Aug 2026 15:00:23 +0200
+
 mintinstall (8.4.0) zena; urgency=medium
 
   [ Clement Lefebvre ]
