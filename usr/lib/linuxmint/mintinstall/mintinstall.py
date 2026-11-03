@@ -7,7 +7,6 @@ import os
 import gettext
 import threading
 import locale
-import urllib.request, urllib.parse, urllib.error
 import random
 from datetime import datetime
 import subprocess
@@ -2844,18 +2843,6 @@ class Application(Gtk.Application):
             self.builder.get_object("application_help_page").hide()
 
         description = self.installer.get_description(pkginfo)
-
-        if self.settings.get_boolean(prefs.HAMONIKR_SCREENSHOTS):
-            try:
-                from bs4 import BeautifulSoup
-                hamonikrpkgname = pkginfo.name.replace("-","_")
-                page = BeautifulSoup(urllib.request.urlopen("https://hamonikr.org/%s" % hamonikrpkgname, timeout=5), "lxml")
-                texts = page.find("div","xe_content")
-                text = texts.get_text()
-                if text is not None:
-                    description = text
-            except Exception as e:
-                pass
 
         app_description = self.builder.get_object("application_description")
 

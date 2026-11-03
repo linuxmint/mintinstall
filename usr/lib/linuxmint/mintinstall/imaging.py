@@ -1,19 +1,16 @@
 #!/usr/bin/python3
 
 import os
-import threading
 import requests
-import urllib
-import re
 import logging
 from concurrent.futures import ThreadPoolExecutor
 
 from gi.repository import GObject, Gtk, GLib, Gio, Gdk, GdkPixbuf
 
-import prefs
-
 SCREENSHOT_DIR = os.path.join(GLib.get_user_cache_dir(), "mintinstall", "screenshots")
 FLATHUB_MEDIA_BASE_URL = "https://dl.flathub.org/media/"
+DEBIAN_SCREENSHOTS_API_URL = "https://screenshots.debian.net/json/package/%s"
+MAX_SCREENSHOTS = 4
 FALLBACK_PACKAGE_ICON_PATH = "/usr/share/linuxmint/mintinstall/data/fallback-package-icon.svg"
 
 ADDON_ICON_SIZE = 24
@@ -273,46 +270,24 @@ class ScreenshotDownloader():
             print(e)
 
         try:
-            # Add additional screenshots from Debian
-            from bs4 import BeautifulSoup
-            page = BeautifulSoup(urllib.request.urlopen("https://screenshots.debian.net/package/%s" % self.pkginfo.name, timeout=5), "lxml")
-            images = page.findAll(href=re.compile(r"/shrine/screenshot[/\d\w]*large-[\w\d]*.png"))
-            for image in images:
-                if num_screenshots >= 4:
-                    break
-
-                num_screenshots += 1
-
-                thumb = "https://screenshots.debian.net%s" % image['href']
-                local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
-                self.save_to_file(thumb, None, local_name)
-
-                self.add_screenshot(self.pkginfo, local_name, num_screenshots)
-        except Exception as e:
-            pass
-
-        if self.settings.get_boolean(prefs.HAMONIKR_SCREENSHOTS):
-            try:
-                # Add additional screenshots from Hamonikr
-                from bs4 import BeautifulSoup
-                hamonikrpkgname = self.pkginfo.name.replace("-","_")
-                page = BeautifulSoup(urllib.request.urlopen("https://hamonikr.org/%s" % hamonikrpkgname, timeout=5), "lxml")
-                images = page.findAll('img')
-                for image in images:
-                    if num_screenshots >= 4:
+            r = requests.get(DEBIAN_SCREENSHOTS_API_URL % self.pkginfo.name, timeout=5)
+            if r.status_code < 400:
+                for image in r.json().get("screenshots", []):
+                    if num_screenshots >= MAX_SCREENSHOTS:
                         break
-                    if image['src'].startswith('https://hamonikr.org'):
-                        num_screenshots += 1
 
-                        thumb = "%s" % image['src']
-                        link = thumb
+                    url = image.get("screenshot_image_url")
+                    if url is None:
+                        continue
 
-                        local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
-                        self.save_to_file(link, None, local_name)
+                    num_screenshots += 1
 
-                        self.add_screenshot(self.pkginfo, local_name, num_screenshots)
-            except Exception as e:
-                pass
+                    local_name = os.path.join(SCREENSHOT_DIR, "%s_%s.png" % (self.pkginfo.name, num_screenshots))
+                    self.save_to_file(url, None, local_name)
+
+                    self.add_screenshot(self.pkginfo, local_name, num_screenshots)
+        except Exception as e:
+            print("Could not fetch Debian screenshots for %s: %s" % (self.pkginfo.name, e))
 
         if num_screenshots == 0:
             self.add_screenshot(self.pkginfo, None, 0)
