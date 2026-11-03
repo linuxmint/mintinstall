@@ -27,18 +27,30 @@ MAX_THREADS = 2
 
 threadpool = ThreadPoolExecutor(max_workers=MAX_THREADS, thread_name_prefix="mintinstall-images")
 icon_surface_cache = {}
+scale_widget = None
 
 def clear_cache():
-    icon_surface_cache = {}
+    icon_surface_cache.clear()
 
-def key(string, size):
-    return f"{string}_{size}"
+def set_scale_widget(widget):
+    global scale_widget
+    scale_widget = widget
+    scale_widget.connect("notify::scale-factor", lambda *args: clear_cache())
+
+# Images are usually created before being added to a window, when their own scale factor
+# falls back to monitor 0's. Prefer the main window's, which reflects where they'll be shown.
+def get_scale_factor(widget=None):
+    source = scale_widget or widget
+    return source.get_scale_factor() if source else 1
+
+def key(string, size, scale):
+    return f"{string}_{size}@{scale}"
 
 def get_icon(string, size):
     icon = None
 
     try:
-        surface = icon_surface_cache[key(string, size)]
+        surface = icon_surface_cache[key(string, size, get_scale_factor())]
         icon = Gtk.Image.new_from_surface(surface)
     except Exception as e:
         icon = AsyncImage(string, size, size, cache=True)
@@ -85,13 +97,15 @@ class AsyncImage(Gtk.Image):
         # This keeps the icon's space occupied until loaded.
         self.set_size_request(width, height)
 
+        self.load_scale = get_scale_factor(self)
+
         if width != -1:
-            self.width = width * self.get_scale_factor()
+            self.width = width * self.load_scale
         else:
             self.width = width
 
         if height != -1:
-            self.height = height * self.get_scale_factor()
+            self.height = height * self.load_scale
         else:
             self.height = height
 
@@ -178,14 +192,13 @@ class AsyncImage(Gtk.Image):
             pixbuf = GdkPixbuf.Pixbuf.new_from_stream_finish(result)
 
             if pixbuf:
-                scale = self.get_scale_factor()
-                self.width = pixbuf.get_width() / scale
-                self.height = pixbuf.get_height() / scale
+                self.width = pixbuf.get_width() / self.load_scale
+                self.height = pixbuf.get_height() / self.load_scale
                 surface = Gdk.cairo_surface_create_from_pixbuf(pixbuf,
-                                                               scale,
+                                                               self.load_scale,
                                                                self.get_window())
                 if self.cached:
-                    icon_surface_cache[key(self.icon_string, self.req_height)] = surface
+                    icon_surface_cache[key(self.icon_string, self.req_height, self.load_scale)] = surface
 
                 self.set_from_surface(surface)
         except GLib.Error as e:

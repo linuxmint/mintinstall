@@ -826,6 +826,7 @@ class Application(Gtk.Application):
         self.builder = Gtk.Builder.new_from_resource("/com/linuxmint/mintinstall/mintinstall.glade")
 
         self.main_window = self.builder.get_object("main_window")
+        imaging.set_scale_widget(self.main_window)
         self.main_window.set_title(_("Software Manager"))
         GLib.set_application_name(_("Software Manager"))
         self.set_default_window_size()
