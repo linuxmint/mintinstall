@@ -1753,7 +1753,7 @@ class Application(Gtk.Application):
             if url is not None:
                 return url
         except GLib.Error as e:
-            print("Could not retrieve source metadata for screenshot (%s): %s" % (ss_path, e.message))
+            print("Could not retrieve source metadata for screenshot (%s): %s" % (screenshot.path, e.message))
 
         return None
 
