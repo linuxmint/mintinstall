@@ -1,3 +1,17 @@
+mintinstall (8.4.2) adrien; urgency=medium
+
+  [ Michael Webster ]
+  * imaging.py: Use the main window's scale for loading icons.
+  * Fix Debian screenshots, remove Hamonikr support.
+
+  [ Wodsfort Dragon ]
+  * Remove Skype alias (#516)
+
+  [ Pedro Barbosa ]
+  * mintinstall.py: Fix NameError when screenshot metadata can't be read (#518)
+
+ -- Clement Lefebvre <root@linuxmint.com>  Thu, 12 Nov 2026 11:46:43 +0000
+
 mintinstall (8.4.1) alfa; urgency=medium
 
   [ Michael Webster ]
