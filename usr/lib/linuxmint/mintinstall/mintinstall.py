@@ -2009,7 +2009,7 @@ class Application(Gtk.Application):
                 if element.startswith('%'):
                     exec_array.remove(element)
             if "sh" in exec_array:
-                print("Launching app with OS: " % " ".join(exec_array))
+                print("Launching app with OS: %s" % " ".join(exec_array))
                 os.system("%s &" % " ".join(exec_array))
             else:
                 print("Launching app with Popen: %s" % " ".join(exec_array))
