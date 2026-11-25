@@ -1,3 +1,9 @@
+mintinstall (8.4.3) adrien; urgency=medium
+
+  * l10n: Update files
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 25 Nov 2026 10:06:11 +0000
+
 mintinstall (8.4.2) adrien; urgency=medium
 
   [ Michael Webster ]
